@@ -19,7 +19,6 @@ type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */
     headerTitle: string;
 
-    /** A function triggered when the back button is pressed */
     onBackButtonPress: () => void;
 
     /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
@@ -28,22 +27,17 @@ type StepScreenWrapperProps = {
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
     shouldShowWrapper: boolean;
 
-    /** Whether or not to display not found page */
     shouldShowNotFoundPage?: boolean;
-
-    /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
     /** An ID used for unit testing */
     testID: string;
 
-    /** Whether or not to include safe area padding */
     includeSafeAreaPaddingBottom?: boolean;
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-    /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
 
     /** Menu items to display in the header three-dots / action button */

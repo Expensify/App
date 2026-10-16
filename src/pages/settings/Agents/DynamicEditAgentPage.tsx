@@ -1,0 +1,195 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+
+import useChatWithAgent from '@hooks/useChatWithAgent';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+type DynamicEditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>;
+
+function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
+    const accountID = route.params.accountID;
+    const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
+    const chatWithAgent = useChatWithAgent();
+    const switchToDelegator = useSwitchToDelegator();
+    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);
+
+    const agentLogin = personalDetails?.login ?? '';
+    const handleBackPress = () => Navigation.goBack(backPath);
+    const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute()));
+    const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute()));
+    const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()));
+    const handleDeletePress = async () => {
+        const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
+        if (ruleBotEnforcedPolicy) {
+            showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+            return;
+        }
+        const result = await showConfirmModal({
+            title: translate('editAgentPage.deleteAgentTitle'),
+            prompt: translate('editAgentPage.deleteAgentMessage'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldHandleNavigationBack: false,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteAgent(accountID, agentLogin, allPolicies, true, backPath);
+    };
+    const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
+    const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
+    const handleChatPress = () => {
+        chatWithAgent(accountID);
+    };
+    const handleCopilotPress = () => {
+        switchToDelegator(agentLogin);
+    };
+    const handleViewHistoryPress = () => {
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            from: [String(accountID)],
+        });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+    };
+
+    if (shouldShowNotFoundPage) {
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
+    }
+
+    const agentAvatar = personalDetails?.avatar ? (
+        <UserAvatar
+            source={personalDetails.avatar}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={accountID}
+        />
+    ) : null;
+
+    return (
+        <ScreenWrapper
+            testID={DynamicEditAgentPage.displayName}
+            includeSafeAreaPaddingBottom
+            offlineIndicatorStyle={styles.mtAuto}
+        >
+            <HeaderWithBackButton
+                title={translate('editAgentPage.title')}
+                onBackButtonPress={handleBackPress}
+            />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <OfflineWithFeedback
+                    errors={agent?.avatarErrors}
+                    errorRowStyles={[styles.mh5, styles.mb2]}
+                    onClose={() => clearAgentAvatarUpdateError(accountID)}
+                >
+                    <View style={[styles.alignItemsCenter, styles.pv5]}>
+                        <AvatarButtonWithIcon
+                            text={translate('editAgentAvatarPage.title')}
+                            avatar={agentAvatar}
+                            onPress={handleEditAvatarPress}
+                            pendingAction={personalDetails?.pendingFields?.avatar}
+                            sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
+                            editIconStyle={styles.smallEditIconAccount}
+                        />
+                    </View>
+                </OfflineWithFeedback>
+                <OfflineWithFeedback
+                    errors={agent?.nameErrors}
+                    errorRowStyles={[styles.mh5, styles.mb2]}
+                    onClose={() => clearAgentNameUpdateError(accountID)}
+                >
+                    <MenuItemField
+                        name={translate('editAgentPage.agentName')}
+                        onPress={handleEditNamePress}
+                        value={personalDetails?.displayName}
+                    />
+                </OfflineWithFeedback>
+                <OfflineWithFeedback
+                    errors={agent?.promptErrors}
+                    errorRowStyles={[styles.mh5, styles.mb2]}
+                    onClose={() => clearAgentPromptUpdateError(accountID)}
+                >
+                    <MenuItemFieldHTML
+                        name={translate('editAgentPage.instructions')}
+                        value={agentPrompt ? Parser.replace(agentPrompt, {disabledRules: ['reportMentions']}) : undefined}
+                        characterLimit={CONST.AGENT_PROMPT_LIMIT}
+                        onPress={handleEditPromptPress}
+                    />
+                </OfflineWithFeedback>
+                <MenuItemAction
+                    title={translate('editAgentPage.viewAgentHistory')}
+                    icon={icons.MagnifyingGlass}
+                    onPress={handleViewHistoryPress}
+                    isDisabled={areActionsDisabled}
+                />
+                <MenuItemAction
+                    title={translate('editAgentPage.chatWithAgent')}
+                    icon={icons.ChatBubble}
+                    onPress={handleChatPress}
+                    isDisabled={areActionsDisabled}
+                />
+                <MenuItemAction
+                    title={translate('editAgentPage.copilotIntoAccount')}
+                    icon={icons.Users}
+                    onPress={handleCopilotPress}
+                    isDisabled={areActionsDisabled}
+                />
+                <MenuItemAction
+                    title={translate('editAgentPage.deleteAgent')}
+                    icon={icons.Trashcan}
+                    onPress={handleDeletePress}
+                />
+            </ScrollView>
+        </ScreenWrapper>
+    );
+}
+
+DynamicEditAgentPage.displayName = 'DynamicEditAgentPage';
+
+export default DynamicEditAgentPage;

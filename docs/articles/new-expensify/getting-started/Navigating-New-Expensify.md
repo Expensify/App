@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -14,12 +14,12 @@ This guide explains where to find each tab and what it’s used for.
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
 
 **For workspace admins:**
-- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/rbncowjn0nav)
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/v9dr1rjqsd9y)
-- [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/rbncowjn0nav)
+- [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
@@ -77,12 +77,6 @@ At the top of the **Inbox**, three tabs let you filter your chats:
 The **Unread** and **To-dos** tabs show a count badge with the number of chats in each. The badge is hidden when the count is zero.
 
 Your selected tab is remembered, so the Inbox reopens to the same tab the next time you return.
-
-<!-- SCREENSHOT:
-Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with a count badge on Unread or To-dos
-Location: After the "How to filter your Inbox using tabs" section
-Purpose: Show users where the filter tabs appear and what the count badge looks like
--->
 
 ---
 
@@ -198,13 +192,46 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
 - Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
 - Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), from a report, to jump directly to the workspace that the report belongs to.
+
+---
+
+## How to start an action using Search
+
+You can start common actions from **Search** instead of using the **➕ Create** button.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the action you want to start, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, or **Book travel**. You can also type **go** or **go to** before the name, such as **go to book travel**.
+3. Select the action to start it.
+
+Only the actions available to you appear. **Book travel** appears only when Expensify Travel is enabled on your active workspace, and it opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+
+Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+## How to jump to a domain page using Search
+
+If you are a Domain Admin, **Search** also suggests the pages of each domain you administer, so you can open them without going through **Workspaces** > **Domains**.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the page you want to open — **Domain members**, **Domain admins**, **Groups**, or **SAML** — or type the domain name, such as **example.com**.
+3. Select the suggestion to open that page for that domain.
+
+Each domain suggestion shows the domain name on the right of the row, so you can tell the suggestions apart when you administer more than one domain.
+
+These suggestions only appear for domains you administer. If you are not a Domain Admin of any domain, only **Go to Domains** appears.
+
+Learn more about [what Domain Admins can manage](/articles/new-expensify/domains/Domain-Admins).
+
+<!-- SCREENSHOT:
+Suggestion: Search with a domain page suggestion visible, showing the Go to Domain members row with the domain name displayed on the right
+Location: After the "How to jump to a domain page using Search" section
+Purpose: Shows Domain Admins that the domain name identifies which domain a suggestion belongs to, which prevents opening the wrong domain when they administer several
+-->
 
 ---
 
@@ -217,6 +244,14 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Can I book travel from Search?
+
+Yes. Select **Search** (the magnifying glass icon), type **Book travel**, then select the **Book travel** result. This opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+
+## Why don’t I see Book travel in Search?
+
+**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a Workspace Admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
 ## Where do I manage workspace settings?
 

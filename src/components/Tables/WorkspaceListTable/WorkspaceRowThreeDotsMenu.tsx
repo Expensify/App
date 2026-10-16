@@ -5,13 +5,17 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+
+import UnarchiveWorkspaceFlow from '@pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow';
 
 import {setNameValuePair} from '@userActions/User';
 
@@ -40,6 +44,9 @@ type WorkspaceRowThreeDotsMenuProps = {
     /** Called when the user picks Delete, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
+    /** Called when the user picks Archive, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
 };
@@ -49,12 +56,14 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const {isBetaEnabled} = usePermissions();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -66,7 +75,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     const [activeAction, setActiveAction] = useState<ActiveAction>();
@@ -94,67 +104,85 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         },
     ];
 
-    if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
-        menuItems.push({
-            icon: icons.Exit,
-            text: translate('common.leave'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
-            shouldCallAfterModalHide: true,
-        });
-    }
-
-    if (isAdmin) {
-        menuItems.push({
-            icon: icons.Plus,
-            text: translate('workspace.common.duplicateWorkspace'),
-            onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
-        });
-        if (item.isEligibleToCopy) {
+    if (!item.isArchived) {
+        if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
             menuItems.push({
-                icon: icons.Copy,
-                text: translate('workspace.copyPolicySettings.title'),
+                icon: icons.Exit,
+                text: translate('common.leave'),
+                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
+                shouldCallAfterModalHide: true,
+            });
+        }
+
+        if (isAdmin) {
+            menuItems.push({
+                icon: icons.Plus,
+                text: translate('workspace.common.duplicateWorkspace'),
+                onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
+            });
+            if (item.isEligibleToCopy) {
+                menuItems.push({
+                    icon: icons.Copy,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    onSelected: () => {
+                        if (!item.policyID) {
+                            return;
+                        }
+                        clearCopyPolicySettings();
+                        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID));
+                    },
+                });
+            }
+        }
+
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+            menuItems.push({
+                icon: icons.Star,
+                text: translate('workspace.common.setAsDefault'),
                 onSelected: () => {
-                    if (!item.policyID) {
+                    if (!item.policyID || !activePolicyID) {
                         return;
                     }
-                    clearCopyPolicySettings();
-                    Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID));
+                    setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, item.policyID, activePolicyID);
                 },
+            });
+        }
+
+        if (isOwner) {
+            menuItems.push({
+                icon: canArchivePolicies ? icons.Box : icons.Trashcan,
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
+                shouldShowLoadingSpinnerIcon: !canArchivePolicies && !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                onSelected: () => {
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, mounted by the page.
+                    if (canArchivePolicies) {
+                        onArchiveWorkspace(item.policyID);
+                        return;
+                    }
+
+                    if (isLoadingBill) {
+                        return;
+                    }
+
+                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
+                    onDeleteWorkspace(item.policyID);
+                },
+                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
     }
 
-    if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+    if (canUnarchivePolicy(item.isArchived, item.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
         menuItems.push({
-            icon: icons.Star,
-            text: translate('workspace.common.setAsDefault'),
-            onSelected: () => {
-                if (!item.policyID || !activePolicyID) {
-                    return;
-                }
-                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, item.policyID, activePolicyID);
-            },
+            icon: icons.ArrowCircleClockwise,
+            text: translate('workspace.common.unarchive'),
+            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE)),
+            shouldCallAfterModalHide: true,
         });
     }
 
-    if (isOwner) {
-        menuItems.push({
-            icon: icons.Trashcan,
-            text: translate('workspace.common.delete'),
-            shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-            onSelected: () => {
-                if (isLoadingBill) {
-                    return;
-                }
-
-                // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
-                onDeleteWorkspace(item.policyID);
-            },
-            shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-            shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-        });
-    }
-
+    // Transferring ownership applies to both active and archived workspaces, so it lives outside the split above.
     if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
         menuItems.push({
             icon: icons.Transfer,
@@ -180,6 +208,12 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             />
             {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE && (
                 <LeaveWorkspaceFlow
+                    policyID={item.policyID}
+                    onDismiss={() => setActiveAction(undefined)}
+                />
+            )}
+            {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE && (
+                <UnarchiveWorkspaceFlow
                     policyID={item.policyID}
                     onDismiss={() => setActiveAction(undefined)}
                 />

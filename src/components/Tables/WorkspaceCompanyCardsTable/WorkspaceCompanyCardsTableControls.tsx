@@ -6,6 +6,7 @@ import {useTableContext} from '@components/Table/TableContext';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,13 +28,8 @@ import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTab
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
-
-    /** Bank name */
     bankName: UseCompanyCardsResult['bankName'];
 
     /** Whether the current member can edit company cards */
@@ -65,6 +61,7 @@ function WorkspaceCompanyCardsTableControls({
     isSelectionModeEnabled,
 }: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
@@ -125,7 +122,7 @@ function WorkspaceCompanyCardsTableControls({
             prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action !== ModalActions.CONFIRM) {
@@ -189,7 +186,7 @@ function WorkspaceCompanyCardsTableControls({
     return (
         <>
             {shouldShowBulkActions && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
+                <View style={[styles.w100, pageGutter, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}

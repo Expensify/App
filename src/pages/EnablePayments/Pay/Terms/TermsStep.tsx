@@ -15,6 +15,7 @@ import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm
 import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
 
 import {acceptWalletTerms} from '@userActions/BankAccounts';
+import {resetWalletAdditionalDetailsDraft} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +26,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useState} from 'react';
 
 type TermsStepProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 
@@ -101,6 +101,8 @@ function TermsStep(props: TermsStepProps) {
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 reportID: walletTerms?.chatReportID ?? '',
                             });
+                            // The SSN is saved to this draft for the magic code page, so clear it once the Pay flow no longer needs it
+                            resetWalletAdditionalDetailsDraft();
                         });
                     }}
                     message={errorMessage}

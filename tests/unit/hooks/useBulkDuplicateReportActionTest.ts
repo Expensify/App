@@ -16,7 +16,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -28,7 +28,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -116,7 +116,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -149,7 +149,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -180,7 +180,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -207,7 +207,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: undefined, policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -246,7 +246,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -289,7 +289,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -320,7 +320,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);
@@ -345,7 +345,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports: undefined, searchData: undefined}));
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports: undefined, allTransactions: {}, searchData: undefined}));
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Function);

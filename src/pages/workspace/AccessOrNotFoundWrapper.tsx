@@ -5,7 +5,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,7 +17,6 @@ import {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
-    canSendInvoice,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -34,7 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, Report} from '@src/types/onyx';
+import type {Report, Rule} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -54,29 +52,29 @@ const ACCESS_VARIANTS = {
         policy: OnyxEntry<Policy>,
         login: string,
         report: OnyxEntry<Report>,
-        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
-        betas: OnyxEntry<Beta[]>,
+        canSendInvoice: boolean,
         iouType?: IOUType,
         isReportArchived?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
+        rules?: OnyxCollection<Rule>,
     ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
-        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, rules, isRestrictedToPreferredPolicy)) &&
+        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
 } as const satisfies Record<
     string,
     (
         policy: Policy,
         login: string,
         report: Report,
-        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
-        betas: OnyxEntry<Beta[]>,
+        canSendInvoice: boolean,
         iouType?: IOUType,
         isArchivedReport?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
+        rules?: OnyxCollection<Rule>,
     ) => boolean
 >;
 
@@ -89,12 +87,10 @@ type AccessOrNotFoundWrapperChildrenProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<Policy>;
 
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
 type AccessOrNotFoundWrapperProps = {
-    /** The children to render */
     children: ((props: AccessOrNotFoundWrapperChildrenProps) => React.ReactNode) | React.ReactNode;
 
     /** The id of the report that holds the transaction */
@@ -121,11 +117,14 @@ type AccessOrNotFoundWrapperProps = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
+    /** Whether the ADMIN access variant should still grant access when the policy is archived */
+    canBeAccessedIfArchived?: boolean;
+
     /** The type of the transaction */
     iouType?: IOUType;
 
-    /** The list of all policies */
-    allPolicies?: OnyxCollection<Policy>;
+    /** Only read for the invoice iou type */
+    canSendInvoice?: boolean;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
@@ -158,10 +157,11 @@ function AccessOrNotFoundWrapper({
     accessVariants = [],
     fullPageNotFoundViewProps,
     shouldBeBlocked,
+    canBeAccessedIfArchived = false,
     policyID,
     reportID,
     iouType,
-    allPolicies,
+    canSendInvoice,
     featureName,
     policyFeature,
     policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -172,8 +172,7 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {isBetaEnabled} = usePermissions();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
@@ -181,6 +180,7 @@ function AccessOrNotFoundWrapper({
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -196,9 +196,7 @@ function AccessOrNotFoundWrapper({
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
     // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled.
-    // Collect workspaces can only access Rules when the rulesRevamp beta is enabled.
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories, isRulesRevampEnabled) : true;
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories) : true;
 
     const {isOffline} = useNetwork();
 
@@ -207,9 +205,12 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+            return acc && accessFunction(policy, login, report, !!canSendInvoice, iouType, isReportArchived, isRestrictedToPreferredPolicy, rules);
         }
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
+        if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
+            return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
+        }
+        return acc && accessFunction(policy, login, report, !!canSendInvoice, iouType, isReportArchived);
     }, true);
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {
@@ -250,12 +251,12 @@ function AccessOrNotFoundWrapper({
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
     // The feature linked to this page is disabled, so the redirect effect above will navigate to the More Features page.
     // Render a loader instead of the page's children so the disabled page is never shown for a frame (avoids a visible flash).
     if (shouldRedirectToMoreFeatures) {
-        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
     if (shouldShowNotFoundPage) {
         return (

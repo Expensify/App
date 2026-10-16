@@ -1,6 +1,8 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SearchFiltersResetButton from '@components/Search/SearchPageHeader/SearchFiltersResetButton';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PropsWithChildren} from 'react';
@@ -16,11 +18,15 @@ import TableSearchBar from './TableSearchBar';
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
+
+    /** Whether to show a "Reset" button that resets all active filters. */
+    shouldShowResetFiltersButton?: boolean;
 }>;
 
-export default function TableFilterBar({label, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {pageGutter} = useLayoutSpacing();
+    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
@@ -44,8 +50,17 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
             };
         });
 
+    const resetFilters = () => {
+        for (const filter of appliedFilters) {
+            tableMethods.updateFilter({key: filter.key, value: []});
+        }
+        // Also clear the search input so the Reset button resets both the filters and the search text.
+        tableMethods.updateSearchString('');
+        onSearchStringChange?.('');
+    };
+
     const ActiveFilterChipsComponent = !!appliedFilters.length && (
-        <View style={[styles.flexRow, styles.gap2, styles.flexWrap]}>
+        <View style={[styles.flexRow, styles.gap2, styles.flexWrap, styles.alignItemsCenter]}>
             {appliedFilters.map((filter) => (
                 <DropdownButton
                     key={filter.key}
@@ -56,6 +71,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                     onClosePress={filter.onClosePress}
                 />
             ))}
+            {!!shouldShowResetFiltersButton && <SearchFiltersResetButton onPress={resetFilters} />}
         </View>
     );
 
@@ -64,7 +80,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
     }
 
     return (
-        <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
+        <View style={[styles.w100, styles.gap3, styles.pb3, pageGutter]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
                     <TableSearchBar label={label} />

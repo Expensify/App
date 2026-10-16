@@ -2,10 +2,11 @@ import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 
 import {
     areAllTransactionsExpenseCompatible,
+    getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReports,
@@ -283,6 +284,31 @@ describe('SearchEditMultipleUtils', () => {
         it('returns false when the selection contains per-diem or time transactions, regardless of policy', () => {
             const contexts = [{transaction: makeTransaction(TRANSACTION_ID_1, 'report1'), transactionPolicy: taxEnabledPolicy}];
             expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, true)).toBe(false);
+        });
+    });
+
+    describe('getTransactionEditContext', () => {
+        it('returns the report actions of the transaction report so callers can reuse them without re-indexing the collection', () => {
+            const transaction = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
+            const iouAction = createMock<ReportAction>({
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {IOUTransactionID: TRANSACTION_ID_1, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+            const reportActionsForReport = {[iouAction.reportActionID]: iouAction};
+
+            const allTransactions = {[TRANSACTION_DATA_KEY_1]: transaction};
+            const allReports = {[REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_A)};
+            const allReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: reportActionsForReport};
+
+            const context = getTransactionEditContext(TRANSACTION_ID_1, allTransactions, allReports, allReportActions, undefined);
+
+            expect(context?.reportActions).toEqual(reportActionsForReport);
+            expect(context?.reportAction).toEqual(iouAction);
+        });
+
+        it('returns null when the transaction is not found', () => {
+            expect(getTransactionEditContext('missing', {}, {}, {}, undefined)).toBeNull();
         });
     });
 });

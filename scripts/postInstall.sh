@@ -33,5 +33,9 @@ bun scripts/applyPatches.ts
 
 # `@typescript/old` (pulled in by `@typescript/typescript6`) also ships a `tsc` bin.
 # npm's last-writer-wins linking can point `node_modules/.bin/tsc` at TypeScript 6.
-# Force the TypeScript 7 native compiler so a bare `npx tsc` matches `npm run typecheck`.
+# Force the TypeScript 7 native compiler, so `npx tsc` is the compiler `npm run typecheck` runs.
+#
+# It is not the same *command*: the root tsconfig.json is a solution that lists projects and owns no
+# files, and project mode does not follow `references`. `npx tsc` at the repo root therefore checks
+# nothing and exits 0. Use `npx tsc --build`, which walks the references, or `npm run typecheck`.
 ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"

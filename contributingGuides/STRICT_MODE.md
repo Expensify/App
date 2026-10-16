@@ -26,6 +26,11 @@ _Important note_: this ☝️flag is strictly for developers. It does not affect
 StrictMode is supposed to always wrap your App regardless of environment, and it will simply do nothing when run on production react build.
 Only use this flag for local development and testing, but do not make it depending on `NODE_ENV` or any other env vars.
 
+### StrictMode on screens that opt into React `<Activity>`
+Screens with the `nonTopScreenBehavior: 'activity'` navigation option are additionally wrapped in `StrictMode` by `ScreenActivityWrapper`, and the `USE_REACT_STRICT_MODE_IN_DEV` flag does not affect that wrapper. The double effect mount in dev exercises the same cleanup and re-run lifecycle as an Activity hide and reveal cycle, so it is the qualification gate for migrating a screen to Activity (see [ACTIVITY_SCREENS.md](ACTIVITY_SCREENS.md) and [the rollout plan](https://github.com/Expensify/App/issues/98254)).
+
+React only double-invokes effects for content that mounts inside an already committed `StrictMode` fiber, so `StrictModeMountGate` commits `StrictMode` one commit ahead of the screen content (dev only). To keep the gate's double renders out of performance measurements (browser profiler, React DevTools), temporarily set `USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV` to `false` in `src/CONFIG.ts` - same rules as `USE_REACT_STRICT_MODE_IN_DEV`: local use only, never commit it flipped.
+
 ### Common StrictMode pitfalls
  - every component will go through: `mount -> unmount -> mount` on first app render
  - any code running inside `useEffect(() => {...}, [])` that would be expected to run once on initial render, will run twice, this might include initial api calls

@@ -20,7 +20,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import CenteredModalLayout from './CenteredModalLayout';
-import FeatureTrainingContent from './FeatureTrainingContent';
+import FeatureTraining from './FeatureTraining';
 import Text from './Text';
 
 const FEATURE_TRANSLATION_KEYS: TranslationPaths[] = [
@@ -39,8 +39,6 @@ function SubmitPlanWelcomeModal() {
     const {firstName, lastName} = useCurrentUserPersonalDetails();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
-    // Whenever this modal is removed from the navigation stack (confirmed, dismissed, or closed),
-    // persist that the user has seen it so it never triggers again.
     useBeforeRemove(() => {
         setSubmitMigrationModalShown();
     });
@@ -48,9 +46,6 @@ function SubmitPlanWelcomeModal() {
     const handleClose = () => Navigation.goBack();
 
     const handleConfirm = () => {
-        // The user has already completed onboarding, so we skip CompleteGuidedSetup and just create the
-        // Submit workspace. autoCreateSubmitWorkspace then dismisses this modal and navigates to Categories
-        // with #admins in the RHP, which triggers the useBeforeRemove persistence above.
         autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', false);
     };
 
@@ -58,40 +53,40 @@ function SubmitPlanWelcomeModal() {
         <CenteredModalLayout
             onBackdropPress={handleClose}
             contentStyle={[styles.pt0, styles.pb0]}
-            // FeatureTrainingContent's ScrollView already applies the bottom safe-area inset to its content
-            // padding, so the layout must not add it again (it would render as an empty band on Android).
             addBottomSafeAreaPadding={false}
         >
-            <FeatureTrainingContent
-                image={illustrations.ReceiptWranglerSpaceCowgirl}
-                contentFitImage="contain"
-                illustrationAspectRatio={variables.submitPlanWelcomeModalIllustrationAspectRatio}
-                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.p5, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
-                illustrationOuterContainerStyle={styles.p0}
-                title={translate('submitPlanWelcomeModal.title')}
-                description={translate('submitPlanWelcomeModal.description')}
-                confirmText={translate('submitPlanWelcomeModal.confirmText')}
-                helpText={translate('submitPlanWelcomeModal.dismissText')}
+            <FeatureTraining
                 onConfirm={handleConfirm}
-                onHelp={handleClose}
                 onClose={handleClose}
-                shouldCloseOnConfirm={false}
-                contentInnerContainerStyles={styles.mb5}
-                contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
                 shouldUseScrollView
             >
-                <View style={[styles.gap2, styles.mt3]}>
-                    {FEATURE_TRANSLATION_KEYS.map((translationKey) => (
-                        <View
-                            key={translationKey}
-                            style={[styles.flexRow, styles.alignItemsStart]}
-                        >
-                            <Text style={styles.textSupporting}>{'\u2022  '}</Text>
-                            <Text style={[styles.textSupporting, styles.flex1]}>{translate(translationKey)}</Text>
+                <FeatureTraining.Illustration
+                    image={illustrations.ReceiptWranglerSpaceCowgirl}
+                    contentFitImage="contain"
+                    aspectRatio={variables.submitPlanWelcomeModalIllustrationAspectRatio}
+                    innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.p5, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
+                    outerContainerStyle={styles.p0}
+                />
+                <FeatureTraining.Body style={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}>
+                    <FeatureTraining.BodyText style={styles.mb5}>
+                        <FeatureTraining.Title style={shouldUseNarrowLayout && styles.mb1}>{translate('submitPlanWelcomeModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('submitPlanWelcomeModal.description')}</FeatureTraining.Description>
+                        <View style={[styles.gap2, styles.mt3]}>
+                            {FEATURE_TRANSLATION_KEYS.map((translationKey) => (
+                                <View
+                                    key={translationKey}
+                                    style={[styles.flexRow, styles.alignItemsStart]}
+                                >
+                                    <Text style={styles.textSupporting}>{'•  '}</Text>
+                                    <Text style={[styles.textSupporting, styles.flex1]}>{translate(translationKey)}</Text>
+                                </View>
+                            ))}
                         </View>
-                    ))}
-                </View>
-            </FeatureTrainingContent>
+                    </FeatureTraining.BodyText>
+                    <FeatureTraining.HelpButton onPress={handleClose}>{translate('submitPlanWelcomeModal.dismissText')}</FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton>{translate('submitPlanWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

@@ -3,9 +3,9 @@ import DisplayNames from '@components/DisplayNames';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldUseBoldText} from '@libs/OptionsListUtils';
+import {shouldUseBoldText, shouldUseFullTitleForOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {isGroupChat, isSystemChat} from '@libs/ReportUtils';
+import {isGroupChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
@@ -27,16 +27,7 @@ function Title({optionItem, testID}: TitleProps) {
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0];
 
     const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);
-    const shouldUseFullTitle =
-        !!optionItem.isChatRoom ||
-        !!optionItem.isPolicyExpenseChat ||
-        !!optionItem.isTaskReport ||
-        !!optionItem.isThread ||
-        !!optionItem.isMoneyRequestReport ||
-        !!optionItem.isInvoiceReport ||
-        !!optionItem.private_isArchived ||
-        isGroupChat(optionItem) ||
-        isSystemChat(optionItem);
+    const shouldUseFullTitle = shouldUseFullTitleForOption(optionItem);
 
     return (
         <DisplayNames

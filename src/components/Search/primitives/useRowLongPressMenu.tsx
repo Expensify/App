@@ -3,6 +3,7 @@ import Modal from '@components/Modal';
 import {useSearchRowSelectionActions} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
@@ -13,6 +14,7 @@ import CONST from '@src/CONST';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type UseRowLongPressMenuParams = {
     /** Whether long press should be suppressed entirely. */
@@ -46,6 +48,7 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {toggle} = useSearchRowSelectionActions();
     const route = useRoute();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -99,13 +102,16 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={() => setIsModalVisible(false)}
             shouldPreventScrollOnFocus
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <MenuItemAction
-                title={translate('common.select')}
-                icon={expensifyIcons.CheckSquare}
-                onPress={turnOnSelectionMode}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
-            />
+            <View style={bottomSafeAreaPaddingStyle}>
+                <MenuItemAction
+                    title={translate('common.select')}
+                    icon={expensifyIcons.CheckSquare}
+                    onPress={turnOnSelectionMode}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
+                />
+            </View>
         </Modal>
     );
 

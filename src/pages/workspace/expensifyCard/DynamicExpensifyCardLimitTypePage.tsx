@@ -27,7 +27,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
+import {
+    filterInactiveCardsForWorkspace,
+    getDefaultExpensifyCardLimitType,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getVisibleExpensifyCardLimitTypes,
+    shouldConfirmExpensifyCardLimitTypeChange,
+} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canMemberRead, getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -77,10 +83,6 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
-    const promptTranslationKey =
-        initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED
-            ? 'workspace.expensifyCard.changeCardSmartLimitTypeWarning'
-            : 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
@@ -107,47 +109,27 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     useFocusEffect(fetchCardLimitTypeData);
 
     const updateCardLimitType = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM>) => {
-        updateExpensifyCardLimitType(
-            defaultFundID,
-            Number(cardID),
-            typeSelected,
-            assigneeTimeZone,
-            latestCardRef.current?.nameValuePairs,
-            values[INPUT_IDS.VALID_FROM],
-            values[INPUT_IDS.VALID_THRU],
-            !expirationToggle,
-        );
+        updateExpensifyCardLimitType({
+            workspaceAccountID: defaultFundID,
+            cardID: Number(cardID),
+            newLimitType: typeSelected,
+            timeZone: assigneeTimeZone,
+            oldCardNameValuePairs: latestCardRef.current?.nameValuePairs,
+            validFrom: values[INPUT_IDS.VALID_FROM],
+            validThru: values[INPUT_IDS.VALID_THRU],
+            shouldClearValidityDates: !expirationToggle,
+        });
         goBack();
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM>) => {
-        let shouldShowConfirmModal = false;
-        if (!!card?.unapprovedSpend && card?.nameValuePairs?.unapprovedExpenseLimit) {
-            // Spends are coming as negative numbers from the backend and we need to make it positive for the correct expression.
-            const unapprovedSpend = Math.abs(card.unapprovedSpend);
-            const isUnapprovedSpendOverLimit = unapprovedSpend >= card.nameValuePairs.unapprovedExpenseLimit;
-
-            const validCombinations = [
-                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
-                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
-                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
-                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
-            ];
-            // Check if the combination exists in validCombinations
-            const isValidCombination = validCombinations.some(([limitType, selectedType]) => initialLimitType === limitType && typeSelected === selectedType);
-
-            if (isValidCombination && isUnapprovedSpendOverLimit) {
-                shouldShowConfirmModal = true;
-            }
-        }
-
-        if (shouldShowConfirmModal) {
+        if (shouldConfirmExpensifyCardLimitTypeChange(card, typeSelected, defaultLimitType)) {
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimitType'),
-                prompt: translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
+                prompt: translate(getExpensifyCardLimitTypeChangeWarningKey(initialLimitType), convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimitType'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
@@ -155,27 +137,18 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                 }
                 updateCardLimitType(values);
             });
-        } else {
-            updateCardLimitType(values);
+            return;
         }
+
+        updateCardLimitType(values);
     };
 
-    let shouldShowFixedOption = true;
-
-    if (card?.totalSpend && card?.nameValuePairs?.unapprovedExpenseLimit) {
-        const totalSpend = Math.abs(card.totalSpend);
-        if (
-            (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) &&
-            totalSpend >= card.nameValuePairs?.unapprovedExpenseLimit
-        ) {
-            shouldShowFixedOption = false;
-        }
-    }
+    const visibleLimitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
 
     // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
     // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
-    const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}` : undefined;
+    const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS)}` : undefined;
 
     const data = [];
 
@@ -205,7 +178,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
     });
 
-    if (shouldShowFixedOption) {
+    if (visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)) {
         data.push({
             value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
             label: translate('workspace.card.issueNewCard.fixedAmount'),
@@ -215,7 +188,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         });
     }
 
-    if (card?.nameValuePairs?.isVirtual) {
+    if (visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE)) {
         data.push({
             value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
             label: translate('workspace.card.issueNewCard.singleUse'),

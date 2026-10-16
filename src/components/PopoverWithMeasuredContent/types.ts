@@ -6,7 +6,6 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 
-    /** The dimension of anchor component */
     anchorDimensions?: AnchorDimensions;
 
     /** Whether we should change the vertical position if the popover's position is overflow */
@@ -15,11 +14,13 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 
-    /** Whether we should should use top side for the anchor positioning */
     shouldMeasureAnchorPositionFromTop?: boolean;
 
     /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
     shouldSkipRemeasurement?: boolean;
+
+    /** Gap (in px) to keep from the window edges when the popover is clamped inside the window */
+    windowMargin?: number;
 };
 
 export default PopoverWithMeasuredContentProps;

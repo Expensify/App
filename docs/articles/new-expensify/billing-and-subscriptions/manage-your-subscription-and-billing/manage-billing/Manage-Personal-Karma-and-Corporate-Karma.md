@@ -28,7 +28,11 @@ Before you can enable either program, you must have a valid payment card on file
 
 ## How to enable or disable Personal Karma
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account**.
+Personal Karma can only be managed in a web browser. 
+
+On web: 
+
+1. In the navigation tabs on the left, go to **Account**.
 2. Select **Save the world**.
 3. In the **Enable Personal Karma** section, turn Personal Karma on or off.
 4. Add a payment card if prompted.

@@ -1,22 +1,23 @@
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {View} from 'react-native';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 import TimePicker from './TimePicker/TimePicker';
 
 type TimeModalPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Callback when the list item is selected */
@@ -25,17 +26,17 @@ type TimeModalPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** Label for the picker */
     label: string;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
+    const {dateFnsLocale} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
+    // The row shows a localized time, while `TimePicker` still reads `value` through `extractTime12Hour` — that one is
+    // the picker's English wire format, so rendering it here would put an AM/PM clock next to 24-hour times elsewhere.
+    const currentTime = value ? DateUtils.formatToLocalTime(value, dateFnsLocale) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
@@ -75,13 +76,16 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
                         title={label}
                         onBackButtonPress={hidePickerModal}
                     />
-                    <View style={styles.flex1}>
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flexGrow1}
+                    >
                         <TimePicker
                             defaultValue={value}
                             onSubmit={updateInput}
                             shouldValidateFutureTime={false}
                         />
-                    </View>
+                    </ScrollView>
                 </ScreenWrapper>
             </Modal>
         </>

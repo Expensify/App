@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -133,14 +133,10 @@ function WorkspaceEditTaxPage({
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'name')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxFields}
-                            title={currentTaxRate?.name}
-                            description={translate('common.name')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID))}
-                            interactive={canEditTaxFields}
+                        <MenuItemField
+                            value={currentTaxRate?.name}
+                            name={translate('common.name')}
+                            onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID)) : undefined}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -149,14 +145,10 @@ function WorkspaceEditTaxPage({
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'value')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxFields}
-                            title={currentTaxRate?.value}
-                            description={translate('workspace.taxes.value')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
-                            interactive={canEditTaxFields}
+                        <MenuItemField
+                            value={currentTaxRate?.value}
+                            name={translate('workspace.taxes.value')}
+                            onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID)) : undefined}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -165,26 +157,26 @@ function WorkspaceEditTaxPage({
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'code')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxFields}
-                            title={taxCodeToShow}
-                            description={translate('workspace.taxes.taxCode')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
-                                            ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
-                                        ),
-                                    );
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
-                            }}
-                            interactive={canEditTaxFields}
+                        <MenuItemField
+                            value={taxCodeToShow}
+                            name={translate('workspace.taxes.taxCode')}
+                            onPress={
+                                canEditTaxFields
+                                    ? () => {
+                                          if (!isControlPolicy(policy)) {
+                                              Navigation.navigate(
+                                                  ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                      policyID,
+                                                      CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
+                                                      ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
+                                                  ),
+                                              );
+                                              return;
+                                          }
+                                          Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
+                                      }
+                                    : undefined
+                            }
                         />
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
@@ -197,7 +189,7 @@ function WorkspaceEditTaxPage({
                                     prompt: translate('workspace.taxes.deleteTaxConfirmation'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteTaxRate();

@@ -1,14 +1,16 @@
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasAllManuallyEnteredScanFields} from '@libs/TransactionUtils';
 
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -34,6 +36,12 @@ type ReceiptFileValidatorProps = {
      * the validator.
      */
     isReceiptReady: boolean;
+    /**
+     * Whether the Scan confirmation lets the user fill in the amount / merchant / date themselves (new manual expense
+     * flow). When it does, a scan the user filled in is submitted with an `open` receipt so SmartScan never overwrites
+     * those values.
+     */
+    canEnterScanFieldsManually: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
 };
 
@@ -54,6 +62,7 @@ function ReceiptFileValidator({
     participants,
     draftTransactionIDs,
     isReceiptReady,
+    canEnterScanFieldsManually,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -98,7 +107,11 @@ function ReceiptFileValidator({
                         receipt.isTestDriveReceipt = true;
                         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
                     } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                        // A scan whose amount / merchant / date the user filled in themselves is submitted the same way
+                        // as a manual expense with an attached receipt: `open` keeps SmartScan from re-reading the receipt
+                        // and overwriting what the user typed.
+                        const shouldSkipSmartScan = requestType === CONST.IOU.REQUEST_TYPE.MANUAL || (canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item));
+                        receipt.state = file && shouldSkipSmartScan ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
                     newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
@@ -128,7 +141,7 @@ function ReceiptFileValidator({
                 return;
             }
             if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID)));
                 return;
             }
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
@@ -141,7 +154,7 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, onReceiptFilesChange]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, canEnterScanFieldsManually, onReceiptFilesChange]);
 
     return null;
 }

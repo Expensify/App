@@ -1,5 +1,7 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -44,6 +46,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
+    const takeOffLocation = `${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`;
+    const landingLocation = `${reservation.end.longName} (${reservation.end.shortName})`;
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
@@ -53,6 +57,9 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     })`;
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const airline = `${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`;
+    const cabinClass = reservation.route?.class ? cabinClassMapping[reservation.route.class] || reservation.route.class : '';
+    const recordLocator = reservation.confirmations?.at(0)?.value;
 
     return (
         <>
@@ -69,97 +76,102 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     <RenderHTML html={translate('travel.flightDetails.layover', layover)} />
                 </View>
             )}
-            <MenuItemWithTopDescription
-                description={`${translate('travel.flight')} ${CONST.DOT_SEPARATOR} ${flightDuration}`}
-                title={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
-                copyValue={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
-                copyable
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.date')}
-                title={startDate.date}
-                interactive={false}
-                copyValue={startDate.date}
-                copyable
-            />
+            <MenuItemField
+                name={`${translate('travel.flight')} ${CONST.DOT_SEPARATOR} ${flightDuration}`}
+                value={airline}
+            >
+                <MenuItem.Copy value={airline} />
+            </MenuItemField>
+            <MenuItemField
+                name={translate('common.date')}
+                value={startDate.date}
+            >
+                <MenuItem.Copy value={startDate.date} />
+            </MenuItemField>
 
-            <MenuItemWithTopDescription
-                description={translate('travel.flightDetails.takeOff')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={`${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
-                copyValue={`${startDate.hour} ${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                copyable
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.flightDetails.takeOff')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Copy value={`${startDate.hour} ${takeOffLocation}`} />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={takeOffLocation}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
-            <MenuItemWithTopDescription
-                description={translate('travel.flightDetails.landing')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
-                copyValue={`${endDate.hour} ${reservation.end.longName} (${reservation.end.shortName})`}
-                copyable
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.flightDetails.landing')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Copy value={`${endDate.hour} ${landingLocation}`} />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={landingLocation}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.flightDetails.seat')}
-                            title={reservation.seatNumber}
-                            interactive={false}
-                            copyValue={reservation.seatNumber}
-                            copyable={!!reservation.seatNumber?.length}
-                            pressableTestID={CONST.FLIGHT_SEAT_TEST_ID}
-                        />
+                        <MenuItemField
+                            name={translate('travel.flightDetails.seat')}
+                            value={reservation.seatNumber}
+                            testID={CONST.FLIGHT_SEAT_TEST_ID}
+                        >
+                            <MenuItem.Copy value={reservation.seatNumber} />
+                        </MenuItemField>
                     </View>
                 )}
                 {!!reservation.route?.class && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.flightDetails.class')}
-                            title={cabinClassMapping[reservation.route.class] || reservation.route.class}
-                            interactive={false}
-                            copyValue={cabinClassMapping[reservation.route.class] || reservation.route.class}
-                            copyable
-                        />
+                        <MenuItemField
+                            name={translate('travel.flightDetails.class')}
+                            value={cabinClass}
+                        >
+                            <MenuItem.Copy value={cabinClass} />
+                        </MenuItemField>
                     </View>
                 )}
-                {!!reservation.confirmations?.at(0)?.value && (
+                {!!recordLocator && (
                     <View style={styles.w100}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.flightDetails.recordLocator')}
-                            title={reservation.confirmations?.at(0)?.value}
-                            copyValue={reservation.confirmations?.at(0)?.value}
-                            copyable={!!reservation.confirmations?.at(0)?.value?.length}
-                            interactive={false}
-                        />
+                        <MenuItemField
+                            name={translate('travel.flightDetails.recordLocator')}
+                            value={recordLocator}
+                        >
+                            <MenuItem.Copy value={recordLocator} />
+                        </MenuItemField>
                     </View>
                 )}
             </View>
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.flightDetails.passenger')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.flightDetails.passenger')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

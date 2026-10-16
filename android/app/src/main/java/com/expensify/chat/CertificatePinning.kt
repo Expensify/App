@@ -1,13 +1,20 @@
 package com.expensify.chat
 
+import android.net.http.X509TrustManagerExtensions
 import com.facebook.react.modules.network.OkHttpClientProvider
 import io.sentry.Sentry
 import io.sentry.SentryLevel
 import okhttp3.CertificatePinner
 import okhttp3.Interceptor
 import okhttp3.Response
+import java.security.KeyStore
+import java.security.cert.Certificate
+import java.security.cert.X509Certificate
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 /**
  * Certificate pinning for React Native's shared OkHttp client (Iteration 1 - NewDot).
@@ -30,6 +37,11 @@ import javax.net.ssl.SSLPeerUnverifiedException
  * report mismatches to Sentry without blocking the request. Android `<pin-set>` enforcement in
  * network_security_config is deferred until enforce mode (see network_security_config_enforce.xml).
  *
+ * Monitoring problems that are NOT pin mismatches (the served chain could not be rebuilt up to its
+ * trust-anchor root, or the platform trust manager is unavailable) are reported separately with the
+ * `certificate_pinning_outcome` tag, mirroring [WebViewCertificateMonitor], so they never show up as
+ * false pin failures in Sentry.
+ *
  * Keep the pins in sync with config/certificatePinning/pins.json,
  * android/app/src/main/res/xml/network_security_config_enforce.xml, and ios/CertificatePinning.swift.
  * Regenerate via scripts/generateCertificatePins.sh.
@@ -45,29 +57,190 @@ object CertificatePinning {
     private const val CERTIFICATE_PINNING_HOST_TAG = "certificate_pinning_host"
     private const val CERTIFICATE_PINNING_MODE_TAG = "certificate_pinning_mode"
     private const val CERTIFICATE_PINNING_CHANNEL_TAG = "certificate_pinning_channel"
+    private const val CERTIFICATE_PINNING_OUTCOME_TAG = "certificate_pinning_outcome"
+    private const val OUTCOME_TRUST_EXTENSIONS_UNAVAILABLE = "trust_extensions_unavailable"
+    private const val OUTCOME_CHAIN_REBUILD_FAILED = "chain_rebuild_failed"
+
+    private val trustExtensionsFailureReported = AtomicBoolean(false)
 
     /**
      * Canonical pin data: domain → list of "sha256/<base64>" pin strings.
-     * The first hash is the leaf SPKI, the second is the issuing intermediate CA SPKI.
+     * All hashes are ROOT CA SPKIs. Roots are the only durable pin target: leaves are re-keyed on
+     * every renewal and every CA in play issues from a rotating pool of intermediates, both of which
+     * have already broken leaf/intermediate pins in production (2026-07-07 Let's Encrypt -> GTS edge
+     * rotation, 2026-07 Amazon M01 -> M04 intermediate rotation).
      * Keep in sync with config/certificatePinning/pins.json.
      */
-    private val PINNED_DOMAINS: Map<String, List<String>> = mapOf(
-        // Group A: leaf CN=expensify.com + Let's Encrypt YE1 intermediate
-        "www.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "secure.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging-secure.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        // Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate
-        "new.expensify.com" to listOf("sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-        "staging.new.expensify.com" to listOf("sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-        // Group C: integrations leaf + Let's Encrypt R13 intermediate
-        "integrations.expensify.com" to listOf("sha256/7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "sha256/AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="),
-        // Group D: travel leaf + Google Trust Services WE1 intermediate
-        "travel.expensify.com" to listOf("sha256/Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-        "staging.travel.expensify.com" to listOf("sha256/Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-        // Group E: CloudFront CDN leaf + Amazon RSA 2048 M01 intermediate
-        "d2k5nsl2zxldvw.cloudfront.net" to listOf("sha256/P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "sha256/DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="),
+    private val CLOUDFLARE_EXPENSIFY_ROOTS = listOf(
+        // Let's Encrypt
+        "sha256/C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
+        "sha256/diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
+        // Google Trust Services (R2 stays pinned: device trust stores can still anchor at it, see pins.json)
+        "sha256/hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
+        "sha256/Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
+        "sha256/QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
+        "sha256/mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
+        // SSL.com
+        "sha256/G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
+        "sha256/K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
+        // Sectigo (Cloudflare backup certificates) - both of its public TLS hierarchies
+        "sha256/x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", // USERTrust RSA Certification Authority
+        "sha256/ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", // USERTrust ECC Certification Authority
+        "sha256/Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", // Sectigo Public Server Authentication Root R46
+        "sha256/sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=", // Sectigo Public Server Authentication Root E46
     )
+
+    private val CLOUDFRONT_ROOTS = listOf(
+        "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", // Amazon Root CA 1
+        "sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", // Amazon Root CA 2
+        "sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", // Amazon Root CA 3
+        "sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", // Amazon Root CA 4
+        "sha256/KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=", // Starfield Services Root CA G2
+    )
+
+    private val PINNED_DOMAINS: Map<String, List<String>> = mapOf(
+        // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
+        // between Let's Encrypt, Google Trust Services and SSL.com without notice, and its backup
+        // certificates (deployed automatically on a revocation or key compromise) can also come from
+        // Sectigo, so the roots of all four CAs are pinned.
+        "www.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "secure.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "staging.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "staging-secure.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "new.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "staging.new.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "integrations.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "travel.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        "staging.travel.expensify.com" to CLOUDFLARE_EXPENSIFY_ROOTS,
+        // Group E: CloudFront CDN. AWS documents the Amazon Trust Services roots as the only stable
+        // pin targets for ACM-issued certificates.
+        "d2k5nsl2zxldvw.cloudfront.net" to CLOUDFRONT_ROOTS,
+    )
+
+    /**
+     * System trust manager used to rebuild the validated chain up to its trust anchor. When it cannot
+     * be created the root pins cannot be evaluated at all, so the monitors skip their check (reported
+     * once with `certificate_pinning_outcome=trust_extensions_unavailable`) rather than produce a
+     * false mismatch on every request.
+     */
+    private val trustManagerExtensions: X509TrustManagerExtensions? by lazy {
+        try {
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(null as KeyStore?)
+            tmf.trustManagers
+                .filterIsInstance<X509TrustManager>()
+                .firstOrNull()
+                ?.let { X509TrustManagerExtensions(it) }
+        } catch (error: Exception) {
+            if (trustExtensionsFailureReported.compareAndSet(false, true)) {
+                reportMonitoringFailure(
+                    hostname = null,
+                    urlString = null,
+                    channel = "OkHttp",
+                    outcome = OUTCOME_TRUST_EXTENSIONS_UNAVAILABLE,
+                    message = "Certificate pinning monitor failed to initialize trust manager extensions",
+                    cause = error,
+                )
+            }
+            null
+        }
+    }
+
+    /**
+     * Returns the fully validated chain (leaf -> intermediates -> trust-anchor ROOT) for the raw
+     * certificates a server presented during the handshake, or a failure if the platform trust
+     * manager could not rebuild it.
+     *
+     * A TLS server sends only its leaf and intermediates - never the root - so calling
+     * [CertificatePinner.check] directly on the raw peer list can only ever match a pinned leaf or
+     * intermediate, never a pinned ROOT. Because our durable, rotation-proof pins are the CA ROOTs,
+     * those pins would silently fail to match on the raw peer chain and produce false pin-mismatch
+     * reports. Rebuilding the chain via the system trust manager appends the anchor so the root pins
+     * are actually evaluated - matching how the platform `<pin-set>` and OkHttp's own enforce-mode
+     * check behave.
+     */
+    private fun anchoredChain(
+        extensions: X509TrustManagerExtensions,
+        peerCertificates: List<Certificate>,
+        host: String,
+    ): Result<List<Certificate>> {
+        val x509Chain = peerCertificates.filterIsInstance<X509Certificate>()
+        if (x509Chain.isEmpty()) {
+            return Result.failure(SSLPeerUnverifiedException("Peer chain for $host contains no X.509 certificates"))
+        }
+
+        val authTypes = if (x509Chain.first().publicKey.algorithm == "EC") {
+            arrayOf("ECDHE_ECDSA", "ECDSA")
+        } else {
+            arrayOf("RSA", "ECDHE_RSA")
+        }
+        val chainArray = x509Chain.toTypedArray()
+
+        var lastException: Exception? = null
+        for (authType in authTypes) {
+            try {
+                val fullChain = extensions.checkServerTrusted(chainArray, authType, host)
+                if (fullChain.isNotEmpty()) {
+                    return Result.success(fullChain)
+                }
+            } catch (error: Exception) {
+                // Try the next authType.
+                lastException = error
+            }
+        }
+        return Result.failure(
+            lastException ?: SSLPeerUnverifiedException("Trust manager returned an empty chain for $host"),
+        )
+    }
+
+    /**
+     * Monitor-mode pin check shared by the OkHttp interceptor and the HttpsURLConnection verifier.
+     *
+     * The served chain is first rebuilt up to its trust-anchor ROOT (see [anchoredChain]) and the
+     * pins are evaluated against that chain. If the rebuild fails, the raw peer chain is still
+     * checked (a server that happens to send its root can still match), but a failure there is NOT
+     * reported as a pin mismatch: the raw chain normally has no root while every pin is a root SPKI,
+     * so that failure says nothing about the pins - it would be a false mismatch for a connection the
+     * platform already trusted. It is reported as a `chain_rebuild_failed` monitoring outcome instead.
+     * This matters for the rollout: in enforce mode OkHttp rebuilds the chain the same way, so a
+     * rebuild failure is a real signal that enforce mode would break that connection, and it must
+     * stay distinguishable from a pin that no longer matches.
+     */
+    private fun checkPinsInMonitorMode(
+        certificatePinner: CertificatePinner,
+        hostname: String,
+        peerCertificates: List<Certificate>,
+        urlString: String?,
+        channel: String,
+    ) {
+        // Without the platform trust manager the root pins cannot be evaluated at all; the failure was
+        // reported once when the lazy initializer ran.
+        val extensions = trustManagerExtensions ?: return
+
+        val anchored = anchoredChain(extensions, peerCertificates, hostname)
+        try {
+            certificatePinner.check(hostname, anchored.getOrDefault(peerCertificates))
+        } catch (error: SSLPeerUnverifiedException) {
+            val rebuildFailure = anchored.exceptionOrNull()
+            if (rebuildFailure != null) {
+                reportMonitoringFailure(
+                    hostname = hostname,
+                    urlString = urlString,
+                    channel = channel,
+                    outcome = OUTCOME_CHAIN_REBUILD_FAILED,
+                    message = "Certificate chain reconstruction failed for $hostname; root pins were not evaluated",
+                    cause = rebuildFailure,
+                )
+                return
+            }
+            reportPinningFailure(
+                hostname = hostname,
+                urlString = urlString,
+                channel = channel,
+                message = error.message ?: "Certificate pinning validation failed",
+            )
+        }
+    }
 
     private fun buildCertificatePinner(): CertificatePinner {
         val builder = CertificatePinner.Builder()
@@ -115,7 +288,14 @@ object CertificatePinning {
             val result = originalVerifier.verify(hostname, session)
             if (result && PINNED_DOMAINS.containsKey(hostname)) {
                 try {
-                    certificatePinner.check(hostname, session.peerCertificates.toList())
+                    checkPinsInMonitorMode(
+                        certificatePinner = certificatePinner,
+                        hostname = hostname,
+                        // Throws SSLPeerUnverifiedException if the session has no verified peer.
+                        peerCertificates = session.peerCertificates.toList(),
+                        urlString = null,
+                        channel = "HttpURLConnection",
+                    )
                 } catch (error: SSLPeerUnverifiedException) {
                     reportPinningFailure(
                         hostname = hostname,
@@ -163,6 +343,33 @@ object CertificatePinning {
     }
 
     /**
+     * Reports a problem with the monitoring itself (not a pin mismatch), tagged with
+     * `certificate_pinning_outcome` so it can be told apart from real pin failures in Sentry.
+     * Mirrors [WebViewCertificateMonitor].
+     */
+    private fun reportMonitoringFailure(
+        hostname: String?,
+        urlString: String?,
+        channel: String,
+        outcome: String,
+        message: String,
+        cause: Throwable?,
+    ) {
+        val exception = cause ?: SSLPeerUnverifiedException(message)
+        Sentry.captureException(exception) { scope ->
+            scope.level = SentryLevel.WARNING
+            hostname?.let { scope.setTag(CERTIFICATE_PINNING_HOST_TAG, it) }
+            scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (ENFORCE_PINNING) "enforce" else "monitor")
+            scope.setTag(CERTIFICATE_PINNING_CHANNEL_TAG, channel)
+            scope.setTag(CERTIFICATE_PINNING_OUTCOME_TAG, outcome)
+            urlString?.let { scope.setExtra("url", it) }
+            if (cause != null) {
+                scope.setExtra("monitoringFailureMessage", message)
+            }
+        }
+    }
+
+    /**
      * Application-level interceptor that catches pin failures thrown by [CertificatePinner] during
      * connection setup, reports them to Sentry, and re-throws so the request still fails.
      * This keeps telemetry flowing in enforce mode, matching iOS TrustKit behaviour.
@@ -185,7 +392,9 @@ object CertificatePinning {
 
     /**
      * Validates certificate pins after the TLS handshake completes without blocking the request.
-     * Used during the monitor-only rollout phase.
+     * Used during the monitor-only rollout phase. See [checkPinsInMonitorMode]: the served chain is
+     * rebuilt up to the trust-anchor ROOT first so our root pins are actually evaluated, and a chain
+     * that cannot be rebuilt is reported as a monitoring outcome rather than a false pin mismatch.
      */
     private class CertificatePinningMonitorInterceptor(
         private val certificatePinner: CertificatePinner,
@@ -195,17 +404,16 @@ object CertificatePinning {
             val response = chain.proceed(request)
             val handshake = chain.connection()?.handshake()
 
-            if (handshake != null) {
-                try {
-                    certificatePinner.check(request.url.host, handshake.peerCertificates)
-                } catch (error: SSLPeerUnverifiedException) {
-                    reportPinningFailure(
-                        hostname = request.url.host,
-                        url = request.url,
-                        channel = "OkHttp",
-                        message = error.message ?: "Certificate pinning validation failed",
-                    )
-                }
+            // Only the pinned hosts are validated (and only they pay the chain-rebuild cost in
+            // anchoredChain); all other traffic passes through untouched.
+            if (handshake != null && PINNED_DOMAINS.containsKey(request.url.host)) {
+                checkPinsInMonitorMode(
+                    certificatePinner = certificatePinner,
+                    hostname = request.url.host,
+                    peerCertificates = handshake.peerCertificates,
+                    urlString = redactUrl(request.url),
+                    channel = "OkHttp",
+                )
             }
 
             return response

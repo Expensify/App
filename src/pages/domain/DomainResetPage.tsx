@@ -100,7 +100,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                 onSubmit={handleResetDomain}
                 submitButtonText={translate('domain.admins.resetDomain')}
                 style={[styles.flexGrow1, styles.mh5]}
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 isSubmitDisabled={isSubmitDisabled}
             >
                 <View

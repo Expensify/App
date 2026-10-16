@@ -1,3 +1,4 @@
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -15,7 +16,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     isDisabled?: boolean | null;
     canSelectMultiple?: boolean;
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onFocus?: ListItemFocusEventHandler;
     onLongPressRow?: (item: TItem) => void;
     shouldSyncFocus?: boolean;
@@ -27,7 +28,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     shouldDisableActionPointerEvents?: boolean;
     transactionPreviewData: TransactionPreviewData;
-    exportedReportActions: ReportAction[];
+    reportActions: ReportAction[];
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
     rowPolicy?: Policy;

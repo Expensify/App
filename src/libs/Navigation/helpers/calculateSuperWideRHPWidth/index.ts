@@ -1,4 +1,4 @@
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 
 import variables from '@styles/variables';
 
@@ -10,8 +10,8 @@ import variables from '@styles/variables';
  * @returns Calculated super wide RHP width with constraints applied
  */
 function calculateSuperWideRHPWidth(windowWidth: number) {
-    const superWideRHPWidth = windowWidth - variables.sideBarWithLHBWidth - variables.navigationTabBarSize;
-    const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
+    const superWideRHPWidth = windowWidth - variables.superWideRHPLeftMargin;
+    const wideRHPWidth = calculateWideRHPWidth(windowWidth);
 
     return Math.max(superWideRHPWidth, wideRHPWidth);
 }

@@ -4,15 +4,16 @@ import useNetwork from '@hooks/useNetwork';
 import useSuggestedAgents from '@hooks/useSuggestedAgents';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import NewAgentPage from '@pages/settings/Agents/NewAgentPage';
+import NewAgentPage from '@pages/settings/Agents/DynamicNewAgentPage';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate} from '@userActions/Agent';
 
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type SuggestedAgent from '@src/types/onyx/SuggestedAgent';
 
@@ -51,7 +52,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
 }));
-jest.mock('@components/Avatar', () => jest.fn(() => null));
 jest.mock('@components/ActivityIndicator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
@@ -63,7 +63,7 @@ jest.mock('@components/BlockingViews/BlockingView', () => {
     return ({title, subtitle}: {title: string; subtitle?: string}) =>
         ReactModule.createElement(ReactModule.Fragment, null, ReactModule.createElement(Text, null, title), subtitle ? ReactModule.createElement(Text, null, subtitle) : null);
 });
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
         Pressable: React.ComponentType<{accessibilityRole?: string; onPress?: () => void; children?: React.ReactNode}>;
@@ -107,11 +107,11 @@ const mockSetNewAgentTemplate = jest.mocked(setNewAgentTemplate);
 const mockClearNewAgentTemplate = jest.mocked(clearNewAgentTemplate);
 const mockClearNewAgentAvatarDraft = jest.mocked(clearNewAgentAvatarDraft);
 
-type NewAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.NEW>;
-type NewAgentNavigationProp = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.NEW>['navigation'];
+type NewAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW>;
+type NewAgentNavigationProp = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW>['navigation'];
 
 function makeRoute(params: NewAgentRouteProp['params'] = {}): NewAgentRouteProp {
-    return {key: 'Settings_Agents_New-test', name: SCREENS.SETTINGS.AGENTS.NEW, params};
+    return {key: 'Settings_Agents_New-test', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW, params};
 }
 
 function renderNewAgentPage(routeParams: NewAgentRouteProp['params'] = {}) {
@@ -207,7 +207,7 @@ describe('NewAgentPage', () => {
         });
         expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()));
         });
     });
 
@@ -220,7 +220,7 @@ describe('NewAgentPage', () => {
         expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         expect(mockSetNewAgentTemplate).not.toHaveBeenCalled();
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()));
         });
     });
 
@@ -230,7 +230,7 @@ describe('NewAgentPage', () => {
         fireEvent.press(screen.getByText('newAgentPage.buildCustomAgent'));
 
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute({policyID: 'POL_42'}));
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute({policyID: 'POL_42'})));
         });
     });
 });

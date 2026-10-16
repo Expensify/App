@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 
 import type {RefObject} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
+import type {LegacyComposedGesture, GestureType} from 'react-native-gesture-handler';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
@@ -42,7 +42,7 @@ const MIN_FLING_VELOCITY = 500;
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
-    gesture: ComposedGesture | GestureType;
+    gesture: LegacyComposedGesture | GestureType;
     children: React.ReactNode;
 };
 
@@ -108,7 +108,7 @@ function AttachmentCarouselView({
             }
 
             const item = entry.item as Attachment;
-            if (entry.index !== null) {
+            if (entry.index != null) {
                 setPage(entry.index);
                 setActiveAttachmentID(item.attachmentID ?? item.source);
             }

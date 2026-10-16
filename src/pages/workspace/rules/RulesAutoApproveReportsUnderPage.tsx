@@ -1,7 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -9,6 +9,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -37,6 +38,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -50,22 +52,19 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable)}
+            shouldBeBlocked={isWorkflowsEnabled && (!(!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0) || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID="RulesAutoApproveReportsUnderPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
-                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount, policy?.autoApproval?.limit);
+                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount, policy?.autoApproval?.limit, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

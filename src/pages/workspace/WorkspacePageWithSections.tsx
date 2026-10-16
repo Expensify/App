@@ -41,8 +41,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
-
-        /** The text to display in the header */
         headerText: string;
 
         /** Main content of the page */
@@ -69,13 +67,11 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Policy feature permission needed to show this page */
         policyFeature?: PolicyFeature;
 
-        /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
         /** Makes firstRender ref display loading page before isLoading is change to true */
         showLoadingAsFirstRender?: boolean;
 
-        /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
         /**
@@ -85,16 +81,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
         headerContent?: ReactNode;
-
-        /** TestID of the component */
         testID?: string;
 
         /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
 
-        /** Whether to use the headline header */
         shouldUseHeadlineHeader?: boolean;
 
         /**
@@ -102,7 +94,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Content to be added as modal */
         modals?: ReactNode;
 
         /** Whether to use the maxHeight (true) or use the 100% of the height (false) */

@@ -2,6 +2,7 @@ import Logo from '@assets/images/new-expensify-dark.svg';
 
 import ImageSVG from '@components/ImageSVG';
 
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import BootSplash from '@libs/BootSplash';
@@ -17,6 +18,7 @@ import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types'
 
 function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {
     const styles = useThemeStyles();
+    const {left, right} = useSafeAreaInsets();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
 
     const opacity = useSharedValue(1);
@@ -67,7 +69,7 @@ function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): 
     }, [shouldHideSplash, hide]);
 
     return (
-        <Reanimated.View style={[StyleSheet.absoluteFill, styles.splashScreenHider, opacityStyle]}>
+        <Reanimated.View style={[StyleSheet.absoluteFill, styles.getSplashScreenHiderPosition(left, right), styles.splashScreenHider, opacityStyle]}>
             <Reanimated.View style={scaleStyle}>
                 <ImageSVG
                     contentFit="fill"

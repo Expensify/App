@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
@@ -9,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
-import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,20 +36,42 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
+/**
+ * All company card CSV mapping fields are always available (the previous "advanced fields" toggle was removed),
+ * so every role below is offered in the column-mapping dropdown for every import.
+ */
+function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translate']): ColumnRole[] {
+    return [
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardName'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NAME},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalTransactionDate'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalAmount'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalCurrency'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.uniqueID'), value: CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID},
+    ];
+}
+
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard, addNewCardMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
-    const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
     const generatedLayoutType = useMemo(
@@ -59,61 +82,42 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = (() => {
-        const baseRoles: ColumnRole[] = [
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardName'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NAME},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
-        ];
-
-        if (!shouldUseAdvancedFields) {
-            return baseRoles;
-        }
-
-        const advancedRoles: ColumnRole[] = [
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalTransactionDate'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalAmount'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalCurrency'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
-        ];
-
-        return [...baseRoles, ...advancedRoles];
-    })();
+    const columnRoles: ColumnRole[] = getCompanyCardImportColumnRoles(translate);
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
-    const hasAppliedSavedMappings = useRef(false);
+    const hasAppliedColumnMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
-    const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
+    const lastAppliedMappingsRef = useRef(savedColumnMappings);
 
     useEffect(() => {
-        // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
-        if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
-            hasAppliedSavedMappings.current = false;
+        if (spreadsheet?.data !== lastProcessedDataRef.current || savedColumnMappings !== lastAppliedMappingsRef.current) {
+            hasAppliedColumnMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
-            lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
+            lastAppliedMappingsRef.current = savedColumnMappings;
         }
 
-        if (hasAppliedSavedMappings.current) {
+        if (hasAppliedColumnMappings.current) {
             return;
         }
 
-        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+        if (isLoadingOnyxValue(workspaceCardFeedsMetadata, addNewCardMetadata)) {
             return;
         }
 
-        hasAppliedSavedMappings.current = true;
-        applyCompanyCardSavedColumnMappings(
+        if (!spreadsheet?.data) {
+            return;
+        }
+
+        // Compute the whole mapping here (and disable each column's own header auto-detect) so a property is never
+        // pre-selected on more than one column. This runs even without a saved layout so a brand-new feed still gets
+        // header-based auto-detection.
+        hasAppliedColumnMappings.current = true;
+        applyCompanyCardColumnMappings(
             spreadsheet.data,
             savedColumnMappings,
             columnRoles.map((role) => role.value),
         );
-    }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, workspaceCardFeedsMetadata, addNewCardMetadata]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -257,6 +261,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                     isButtonLoading={isImportingTransactions}
+                    shouldAutoDetectColumns={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
@@ -264,3 +269,4 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 }
 
 export default CompanyCardsImportedPage;
+export {getCompanyCardImportColumnRoles};

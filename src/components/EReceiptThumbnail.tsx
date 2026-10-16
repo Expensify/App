@@ -31,7 +31,6 @@ type EReceiptThumbnailProps = {
     /** The file extension of the receipt that the preview thumbnail is being displayed for. */
     fileExtension?: string;
 
-    /** Whether it is a receipt thumbnail we are displaying. */
     isReceiptThumbnail?: boolean;
 
     /** Center the eReceipt Icon vertically */

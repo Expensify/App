@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ReportFieldFilterContent from '@components/Search/FilterComponents/AdvancedFilters/ReportFieldFilterContent';
 import type {ReportFieldFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
@@ -11,7 +11,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: ReportFieldFilterContentWrapperProps) {
+function ReportFieldFilterContentPageWrapper({values: initialValues, onChange, buttonText}: ReportFieldFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
@@ -40,7 +40,7 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
                     }}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                    <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
                 </Button>
             )}
         </View>

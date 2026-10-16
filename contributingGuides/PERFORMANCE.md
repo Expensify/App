@@ -368,7 +368,7 @@ ___
 ## 6. Automated Tests & QA
 *Tests are required by default. If you cannot add them, explain why.*
 - [ ] **Unit Tests:** Added to prevent regression.
-- [ ] **Reassure Tests:** Added (Required for execution time improvements).
+- [ ] **Reassure Tests:** Added (Required for re-render improvements, since CI only checks render counts). For execution time improvements, add a `measureFunction` benchmark (`npm run perf-local`) and include the local before/after numbers from one machine in the PR description.
 - [ ] **Exception:** I cannot add automated tests because: _________________
 - [ ] **Manual Verification:** I have included manual verification steps (Required).
 
@@ -381,7 +381,7 @@ ___
 ---
 
 ### Compensation
-* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$250 bounty**.
+* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$175 bounty**.
 * **Scope:** We prefer smaller, atomic PRs. However, if multiple proposals are submitted for closely related logic that could have been one PR, we reserve the right to consolidate them.
 
 ___

@@ -32,7 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {Route} from '@react-navigation/native';
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
@@ -73,19 +73,16 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
             | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
         children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-        /** Settings for the focus trap */
         focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
@@ -123,7 +120,7 @@ function ScreenWrapper({
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
-    const screenWrapperRef = useRef<View | HTMLElement>(null);
+    const screenWrapperRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
     const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens

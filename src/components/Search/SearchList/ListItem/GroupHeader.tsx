@@ -1,16 +1,19 @@
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -20,27 +23,32 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
+import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
 import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -69,6 +77,9 @@ type GroupHeaderProps = SearchListActionProps & {
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
+
+    /** Window width, passed down so a recycled group header doesn't subscribe to window dimensions of its own. */
+    windowWidth: number;
 };
 
 function GroupHeader({
@@ -92,13 +103,17 @@ function GroupHeader({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     visibleColumns,
+    windowWidth,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -107,10 +122,10 @@ function GroupHeader({
     const oneTransactionReportID = getNonEmptyStringOnyxID(oneTransactionItem?.reportID);
     const oneTransactionID = getNonEmptyStringOnyxID(oneTransactionItem?.transactionID);
     const oneTransactionChildReportID = oneTransactionItem?.reportAction?.childReportID;
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionReportID}`);
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionChildReportID}`);
-    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionID}`);
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
+    const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionReportID}`);
+    const [oneTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionChildReportID}`);
+    const [oneTransaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionID}`);
+    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
     const transactionPreviewData: TransactionPreviewData = useMemo(
@@ -127,52 +142,47 @@ function GroupHeader({
     const snapshotData = transactionsSnapshot?.data;
     const snapshotSearchType = transactionsSnapshot?.search.type;
 
-    const subHeaderColumns = useMemo(() => {
-        if (isExpenseReportType) {
-            return columns ?? [];
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        return getColumnsToShow({
+    let subHeaderColumns: SearchColumnType[] = [];
+    if (isExpenseReportType) {
+        subHeaderColumns = columns ?? [];
+    } else if (snapshotData) {
+        subHeaderColumns = getColumnsToShow({
             currentAccountID: currentUserDetails.accountID,
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
+            fallbackPolicyID: policyForMovingExpensesID,
+            isVendorColumnAvailable,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns]);
+    }
 
-    const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
-        let amountWide = false;
-        let taxWide = false;
-        let showYear = false;
-        let actionWide = false;
-        for (const transaction of groupItem.transactions) {
-            if (transaction.isAmountColumnWide) {
-                amountWide = true;
-            }
-            if (transaction.isTaxAmountColumnWide) {
-                taxWide = true;
-            }
-            if (transaction.shouldShowYear) {
-                showYear = true;
-            }
-            if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
-                actionWide = true;
-            }
-            if (amountWide && taxWide && showYear && actionWide) {
-                break;
-            }
-        }
-        return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
-    }, [groupItem.transactions]);
+    const {
+        isAmountColumnWide: isSubHeaderAmountColumnWide,
+        isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
+        shouldShowYear: shouldSubHeaderShowYear,
+        isActionColumnWide: isSubHeaderActionColumnWide,
+    } = getGroupColumnWidthFlags(groupItem.transactions);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
+    // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
+    const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
+        subHeaderColumns,
+        CONST.SEARCH.DATA_TYPES.EXPENSE,
+        isSubHeaderActionColumnWide,
+        windowWidth,
+        isLargeScreenWidth,
+    );
+
+    // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
+    const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
+
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded, item.groupKeyForList);
 
     // A group with a query of its own is not empty, it just has not been fetched yet.
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
     const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
@@ -185,22 +195,9 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
-    });
-
     const handleSelectionButtonPress = () => {
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
-
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
@@ -266,6 +263,7 @@ function GroupHeader({
                     <WithdrawalIDListItemHeader
                         withdrawalID={groupItem}
                         {...commonProps}
+                        onDownArrowClick={isCashBackWithdrawal ? undefined : commonProps.onDownArrowClick}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -286,6 +284,13 @@ function GroupHeader({
                 return (
                     <TagListItemHeader
                         tag={groupItem}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
                         {...commonProps}
                     />
                 );
@@ -322,8 +327,36 @@ function GroupHeader({
         }
     };
 
+    const subHeaderContent = (
+        <View
+            style={[styles.flexColumn, styles.flex1, styles.userSelectNone]}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        >
+            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
+                <SearchTableHeader
+                    canSelectMultiple
+                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    onSortPress={() => {}}
+                    sortOrder={undefined}
+                    sortBy={undefined}
+                    shouldShowYear={shouldSubHeaderShowYear}
+                    isAmountColumnWide={isSubHeaderAmountColumnWide}
+                    isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
+                    shouldShowSorting={false}
+                    columns={subHeaderColumns}
+                    groupBy={groupBy}
+                    isExpenseReportView
+                    isActionColumnWide={isSubHeaderActionColumnWide}
+                />
+            </View>
+            <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+        </View>
+    );
+
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -340,20 +373,27 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashBackWithdrawal) {
             onToggle();
         }
     };
 
     const handleLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={handlePress}
@@ -361,20 +401,48 @@ function GroupHeader({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                onMouseDown={(e) => e.preventDefault()}
+                shouldAllowTextSelection={!isCashBackWithdrawal}
+                interactive={!isCashBackWithdrawal}
+                focusable={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
+                onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 id={item.keyForList ?? ''}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 wrapperStyle={[
-                    styles.mh5,
-                    animatedHighlightStyle,
+                    pageGutterMargin,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
@@ -389,29 +457,35 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && (
-                                <PressableWithFeedback
-                                    onPress={() => {
-                                        if (isEmpty && !shouldDisplayEmptyView) {
-                                            handlePress();
-                                            return;
-                                        }
-                                        onToggle();
-                                    }}
-                                    style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
-                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                                >
-                                    {({hovered: arrowHovered}) => (
-                                        <Icon
-                                            src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                            fill={theme.icon}
-                                            additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                            )}
+                            {isLargeScreenWidth &&
+                                (isCashBackWithdrawal ? (
+                                    // Reserves the toggle's footprint so the Total column stays aligned with the settlement rows.
+                                    <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
+                                        <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                                    </View>
+                                ) : (
+                                    <PressableWithFeedback
+                                        onPress={() => {
+                                            if (isEmpty && !shouldDisplayEmptyView) {
+                                                handlePress();
+                                                return;
+                                            }
+                                            onToggle();
+                                        }}
+                                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                                    >
+                                        {({hovered: arrowHovered}) => (
+                                            <Icon
+                                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                                fill={theme.icon}
+                                                additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                ))}
                         </View>
                         {isLargeScreenWidth && subHeaderColumns.length > 0 && (
                             <Animated.View style={subHeaderAnimatedStyle}>
@@ -420,24 +494,18 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
-                                            <SearchTableHeader
-                                                canSelectMultiple
-                                                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                                onSortPress={() => {}}
-                                                sortOrder={undefined}
-                                                sortBy={undefined}
-                                                shouldShowYear={shouldSubHeaderShowYear}
-                                                isAmountColumnWide={isSubHeaderAmountColumnWide}
-                                                isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
-                                                shouldShowSorting={false}
-                                                columns={subHeaderColumns}
-                                                groupBy={groupBy}
-                                                isExpenseReportView
-                                                isActionColumnWide={isSubHeaderActionColumnWide}
-                                            />
-                                        </View>
-                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+                                        {shouldSubHeaderScrollHorizontally ? (
+                                            // A clip the follower scrolls, not a ScrollView: the rows below own the scroll
+                                            // and these labels only mirror their offset.
+                                            <View
+                                                style={styles.overflowHidden}
+                                                ref={subHeaderFollowerRef}
+                                            >
+                                                <View style={StyleUtils.getWidthStyle(subHeaderMinTableWidth)}>{subHeaderContent}</View>
+                                            </View>
+                                        ) : (
+                                            subHeaderContent
+                                        )}
                                     </View>
                                 )}
                             </Animated.View>

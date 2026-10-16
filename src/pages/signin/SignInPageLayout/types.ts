@@ -30,8 +30,6 @@ type SignInPageLayoutProps = {
     customHeroBody?: string;
 
     navigateFocus?: () => void;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<SignInPageLayoutRef>;
 };
 

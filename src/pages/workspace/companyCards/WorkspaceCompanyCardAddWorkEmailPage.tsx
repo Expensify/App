@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setContactMethodAsDefault} from '@libs/actions/User';
 import {getFeedInfo} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -31,6 +31,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
+import {setErrorFields} from '@userActions/FormActions';
 import {AddWorkEmail} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -90,13 +91,15 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                     Navigation.closeRHPFlow();
                 })
                 .catch((error: TranslationPaths) => {
-                    addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
+                    setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+                        [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
+                    });
                 })
                 .finally(() => {
                     setLoading(false);
                 });
         } else {
-            AddWorkEmail(submittedEmail);
+            AddWorkEmail(submittedEmail, ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
         }
         setEmail(submittedEmail);
     };

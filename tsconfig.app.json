@@ -1,0 +1,24 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "tsBuildInfoFile": "./tsconfig.app.ts7.tsbuildinfo",
+        "types": ["react-native", "react-native-web"],
+        "lib": ["DOM", "ESNext"]
+    },
+    "include": [
+        "src",
+        "assets",
+        "modules",
+        ".storybook/**/*",
+        // Not app directories, but the app program reaches into them: `src/App.tsx` imports
+        // `wdyr`, `src/libs/ApiUtils` imports `config/proxyConfig`, `.storybook` imports the
+        // Rsbuild config, and the Storybook stories import the shared report fixtures. They were
+        // already being type-checked here via those imports; listing them makes that visible.
+        "wdyr.ts",
+        "config/proxyConfig.ts",
+        "config/rsbuild",
+        "__mocks__/reportData"
+    ],
+    "exclude": ["**/node_modules/*", "**/dist/*", "src/**/__mocks__/**"]
+}

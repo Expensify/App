@@ -1,0 +1,216 @@
+/**
+ * Owns the Cloudflare Access OAuth session for the QA server: Onyx-backed cache, the same-tab redirect
+ * flow, and the single-flight refresh. Web-only until native claims Universal/App Links.
+ */
+import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
+import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
+import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/CloudflareAccess/OAuthClient';
+import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient';
+import {clearPendingAuthFlows, savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import Log from '@libs/Log';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type CloudflareSession from '@src/types/onyx/CloudflareSession';
+
+import Onyx from 'react-native-onyx';
+
+/** Refresh proactively when the access token has less lifetime left than this */
+const ACCESS_TOKEN_EXPIRY_BUFFER_MS = 60_000;
+
+/** `undefined` = Onyx not read yet, `null` = read and absent. NetworkStore's hydration convention */
+let sessionCache: CloudflareSession | null | undefined;
+
+/** Every async continuation here, after an `await` or in a `.then` or `.catch`, must re-check the captured generation before acting on its result */
+let sessionGeneration = 0;
+
+let codeExchangeErrorMessage: string | undefined;
+
+function resetSessionState() {
+    sessionGeneration++;
+    sessionCache = null;
+    codeExchangeErrorMessage = undefined;
+    clearPendingAuthFlows();
+}
+
+// Definite assignment: the Promise executor runs synchronously, so this is set before anything reads it
+let resolveHydration!: () => void;
+const hydrationPromise = new Promise<void>((resolve) => {
+    resolveHydration = resolve;
+});
+
+if (isQAAuthConfigured()) {
+    // We have used `connectWithoutView` here because this module-level cache is not connected to any UI component
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.CLOUDFLARE_SESSION,
+        callback: (value) => {
+            sessionCache = value ?? null;
+            resolveHydration();
+        },
+    });
+    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously
+    registerSessionCleanupCallback(resetSessionState);
+} else {
+    // Nothing will ever hydrate the cache, so a waiter must not block forever
+    sessionCache = null;
+    resolveHydration();
+}
+
+function getCloudflareSession(): CloudflareSession | null | undefined {
+    return sessionCache;
+}
+
+function waitForCloudflareSessionHydration(): Promise<void> {
+    return hydrationPromise;
+}
+
+function isSessionNearExpiry(session: CloudflareSession): boolean {
+    return session.expiresAt - Date.now() < ACCESS_TOKEN_EXPIRY_BUFFER_MS;
+}
+
+function cacheAndPersistSession(session: CloudflareSession, source: 'exchanged' | 'rotated'): Promise<void> {
+    sessionCache = session;
+    return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, session).catch((error: unknown) => {
+        Log.warn(`[CloudflareSession] Failed to persist the ${source} session`, {error});
+    });
+}
+
+const CF_SIGN_IN_ABANDONED = 'Cloudflare sign-in was abandoned';
+
+let redirectPromise: Promise<never> | null = null;
+
+async function startCloudflareSignInRoundTrip(returnURL: string): Promise<never> {
+    const generation = sessionGeneration;
+    const pkce = await generatePKCEPair();
+    const state = generateState();
+    // Resolved before the flow record is stored, so a failed discovery leaves nothing behind
+    const authorizeURL = await buildAuthorizeURL({state, codeChallenge: pkce.codeChallenge});
+    if (generation !== sessionGeneration) {
+        throw new Error('Cloudflare auth flow was cancelled');
+    }
+    // Must be stored before the navigation. Module memory does not survive the unload
+    savePendingAuthFlow({state, codeVerifier: pkce.codeVerifier, returnURL, createdAt: Date.now()});
+    window.location.assign(authorizeURL);
+    return new Promise<never>((_resolve, reject) => {
+        window.addEventListener('pageshow', () => reject(new Error(CF_SIGN_IN_ABANDONED)), {once: true});
+    });
+}
+
+function redirectToCloudflareSignIn(returnURL: string = window.location.href): Promise<never> {
+    redirectPromise ??= startCloudflareSignInRoundTrip(returnURL).finally(() => {
+        redirectPromise = null;
+    });
+    return redirectPromise;
+}
+
+let codeExchangePromise: Promise<void> | null = null;
+
+function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCodeExchange): Promise<void> {
+    const generation = sessionGeneration;
+    codeExchangePromise ??= exchangeCode({code, codeVerifier})
+        .then((session) => {
+            if (generation !== sessionGeneration) {
+                return;
+            }
+            return cacheAndPersistSession(session, 'exchanged');
+        })
+        .catch((error: unknown) => {
+            if (generation === sessionGeneration) {
+                codeExchangeErrorMessage = error instanceof Error ? error.message : String(error);
+            }
+            throw error;
+        })
+        .finally(() => {
+            codeExchangePromise = null;
+        });
+    return codeExchangePromise;
+}
+
+/** Non-null only mid-exchange, so callers join it instead of starting a second redirect */
+function getPendingCloudflareCodeExchange(): Promise<void> | null {
+    return codeExchangePromise;
+}
+
+function getCloudflareCodeExchangeError(): string | undefined {
+    return codeExchangeErrorMessage;
+}
+
+type CloudflareRefreshResult = 'refreshed' | 'skipped-newer-token' | 'reauth-required';
+
+let refreshPromise: Promise<CloudflareRefreshResult> | null = null;
+
+/**
+ * Cloudflare rotates the refresh token on every call, so two tabs refreshing at once each spend a token
+ * the other still needs. Web Locks serialize the read-refresh-persist across the origin's tabs.
+ */
+function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult>): Promise<CloudflareRefreshResult> {
+    if (!navigator.locks) {
+        return callback();
+    }
+    return navigator.locks.request('cloudflareSessionRefresh', callback);
+}
+
+async function refreshCloudflareSessionUnderLock(staleAccessToken: string): Promise<CloudflareRefreshResult> {
+    const generation = sessionGeneration;
+    const current = sessionCache;
+    if (!current?.refreshToken) {
+        return 'reauth-required';
+    }
+    if (current.accessToken !== staleAccessToken) {
+        return 'skipped-newer-token';
+    }
+
+    const submittedRefreshToken = current.refreshToken;
+    try {
+        const session = await refreshTokens(submittedRefreshToken);
+        if (generation !== sessionGeneration) {
+            return 'reauth-required';
+        }
+        await cacheAndPersistSession(session, 'rotated');
+        return 'refreshed';
+    } catch (error) {
+        if (!(error instanceof OAuthError) || (error.code !== 'invalid_grant' && error.code !== 'invalid_response')) {
+            throw error;
+        }
+        if (generation !== sessionGeneration) {
+            return 'reauth-required';
+        }
+        if (sessionCache?.refreshToken !== submittedRefreshToken) {
+            // Another tab already rotated the token this call submitted. The caller retries with the newer one
+            return 'skipped-newer-token';
+        }
+        // Both codes mean the submitted token is spent (invalid_response = CF rotated but the new pair was
+        // unreadable). Never delete the shared session here. Another tab may hold a working rotation.
+        return 'reauth-required';
+    }
+}
+
+function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareRefreshResult> {
+    if (refreshPromise) {
+        return refreshPromise;
+    }
+
+    refreshPromise = withCrossTabRefreshLock(() => refreshCloudflareSessionUnderLock(staleAccessToken)).finally(() => {
+        refreshPromise = null;
+    });
+    return refreshPromise;
+}
+
+function clearCloudflareSession(): Promise<void> {
+    resetSessionState();
+    return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, null);
+}
+
+export {
+    CF_SIGN_IN_ABANDONED,
+    redirectToCloudflareSignIn,
+    clearCloudflareSession,
+    exchangeCodeForCloudflareSession,
+    getCloudflareCodeExchangeError,
+    getCloudflareSession,
+    getPendingCloudflareCodeExchange,
+    isSessionNearExpiry,
+    refreshCloudflareSession,
+    waitForCloudflareSessionHydration,
+};
+export type {CloudflareRefreshResult};

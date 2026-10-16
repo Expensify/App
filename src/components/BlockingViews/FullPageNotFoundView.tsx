@@ -21,10 +21,7 @@ import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
-    /** TestID for test */
     testID?: string;
-
-    /** Child elements */
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "not found" view */
@@ -54,7 +51,6 @@ type FullPageNotFoundViewProps = {
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
     /** The style of the subtitle message */
@@ -63,10 +59,7 @@ type FullPageNotFoundViewProps = {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 

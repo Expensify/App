@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
 import Log from '@libs/Log';
+import mergeRefs from '@libs/mergeRefs';
 
 import type {ThemeColors} from '@styles/theme/types';
 import FontUtils from '@styles/utils/FontUtils';
@@ -14,23 +15,27 @@ import {EXTENDED_LOCALES} from '@src/CONST/LOCALES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import './index.css';
-import type {OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
         theme: ThemeColors;
+        containerEl: HTMLDivElement | null;
     };
 
 type OnfidoEvent = Event & {
     detail?: Record<string, unknown>;
 };
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}: InitializeOnfidoProps) {
-    OnfidoSDK.init({
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme, containerEl}: InitializeOnfidoProps) {
+    return OnfidoSDK.init({
         token: sdkToken,
+        // The SDK prefers containerEl over containerId. Passing this instance's element keeps the SDK from mounting into
+        // another #onfido-mount element that may still be in the DOM (e.g. on a screen lower in the navigation stack).
+        containerEl: containerEl ?? undefined,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         customUI: {
             // Font styles are commented out until Onfido fixes it on their side, more info here - https://github.com/Expensify/App/issues/44570
@@ -145,9 +150,10 @@ function logOnFidoEvent(event: OnfidoEvent) {
 function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
+    const containerRef = useRef<OnfidoElement>(null);
 
     useEffect(() => {
-        initializeOnfido({
+        const onfidoOut = initializeOnfido({
             sdkToken,
             onSuccess,
             onError,
@@ -155,10 +161,17 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
             preferredLocale,
             translate,
             theme,
+            containerEl: containerRef.current,
         });
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
-        return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+        return () => {
+            window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+            // Tear down the Onfido SDK so its modal is removed from the DOM when the component unmounts
+            // (e.g. when the RHP is closed before verification is completed). Otherwise the SDK's modal
+            // remains orphaned on screen. See https://github.com/Expensify/App/issues/98633
+            onfidoOut.tearDown();
+        };
         // Onfido should be initialized only once on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -166,7 +179,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     return (
         <div
             id={CONST.ONFIDO.CONTAINER_ID}
-            ref={ref}
+            ref={mergeRefs(ref, containerRef)}
         />
     );
 }

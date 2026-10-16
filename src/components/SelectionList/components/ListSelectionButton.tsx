@@ -8,19 +8,15 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React, {useState} from 'react';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
+    /** Whether the button renders as a checkbox (multi-select) or a radio button (single-select) */
+    role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO;
+
     /** The item to render the selection button for */
     item: TItem;
 
-    /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
-
-    /** Custom accessibility label */
     accessibilityLabel?: string;
-
-    /** Whether the button is disabled */
     disabled?: boolean;
-
-    /** Additional styles */
     style?: StyleProp<ViewStyle>;
 
     /** Additional styles for the checkbox/radio indicator */
@@ -32,7 +28,6 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
     /** Paint the checkmark on press before the parent's selection update lands. Opt-in for pages that defer that update. */
     shouldUseOptimisticSelection?: boolean;
 
-    /** Test ID */
     testID?: string;
 
     /** Tab index for the button, pass -1 to remove it from the tab order */
@@ -51,7 +46,7 @@ function ListSelectionButton<TItem extends ListItem>({
     shouldUseOptimisticSelection = false,
     testID,
     tabIndex,
-}: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
+}: ListSelectionButtonProps<TItem>) {
     const label = accessibilityLabel ?? item.text ?? '';
 
     const isCheckedProp = item.isSelected ?? false;
@@ -91,4 +86,3 @@ function ListSelectionButton<TItem extends ListItem>({
 }
 
 export default ListSelectionButton;
-export type {ListSelectionButtonProps};

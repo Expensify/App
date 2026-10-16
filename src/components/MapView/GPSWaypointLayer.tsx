@@ -17,9 +17,8 @@ const WAYPOINT_ICON_NAMES: Record<MapMarkerType, string> = {
 };
 
 type GPSWaypointLayerProps = {
-    // List of waypoints to render
     waypoints?: WayPoint[];
-    // ID of the layer to render the waypoints below
+    /** ID of the layer to render the waypoints below */
     belowLayerID?: string;
 };
 

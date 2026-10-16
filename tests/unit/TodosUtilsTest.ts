@@ -42,7 +42,6 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
     type: CONST.POLICY.TYPE.TEAM,
     owner: CURRENT_USER_EMAIL,
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
     ...overrides,
 });
@@ -128,6 +127,7 @@ const baseParams = {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
     areTransactionsLoaded: true,
+    rules: undefined,
 };
 
 describe('TodosUtils', () => {
@@ -404,6 +404,33 @@ describe('TodosUtils', () => {
 
                 expect(result.reportsToSubmit).toEqual([]);
             });
+        });
+
+        it('keeps a payable report in the pay bucket when its export failed', () => {
+            // A failed export only demotes Pay to a secondary action on the report page. The report stays payable,
+            // and the server's action:pay search still returns it.
+            const payReport = createMockReport('pay_export_failed', {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: -100,
+                hasExportError: true,
+            });
+            const policy = createMockPolicy(POLICY_ID, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([payReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_pay_export_failed', 'pay_export_failed')]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToPay.map((report) => report.reportID)).toEqual(['pay_export_failed']);
         });
 
         it('excludes a report whose expenses are all pending card transactions', () => {

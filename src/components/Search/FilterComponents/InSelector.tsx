@@ -1,9 +1,11 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -12,7 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSortedActions from '@hooks/useSortedActions';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -26,9 +29,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -44,14 +47,20 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
-    return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
+    return {
+        ...option,
+        isSelected: true,
+        keyForList: option.keyForList ?? option.reportID,
+    };
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
         // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
@@ -60,9 +69,16 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const sortedActions = useSortedActions();
+    const {activePolicyID} = useActivePolicyContext();
+
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -73,9 +89,11 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
 
     const buildReportOption = (id: string, isSelected: boolean): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
@@ -85,14 +103,22 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ...getSelectedOptionData(
                 createOptionFromReport({
                     dateFnsLocale,
+                    convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
+                    rules,
                     policy: reportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserEmail,
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[id],
                 }),
             ),
             isSelected,
@@ -103,7 +129,21 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {dateFnsLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                isReportArchived,
+                personalDetails,
+                policy,
+                reportAttributesDerived,
+                policyTags: reportPolicyTags,
+                conciergeReportID,
+                isTrackIntentUser,
+                translate,
+                currentUserAccountID,
+                rules,
+            },
         );
         return {...report, alternateText};
     };
@@ -120,9 +160,12 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ? defaultListOptions
             : getSearchOptions({
                   dateFnsLocale,
+                  convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
                   options,
                   draftComments,
-                  betas: undefined,
+                  // This list never had the beta, it used to pass no betas at all, so it stays off on purpose
+                  isDefaultRoomsBetaEnabled: false,
                   isUsedInChatFinder: false,
                   countryCode,
                   loginList,
@@ -131,15 +174,32 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
+                  currentUserLogin: currentUserEmail,
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
+                  rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
-        dateFnsLocale,
-        selectedOptions,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+    const chatOptions = filterAndOrderOptions({
+        options: defaultOptions,
+        searchInputValue: cleanSearchTerm,
+        countryCode,
+        loginList,
+        currentUserEmail,
+        currentUserAccountID,
+        personalDetails,
+        config: {
+            dateFnsLocale,
+            convertToDisplayString,
+            selectedOptions,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
+        },
+        translate,
+        rules,
+        activePolicyID,
     });
 
     const sections: SelectionListSections = [];
@@ -235,6 +295,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowTextInput
                 style={selectionListStyle}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterView>
     );

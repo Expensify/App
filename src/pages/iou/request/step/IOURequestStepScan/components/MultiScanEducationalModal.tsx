@@ -1,3 +1,4 @@
+import FeatureTraining from '@components/FeatureTraining';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -25,17 +26,22 @@ function MultiScanEducationalModal() {
 
     return (
         <FeatureTrainingModal
-            title={translate('iou.scanMultipleReceipts')}
-            image={lazyIllustrations.MultiScan}
-            imageHeight={220}
             modalInnerContainerStyle={styles.pt0}
-            illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
             onConfirm={dismissEducationalPopup}
-            titleStyles={styles.mb2}
-            confirmText={translate('common.buttonConfirm')}
-            description={translate('iou.scanMultipleReceiptsDescription')}
-            contentInnerContainerStyles={styles.mb6}
-        />
+        >
+            <FeatureTraining.Illustration
+                image={lazyIllustrations.MultiScan}
+                imageHeight={220}
+                outerContainerStyle={styles.multiScanEducationalPopupImage}
+            />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb6}>
+                    <FeatureTraining.Title style={styles.mb2}>{translate('iou.scanMultipleReceipts')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate('iou.scanMultipleReceiptsDescription')}</FeatureTraining.Description>
+                </FeatureTraining.BodyText>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            </FeatureTraining.Body>
+        </FeatureTrainingModal>
     );
 }
 

@@ -59,16 +59,12 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         /** Update selection position on change */
         onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
-        /** Selection Object */
         selection?: TextSelection;
-
-        /** Should we calculate the caret position */
         shouldCalculateCaretPosition?: boolean;
 
         /** Function to check whether composer is covered up or not */
         checkComposerVisibility?: () => boolean;
 
-        /** Whether the full composer is open */
         isComposerFullSize?: boolean;
 
         /** Should make the input only scroll inside the element avoid scroll out to parent */

@@ -12,7 +12,6 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
-    /** The ID of the test to be used for testing */
     testID?: string;
 
     /** Timeout for the activity indicator after which we fire a log about abnormally long loading */

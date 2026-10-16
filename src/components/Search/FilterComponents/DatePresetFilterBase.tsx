@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
@@ -17,6 +18,7 @@ import CONST from '@src/CONST';
 
 import type {Ref} from 'react';
 
+import {format} from 'date-fns';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -35,23 +37,22 @@ const getExclusiveDateValues = (dateModifier: SearchDateModifier, value: string 
     return exclusiveValues;
 };
 
-function getCustomDateModifierFromDateValues(dateValues: SearchDateValues): CustomDateModifier {
+function getCustomDateModifierFromDateValues(dateValues: SearchDateValues, allowedCustomDateModifiers: readonly CustomDateModifier[]): CustomDateModifier {
     const onValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
 
-    if (onValue && !isSearchDatePreset(onValue)) {
+    if (onValue && !isSearchDatePreset(onValue) && allowedCustomDateModifiers.includes(CONST.SEARCH.DATE_MODIFIERS.ON)) {
         return CONST.SEARCH.DATE_MODIFIERS.ON;
     }
 
-    if (dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) {
+    if (dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] && allowedCustomDateModifiers.includes(CONST.SEARCH.DATE_MODIFIERS.BEFORE)) {
         return CONST.SEARCH.DATE_MODIFIERS.BEFORE;
     }
 
-    if (dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]) {
+    if (dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && allowedCustomDateModifiers.includes(CONST.SEARCH.DATE_MODIFIERS.AFTER)) {
         return CONST.SEARCH.DATE_MODIFIERS.AFTER;
     }
 
-    // Default to `On` when no custom date values are set and the custom date page is opened.
-    return CONST.SEARCH.DATE_MODIFIERS.ON;
+    return allowedCustomDateModifiers.at(0) ?? CONST.SEARCH.DATE_MODIFIERS.ON;
 }
 
 function isCustomDateModifier(dateModifier: SearchDateModifier | null): dateModifier is CustomDateModifier {
@@ -59,25 +60,21 @@ function isCustomDateModifier(dateModifier: SearchDateModifier | null): dateModi
 }
 
 type DatePresetFilterBaseHandle = {
-    /** Gets date values */
     getDateValues: () => SearchDateValues;
 
     /** Gets the formatted range display text for current date values */
     getRangeDisplayText: () => string;
 
-    /** Clears date values */
     clearDateValues: () => void;
 
     /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) */
     setDateValueOfSelectedDateModifier: () => void;
 
-    /** Clears the date value of the selected date modifier */
     clearDateValueOfSelectedDateModifier: () => void;
 
     /** Restores the Range value to what it was when Range mode was entered, discarding any unsaved ephemeral picks */
     restoreRangeToEntrySnapshot: () => void;
 
-    /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
 
     /** Validates the selected date modifier input */
@@ -85,34 +82,26 @@ type DatePresetFilterBaseHandle = {
 };
 
 type DatePresetFilterBaseProps = {
-    /** Default date values */
     defaultDateValues: SearchDateValues;
-
-    /** Selected date modifier */
     selectedDateModifier: SearchDateModifier | null;
-
-    /** Callback when a date modifier is selected */
     onSelectDateModifier: (dateModifier: SearchDateModifier | null) => void;
-
-    /** The date presets */
     presets?: SearchDatePreset[];
 
     /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
     shouldShowCustomDate?: boolean;
 
+    /** Defaults to On, Before and After */
+    allowedCustomDateModifiers?: readonly CustomDateModifier[];
+
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
-    /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
-
-    /** Callback when range validation error changes */
     onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
 
     /** Force vertical stacking of calendars in range picker */
     forceVerticalCalendars?: boolean;
 
-    /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
 
@@ -129,6 +118,7 @@ function DatePresetFilterBase({
     onSelectDateModifier,
     presets,
     shouldShowCustomDate = true,
+    allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS,
     isSearchAdvancedFiltersFormLoading,
     onDateValuesChange,
     onRangeValidationErrorChange,
@@ -393,7 +383,7 @@ function DatePresetFilterBase({
     );
 
     const rangeDescription = getRangeDisplayTextFromDateValues(dateValues) || undefined;
-    const customDateModifier = useMemo(() => getCustomDateModifierFromDateValues(dateValues), [dateValues]);
+    const customDateModifier = getCustomDateModifierFromDateValues(dateValues, allowedCustomDateModifiers);
 
     const customDateDescription = useMemo(() => {
         const customDateValue = dateDisplayValues[customDateModifier];
@@ -403,9 +393,9 @@ function DatePresetFilterBase({
 
         return `${translate(`common.${customDateModifier.toLowerCase() as SearchDateModifierLower}`)} ${customDateValue}`;
     }, [customDateModifier, dateDisplayValues, translate]);
-    const handleSingleDateSelected = useCallback((date: string) => {
-        setEphemeralDateValue(date);
-    }, []);
+    const handleSingleDateSelected = (date: Date) => {
+        setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
+    };
     const selectCustomDateMode = useCallback(() => selectDateModifier(customDateModifier), [customDateModifier, selectDateModifier]);
 
     if (!selectedDateModifier) {
@@ -415,7 +405,6 @@ function DatePresetFilterBase({
                     {presets?.map((preset) => (
                         <SingleSelectListItem
                             key={preset}
-                            keyForList={preset}
                             showTooltip
                             item={{
                                 keyForList: preset,
@@ -478,33 +467,35 @@ function DatePresetFilterBase({
     return (
         <>
             <CalendarPicker
-                value={ephemeralDateValue}
+                value={DateUtils.parseCalendarDate(ephemeralDateValue)}
                 onSelected={handleSingleDateSelected}
-                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                isDateSelectable={DateUtils.isWithinCalendarPickerRange}
             />
-            <SpacerView
-                shouldShow
-                style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
-            />
-            {CONST.SEARCH.CUSTOM_DATE_MODIFIERS.map((dateModifier) => (
-                <SingleSelectListItem
-                    key={dateModifier}
-                    keyForList={dateModifier}
-                    showTooltip
-                    item={{
-                        keyForList: dateModifier,
-                        text: translate(`common.${dateModifier.toLowerCase() as SearchDateModifierLower}`),
-                        isSelected: selectedDateModifier === dateModifier,
-                    }}
-                    onSelectRow={() => selectDateModifier(dateModifier)}
-                    wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
-                />
-            ))}
+            {allowedCustomDateModifiers.length > 1 && (
+                <>
+                    <SpacerView
+                        shouldShow
+                        style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
+                    />
+                    {allowedCustomDateModifiers.map((dateModifier) => (
+                        <SingleSelectListItem
+                            key={dateModifier}
+                            showTooltip
+                            item={{
+                                keyForList: dateModifier,
+                                text: translate(`common.${dateModifier.toLowerCase() as SearchDateModifierLower}`),
+                                isSelected: selectedDateModifier === dateModifier,
+                            }}
+                            onSelectRow={() => selectDateModifier(dateModifier)}
+                            wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
+                        />
+                    ))}
+                </>
+            )}
         </>
     );
 }
 
-export type {SearchDateValues, DatePresetFilterBaseHandle as SearchDatePresetFilterBaseHandle};
+export type {CustomDateModifier, SearchDateValues, DatePresetFilterBaseHandle as SearchDatePresetFilterBaseHandle};
 
 export default DatePresetFilterBase;

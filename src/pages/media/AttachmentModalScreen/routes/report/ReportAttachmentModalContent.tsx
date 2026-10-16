@@ -23,8 +23,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
@@ -48,9 +50,9 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const hasReportActions = !!reportActions;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
@@ -64,7 +66,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
-    const submitRef = useRef<View | HTMLElement>(null);
+    const submitRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
 
     const shouldFetchReport = isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
 
@@ -79,8 +81,27 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return;
         }
 
-        openReport({reportID: reportActionReportID, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID});
-    }, [reportActionReportID, shouldFetchReport, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID]);
+        openReport({
+            reportID: reportActionReportID,
+            introSelected,
+            conciergeChat,
+            reportActionID,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        reportActionReportID,
+        shouldFetchReport,
+        introSelected,
+        conciergeChat,
+        reportActionID,
+        hasReportActions,
+        currentUserAccountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {
         const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({

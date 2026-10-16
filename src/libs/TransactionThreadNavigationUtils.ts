@@ -1,9 +1,9 @@
-import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from './actions/Report';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getAllReportActions, getExpenseCreationIOUActionForTransactionID, isSentMoneyReportAction} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
@@ -29,11 +29,27 @@ type TransactionThreadNavigationDescriptor = {
 /** Context needed to create a transaction thread on demand when one doesn't exist yet. */
 type ResolveReportContext = {
     introSelected: OnyxEntry<IntroSelected>;
-    betas: OnyxEntry<Beta[]>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeChat: OnyxEntry<Report>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
+
+/**
+ * The action that created an expense, looked up in a report's own actions.
+ *
+ * Deliberately not `getIOUActionForReportID`: paying, approving or rejecting an expense produces further IOU
+ * actions carrying the same `IOUTransactionID`, each with its own thread, and opening one of those shows a system
+ * message instead of the expense.
+ */
+function getExpenseCreationIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+    if (!reportID || !transactionID) {
+        return undefined;
+    }
+    return getExpenseCreationIOUActionForTransactionID(Object.values(getAllReportActions(reportID)), transactionID);
+}
 
 /**
  * Resolves which report to open for a single expense, creating its transaction thread only if necessary.
@@ -45,23 +61,28 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     const {transaction, reportID} = expense;
     const isUnreported = isExpenseUnreported(transaction);
 
-    // Unreported (tracked) expenses live in the self-DM; their transaction thread is the expense view to open,
-    // since report "0" does not exist. Prefer the snapshot-resolved thread, but fall back to local report actions
-    // so an optimistic (offline) expense — absent from the snapshot — still resolves to its real thread.
-    if (isUnreported) {
-        return expense.reportAction?.childReportID ?? getIOUActionForReportID(findSelfDMReportID(), transaction.transactionID)?.childReportID ?? reportID;
+    // A sent-money (pay) action's childReportID is the "marked as paid" system message thread, not the expense.
+    // Opening the paid expense should land on its report, so send these to the parent report rather than the
+    // pay action's thread. Mirrors how the Search page navigates single-transaction reports to the report itself.
+    if (isSentMoneyReportAction(expense.reportAction)) {
+        return reportID;
     }
 
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
-    // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
+    // may be empty (e.g. right after clearing Onyx) so the local lookup can fail and incorrectly
     // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
     if (expense.reportAction?.childReportID) {
         return expense.reportAction.childReportID;
     }
 
+    // An unreported (tracked) expense's IOU action lives in the self-DM, not under report "0", so that is where
+    // its thread has to be resolved from. Falling back to local report actions also lets an optimistic (offline)
+    // expense — absent from the snapshot — resolve to its real thread.
+    const iouActionReportID = isUnreported ? findSelfDMReportID() : reportID;
+
     // Prefer the live action from the main collection (it may carry a newer childReportID), fall back to the
     // snapshot action carried on the descriptor so a snapshot-only expense can still resolve/create its thread.
-    const iouAction = getIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
+    const iouAction = getExpenseCreationIOUActionForReportID(iouActionReportID, transaction.transactionID) ?? expense.reportAction;
     if (!iouAction) {
         return reportID;
     }
@@ -69,12 +90,20 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         return iouAction.childReportID;
     }
 
+    // No thread yet, so create one. An unreported expense used to return report "0" here instead, which is not a
+    // report that can be opened: the prev/next carousel enabled its arrow from the transaction alone and then had
+    // nowhere to navigate, so the press did nothing. createTransactionThreadReport recognizes an unreported
+    // transaction and parents the new thread to the self-DM.
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
+        isSelfTourViewed: context.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
-        betas: context.betas,
-        iouReport: getReportOrDraftReport(reportID) ?? expense.report,
+        // An unreported expense has no parent expense report to build the thread from; report "0" is a
+        // placeholder, not a row in the collection.
+        iouReport: isUnreported ? undefined : (getReportOrDraftReport(reportID) ?? expense.report),
         iouReportAction: iouAction,
         transaction,
         personalDetails: context.personalDetails,
@@ -123,9 +152,11 @@ function getOrCreateTransactionThreadReportID(
     // No thread yet, so create it.
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
+        isSelfTourViewed: context.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
-        betas: context.betas,
         iouReport,
         iouReportAction,
         transaction,

@@ -1,0 +1,87 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
+index a087536..c52de75 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
+@@ -590,6 +590,7 @@ - (BOOL)_shouldDisableScrollInteraction
+   metrics.containerSize = RCTSizeFromCGSize(_scrollView.bounds.size);
+   metrics.zoomScale = _scrollView.zoomScale;
+   metrics.timestamp = CACurrentMediaTime();
++  metrics.responderIgnoreScroll = !_isUserTriggeredScrolling;
+ 
+   if (_layoutMetrics.layoutDirection == LayoutDirection::RightToLeft) {
+     metrics.contentOffset.x = metrics.contentSize.width - metrics.containerSize.width - metrics.contentOffset.x;
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 58ec8ec..2c3f9c0 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -565,7 +565,9 @@ - (void)textInputDidPaste:(NSString *)type withData:(NSString *)data
+ - (void)scrollViewDidScroll:(UIScrollView *)scrollView
+ {
+   if (_eventEmitter) {
+-    static_cast<const TextInputEventEmitter &>(*_eventEmitter).onScroll([self _textInputMetrics]);
++    auto metrics = [self _textInputMetrics];
++    metrics.responderIgnoreScroll = !(scrollView.isDragging || scrollView.isDecelerating);
++    static_cast<const TextInputEventEmitter &>(*_eventEmitter).onScroll(metrics);
+   }
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.cpp
+index 7adacc5..5307df6 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.cpp
+@@ -44,6 +44,7 @@ jsi::Value ScrollEvent::asJSIValue(jsi::Runtime& runtime) const {
+ 
+   payload.setProperty(runtime, "zoomScale", zoomScale);
+   payload.setProperty(runtime, "timestamp", timestamp * 1000);
++  payload.setProperty(runtime, "responderIgnoreScroll", responderIgnoreScroll);
+ 
+   return payload;
+ }
+@@ -67,7 +68,8 @@ folly::dynamic ScrollEvent::asDynamic() const {
+           "contentInset", std::move(contentInsetObj))(
+           "contentSize", std::move(contentSizeObj))(
+           "layoutMeasurement", std::move(containerSizeObj))(
+-          "zoomScale", zoomScale)("timestamp", timestamp * 1000);
++          "zoomScale", zoomScale)("timestamp", timestamp * 1000)(
++          "responderIgnoreScroll", responderIgnoreScroll);
+ 
+   return metrics;
+ };
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.h b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.h
+index fb2cd8b..c3fd958 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollEvent.h
+@@ -21,6 +21,7 @@ struct ScrollEvent : public EventPayload {
+   EdgeInsets contentInset;
+   Size containerSize;
+   Float zoomScale{};
++  bool responderIgnoreScroll{false};
+ 
+   /*
+    * The time in seconds when the touch occurred or when it was last mutated.
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
+index 5cbcc60..4841983 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.cpp
+@@ -86,6 +86,9 @@ static jsi::Value textInputMetricsScrollPayload(
+       "zoomScale",
+       textInputMetrics.zoomScale != 0.0f ? textInputMetrics.zoomScale : 1);
+ 
++  payload.setProperty(
++      runtime, "responderIgnoreScroll", textInputMetrics.responderIgnoreScroll);
++
+   return payload;
+ };
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
+index c1118e3..e9daa32 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/TextInputEventEmitter.h
+@@ -27,6 +27,7 @@ class TextInputEventEmitter : public ViewEventEmitter {
+     int eventCount;
+     Size layoutMeasurement;
+     Float zoomScale;
++    bool responderIgnoreScroll{false};
+     Tag target;
+   };
+ 

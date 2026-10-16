@@ -37,7 +37,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -201,6 +201,8 @@ jobs:
   androidBuild:
     name: Build Android HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
@@ -215,7 +217,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -269,7 +271,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -429,11 +431,14 @@ jobs:
   iosBuild:
     name: Build iOS HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
+      download-dsyms: true
     secrets: inherit
 
   iosUploadTestflight:
@@ -702,10 +707,12 @@ jobs:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]
     if: ${{ always() && needs.webBuild.result == 'success' }}
+    # Preserve the default token scopes while adding OIDC access
+    permissions: write-all
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -734,13 +741,22 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-${{ env.DEPLOY_ENV }}-web-deploy-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
           aws-region: us-east-1
 
       - name: Deploy to S3
         run: |
-          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          aws s3 cp --recursive --acl public-read --exclude "*.br" "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+
+          for PAIR in js:text/javascript css:text/css html:text/html svg:image/svg+xml wasm:application/wasm ttf:font/ttf; do
+            EXT="${PAIR%%:*}"
+            CONTENT_TYPE="${PAIR#*:}"
+            aws s3 cp --recursive --acl public-read --exclude "*" --include "*.${EXT}.br" \
+              --content-encoding br --content-type "$CONTENT_TYPE" \
+              "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          done
+
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/apple-app-site-association
         env:
@@ -760,6 +776,90 @@ jobs:
         env:
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
+  webDeployCloudflareWorkers:
+    name: Deploy Web to Cloudflare Workers (${{ matrix.environment }})
+    needs: [prep, webBuild, buildStorybook]
+    if: ${{ always() && needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
+    # Trial hosting for the web build, so a failure here must not fail the staging deploy.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        # `staging` serves no traffic until staging.new.expensify.com is routed to its Worker in Cloudflare.
+        environment: [test-staging, staging]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+
+      - name: Setup Node
+        # v6.1.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: web/cloudflare-worker/package-lock.json
+
+      - name: Download web build artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: web-build-tar-gz-artifact
+          path: ./
+
+      - name: Extract web build
+        run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
+
+      # The Workers serve these to tabs still running this build after later deploys. Both Workers read the same bucket,
+      # so only one matrix leg uploads.
+      - name: Upload web build to the previous builds bucket
+        if: ${{ matrix.environment == 'staging' }}
+        continue-on-error: true
+        run: |
+          if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
+            echo "::warning::CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID is not set, so this build is not available to future deploys."
+            exit 0
+          fi
+          aws configure set default.s3.preferred_transfer_client classic
+          # Re-uploads every file, so files that stay the same across builds don't hit the bucket's 60-day expiry while still in use.
+          aws s3 cp dist s3://new-expensify-web-assets-staging/ --recursive \
+            --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --no-progress \
+            --exclude '*.br' --exclude '*.map'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Download storybook docs artifact
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: storybook-docs-artifact
+          path: ./dist/docs
+
+      - name: Install Cloudflare Worker dependencies
+        working-directory: web/cloudflare-worker
+        run: npm ci
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: web/cloudflare-worker
+        run: npx wrangler deploy --env "${{ matrix.environment }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: false
+
+      - name: Verify deploy
+        if: ${{ matrix.environment == 'test-staging' }}
+        run: |
+          APP_VERSION=$(jq -r .version < package.json)
+          ./.github/scripts/verifyDeploy.sh https://test-staging.new.expensify.com "$APP_VERSION"
+
   buildStorybook:
     name: Build storybook docs
     needs: [prep]
@@ -767,7 +867,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -811,7 +911,7 @@ jobs:
       ]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -948,7 +1048,7 @@ jobs:
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -978,7 +1078,9 @@ jobs:
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          SLACK_RETEST_USER_TOKEN: ${{ secrets.SLACK_RETEST_USER_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -1123,7 +1225,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1141,18 +1243,19 @@ jobs:
   iosUploadSentry:
     name: Upload iOS build to Sentry for size analysis
     needs: [prep, iosBuild, checkDeploymentSuccess]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # sentry-cli only supports IPA uploads when running on Apple Silicon macOS
+    runs-on: blacksmith-6vcpu-macos-latest
     if: >-
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     continue-on-error: true
-    timeout-minutes: 10
+    timeout-minutes: 20
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload

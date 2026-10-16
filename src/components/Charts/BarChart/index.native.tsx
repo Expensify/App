@@ -1,13 +1,22 @@
+import ChartWidthBox from '@components/Charts/components/ChartWidthBox';
+
 import React from 'react';
 
-import type {BarChartProps} from './BarChartContent';
+import type BarChartProps from './types';
 
 import BarChartContent from './BarChartContent';
 
 function BarChart(props: BarChartProps) {
-    return <BarChartContent {...props} />;
+    return (
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <BarChartContent
+                    {...props}
+                    chartWidth={chartWidth}
+                />
+            )}
+        </ChartWidthBox>
+    );
 }
-
-BarChart.displayName = 'BarChart';
 
 export default BarChart;

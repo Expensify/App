@@ -1,4 +1,5 @@
 import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -26,7 +27,9 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         try {
             // The OS can purge Caches wholesale, so the directory may need recreating
             await RNFS.mkdir(ATTACHMENT_DIR);
-            await RNFS.copyFile(uri, destPath);
+            const decodedPath = fileURIToPath(uri);
+            const sourcePath = (await RNFS.exists(decodedPath)) ? decodedPath : uri.slice('file://'.length);
+            await RNFS.copyFile(sourcePath, destPath);
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 source: destPath,
@@ -88,7 +91,11 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
         // exists. If it was purged, fall back to the current source and re-cache it.
         const localFileExists = await RNFS.exists(localSource);
         if (localFileExists) {
-            return localSource;
+            // The path is stored without a scheme so RNFS file operations (exists/unlink) accept it, but
+            // React Native's <Image> on Android only loads a local file when it carries a `file://`
+            // scheme (a bare path renders as a broken thumbnail), so add the scheme before the path
+            // reaches the image renderer.
+            return localSource.startsWith('file://') ? localSource : `file://${localSource}`;
         }
         cacheAttachment({attachmentID, uri: currentSource});
     }

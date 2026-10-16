@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -42,8 +42,7 @@ type CurrencySelectorProps = {
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
 
-    /** Reference to the outer element */
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function CurrencySelector({

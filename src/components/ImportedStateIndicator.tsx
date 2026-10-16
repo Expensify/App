@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 function ImportedStateIndicator() {
     const styles = useThemeStyles();

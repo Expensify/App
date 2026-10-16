@@ -1,12 +1,15 @@
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 
-import {updateMergeHRFinalApprover} from '@libs/actions/connections/MergeHR';
-import {getConnectedHRProvider, isMergeHRConnected} from '@libs/HRUtils';
+import {updateMergeFinalApprover} from '@libs/actions/connections/merge';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
-import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
+import {getHRSettingsRoute} from '@pages/workspace/connections/utils';
+import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApproverPageBase';
+import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -21,18 +24,21 @@ function MergeHRFinalApproverPage({
     },
 }: MergeHRFinalApproverPageProps) {
     const {translate} = useLocalize();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
-    const config: HRFinalApproverProviderConfig = {
+    const config: MergeFinalApproverProviderConfig = {
         testID: 'MergeHRFinalApproverPage',
-        isConnected: isMergeHRConnected,
+        isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
+        featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        backRoute: getHRSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.merge_hris?.config?.finalApprover ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerFinalApprover', providerName),
-        handleSave: ({policyID: id, email, currentFinalApprover}) => updateMergeHRFinalApprover(id, email, currentFinalApprover),
+        handleSave: ({policyID: id, email, currentFinalApprover}) => updateMergeFinalApprover(id, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, email, currentFinalApprover),
     };
 
     return (
-        <HRFinalApproverPageBase
+        <MergeFinalApproverPageBase
             policyID={policyID}
             config={config}
         />

@@ -13,7 +13,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type RestrictDefaultLoginSelectionToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */

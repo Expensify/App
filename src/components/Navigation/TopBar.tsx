@@ -1,3 +1,4 @@
+import Icon from '@components/Icon';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -5,9 +6,12 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
@@ -26,6 +30,8 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import AccountAvatarButton from './AccountAvatarButton';
+
 type TopBarProps = {
     breadcrumbLabel: string;
     shouldDisplaySearch?: boolean;
@@ -34,17 +40,31 @@ type TopBarProps = {
     cancelSearch?: () => void;
     children?: React.ReactNode;
     breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
+    /** Shows a back arrow before the breadcrumb that calls this when pressed. */
+    onBackButtonPress?: () => void;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
+function TopBar({
+    breadcrumbLabel,
+    shouldDisplaySearch = true,
+    shouldDisplayHelpButton = false,
+    cancelSearch,
+    shouldShowLoadingBar,
+    children,
+    breadcrumbAnimatedStyle,
+    onBackButtonPress,
+}: TopBarProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
 
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
@@ -54,11 +74,25 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, onBackButtonPress ? styles.ml2 : styles.ml5, styles.mr3, contentHeaderHeightStyle]}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
+                    {!!onBackButtonPress && (
+                        <PressableWithoutFeedback
+                            onPress={onBackButtonPress}
+                            style={styles.touchableButtonImage}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.back')}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+                        >
+                            <Icon
+                                src={icons.BackArrow}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    )}
                     <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
                         <Text
                             numberOfLines={1}
@@ -85,6 +119,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 )}
                 {displaySearch && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                <AccountAvatarButton />
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

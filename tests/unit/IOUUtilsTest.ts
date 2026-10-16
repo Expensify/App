@@ -6,8 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
-
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -16,6 +14,7 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -327,6 +326,57 @@ describe('IOUUtils', () => {
         test('Should fill sparse slots when tagIndex exceeds current array length', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
+
+        test('Should drop values for tag lists the policy no longer has', () => {
+            // Given an expense tagged while the policy had 3 tag lists, and the policy now has only 2,
+            // so the third value can never be edited and keeps the expense flagged as having an invalid tag
+            const transactionTags = '777 Accounting/Finance:150 CCI:150 CCI';
+            const tagListCount = 2;
+
+            // When the user edits the second tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, '200 HQ', 1, true, tagListCount);
+
+            // Then only the 2 current tag lists keep a value, which clears the stale third value
+            expect(result).toBe('777 Accounting/Finance:200 HQ');
+        });
+
+        test('Should drop the last value when a middle tag list was removed, leaving the shifted value editable', () => {
+            // Given an expense tagged with lists A:B:C after list B was removed. The tag string is positional,
+            // so B's value now sits in C's slot and C's value sits beyond the 2 remaining lists
+            const transactionTags = 'a:b:c';
+            const tagListCount = 2;
+
+            // When the user edits the first tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'a2', 0, true, tagListCount);
+
+            // Then the value beyond the remaining lists is dropped and the shifted value stays in a visible slot,
+            // where it shows as invalid and the user can replace it
+            expect(result).toBe('a2:b');
+        });
+
+        test('Should keep every value when the tag list count is unknown', () => {
+            // Given a tag string with 3 values and no reliable tag list count, because the policy's tags have not finished loading
+            const transactionTags = 'East:NY:California';
+
+            // When the user edits the second tag without a count, or with a count of 0
+            const resultWithoutCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true);
+            const resultWithZeroCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true, 0);
+
+            // Then no value is dropped, since a partial tag collection must not discard valid tags
+            expect(resultWithoutCount).toBe('East:NewTag:California');
+            expect(resultWithZeroCount).toBe('East:NewTag:California');
+        });
+
+        test('Should keep every value when the tag string fits the tag list count', () => {
+            // Given a policy with 3 tag lists and an expense that only has the first 2 set
+            const transactionTags = 'East:NY';
+
+            // When the user sets the third tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'California', 2, true, 3);
+
+            // Then all 3 values are kept, since truncation only applies to values beyond the policy's tag lists
+            expect(result).toBe('East:NY:California');
+        });
     });
 });
 
@@ -339,6 +389,22 @@ describe('isValidMoneyRequestType', () => {
 
     test('Return false for invalid iou type', () => {
         expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
+    });
+});
+
+describe('getNonDeprecatedIOUType', () => {
+    test('Resolves the deprecated OldDot aliases', () => {
+        expect(IOUUtils.getNonDeprecatedIOUType(CONST.IOU.TYPE.REQUEST)).toBe(CONST.IOU.TYPE.SUBMIT);
+        expect(IOUUtils.getNonDeprecatedIOUType(CONST.IOU.TYPE.SEND)).toBe(CONST.IOU.TYPE.PAY);
+    });
+
+    test('Leaves every other iou type untouched', () => {
+        for (const iouType of Object.values(CONST.IOU.TYPE)) {
+            if (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SEND) {
+                continue;
+            }
+            expect(IOUUtils.getNonDeprecatedIOUType(iouType)).toBe(iouType);
+        }
     });
 });
 
@@ -469,7 +535,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -533,7 +601,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -552,7 +622,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -577,7 +647,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false when SmartScan failed with missing fields before violation is written', async () => {
@@ -610,7 +680,7 @@ describe('canSubmitReport', () => {
             amount: 100,
         };
 
-        expect(canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -630,13 +700,14 @@ describe('Check valid amount for IOU/Expense request', () => {
 
     test('Expense amount should be negative', () => {
         const expenseReport = ReportUtils.buildOptimisticExpenseReport({
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: '212',
             policyID: '123',
             payeeAccountID: 100,
             total: 122,
             currency: 'USD',
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         });
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
@@ -767,7 +838,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -802,7 +873,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return true for Submit workspace report when user is manager', async () => {
@@ -831,7 +902,7 @@ describe('canApproveIOU', () => {
             status: undefined,
         };
 
-        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for non-expense report', async () => {
@@ -850,7 +921,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [])).toBe(false);
     });
 });
 
@@ -916,11 +987,36 @@ describe('getExistingTransactionID', () => {
             expect(result1.chatReportID).toBeDefined();
             expect(result2.chatReportID).toBeDefined();
         });
+
+        it('should use the preferred optimistic ID when no existing report is found', () => {
+            // Given a new chat whose caller already reserved an optimistic report ID
+            // When chat resolution cannot find an existing report
+            const result = IOUUtils.resolveOptimisticChatReportID([100001, 100002], undefined, 'preferred-123');
+
+            // Then the reserved ID is reused so related optimistic data stays aligned
+            expect(result.chatReportID).toBe('preferred-123');
+            expect(result.optimisticChatReportID).toBe('preferred-123');
+        });
+
+        it('should prefer an existing report over the preferred optimistic ID', () => {
+            // Given both an existing chat and a caller-reserved optimistic ID
+            const existingReport = {reportID: 'existing-123'} as Report;
+            // When chat resolution chooses the report identity
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport, 'preferred-123');
+
+            // Then the persisted chat wins because no optimistic replacement is needed
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
     });
 
     describe('resolveReportForMoneyRequest', () => {
         const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
         const nonArchivedReportNameValuePair: ReportNameValuePairs = {};
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
         const makeOutstandingReport = (reportID: string): Report => ({
             ...createRandomReport(Number(reportID), undefined),
@@ -949,50 +1045,53 @@ describe('getExistingTransactionID', () => {
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 }),
             ).toBeUndefined();
         });
 
-        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
+        it('returns the picked report when canAddTransaction allows it (user-selected report wins)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('500');
         });
 
-        it('returns undefined when the picked report is archived', () => {
+        it('returns undefined when canAddTransaction rejects the picked report (e.g. archived)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
             const reportNameValuePair: ReportNameValuePairs = {private_isArchived: testDate};
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
 
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve, reportNameValuePair})).toBeUndefined();
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, reportNameValuePair, rules: undefined})).toBeUndefined();
         });
 
-        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
+        it('returns undefined when canAddTransaction rejects the picked report and it differs from the route (forces a new optimistic IOU)', () => {
             const transaction = makeTransaction('500');
             const nonOutstandingPick: Report = {
                 ...makeOutstandingReport('500'),
                 policyID: 'someOtherPolicy',
             };
             const routeReport = makeRouteReport('100');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport: nonOutstandingPick,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 }),
             ).toBeUndefined();
         });
@@ -1006,8 +1105,8 @@ describe('getExistingTransactionID', () => {
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('100');
         });
@@ -1015,18 +1114,19 @@ describe('getExistingTransactionID', () => {
         it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport,
                     routeReport: undefined,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('500');
         });
 
-        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
+        it('returns the picked submitted report when canAddTransaction allows it (harvesting disabled no longer blocks)', () => {
             const transaction = makeTransaction('500');
             const processingPick: Report = {
                 ...makeOutstandingReport('500'),
@@ -1034,16 +1134,17 @@ describe('getExistingTransactionID', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const routeReport = makeRouteReport('100');
-            const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
+
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport: processingPick,
                     routeReport,
-                    policy: harvestingDisabledPolicy,
                     reportNameValuePair: nonArchivedReportNameValuePair,
-                }),
-            ).toBeUndefined();
+                    rules: undefined,
+                })?.reportID,
+            ).toBe('500');
         });
     });
 
@@ -1228,6 +1329,36 @@ describe('isParticipantP2P', () => {
         };
 
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+});
+
+describe('getReusableP2PReportID', () => {
+    it('returns the transaction report ID for a brand-new P2P recipient', () => {
+        // Given a new P2P recipient without an existing chat
+        // When selecting an ID for its optimistic chat
+        // Then the transaction ID is reused so both optimistic records share an identity
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, '123')).toBe('123');
+    });
+
+    it('does not return the transaction report ID for an existing P2P chat', () => {
+        // Given a P2P recipient already linked to a persisted chat
+        // When selecting an ID for request creation
+        // Then no reusable ID is supplied because the existing chat remains authoritative
+        expect(IOUUtils.getReusableP2PReportID({reportID: '456'} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the transaction report ID for a workspace chat', () => {
+        // Given a workspace recipient whose chat identity follows policy routing
+        // When selecting an optimistic P2P report ID
+        // Then reuse is rejected because workspace chats are not P2P destinations
+        expect(IOUUtils.getReusableP2PReportID({isPolicyExpenseChat: true} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the unreported report ID', () => {
+        // Given a new recipient whose transaction still uses the unreported sentinel
+        // When selecting an optimistic chat identity
+        // Then the sentinel is rejected because it cannot identify a real chat
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, CONST.REPORT.UNREPORTED_REPORT_ID)).toBeUndefined();
     });
 });
 

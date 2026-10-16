@@ -9,8 +9,7 @@ type TravelSettings = {
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
 
-    /** The last travel signup request time */
-    lastTravelSignupRequestTime?: string | null;
+    lastTravelSignupRequestTime?: string;
 };
 
 /** Model of workspace travel information to connect with Spotnana */
@@ -26,6 +25,9 @@ type WorkspaceTravelSettings = {
 
     /** Whether to automatically add trip names to expense descriptions during travel */
     autoAddTripName?: boolean;
+
+    /** Whether the workspace's categories, tags and report fields are sent to Spotnana as booking questions. Absent means off. */
+    isCodingSyncEnabled?: boolean;
 
     /** Legal entity tax ID, collected during Travel enablement on non-USD workspaces so Solutions can provision a DK number */
     taxID?: string;

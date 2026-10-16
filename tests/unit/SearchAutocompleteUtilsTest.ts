@@ -51,6 +51,26 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight the Spend footer selections in either spelling', () => {
+            const input = 'footer-count:reports footerTotal:non-reimbursable footer-currency:EUR';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 13, type: 'mention-user', length: 7}, // footer-count:reports
+                {start: 33, type: 'mention-user', length: 16}, // footerTotal:non-reimbursable
+                {start: 66, type: 'mention-user', length: 3}, // footer-currency:EUR
+            ]);
+        });
+
+        it('should not highlight a Spend footer selection the footer cannot render', () => {
+            const input = 'footer-count:pandas footerTotal:whatever footer-currency:NOPE';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
         it('should highlight new PURCHASE_CURRENCY filter', () => {
             const input = 'purchaseCurrency:USD';
 
@@ -558,6 +578,10 @@ describe('SearchAutocompleteUtils', () => {
                 expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
             });
 
+            it('returns display name for the Reconciliation - All Expenses template', () => {
+                expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES);
+            });
+
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
@@ -569,6 +593,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template ID', () => {
@@ -581,6 +606,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template label', () => {

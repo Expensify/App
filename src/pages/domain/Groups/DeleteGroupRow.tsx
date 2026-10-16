@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {deleteDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -17,7 +18,6 @@ import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain
 import React from 'react';
 
 type DeleteGroupRowProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
@@ -48,9 +48,9 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
             title: translate('domain.groups.deleteGroupDangerConfirmationModal'),
             prompt: translate('domain.groups.deleteGroupDangerConfirmationModalDescription', defaultSecurityGroup?.name ?? ''),
             confirmText: translate('domain.groups.deleteGroup'),
-            cancelText: translate('domain.groups.neverMind'),
+            cancelText: translate('domain.common.neverMind'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action !== ModalActions.CONFIRM) {

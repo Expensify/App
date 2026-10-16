@@ -24,6 +24,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE = {
     hasWorkspaceErrors: false,
     isFeedConnectionBroken: false,
     shouldPromptBrokenConnection: false,
+    hasFeedConnectionIssue: false,
 };
 
 function createDefaultCardFeedErrors(): CardFeedErrors {
@@ -53,7 +54,6 @@ function createAdminPolicy(overrides: Partial<Policy> & {id: string} = {id: POLI
         name: POLICY_NAME,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-        isPolicyExpenseChatEnabled: true,
         policyAccountID: WORKSPACE_ACCOUNT_ID,
         ...overrides,
     } as Policy;

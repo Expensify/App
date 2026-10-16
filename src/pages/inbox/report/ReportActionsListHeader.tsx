@@ -3,7 +3,6 @@ import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessag
 import React from 'react';
 
 type ReportActionsListHeaderProps = {
-    /** The ID of the report being displayed */
     reportID: string;
 
     /** Whether a Concierge draft is still streaming in — hides the thinking indicator only while the reply is actively revealing, not after it completes */

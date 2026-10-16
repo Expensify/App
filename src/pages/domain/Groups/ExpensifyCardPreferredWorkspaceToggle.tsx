@@ -1,4 +1,5 @@
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExpensifyCardPreferredWorkspaceToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
@@ -40,11 +40,10 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
     const isPreferredPolicyEnabled = !!group?.enableRestrictedPrimaryPolicy && !!preferredPolicyID;
 
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const isActive = !!group?.overridePreferredPolicyWithCardPolicy;
-    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingExpensifyCard) && !isActive;
+    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingCard) && !isActive;
 
     return (
         <View style={styles.mv3}>
@@ -55,6 +54,10 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
                 shouldPlaceSubtitleBelowSwitch
                 disabled={isDisabled}
                 disabledAction={() => {
+                    // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                    if (isCardEligibilityLoading) {
+                        return;
+                    }
                     showConfirmModal({
                         title: translate('workspace.distanceRates.oopsNotSoFast'),
                         prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

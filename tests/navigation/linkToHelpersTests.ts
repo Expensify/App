@@ -1,4 +1,10 @@
-import {getActiveScreenInRoute, isNavigatingToReportActionWithinSameReport, isSwitchingTabsWithinTabNavigator, shouldChangeToMatchingFullScreen} from '@libs/Navigation/helpers/linkTo';
+import {
+    getActiveScreenInRoute,
+    getMatchingFullScreenRouteParams,
+    isNavigatingToReportActionWithinSameReport,
+    isSwitchingTabsWithinTabNavigator,
+    shouldChangeToMatchingFullScreen,
+} from '@libs/Navigation/helpers/linkTo';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -111,6 +117,45 @@ describe('getActiveScreenInRoute', () => {
             state: {routes: [], index: 0},
         };
         expect(getActiveScreenInRoute(route)).toBeUndefined();
+    });
+});
+
+describe('getMatchingFullScreenRouteParams', () => {
+    it('returns the route params when there is no nested route', () => {
+        const route: NavigationPartialRoute = {name: NAVIGATORS.WORKSPACE_NAVIGATOR, params: {policyID: '1'}};
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({policyID: '1'});
+    });
+
+    it('omits state when the last route has none', () => {
+        const route: NavigationPartialRoute = {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: {index: 0, routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}}]},
+        };
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({screen: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}});
+    });
+
+    it('preserves the nested split state when building an initialized workspace background', () => {
+        const splitState = {
+            routes: [
+                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}},
+                {name: SCREENS.WORKSPACE.DISTANCE_RATES, params: {policyID: '1'}},
+            ],
+            index: 1,
+        };
+        const route: NavigationPartialRoute = {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: {
+                routes: [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: splitState}],
+                index: 1,
+            },
+        };
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({
+            screen: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+            params: {state: splitState},
+        });
     });
 });
 

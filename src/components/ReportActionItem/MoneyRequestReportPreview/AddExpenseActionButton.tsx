@@ -1,11 +1,14 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +28,12 @@ function AddExpenseActionButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
 
     return (
         <ButtonWithDropdownMenu
@@ -44,8 +52,9 @@ function AddExpenseActionButton() {
                 ownerBillingGracePeriodEnd,
                 iouRequestBackToReport: chatReportID,
                 unreportedExpenseBackToReport: iouReport?.parentReportID,
-                lastDistanceExpenseType,
+                lastDistanceExpenseType: distanceExpenseType,
                 currentUserAccountID: currentUserDetails.accountID,
+                blockDistanceRequestIfNeeded,
             })}
             isSplitButton={false}
             anchorAlignment={{

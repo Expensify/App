@@ -178,6 +178,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             function buildSelfDMParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -192,6 +193,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -322,6 +324,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=false (standard flow)', () => {
             function buildStandardParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -335,6 +338,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -363,6 +367,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=true but selfDMReportID is undefined', () => {
             function buildNoSelfDMReportIDParams(): BuildOnyxDataParams {
                 return {
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -377,6 +382,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -403,6 +409,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
 
             return {
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isNewChatReport: false,
                 shouldCreateNewMoneyRequestReport,
@@ -425,6 +432,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 },
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             };
         }
 
@@ -484,6 +492,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
     it('uses the injected formatter for optimistic new-chat personal detail display name', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
         const result = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             parentChatReport: undefined,
             participantParams: {
@@ -500,7 +509,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 created: '2024-01-01',
                 merchant: 'Test Merchant',
             },
-            betas: [],
             isASAPSubmitBetaEnabled: false,
             currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
             currentUserEmailParam: CURRENT_USER_EMAIL,
@@ -511,6 +519,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: mockFormatPhoneNumber,
+            rules: undefined,
         });
 
         const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);

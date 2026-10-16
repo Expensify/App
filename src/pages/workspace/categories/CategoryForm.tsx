@@ -7,9 +7,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,16 +21,9 @@ import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 
 type CategoryFormProps = {
-    /** All policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** The name of the category */
     categoryName?: string;
-
-    /** Function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => void;
-
-    /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
 
     /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */
@@ -48,17 +40,10 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, a
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = values.categoryName.trim();
+            const nameError = getCategoryNameError(policyCategories, values.categoryName);
 
-            if (!isRequiredFulfilled(newCategoryName)) {
-                errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName]) {
-                errors.categoryName = translate('workspace.categories.existingCategoryError');
-            } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME || newCategoryName === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
-                errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH));
+            if (nameError) {
+                addErrorMessage(errors, 'categoryName', getCategoryNameErrorMessage(translate, nameError, values.categoryName));
             }
 
             return errors;

@@ -1,19 +1,36 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
+
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
+import Onyx from 'react-native-onyx';
+import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
+
+import createMock from '../utils/createMock';
 
 type TestInstance = ReturnType<typeof screen.getByTestId>;
 
@@ -45,6 +62,7 @@ type MockFlashListProps<T> = {
     onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
+    onScrollBeginDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     onStartReached?: () => void;
     onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
@@ -58,6 +76,7 @@ type MockFlashListProps<T> = {
 const mockFlashListScrollToIndex = jest.fn();
 const mockFlashListScrollToItem = jest.fn();
 const mockFlashListScrollToOffset = jest.fn();
+const mockScrollInputIntoView = jest.fn();
 const mockFlashListGetLayout = jest.fn();
 const mockFlashListComputeVisibleIndices = jest.fn();
 const mockFlashListGetFirstVisibleIndex = jest.fn();
@@ -73,6 +92,23 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@components/Table/dismissKeyboardOnDrag', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('@components/SelectionList/hooks/useScrollToFocusedInput', () => ({
+    __esModule: true,
+    default: function useScrollToFocusedInput() {
+        const ReactLocal = jest.requireActual<typeof React>('react');
+        return {
+            containerRef: ReactLocal.useRef(null),
+            trackScrollOffset: jest.fn(),
+            scrollInputIntoView: mockScrollInputIntoView,
+        };
+    },
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -138,8 +174,8 @@ jest.mock('@components/MenuItem', () => {
 });
 
 jest.mock('@components/Modal', () => {
-    function MockModal(): null {
-        return null;
+    function MockModal({isVisible, children}: {isVisible: boolean; children?: React.ReactNode}): React.ReactNode {
+        return isVisible ? children : null;
     }
     return MockModal;
 });
@@ -179,13 +215,22 @@ jest.mock('@shopify/flash-list', () => {
             ref: React.Ref<{
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
+                scrollToOffset: (params: {offset: number; animated?: boolean}) => void;
                 getLayout: typeof mockFlashListGetLayout;
                 computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
                 getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
+            const nativeScrollRef = ReactLocal.useRef<typeof mockFlashListScrollToOffset | null>(null);
+            // Animated.ScrollView detaches its callback ref during updates and attaches it after its
+            // children's layout effects. FlashList silently ignores scrollToOffset while that ref is null.
+            ReactLocal.useLayoutEffect(() => {
+                nativeScrollRef.current = mockFlashListScrollToOffset;
+                return () => {
+                    nativeScrollRef.current = null;
+                };
+            });
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
@@ -198,14 +243,20 @@ jest.mock('@shopify/flash-list', () => {
                     mockFlashListUnmount();
                 };
             }, []);
-            ReactLocal.useImperativeHandle(ref, () => ({
-                scrollToIndex: mockFlashListScrollToIndex,
-                scrollToItem: mockFlashListScrollToItem,
-                scrollToOffset: mockFlashListScrollToOffset,
-                getLayout: mockFlashListGetLayout,
-                computeVisibleIndices: mockFlashListComputeVisibleIndices,
-                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
-            }));
+            ReactLocal.useImperativeHandle(
+                ref,
+                () => ({
+                    scrollToIndex: mockFlashListScrollToIndex,
+                    scrollToItem: mockFlashListScrollToItem,
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => {
+                        nativeScrollRef.current?.(params);
+                    },
+                    getLayout: mockFlashListGetLayout,
+                    computeVisibleIndices: mockFlashListComputeVisibleIndices,
+                    getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
+                }),
+                [],
+            );
 
             return (
                 <RNView testID="flash-list">
@@ -365,19 +416,23 @@ jest.mock('@components/Icon', () => {
     return MockIcon;
 });
 
+jest.mock('@hooks/useGenericEmptyStateIllustration', () => jest.fn(() => ({headerMedia: 'illustration'})));
+
 // Table.Row reads the ScreenWrapper transition context, which isn't present in this isolated render
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
 
-// Mock the responsive hook so that we are rendering in web mode
+// Mock the responsive hook so that we are rendering in web mode by default. It's a jest.fn so individual
+// tests (e.g. the immediate-filter popover, which only positions synchronously in the narrow layout) can
+// override the return value.
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({
+    default: jest.fn(() => ({
         shouldUseNarrowLayout: mockShouldUseNarrowLayout,
         isMediumScreenWidth: false,
-    }),
+    })),
 }));
 
 // Mock TextInput component
@@ -394,76 +449,80 @@ jest.mock('@components/TextInput', () => {
         onBlur?: () => void;
         editable?: boolean;
     };
-    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; blur: () => void; isFocused: () => boolean}>) => {
-        const isFocusedRef = ReactLocal.useRef(false);
-        const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
-        ReactLocal.useEffect(() => {
-            mockTextInputMount();
-            return () => {
-                mockTextInputUnmount();
-                if (isFocusedRef.current) {
-                    mockTextInputNativeBlur();
-                }
-            };
-        }, []);
-        ReactLocal.useImperativeHandle(ref, () => ({
-            focus: () => {
-                isFocusedRef.current = true;
-                mockTextInputFocus();
-            },
-            blur: () => {
-                isFocusedRef.current = false;
-                mockTextInputBlur();
-            },
-            isFocused: () => isFocusedRef.current,
-        }));
-
-        return (
-            <RNView>
-                <RNTextInput
-                    testID="search-input"
-                    nativeID={nativeID}
-                    accessibilityLabel={props.accessibilityLabel}
-                    editable={props.editable}
-                    value={props.value}
-                    onChangeText={props.onChangeText}
-                    onFocus={() => {
-                        isFocusedRef.current = true;
-                        mockTextInputNativeFocus();
-                        props.onFocus?.();
-                    }}
-                    onBlur={() => {
-                        isFocusedRef.current = false;
+    const MockTextInput = ReactLocal.forwardRef(
+        (
+            props: MockTextInputProps,
+            ref: React.Ref<{
+                focus: () => void;
+                blur: () => void;
+                isFocused: () => boolean;
+            }>,
+        ) => {
+            const isFocusedRef = ReactLocal.useRef(false);
+            const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
+            ReactLocal.useEffect(() => {
+                mockTextInputMount();
+                return () => {
+                    mockTextInputUnmount();
+                    if (isFocusedRef.current) {
                         mockTextInputNativeBlur();
-                        props.onBlur?.();
-                    }}
-                />
-                {!!props.onClearInput && (
+                    }
+                };
+            }, []);
+            ReactLocal.useImperativeHandle(ref, () => ({
+                focus: () => {
+                    isFocusedRef.current = true;
+                    mockTextInputFocus();
+                },
+                blur: () => {
+                    isFocusedRef.current = false;
+                    mockTextInputBlur();
+                },
+                isFocused: () => isFocusedRef.current,
+            }));
+
+            return (
+                <RNView>
                     <RNTextInput
-                        testID="clear-button"
-                        onPress={props.onClearInput}
+                        testID="search-input"
+                        nativeID={nativeID}
+                        accessibilityLabel={props.accessibilityLabel}
+                        editable={props.editable}
+                        value={props.value}
+                        onChangeText={props.onChangeText}
+                        onFocus={() => {
+                            isFocusedRef.current = true;
+                            mockTextInputNativeFocus();
+                            props.onFocus?.();
+                        }}
+                        onBlur={() => {
+                            isFocusedRef.current = false;
+                            mockTextInputNativeBlur();
+                            props.onBlur?.();
+                        }}
                     />
-                )}
-            </RNView>
-        );
-    });
+                    {!!props.onClearInput && (
+                        <RNTextInput
+                            testID="clear-button"
+                            onPress={props.onClearInput}
+                        />
+                    )}
+                </RNView>
+            );
+        },
+    );
     return MockTextInput;
 });
 
-// Mock PressableWithFeedback
+// Mock PressableWithFeedback, but keep the module's other exports (e.g. the Pressable variants the modal
+// Backdrop relies on) so the filter popover can still mount.
 jest.mock('@components/Pressable', () => ({
-    PressableWithFeedback: (props: {children: React.ReactNode; onPress: () => void; accessibilityLabel: string; accessibilityRole: 'button' | 'link' | 'none' | undefined}) => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-        const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
-        return (
-            <Pressable
-                onPress={props.onPress}
-                accessibilityLabel={props.accessibilityLabel}
-                accessibilityRole={props.accessibilityRole}
-            >
-                {props.children}
-            </Pressable>
-        );
+    ...jest.requireActual<Record<string, unknown>>('@components/Pressable'),
+    PressableWithFeedback: ({children, ...props}: {children: React.ReactNode}) => {
+        const {Pressable} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
+        // Forward every prop (testID, onPress, accessibility props, …) so list rows inside the filter popover
+        // stay pressable by their testID.
+        return <Pressable {...props}>{children}</Pressable>;
     },
 }));
 
@@ -607,6 +666,43 @@ describe('Table', () => {
             expect(screen.getByTestId('row-3')).toBeTruthy();
             expect(screen.getByTestId('row-4')).toBeTruthy();
             expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
+
+        it('should preserve all datasets on rows that allow text selection', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    shouldAllowTextSelection
+                    dataSet={{customMarker: true}}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            // Given a table row with a caller dataset that allows text selection
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 1)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the rendered host row is inspected
+            const row = getHostTableRows().find((candidate) => candidate.props.accessibilityLabel === mockData.at(0)?.name);
+
+            // Then the caller, table-row, and copyable-row datasets are all present
+            expect(row?.props.dataSet).toEqual({
+                customMarker: true,
+                tableRow: true,
+                [CONST.COPYABLE_ROW_ELEMENT]: true,
+            });
         });
 
         it('should render column headers when Header component is used', () => {
@@ -1000,6 +1096,68 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
+        it('should request drag dismissal and preserve the query and caller callback', () => {
+            // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+            fireEvent(screen.getByTestId('search-input'), 'focus');
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 80}}});
+
+            // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
+            act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
+            expect(dismissKeyboardOnDrag).not.toHaveBeenCalled();
+            expect(onScrollBeginDrag).not.toHaveBeenCalled();
+            act(() => mockFlashListProps.at(-1)?.onScrollBeginDrag?.(event));
+
+            // Then dragging invokes the platform helper and the caller receives the same event with its query intact.
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should request drag dismissal and preserve the caller callback in the standalone empty state', () => {
+            // Given an empty table, the standalone scroll container must retain the normal list's drag behavior.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    data={[]}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.EmptyState title="No items" />
+                    <Table.Body />
+                </Table>,
+            );
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 20}}});
+
+            // When the empty-state content is dragged, use the same callback path as a populated list.
+            fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
+
+            // Then dismissal is requested once and caller notification works even without a FlashList instance.
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
         });
 
         it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
@@ -2148,6 +2306,76 @@ describe('Table', () => {
             expect(screen.getByTestId('row-2')).toBeTruthy();
         });
 
+        it('should reset a focused page-header table offset when search or filtered results change', async () => {
+            // Given a focused page-header search whose results can also be changed by a filter.
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    options: [{label: 'Vegetable', value: 'vegetable'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            // When the query changes, including whitespace-only edits.
+            fireEvent.changeText(searchInput, ' ');
+            // Then each change returns the search header to the top without animation.
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, 'apple');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateSearchString('apple');
+            });
+
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['vegetable']});
+            });
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            await waitFor(() => {
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            });
+        });
+
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {
             const props = createDefaultProps();
             render(
@@ -2309,6 +2537,315 @@ describe('Table', () => {
             expect(screen.getByTestId('row-3')).toBeTruthy();
             expect(screen.getByTestId('row-4')).toBeTruthy();
             expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
+    });
+
+    describe('default-hidden filter (isDefaultViewEmpty)', () => {
+        // A filter whose default (empty) selection already hides some rows, mirroring the Workspaces list where
+        // archived rows are hidden until the user opts into the "Archived" filter.
+        const statusFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                immediate: true,
+                options: [
+                    {label: 'Active', value: 'active'},
+                    {label: 'Archived', value: 'archived'},
+                ],
+            },
+        };
+
+        const isItemInStatusFilter: IsItemInFilterCallback<TestItem> = (item, filterValues) => {
+            const isArchived = item.category === 'archived';
+            // Default view (no selection) shows only active rows.
+            if (!filterValues || filterValues.length === 0) {
+                return !isArchived;
+            }
+            if (filterValues.includes('active') && !isArchived) {
+                return true;
+            }
+            return filterValues.includes('archived') && isArchived;
+        };
+
+        it('hides the default-hidden rows while still rendering the rest of the data', () => {
+            const props = createDefaultProps();
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Active WS', category: 'active', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived WS', category: 'archived', value: 2},
+            ];
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // The active row shows, the archived row is hidden by the default filter, and because rows remain
+            // the empty state must NOT appear.
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.queryByTestId('generic-empty-state')).toBeNull();
+        });
+
+        it('renders the empty state when the default view hides every row even though data exists', () => {
+            const props = createDefaultProps();
+            // Every row is hidden by the default filter, so processedData is empty while originalDataLength > 0.
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Archived A', category: 'archived', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived B', category: 'archived', value: 2},
+            ];
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.queryByTestId('row-1')).toBeNull();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+        });
+
+        it('renders the empty state instead of "No results" when a page-header table hides every row by default', () => {
+            // Given a page-header table (like the Workspaces list) whose default filter hides every row, with both
+            // a no-results state and an empty state declared
+            const props = createDefaultProps();
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Archived A', category: 'archived', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived B', category: 'archived', value: 2},
+            ];
+
+            // When the table renders with no search or filter selected
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
+                    <Table.NoResultsState />
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Then the empty state shows inside the list with the page header still visible, because the user did
+            // not search or filter, so "No results found" would be misleading
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
+            expect(screen.getByText('No workspaces')).toBeTruthy();
+            expect(screen.queryByText('common.noResultsFound')).toBeNull();
+        });
+    });
+
+    describe('immediate filter', () => {
+        const STATUS_ACTIVE = 'active';
+        const STATUS_ARCHIVED = 'archived';
+
+        // The filter popover only positions itself synchronously in the narrow layout (the wide layout defers on
+        // native `measureInWindow`, whose callback never fires under react-test-renderer).
+        const NARROW_LAYOUT = {
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: true,
+            onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
+        } as ResponsiveLayoutResult;
+
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
+        const immediateFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                immediate: true,
+                options: [
+                    {label: 'Active', value: STATUS_ACTIVE},
+                    {label: 'Archived', value: STATUS_ARCHIVED},
+                ],
+            },
+        };
+
+        // Default (empty) selection shows only active rows; opting into "Archived" reveals archived rows.
+        const isItemInImmediateFilter: IsItemInFilterCallback<TestItem> = (item, filterValues) => {
+            const isArchived = item.category === 'archived';
+            if (!filterValues || filterValues.length === 0) {
+                return !isArchived;
+            }
+            if (filterValues.includes(STATUS_ACTIVE) && !isArchived) {
+                return true;
+            }
+            return filterValues.includes(STATUS_ARCHIVED) && isArchived;
+        };
+
+        const immediateData: TestItem[] = [
+            {keyForList: '1', id: '1', name: 'Active workspace', category: 'active', value: 1},
+            {keyForList: '2', id: '2', name: 'Archived workspace', category: 'archived', value: 2},
+        ];
+
+        // The popover machinery needs the real modal/navigation/portal providers, so wrap the table in them
+        // (the rest of this suite renders the table bare).
+        function ImmediateFilterTable() {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        data={immediateData}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        filters={immediateFilterConfig}
+                                        isItemInFilter={isItemInImmediateFilter}
+                                    >
+                                        <Table.FilterBar label="Find" />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        const openFilter = async () => {
+            fireEvent.press(screen.getByLabelText('search.filtersHeader'));
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`)).toBeOnTheScreen();
+            });
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            });
+            jest.mocked(useResponsiveLayout).mockReturnValue(NARROW_LAYOUT);
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.mocked(useResponsiveLayout).mockReturnValue({
+                shouldUseNarrowLayout: false,
+                isSmallScreenWidth: false,
+                isInNarrowPaneModal: false,
+                isExtraSmallScreenHeight: false,
+                isMediumScreenWidth: false,
+                isLargeScreenWidth: false,
+                isExtraLargeScreenWidth: false,
+                isExtraSmallScreenWidth: false,
+                isSmallScreen: false,
+                onboardingIsMediumOrLargerScreenWidth: false,
+                isInLandscapeMode: false,
+            });
+        });
+
+        // A staged (non-immediate) MULTI_SELECT variant used to contrast the two rendering paths.
+        const stagedFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                options: [
+                    {label: 'Active', value: STATUS_ACTIVE},
+                    {label: 'Archived', value: STATUS_ARCHIVED},
+                ],
+            },
+        };
+
+        function StagedFilterTable() {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        data={immediateData}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        filters={stagedFilterConfig}
+                                        isItemInFilter={isItemInImmediateFilter}
+                                    >
+                                        <Table.FilterBar label="Find" />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        it('renders the filter options inline without a staged Apply/Reset footer', async () => {
+            render(<ImmediateFilterTable />);
+            await waitForBatchedUpdatesWithAct();
+
+            // Only the active row shows by default (archived is hidden until opted into).
+            expect(screen.getByTestId('row-1')).toBeOnTheScreen();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+
+            await openFilter();
+
+            // Both options render inline in the popover.
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ACTIVE}`)).toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`)).toBeOnTheScreen();
+
+            // `immediate` applies each selection right away, so there is no staged Apply/Reset footer.
+            expect(screen.queryByText('common.apply')).toBeNull();
+            expect(screen.queryByText('common.reset')).toBeNull();
+        });
+
+        it('renders a staged Apply/Reset footer when the filter is not immediate', async () => {
+            render(<StagedFilterTable />);
+            await waitForBatchedUpdatesWithAct();
+
+            await openFilter();
+
+            // Without `immediate`, the same MULTI_SELECT filter stages selections behind an Apply/Reset footer.
+            expect(screen.getByText('common.apply')).toBeOnTheScreen();
+            expect(screen.getByText('common.reset')).toBeOnTheScreen();
         });
     });
 
@@ -2697,17 +3234,7 @@ describe('Table', () => {
             </Table.Row>
         );
 
-        function ControlledSelectableTable({
-            data = mockData,
-            initialSelected = [],
-            showSearch = false,
-            shouldPreserveSelectionOnSearch = false,
-        }: {
-            data?: TestItem[];
-            initialSelected?: string[];
-            showSearch?: boolean;
-            shouldPreserveSelectionOnSearch?: boolean;
-        }) {
+        function ControlledSelectableTable({data = mockData, initialSelected = [], showSearch = false}: {data?: TestItem[]; initialSelected?: string[]; showSearch?: boolean}) {
             const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
             const props = createDefaultProps();
             return (
@@ -2719,7 +3246,6 @@ describe('Table', () => {
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
                         selectionEnabled
-                        shouldPreserveSelectionOnSearch={shouldPreserveSelectionOnSearch}
                         selectedKeys={selectedKeys}
                         isItemInSearch={props.isItemInSearch}
                         onRowSelectionChange={setSelectedKeys}
@@ -2799,30 +3325,24 @@ describe('Table', () => {
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,4,5$/);
         });
 
-        it('should preserve opted-in selection through a no-results search and clear', () => {
-            render(
-                <ControlledSelectableTable
-                    showSearch
-                    shouldPreserveSelectionOnSearch
-                />,
-            );
-
-            pressRow(0);
-            pressRow(2);
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-            fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-
-            fireEvent.changeText(screen.getByTestId('search-input'), '');
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-        });
-
-        it('should keep clearing selection on search when preservation is not enabled', () => {
+        it('should clear the selection when the search string changes', () => {
             render(<ControlledSelectableTable showSearch />);
 
             pressRow(0);
             pressRow(2);
             fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^$/);
+        });
+
+        it('should clear a Select All made inside a search once the search string is cleared', () => {
+            render(<ControlledSelectableTable showSearch />);
+
+            // Narrow the list to the two vegetables, then select every visible row
+            fireEvent.changeText(screen.getByTestId('search-input'), 'vegetable');
+            fireEvent.press(screen.getByLabelText('workspace.common.selectAll'));
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^3,5$/);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^$/);
         });
     });

@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -24,6 +26,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
@@ -51,7 +54,6 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -65,7 +67,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const styles = useThemeStyles();
@@ -80,6 +81,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
     const primaryContactMethod = usePrimaryContactMethod();
+
+    const [draftFeed, setDraftFeed] = useState<CompanyCardFeedWithDomainID>();
+    const currentSelectedFeed = draftFeed ?? selectedFeedName;
 
     const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
 
@@ -98,7 +102,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             alternateText: domainName ?? policyName,
             text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,
-            isSelected: feedName === selectedFeedName,
+            isSelected: feedName === currentSelectedFeed,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -119,11 +123,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         };
     });
 
-    const onAddCardsPress = () => {
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID));
-            return;
-        }
+    const continueAddCardsFlow = () => {
         clearAddNewCardFlow();
         if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
@@ -131,17 +131,24 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             );
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path));
+        // Pass an explicit base path: this also runs as the verify-account resume callback, when the active route is whatever the verify page navigated back to.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddCardsFlow());
+
+    const onAddCardsPress = () => {
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
+            return;
+        }
+        continueAddCardsFlow();
     };
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
-    const selectFeed = (feed: CardFeedListItem) => {
-        updateSelectedFeed(feed.value, policyID);
-        goBack();
-    };
-
-    const selectOtherFeed = (feed: CardFeedListItem) => {
+    /** The user may first have to add or validate a work email, in which case that flow carries the feed and finishes the selection on its own. */
+    const linkOtherWorkspaceFeed = (feed: CardFeedListItem) => {
         if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
@@ -169,9 +176,42 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             });
     };
 
+    const selectFeed = (feed: CardFeedListItem) => {
+        setFeedWithError(undefined);
+        setDraftFeed(feed.value);
+    };
+
+    const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => feed.value === currentSelectedFeed);
+    const isStagedFeedOnPage = !!stagedOtherWorkspaceFeed || feeds.some((feed) => feed.value === currentSelectedFeed);
+
+    const saveFeed = () => {
+        if (!currentSelectedFeed) {
+            return;
+        }
+        if (stagedOtherWorkspaceFeed) {
+            linkOtherWorkspaceFeed(stagedOtherWorkspaceFeed);
+            return;
+        }
+        updateSelectedFeed(currentSelectedFeed, policyID);
+        goBack();
+    };
+
+    // Linking an other-workspace feed has to be something the user picked, and it needs a connection because the link request never settles offline.
+    const isSaveDisabled = !isStagedFeedOnPage || (!!stagedOtherWorkspaceFeed && (draftFeed === undefined || isOffline));
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: isSaveDisabled,
+    };
+
     const onDismissError = () => {
         setFeedWithError(undefined);
     };
+
+    // Without any available feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its own Save button.
+    const shouldShowOtherFeedsSaveButton = canWriteCompanyCards && otherFeeds.length > 0;
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
@@ -185,22 +225,23 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
                     {otherFeeds.map((feed) => {
-                        const isFeedWithError = feedWithError?.feed === feed.value;
-                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                        const item = {
+                            ...feed,
+                            // The hook marks the committed feed as selected, but the checkmark has to follow the staged one.
+                            isSelected: feed.value === currentSelectedFeed,
+                            errors: feedWithError?.feed === feed.value ? feedWithError.error : undefined,
+                        };
                         return (
                             <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
-                                keyForList={itemWithError.keyForList}
                                 showTooltip={false}
-                                item={itemWithError}
-                                onSelectRow={selectOtherFeed}
-                                isMultilineSupported
-                                isAlternateTextMultilineSupported
+                                item={item}
+                                onSelectRow={selectFeed}
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
-                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                // SingleSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
                                 wrapperStyle={[styles.flexReset, styles.w100]}
                             />
                         );
@@ -233,17 +274,37 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         data={feeds}
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={selectedFeedName}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                         listFooterContent={otherMenuItemFeeds}
                     />
                 ) : (
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        style={styles.flex1}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {otherMenuItemFeeds}
-                    </ScrollView>
+                    <>
+                        <ScrollView
+                            // The Save button below carries the bottom safe area padding whenever it is rendered.
+                            addBottomSafeAreaPadding={!shouldShowOtherFeedsSaveButton}
+                            style={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {otherMenuItemFeeds}
+                        </ScrollView>
+                        {shouldShowOtherFeedsSaveButton && (
+                            <FixedFooter
+                                style={styles.mtAuto}
+                                addBottomSafeAreaPadding
+                            >
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size="large"
+                                    style={styles.w100}
+                                    onPress={saveFeed}
+                                    isDisabled={isSaveDisabled}
+                                >
+                                    <Button.Text>{translate('common.save')}</Button.Text>
+                                </Button>
+                            </FixedFooter>
+                        )}
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

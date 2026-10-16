@@ -29,9 +29,7 @@ type CardFeedListItem = ListItem & {
     value: CompanyCardFeedWithDomainID;
     /** Card feed value */
     feed: CompanyCardFeedWithNumber;
-    /** Feed fund value */
     fundID?: number;
-    /** Feed country value */
     country?: string;
 };
 

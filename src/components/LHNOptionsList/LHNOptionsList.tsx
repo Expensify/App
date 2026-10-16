@@ -1,7 +1,9 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -41,9 +43,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributes = useReportAttributes();
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
 
     const styles = useThemeStyles();
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -161,16 +164,16 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             <LHNTooltipContextProvider data={data}>
                 <FlashList
                     ref={flashListRef}
+                    contentInsetAdjustmentBehavior={tabRootScrollProps.contentInsetAdjustmentBehavior}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    contentContainerStyle={StyleSheet.flatten(tabRootScrollProps.contentContainerStyle)}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     extraData={extraData}
-                    showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={initialScrollIndex}

@@ -73,7 +73,6 @@ function buildSubmitPolicy(): Policy {
             [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
         },
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
         pendingAction: null,
         errors: {},
     } as Policy;

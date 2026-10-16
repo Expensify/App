@@ -1,0 +1,30 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "expo/tsconfig.base",
+    "compilerOptions": {
+        "isolatedModules": true,
+        "strict": true,
+        // Every project under the root solution is type-check only. `expo/tsconfig.base` happens to
+        // set this too, but it is restated here because `tsc --build` rejects `--noEmit` as a command
+        // line flag: the whole typecheck gate now depends on this option coming from a config file.
+        "noEmit": true,
+        "incremental": true,
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@github/*": ["./.github/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
+            "@server/*": ["./server/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@selectors/*": ["./src/selectors/*"],
+            "tests/*": ["./tests/*"]
+        }
+    }
+}

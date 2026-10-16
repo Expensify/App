@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
@@ -20,7 +21,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -41,19 +42,23 @@ type DotIndicatorMessageProps = {
     /** Additional styles to apply to the container */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** A function to dismiss error */
+    isSelectable?: boolean;
+
+    // Unused here, but OfflineWithFeedback still passes it to every error row.
+    // eslint-disable-next-line react/no-unused-prop-types
     dismissError?: () => void;
+
+    onRetryReceiptUpload?: () => void;
 };
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissError = () => {}}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectable, onRetryReceiptUpload}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'DotIndicator', 'Download']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
 
@@ -72,7 +77,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const defaultTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isTextSelectable = isWeb ? (isSelectable ?? defaultTextSelectable) : defaultTextSelectable;
+    const shouldDisableTextSelection = isWeb && isSelectable === false;
+    const selectionDataSet = isTextSelectable ? undefined : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true};
+    const receiptSelectionDataSet = shouldDisableTextSelection ? selectionDataSet : undefined;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -122,50 +132,53 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
-                <View style={styles.offlineFeedbackErrorDot}>
-                    <Icon
-                        src={expensifyIcons.DotIndicator}
-                        fill={isErrorMessage ? theme.danger : theme.success}
-                    />
-                </View>
                 <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, shouldDisableTextSelection && styles.userSelectNone]}
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
-                    {translate('iou.error.receiptUploadFailedMessage')}
+                    {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
                 </Text>
             </View>
         );
         const buttonsRow = (
-            <View style={[styles.flexRow, styles.gap3]}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
+                {!!onRetryReceiptUpload && (
+                    <Button
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        onPress={onRetryReceiptUpload}
+                    >
+                        <Button.Icon src={expensifyIcons.ArrowCircleClockwise} />
+                        <Button.Text>{translate('common.tryAgain')}</Button.Text>
+                    </Button>
+                )}
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         fileDownload(translate, receiptError.source, receiptError.filename);
                     }}
                 >
-                    <Button.Text>{translate('iou.error.saveReceipt')}</Button.Text>
-                </Button>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.DANGER}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    onPress={dismissError}
-                >
-                    <Button.Text>{translate('iou.deleteExpense', {count: 1})}</Button.Text>
+                    <Button.Icon src={expensifyIcons.Download} />
+                    <Button.Text>{translate('common.save')}</Button.Text>
                 </Button>
             </View>
         );
         if (!isStackedLayout) {
             return (
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                <View
+                    style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}
+                    dataSet={receiptSelectionDataSet}
+                >
                     {messageRow}
                     {buttonsRow}
                 </View>
             );
         }
         return (
-            <View style={style}>
+            <View
+                style={style}
+                dataSet={receiptSelectionDataSet}
+            >
                 {messageRow}
                 <View style={styles.mt3}>{buttonsRow}</View>
             </View>
@@ -173,7 +186,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     }
 
     return (
-        <View style={[styles.dotIndicatorMessage, style]}>
+        <View
+            style={[styles.dotIndicatorMessage, style]}
+            dataSet={selectionDataSet}
+        >
             <View
                 style={styles.offlineFeedbackErrorDot}
                 accessible={isErrorMessage}

@@ -20,7 +20,6 @@ import type {StyleProp, TextStyle} from 'react-native';
 import React from 'react';
 
 type PublicReceiptVisibilityToggleProps = {
-    /** Workspace policy ID */
     policyID: string;
 
     /** Whether the current user can write Rules settings */

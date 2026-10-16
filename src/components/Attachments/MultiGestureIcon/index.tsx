@@ -17,7 +17,6 @@ type MultiGestureIconProps = {
     /** Additional styles applied to the icon wrapper. */
     additionalStyles: StyleProp<ViewStyle>;
 
-    /** Icon asset to render. */
     src: IconAsset;
 
     /** Fill color passed to the SVG. */

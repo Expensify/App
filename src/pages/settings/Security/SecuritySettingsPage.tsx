@@ -24,7 +24,8 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
-import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {DISCONNECT_RESULT, disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -183,6 +184,12 @@ function SecuritySettingsPage() {
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
             action: async () => {
+                // Copiloting into an agent is also a delegate session and must fall through to the
+                // agent-delete flow below, so only plain delegates are blocked here.
+                if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -212,7 +219,7 @@ function SecuritySettingsPage() {
                         prompt: translate('editAgentPage.deleteAgentMessage'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
@@ -220,16 +227,17 @@ function SecuritySettingsPage() {
                     // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
                     // authenticated as the agent itself. So capture the agent's identity, end the copilot session
                     // (which restores the owner's session and auth token), and only then delete the agent as the
-                    // owner. If the disconnect fails the owner's session was never restored, so skip the delete.
+                    // owner. Skip the delete unless the owner was restored with fresh tokens.
                     const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const agentLogin = currentUserPersonalDetails.login;
-                    const didDisconnect = await disconnect({stashedCredentials, stashedSession});
-                    if (!didDisconnect) {
+                    const disconnectResult = await disconnect({stashedCredentials, stashedSession});
+                    if (disconnectResult !== DISCONNECT_RESULT.RESTORED) {
                         return;
                     }
                     deleteAgent(agentAccountID, agentLogin, allPolicies, false);
                     return;
                 }
+                clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
             },
         });

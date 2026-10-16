@@ -1,10 +1,12 @@
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {memo, useMemo} from 'react';
 
@@ -12,13 +14,8 @@ import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
-    /** All the data of the action item */
     reportAction: ReportAction;
-
-    /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
-
-    /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
 
     /** Report for this action */
@@ -33,7 +30,6 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
     /** Should we display the new marker on top of the comment? */
@@ -42,13 +38,12 @@ type ReportActionsListItemRendererProps = {
     /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
-    /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
-
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
-    /** If the thread divider line will be used */
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction?: boolean;
+
     shouldUseThreadDividerLine?: boolean;
 
     /** Animate highlight action in few seconds */
@@ -59,6 +54,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether context menu should be disabled for the active Concierge draft */
     shouldDisableContextMenuForConciergeDraft?: boolean;
+
+    /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionsListItemRenderer({
@@ -78,6 +76,8 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
+    isLatestConciergeFeedbackAction = false,
+    reportsParentHierarchy,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -166,6 +166,7 @@ function ReportActionsListItemRenderer({
                 transactionThreadReport={transactionThreadReport}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                reportsParentHierarchy={reportsParentHierarchy}
             />
         );
     }
@@ -187,6 +188,8 @@ function ReportActionsListItemRenderer({
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
             shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
+            reportsParentHierarchy={reportsParentHierarchy}
         />
     );
 }

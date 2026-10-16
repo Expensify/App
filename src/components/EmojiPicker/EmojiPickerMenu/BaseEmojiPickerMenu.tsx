@@ -23,7 +23,6 @@ type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */
     isFiltered: boolean;
 
-    /** Array of header emojis */
     headerEmojis: HeaderIndices[];
 
     /** Function to scroll to a specific header in the emoji list */
@@ -32,31 +31,17 @@ type BaseEmojiPickerMenuProps = {
     /** The index of the currently selected category header */
     selectedHeaderIndex?: number | null;
 
-    /** Style to be applied to the list wrapper */
     listWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** The data for the emoji list */
     data: EmojiPickerList;
-
-    /** Function to render each item in the list */
     renderItem: ListRenderItem<EmojiPickerListItem>;
-
-    /** Extra data to be passed to the list for re-rendering */
     extraData?: Array<EmojiPickerList | OnyxEntry<string | number> | ((skinTone: number) => void)>;
-
-    /** Array of indices for the sticky headers */
     stickyHeaderIndices?: number[];
-
-    /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
-
-    /** Callback fired when scroll momentum ends */
     onMomentumScrollEnd?: () => void;
 
     /** The current search input value, used for accessibility re-announcements */
     searchValue?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
 
