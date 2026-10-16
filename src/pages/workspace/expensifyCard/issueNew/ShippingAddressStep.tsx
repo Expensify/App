@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openIssueNewCardShippingAddressStep, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {shouldShowPhoneNumberStep} from '@libs/CardUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getAddressFieldErrors, getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 
@@ -20,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type ShippingAddressStepProps = {
@@ -52,6 +53,12 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
     const assigneeEmail = issueNewCard?.data?.assigneeEmail;
     const defaultOption = shippingAddress ? CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS : CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER;
     const defaultCountry = shippingAddress?.addressCountry ?? CONST.COUNTRY.US;
+    const [selectedOption, setSelectedOption] = useState<string>(defaultOption);
+
+    // The phone number step follows when the admin enters an address for a cardholder without a phone number
+    const stepNamesWithoutPhoneNumber = shouldShowPhoneNumberStep(issueNewCard) ? stepNames.slice(0, -1) : stepNames;
+    const isPhoneNumberStepNext = selectedOption === CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS && issueNewCard?.hasAssigneePhoneNumber !== true;
+    const shownStepNames = isPhoneNumberStepNext ? [...stepNamesWithoutPhoneNumber, String(stepNamesWithoutPhoneNumber.length + 1)] : stepNamesWithoutPhoneNumber;
 
     useEffect(() => {
         openIssueNewCardShippingAddressStep(policyID, assigneeEmail);
@@ -125,7 +132,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={startStepIndex}
-            stepNames={stepNames}
+            stepNames={shownStepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FormProvider
@@ -151,6 +158,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                 inputID={INPUT_IDS.SHIPPING_ADDRESS_OPTION}
                                 label={translate('workspace.card.issueNewCard.enterShippingAddress')}
                                 defaultValue={defaultOption}
+                                onValueChange={(value) => setSelectedOption(String(value))}
                                 items={[
                                     {
                                         value: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER,
