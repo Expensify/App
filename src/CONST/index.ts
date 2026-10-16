@@ -7903,6 +7903,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                HELD: {
+                    column: this.TABLE_COLUMNS.HELD,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8198,6 +8203,7 @@ const CONST = {
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            HELD: 'held',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8478,6 +8484,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.HELD]: 'held',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
