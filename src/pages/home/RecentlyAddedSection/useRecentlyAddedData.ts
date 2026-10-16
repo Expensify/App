@@ -259,13 +259,15 @@ function useRecentlyAddedData(): RecentlyAddedData {
                 // snapshot keeps the stale, pre-edit copy. Prefer the local copy when present so the row reflects the
                 // edit and can render the offline pending treatment, matching how the Search transaction list behaves.
                 const sourceTransaction = getLocalTransaction(localTransactions, transaction.transactionID) ?? transaction;
-                const reportType = reportByReportID.get(transaction.reportID)?.type;
+                const snapshotReport = reportByReportID.get(transaction.reportID);
+                const localReport = localReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                const sourceReport = localReport ? {...snapshotReport, ...localReport} : snapshotReport;
+                const reportType = sourceReport?.type;
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
                 // sign must be preserved too. Without this, a self-DM credit/refund is collapsed to its absolute
                 // value and loses its negative sign.
-                const isFromTrackedExpense =
-                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportByReportID.get(transaction.reportID)?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
+                const isFromTrackedExpense = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || sourceReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
                 return {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
@@ -276,7 +278,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
                     amount: getAmount(sourceTransaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(sourceTransaction),
                     reportAction: getExpenseCreationIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
-                    report: reportByReportID.get(transaction.reportID),
+                    report: sourceReport,
                     // Derive from the local copy so an offline edit (which sets `pendingFields`, not `pendingAction`)
                     // still surfaces the pending state, alongside offline creates (ADD) and deletes (DELETE).
                     pendingAction: getTransactionPendingAction(sourceTransaction),

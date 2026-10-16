@@ -11,6 +11,7 @@
  *     then shows the snapshot copy once it lands - without dropping or duplicating the row
  *   - keeps a deleted expense hidden after the delete succeeds but while the snapshot still lists it, and brings it
  *     back if the delete fails
+ *   - prefers live report data over stale snapshot report data
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -286,6 +287,22 @@ describe('useRecentlyAddedData — current-user scope', () => {
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['mine']);
+    });
+});
+
+describe('useRecentlyAddedData — live report updates', () => {
+    it('uses the live report status when the Search snapshot is stale', () => {
+        // Given Home loaded an open report from Search and the live report initially matches it
+        setupSnapshot([makeTransaction({transactionID: 'settled', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+
+        // When the live report is reimbursed without refreshing the Search snapshot
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        rerender({});
+
+        // Then the row receives the current settled status instead of the stale snapshot status
+        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
     });
 });
 
