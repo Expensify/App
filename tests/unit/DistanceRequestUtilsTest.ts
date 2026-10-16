@@ -1184,4 +1184,116 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnitRateID).toBe('MATCHING_2025_RATE_ID');
         });
     });
+
+    describe('getRateDisplayName', () => {
+        const baseName = 'Cars & Vans (Diesel/Hybrid) - Up to 1600cc';
+
+        it('strips a trailing date range suffix from an ended band', () => {
+            // Given an ended band whose name carries the date range the backend appends for uniqueness
+            const rate = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the suffix is removed, because the date range is already shown next to the name
+            expect(result).toBe(baseName);
+        });
+
+        it('strips a trailing "From" suffix', () => {
+            // Given an open-ended band whose name carries a "From" date suffix
+            const rate = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the suffix is removed
+            expect(result).toBe(baseName);
+        });
+
+        it('keeps the suffix when the rate has no start or end date', () => {
+            // Given a custom rate that a user named with a date on purpose, with no date bounds
+            const rate = {name: `${baseName} - 6/1/26 - 8/31/26`};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the name is unchanged, because no date range is shown next to it
+            expect(result).toBe(rate.name);
+        });
+
+        it('leaves names that start with a date unchanged', () => {
+            // Given a country rate whose name puts the date range first
+            const rate = {name: '4/6/26 - 4/5/27 United Kingdom', startDate: '2026-04-06', endDate: '2027-04-05'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the name is unchanged, because only a trailing suffix is stripped
+            expect(result).toBe(rate.name);
+        });
+
+        it('leaves names without a suffix unchanged', () => {
+            // Given a dated rate whose name has no date suffix
+            const rate = {name: baseName, startDate: '2026-09-01'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the name is unchanged
+            expect(result).toBe(baseName);
+        });
+
+        it('ignores a date in the middle of a name', () => {
+            // Given a dated rate whose name has a date that isn't at the end
+            const rate = {name: `${baseName} - 6/1/26 - 8/31/26 (Legacy)`, startDate: '2026-06-01', endDate: '2026-08-31'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the name is unchanged
+            expect(result).toBe(rate.name);
+        });
+
+        it('returns the raw name when stripping would leave it empty', () => {
+            // Given a dated rate whose whole name is a date suffix
+            const rate = {name: ' - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'};
+
+            // When getting its display name
+            const result = DistanceRequestUtils.getRateDisplayName(rate);
+
+            // Then the raw name is kept so the rate still has a visible name
+            expect(result).toBe(rate.name);
+        });
+    });
+
+    describe('compareRatesByDisplayName', () => {
+        const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => a.localeCompare(b);
+        const baseName = 'Cars & Vans (Diesel/Hybrid) - Up to 1600cc';
+        const currentBand = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01'};
+        const endedBand = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31'};
+        const undatedRate = {name: baseName};
+        const otherRate = {name: 'Bicycle', startDate: '2026-01-01'};
+
+        it('sorts by display name, then newest start date first, then rates without a start date last', () => {
+            // Given rates where several share the same display name
+            const rates = [undatedRate, endedBand, otherRate, currentBand];
+
+            // When sorting them by display name
+            const result = [...rates].sort((a, b) => DistanceRequestUtils.compareRatesByDisplayName(a, b, localeCompare));
+
+            // Then the current band sits above its ended band, and the undated rate with the same display name sorts last
+            expect(result).toEqual([otherRate, currentBand, endedBand, undatedRate]);
+        });
+
+        it('keeps the start date tie-break when the display name order is reversed', () => {
+            // Given the same rates
+            const rates = [undatedRate, endedBand, otherRate, currentBand];
+
+            // When sorting them by display name in descending order
+            const result = [...rates].sort((a, b) => DistanceRequestUtils.compareRatesByDisplayName(a, b, localeCompare, -1));
+
+            // Then only the display name order flips, so the current band still sits above its ended band
+            expect(result).toEqual([currentBand, endedBand, undatedRate, otherRate]);
+        });
+    });
 });
