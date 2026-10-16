@@ -28,7 +28,7 @@ import {Str} from 'expensify-common';
 import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
-import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
+import {canCreateExpensesOnPolicy, canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
 import {isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -85,7 +85,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !!policy.name &&
             !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -720,6 +720,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }

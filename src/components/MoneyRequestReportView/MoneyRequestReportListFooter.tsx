@@ -14,7 +14,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getBillableAndTaxTotal, getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
@@ -86,7 +86,7 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
-    const shouldShowAddExpenseButton = canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
+    const shouldShowAddExpenseButton = canCreateExpensesOnPolicy(policy) && canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
 
     const breakdownRows: Array<{text: TranslationPaths; value: string; shouldShow: boolean}> = [
         {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: !!nonReimbursableSpend},

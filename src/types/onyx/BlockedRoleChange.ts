@@ -1,0 +1,19 @@
+/** Model of a refused approve-only role change, delivered to the requesting client to show in a modal */
+type BlockedRoleChange = {
+    /** Workspace the refused role change targeted */
+    policyID: string;
+
+    /** Member whose role change was refused */
+    email: string;
+
+    /** Reason keys from Auth explaining why the role was refused */
+    blockedReasons: string[];
+
+    /** Time in milliseconds when the refusal was generated */
+    created: number;
+
+    /** Server error message */
+    message?: string;
+};
+
+export default BlockedRoleChange;

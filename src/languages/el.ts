@@ -5025,6 +5025,7 @@ ${amount} για ${merchant} - ${date}`,
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
+            approveOnlyAlternateText: 'Μόνο έγκριση αναφορών.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Άμεσο',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Κανένα',
@@ -5048,6 +5049,8 @@ ${amount} για ${merchant} - ${date}`,
                         return 'Διαχείριση χρηστών';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Διαχείριση πληρωμών';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Μόνο έγκριση';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -7373,6 +7376,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         people: {
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την αφαίρεση μέλους από τον χώρο εργασίας, δοκιμάστε ξανά',
+            approveOnlyRoleBlockedTitle: 'Δεν είναι δυνατή η αλλαγή αυτού του ρόλου',
+            approveOnlyRoleBlockedConfirm: 'Κατάλαβα',
+            approveOnlyRoleBlockedDescription: 'Τα μέλη με μόνο έγκριση δεν μπορούν να δημιουργήσουν έξοδα σε αυτόν τον χώρο εργασίας. Αυτά πρέπει να επιλυθούν πρώτα:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Έχει εκχωρηθεί μια κάρτα σε αυτούς σε αυτόν τον χώρο εργασίας. Ένας διαχειριστής χώρου εργασίας ή καρτών πρέπει πρώτα να την αφαιρέσει.',
+                isRestrictedByDomainGroup:
+                    'Αυτός ο χώρος εργασίας είναι ο προτιμώμενος χώρος εργασίας για μια ομάδα τομέα στην οποία ανήκουν. Ένας διαχειριστής τομέα πρέπει πρώτα να τον αλλάξει.',
+                isDefaultPolicy: 'Αυτός είναι ο προεπιλεγμένος χώρος εργασίας τους. Θα πρέπει να ορίσουν έναν διαφορετικό πριν μπορέσετε να ενημερώσετε τον ρόλο τους.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την ${memberName};`,
                 other: 'Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτά τα μέλη;',
@@ -7428,6 +7440,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 cannotRemove: 'Δεν μπορείτε να αφαιρέσετε τον εαυτό σας ή τον ιδιοκτήτη του χώρου εργασίας',
                 genericRemove: 'Προέκυψε πρόβλημα κατά την αφαίρεση αυτού του μέλους του χώρου εργασίας',
             },
+            makeApproveOnly: () => ({
+                one: 'Ορισμός ως μόνο έγκριση',
+                other: 'Ορισμός ως μόνο έγκριση',
+            }),
             addedWithPrimary: 'Ορισμένα μέλη προστέθηκαν με τους κύριους λογαριασμούς σύνδεσής τους.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Προστέθηκε από το δευτερεύον στοιχείο σύνδεσης ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Σύνολο μελών χώρου εργασίας: ${count}`,
@@ -7440,6 +7456,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             paymentsAdmins: 'Διαχειριστές πληρωμών',
             approvers: 'Εγκρίνοντες',
             auditors: 'Ελεγκτές',
+            approveOnly: 'Μόνο έγκριση',
             guests: 'Επισκέπτες',
             editors: 'Συντάκτες',
             members: 'Μέλη',
@@ -9789,8 +9806,8 @@ ${reportName}`,
                 other: `σας αφαίρεσε από τις ροές έγκρισης και τις συνομιλίες εξόδων του/της ${joinedNames}. Οι αναφορές που υποβλήθηκαν παλαιότερα θα παραμείνουν διαθέσιμες για έγκριση στα εισερχόμενά σας.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `ενημέρωσε τον ρόλο σας στην πολιτική ${policyName} από ${oldRole} σε χρήστη. Έχετε αφαιρεθεί από όλες τις συνομιλίες εξόδων υποβολέων, εκτός από τις δικές σας.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `ενημέρωσε τον ρόλο σας στην πολιτική ${policyName} από ${oldRole} σε ${newRole}. Έχετε αφαιρεθεί από όλες τις συνομιλίες εξόδων υποβολέων, εκτός από τις δικές σας.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `ενημέρωσε το προεπιλεγμένο νόμισμα σε ${newCurrency} (προηγουμένως ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `ενημέρωσε τη συχνότητα αυτόματης αναφοράς σε «${newFrequency}» (προηγουμένως «${oldFrequency}»)`,
         updateApprovalMode: (newValue, oldValue) => `ενημέρωσε τη λειτουργία έγκρισης σε «${newValue}» (προηγουμένως «${oldValue}»)`,

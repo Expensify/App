@@ -3,6 +3,7 @@ import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
@@ -24,8 +25,9 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
@@ -36,9 +38,11 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const showRuleBotGuardModal = useRuleBotGuardModal();
+    const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
+    const [selectedRole, setSelectedRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
     const isReimburser = isPolicyReimburser(policy, memberLogin);
@@ -49,22 +53,22 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
 
-    const changeRole = ({value}: ListItemType) => {
-        if (value === member?.role) {
+    const saveRole = () => {
+        if (!selectedRole || selectedRole === member?.role) {
             return;
         }
-        if (!canMemberAssignRole(policy, currentUserLogin, value)) {
+        if (!canMemberAssignRole(policy, currentUserLogin, selectedRole)) {
             return;
         }
         // Guard the direct-navigation path: a reimburser must stay a valid payer, so reject any role that cannot pay.
-        if (isReimburser && !canRolePay(value)) {
+        if (isReimburser && !canRolePay(selectedRole)) {
             return;
         }
-        if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+        if (selectedRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
             showRuleBotGuardModal('changeRole', policyID);
             return;
         }
-        updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
+        updateWorkspaceMembersRole(policy, [memberLogin], [accountID], selectedRole);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 
@@ -80,11 +84,17 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <WorkspaceMemberRoleList
-                    role={member?.role}
+                    role={selectedRole ?? member?.role}
                     policy={policy}
-                    onSelectRole={changeRole}
+                    onSelectRole={(item: ListItemType) => setSelectedRole(item.value)}
                     allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
+                    confirmButtonOptions={{
+                        showButton: true,
+                        text: translate('common.save'),
+                        onConfirm: saveRole,
+                        isDisabled: !selectedRole || selectedRole === member?.role,
+                    }}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

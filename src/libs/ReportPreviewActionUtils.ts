@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled,
+    canCreateExpensesOnPolicy,
     canMemberWrite,
     getReimbursementChoice,
     getSubmitToAccountID,
@@ -277,7 +278,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
+    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules) && canCreateExpensesOnPolicy(policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 

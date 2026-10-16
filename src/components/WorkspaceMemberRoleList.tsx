@@ -16,7 +16,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {LocalizedTranslate} from './LocaleContextProvider';
-import type {ListItem} from './SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
@@ -38,6 +38,9 @@ type WorkspaceMemberRoleListProps = {
 
     /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
+
+    /** Configuration for the confirm button */
+    confirmButtonOptions?: ConfirmButtonOptions<ListItemType>;
 };
 
 /**
@@ -101,12 +104,27 @@ function getAssignableWorkspaceMemberRoleItems(
             isSelected: currentRole === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
         },
+        {
+            value: CONST.POLICY.ROLE.APPROVE_ONLY,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
+            alternateText: translate('workspace.common.approveOnlyAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
+            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
+        },
     ];
 
     return workspaceRoles.filter((item) => canMemberAssignRole(policy, currentUserLogin, item.value) && (!allowedRoles || allowedRoles.includes(item.value)));
 }
 
-function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}, allowedRoles = undefined}: WorkspaceMemberRoleListProps) {
+function WorkspaceMemberRoleList({
+    role,
+    policy,
+    navigateBackTo = undefined,
+    isLoading = false,
+    onSelectRole = () => {},
+    allowedRoles = undefined,
+    confirmButtonOptions = undefined,
+}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -125,7 +143,8 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                         data={availableRoleItems}
                         ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
-                        shouldSingleExecuteRowSelect
+                        shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
+                        confirmButtonOptions={confirmButtonOptions}
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
                     />

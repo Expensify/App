@@ -4974,6 +4974,8 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator osób';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrator płatności';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Tylko zatwierdzanie';
                     case CONST.POLICY.ROLE.USER:
                         return 'Członek';
                     default:
@@ -5014,6 +5016,7 @@ ${amount} dla ${merchant} - ${date}`,
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            approveOnlyAlternateText: 'Tylko zatwierdzanie raportów.',
             readOnlyActionTitle: 'Nie tak szybko…',
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
             noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
@@ -7214,6 +7217,14 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         },
         people: {
             genericFailureMessage: 'Wystąpił błąd podczas usuwania członka z przestrzeni roboczej, spróbuj ponownie',
+            approveOnlyRoleBlockedTitle: 'Nie można zmienić tej roli',
+            approveOnlyRoleBlockedConfirm: 'Rozumiem',
+            approveOnlyRoleBlockedDescription: 'Członkowie z rolą tylko zatwierdzania nie mogą tworzyć wydatków w tym obszarze roboczym. Należy najpierw rozwiązać następujące kwestie:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Mają przypisaną kartę w tym obszarze roboczym. Administrator obszaru roboczego lub kart musi ją najpierw usunąć.',
+                isRestrictedByDomainGroup: 'Ten obszar roboczy jest preferowanym obszarem roboczym dla grupy domen, do której należą. Administrator domeny musi to najpierw zmienić.',
+                isDefaultPolicy: 'To jest ich domyślny obszar roboczy. Muszą ustawić inny, zanim będzie można zaktualizować ich rolę.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Czy na pewno chcesz usunąć ${memberName}?`,
                 other: 'Czy na pewno chcesz usunąć tych członków?',
@@ -7265,6 +7276,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 cannotRemove: 'Nie możesz usunąć siebie ani właściciela przestrzeni roboczej',
                 genericRemove: 'Wystąpił problem z usunięciem tego członka przestrzeni roboczej',
             },
+            makeApproveOnly: () => ({
+                one: 'Ustaw jako tylko zatwierdzanie',
+                other: 'Ustaw jako tylko zatwierdzanie',
+            }),
             addedWithPrimary: 'Niektóre osoby zostały dodane za pomocą swoich głównych loginów.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Dodane przez dodatkowy login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
@@ -7287,6 +7302,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
+            approveOnly: 'Tylko zatwierdzanie',
             guests: 'Goście',
             editors: 'Edytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
@@ -9441,8 +9457,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 other: `usunął(-ę) Cię z obiegów akceptacji i czatów kosztowych użytkownika ${joinedNames}. Wcześniej przesłane raporty pozostaną dostępne do zatwierdzenia w Twojej skrzynce odbiorczej.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `zaktualizowano Twoją rolę w ${policyName} z ${oldRole} na użytkownika. Zostałeś usunięty ze wszystkich czatów wydatków osób rozliczających się, z wyjątkiem własnego czatu.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `zaktualizowano Twoją rolę w ${policyName} z ${oldRole} na ${newRole}. Zostałeś usunięty ze wszystkich czatów wydatków osób rozliczających się, z wyjątkiem własnego czatu.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `zaktualizowano domyślną walutę na ${newCurrency} (wcześniej ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `zaktualizowano częstotliwość automatycznego raportowania na „${newFrequency}” (poprzednio „${oldFrequency}”)`,
