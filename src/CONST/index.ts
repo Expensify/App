@@ -1190,6 +1190,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
+        INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -4805,6 +4806,7 @@ const CONST = {
         ID_FAKE: '_FAKE_',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
+            APPEND_CUSTOM_TAG_LIST: 'appendCustomTagList',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
