@@ -69,6 +69,7 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -100,23 +101,24 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
         const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} =
             DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived, transactionViolations) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow({
                 report,
                 chatReport,
                 reportActions,
                 transactions,
                 transactionViolations,
                 hasViolations,
-                reportAttributes?.reportErrors ?? {},
+                reportErrors: reportAttributes?.reportErrors ?? {},
                 isOffline,
                 currentUserAccountID,
-                isReportArchived,
-            ) ?? {};
+                policy,
+                isArchivedReport: isReportArchived,
+            }) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
@@ -182,6 +184,7 @@ function DebugReportPage({
     }, [
         report,
         transactionViolations,
+        policy,
         currentUserLogin,
         currentUserAccountID,
         isReportArchived,

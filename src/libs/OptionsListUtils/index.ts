@@ -1925,7 +1925,7 @@ function isValidReport(
         conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations, policy);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,
