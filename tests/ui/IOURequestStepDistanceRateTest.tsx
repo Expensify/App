@@ -126,6 +126,10 @@ function buildRates(count: number) {
 }
 
 function buildPolicy(rateCount: number): Policy {
+    return buildPolicyWithRates(buildRates(rateCount));
+}
+
+function buildPolicyWithRates(rates: Record<string, unknown>): Policy {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only policy stub
     return {
         id: POLICY_ID,
@@ -141,7 +145,7 @@ function buildPolicy(rateCount: number): Policy {
                 defaultCategory: '',
                 enabled: true,
                 name: 'Distance',
-                rates: buildRates(rateCount),
+                rates,
             },
         },
     } as unknown as Policy;
@@ -245,5 +249,32 @@ describe('IOURequestStepDistanceRate', () => {
         const order = rowOrder();
         // Below the threshold moveInitialSelectionToTop is a no-op, so natural alphabetical order is kept.
         expect(order.at(0)).toBe(`${CONST.BASE_LIST_ITEM_TEST_ID}rate00`);
+    });
+
+    it('shows dated rate names without their date suffix, sorted by the cleaned name', async () => {
+        // Given an ended band and the current band that share a base name, plus a rate that sorts before them
+        const baseRate = {attributes: {}, currency: CONST.CURRENCY.USD, enabled: true, rate: 100, subRates: []};
+        await act(async () => {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicyWithRates({
+                    endedBand: {...baseRate, customUnitRateID: 'endedBand', name: 'Cars - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'},
+                    currentBand: {...baseRate, customUnitRateID: 'currentBand', name: 'Cars - From 9/1/26', startDate: '2026-09-01'},
+                    bicycle: {...baseRate, customUnitRateID: 'bicycle', name: 'Bicycle'},
+                }),
+            );
+        });
+
+        // When the rate picker opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both bands show the cleaned name, because their date range is already shown as the alternate text
+        expect(screen.getAllByText('Cars')).toHaveLength(2);
+        expect(screen.queryByText('Cars - 6/1/26 - 8/31/26')).toBeNull();
+        expect(screen.queryByText('Cars - From 9/1/26')).toBeNull();
+
+        // And the rates sort by cleaned name, with the current band above the ended band
+        expect(rowOrder()).toEqual([`${CONST.BASE_LIST_ITEM_TEST_ID}bicycle`, `${CONST.BASE_LIST_ITEM_TEST_ID}currentBand`, `${CONST.BASE_LIST_ITEM_TEST_ID}endedBand`]);
     });
 });

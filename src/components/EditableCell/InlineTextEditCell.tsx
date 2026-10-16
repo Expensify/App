@@ -19,8 +19,11 @@ import EditableCell from './EditableCell';
 import useInlineEditState from './useInlineEditState';
 
 type InlineTextEditCellProps = {
-    /** Current value shown in display mode and used as the initial edit buffer */
+    /** Current value used as the initial edit buffer, and shown in display mode when `displayText` isn't set */
     value: string;
+
+    /** Text shown in display mode instead of `value`. Editing still starts from `value`, so saving never uses this text. */
+    displayText?: string;
 
     accessibilityLabel: string;
 
@@ -43,7 +46,7 @@ type InlineTextEditCellProps = {
  * original value. On narrow layouts EditableCell renders the display text only, so tables keep
  * their existing tap-to-navigate behavior there.
  */
-function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = StringUtils.sanitizeName}: InlineTextEditCellProps) {
+function InlineTextEditCell({value, displayText, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = StringUtils.sanitizeName}: InlineTextEditCellProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -89,7 +92,7 @@ function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdi
         >
             <TextWithTooltip
                 shouldShowTooltip
-                text={localValue}
+                text={displayText ?? localValue}
                 numberOfLines={1}
                 style={displayTextStyle}
             />

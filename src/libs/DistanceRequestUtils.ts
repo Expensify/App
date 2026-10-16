@@ -1045,6 +1045,45 @@ function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['tran
     return '';
 }
 
+type RateNameFields = Pick<MileageRate, 'name' | 'startDate' | 'endDate'>;
+
+/** Matches a trailing ` - M/D/YY - M/D/YY` or ` - From M/D/YY` suffix that the backend appends to keep dated rate names unique */
+const RATE_NAME_DATE_SUFFIX_REGEX = / - (?:\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})? - \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|From \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?)$/;
+
+/**
+ * Returns the rate name without its trailing date suffix, since the date range is already shown next to it.
+ * Only dated rates are stripped, so a custom rate that was named with a date on purpose keeps it.
+ * Never use this for editing or duplicate-name checks, which need the raw name.
+ */
+function getRateDisplayName(rate: RateNameFields): string | undefined {
+    if (!rate.name || (!rate.startDate && !rate.endDate)) {
+        return rate.name;
+    }
+
+    const strippedName = rate.name.replace(RATE_NAME_DATE_SUFFIX_REGEX, '');
+    return strippedName || rate.name;
+}
+
+/**
+ * Sorts rates by display name. Rates that share a display name are ordered newest start date first, so the
+ * current band sits above its ended bands and a rate without a start date sorts last. The raw name keeps the order stable.
+ * displayNameOrderMultiplier only flips the display name order, so the tie-break stays the same in both directions.
+ */
+function compareRatesByDisplayName(a: RateNameFields, b: RateNameFields, localeCompare: LocaleContextProps['localeCompare'], displayNameOrderMultiplier = 1): number {
+    const displayNameDiff = localeCompare(getRateDisplayName(a) ?? '', getRateDisplayName(b) ?? '');
+    if (displayNameDiff !== 0) {
+        return displayNameDiff * displayNameOrderMultiplier;
+    }
+
+    const aStart = a.startDate ?? '';
+    const bStart = b.startDate ?? '';
+    if (aStart !== bStart) {
+        return aStart < bStart ? 1 : -1;
+    }
+
+    return localeCompare(a.name ?? '', b.name ?? '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -1084,6 +1123,8 @@ export default {
     getBestEligibleRate,
     getRateForPolicyChange,
     getRateDateLabel,
+    getRateDisplayName,
+    compareRatesByDisplayName,
 };
 
 export type {MileageRate, CommuterExclusionData};
