@@ -3882,6 +3882,37 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
+
+        test('switching to approver from the Display menu derives sort-by:group-expenses and sort-order:desc', () => {
+            // Given a category grouping whose sort is the category default
+            // When the Display menu switches group by to approver
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.APPROVER, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then the parser re-derives the approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+    });
+
+    describe('group-by:approver parser round trip', () => {
+        test('round-trips group-by:approver and a customized group column list', () => {
+            // Given a query that groups by approver and customizes the group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} columns:group-approver,group-expenses,group-total`;
+
+            // When it is parsed and then rebuilt into a query string and parsed again
+            const parsed = buildSearchQueryJSON(query);
+            const rebuilt = buildSearchQueryString(parsed);
+            const roundTripped = buildSearchQueryJSON(rebuilt);
+
+            // Then the group by and customized columns survive the round trip
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.APPROVER);
+            expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
+        });
     });
 
     describe('shouldResetSort', () => {

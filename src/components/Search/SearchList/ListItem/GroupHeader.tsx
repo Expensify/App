@@ -46,6 +46,7 @@ import Animated from 'react-native-reanimated';
 
 import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
+import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -320,6 +321,14 @@ function GroupHeader({
                     <QuarterListItemHeader
                         quarter={groupItem}
                         {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.APPROVER:
+                return (
+                    <ApproverListItemHeader
+                        approver={groupItem}
+                        {...commonProps}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 );
             default:
