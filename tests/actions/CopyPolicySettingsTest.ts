@@ -65,6 +65,11 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         defaultBillable: true,
         eReceipts: true,
         preventSelfApproval: true,
+        isReceiptVisibilityPublic: true,
+        requireMapOrGPS: true,
+        mccGroup: {dining: {category: 'Meals', groupID: 'dining'}},
+        exportLayouts: {sourceLayout: {name: 'Source layout', templateName: 'sourceLayout', type: 'csv', policyID: SOURCE_POLICY_ID, description: ''}},
+        invoice: {companyName: 'Source LLC', markUp: 25, bankAccount: {stripeConnectAccountID: 'acct_source', transferBankAccountID: 1234}},
         ...overrides,
     };
 }
@@ -107,6 +112,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
         eReceipts: false,
         preventSelfApproval: false,
         customUnits: {},
+        invoice: {companyName: 'Target Inc', bankAccount: {stripeConnectAccountID: 'acct_target'}},
         ...overrides,
     };
 }
@@ -157,9 +163,9 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['overview', ['address', 'description']],
                 ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
-                ['reports', ['fieldList', 'areReportFieldsEnabled']],
+                ['reports', ['fieldList', 'areReportFieldsEnabled', 'exportLayouts']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
-                ['categories', ['areCategoriesEnabled']],
+                ['categories', ['areCategoriesEnabled', 'mccGroup']],
                 ['tags', ['areTagsEnabled']],
                 ['taxes', ['tax', 'taxRates']],
                 ['workflows', ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice']],
@@ -178,9 +184,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'preventSelfApproval',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
+                        'isReceiptVisibilityPublic',
                     ],
                 ],
-                ['distanceRates', ['areDistanceRatesEnabled']],
+                ['distanceRates', ['areDistanceRatesEnabled', 'requireMapOrGPS']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList']],
                 ['travel', ['isTravelEnabled']],
@@ -195,7 +202,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 // Each expected field should be patched from the source policy and marked pending.
                 for (const field of expectedFields) {
-                    if (field === 'fieldList') {
+                    if (field === 'fieldList' || field === 'invoice') {
                         continue;
                     }
                     expect(policy?.[field]).toEqual(sourcePolicy[field]);
@@ -212,6 +219,36 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 expect(policy?.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
                 expect(policy?.employeeList).toEqual(targetPolicy.employeeList);
+            });
+
+            it("copies only the invoice markUp and keeps the target's own company details and Stripe account", () => {
+                const sourcePolicy = makeSourcePolicy();
+                const targetPolicy = makeTargetPolicy();
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.invoice).toEqual({companyName: 'Target Inc', bankAccount: {stripeConnectAccountID: 'acct_target'}, markUp: 25});
+            });
+
+            it('removes the target markUp when the source has none', () => {
+                const sourcePolicy = makeSourcePolicy({invoice: {companyName: 'Source LLC'}});
+                const targetPolicy = makeTargetPolicy({invoice: {companyName: 'Target Inc', markUp: 10}});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.invoice).toEqual({companyName: 'Target Inc'});
+            });
+
+            it('does not create an invoice object when neither policy has one', () => {
+                const sourcePolicy = makeSourcePolicy({invoice: undefined});
+                const targetPolicy = makeTargetPolicy({invoice: undefined});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.invoice).toBeUndefined();
             });
 
             it('copies showTagGLCodes with rules so tag pickers match the source workspace', () => {
