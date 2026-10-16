@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
+        shareReport: 'Bericht teilen',
+        reportShared: 'Bericht geteilt',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -4051,6 +4053,10 @@ ${amount} für ${merchant} – ${date}`,
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `${name} bearbeiten`,
+        removeItem: ({name}: {name: string}) => `${name} entfernen`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4062,7 +4068,13 @@ ${amount} für ${merchant} – ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
             invalidOption: 'Wähle eine der verfügbaren Optionen',
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+            tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
+            tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `${item} hinzufügen`,
+        removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
+        removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -9043,7 +9055,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     toggleTitle: 'Büros',
                     allSelected: 'Alle Büros',
                 },
-                enableJobStagesOrTags: 'Aktivieren Sie Jobphasen oder Tags, um fortzufahren',
+                enableJobStagesOrTags: 'Wählen Sie mindestens eine Jobphase oder ein Tag aus, um fortzufahren',
             },
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
@@ -11238,6 +11250,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     systemMessage: {
         mergedWithCashTransaction: 'hat eine Quittung mit dieser Transaktion abgeglichen',
+        mergedExpenseDeleted: 'hat Ausgaben zusammengeführt und eine in Gelöscht verschoben',
     },
     subscription: {
         authenticatePaymentCard: 'Zahlungskarte authentifizieren',
@@ -11479,6 +11492,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 refundedOn: ({date}: {date: string}) => `Erstattet am ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
             },
+            billedTo: 'Abgerechnet an',
+            viewReceipt: 'Beleg anzeigen',
+            viewInvoice: 'Rechnung anzeigen',
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
