@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -200,10 +200,9 @@ function MultifactorAuthenticationRevokePage() {
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationRevokePage.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('multifactorAuthentication.revoke.title')}
                 onBackButtonPress={onGoBackPress}
-                shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flexGrow1}>

@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -133,11 +133,9 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
             includeSafeAreaPaddingBottom
             testID="PrivateNotesEditPageInternal"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('privateNotes.title')}
                 onBackButtonPress={() => goBackFromPrivateNotes(report, accountID)}
-                shouldShowBackButton
-                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}

@@ -1,5 +1,5 @@
 import {AttachmentContext} from '@components/AttachmentContext';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -89,11 +89,9 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
 
     return (
         <ScreenWrapper testID="PrivateNotesListPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('privateNotes.title')}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backPath)}
-                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}

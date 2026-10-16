@@ -157,7 +157,7 @@ jest.mock('@pages/Share/ShareRootPage', () => ({showErrorAlert: jest.fn()}));
 
 jest.mock('@pages/Share/useShareFileSizeValidation', () => jest.fn());
 
-jest.mock('@components/HeaderWithBackButton', () => {
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {

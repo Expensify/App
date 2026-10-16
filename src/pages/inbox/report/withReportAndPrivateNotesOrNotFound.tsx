@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +9,6 @@ import usePrevious from '@hooks/usePrevious';
 
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -86,12 +85,7 @@ function WithReportAndPrivateNotesOrNotFoundImpl<TProps extends WithReportAndPri
                     includeSafeAreaPaddingBottom
                     testID="PrivateNotesOfflinePage"
                 >
-                    <HeaderWithBackButton
-                        title={translate('privateNotes.title')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        shouldShowBackButton
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('privateNotes.title')} />
                     <FullPageOfflineBlockingView>
                         <View />
                     </FullPageOfflineBlockingView>
