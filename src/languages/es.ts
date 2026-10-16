@@ -12311,22 +12311,6 @@ ${reportName}`,
             lockScreenTrackingText: 'Siguiendo...',
         },
     },
-    aiFeaturesPromoModal: {
-        subtitle: 'Nuevo en Concierge AI',
-        confirmText: '¡Vamos!',
-        spendAnalysis: {
-            title: 'Análisis interactivo del gasto',
-            description: `<muted-text>Concierge muestra información mensual sobre gastos y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Conoce a tu nuevo asistente de gastos',
-            description: `<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crea tus propios agentes',
-            description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problema de correo electrónico',
         intro: (login: string) => `Nuestro proveedor de correo electrónico ha pausado el envío a <strong>${login}</strong> debido a problemas de entrega. Para solucionar este problema:`,

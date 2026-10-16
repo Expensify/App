@@ -59,11 +59,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path,
             },
         },
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO.path,
-            },
-        },
 
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
             screens: {

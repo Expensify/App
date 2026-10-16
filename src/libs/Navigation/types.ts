@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
@@ -3503,10 +3501,6 @@ type SubmitPlanModalNavigatorParamList = {
     [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
-type AIFeaturesPromoModalNavigatorParamList = {
-    [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
-};
-
 type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
@@ -3690,7 +3684,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: NavigatorScreenParams<SubmitPlanModalNavigatorParamList>;
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -3981,7 +3974,6 @@ export type {
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     SubmitPlanModalNavigatorParamList,
-    AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     PolicyCopySettingsNavigatorParamList,

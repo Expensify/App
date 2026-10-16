@@ -1129,10 +1129,6 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
     },
 
-    AI_FEATURES_PROMO_MODAL: {
-        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
-    },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
