@@ -2,8 +2,6 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 
 import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -50,8 +48,9 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
     }
 
     if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-        // We're guaranteed that the type of params is of SCREENS.REPORT
-        return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
+        const params = maybeReportRoute.params;
+        const reportID = params && 'reportID' in params ? params.reportID : undefined;
+        return {contextualReportID: typeof reportID === 'string' ? reportID : undefined, isSearchRouterScreen};
     }
     return {contextualReportID: undefined, isSearchRouterScreen};
 }
