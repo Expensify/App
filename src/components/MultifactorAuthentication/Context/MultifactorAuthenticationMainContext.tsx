@@ -66,6 +66,7 @@ type MultifactorAuthenticationContextProviderProps = {
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
+    const actionControllerRef = useRef<AbortController | undefined>(undefined);
 
     const biometrics = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -358,11 +359,21 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     }
 
                     // Call backend with signed challenge
-                    const scenarioAPIResponse = await processScenarioAction(scenario.action, {
-                        signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod.marqetaValue,
-                        ...payload,
-                    });
+                    const controller = new AbortController();
+                    actionControllerRef.current = controller;
+                    const scenarioAPIResponse = await processScenarioAction(
+                        scenario.action,
+                        {
+                            signedChallenge: result.signedChallenge,
+                            authenticationMethod: result.authenticationMethod.marqetaValue,
+                            ...payload,
+                        },
+                        {signal: controller.signal},
+                    );
+
+                    if (actionControllerRef.current === controller) {
+                        actionControllerRef.current = undefined;
+                    }
 
                     addMFABreadcrumb(
                         'Scenario action completed',
@@ -504,6 +515,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
+        actionControllerRef.current?.abort();
         if (!state.scenario || isOffline) {
             addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
             dispatch({type: 'CLOSE_MODAL'});
