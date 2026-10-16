@@ -35,9 +35,6 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
  */
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
-// Read from the SDK, so the filter keeps working if Sentry renames the integration.
-const TURBO_MODULE_CONTEXT_INTEGRATION = Sentry.turboModuleContextIntegration().name;
-
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
     const integrations = [
@@ -61,7 +58,12 @@ function setupSentry(): void {
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
-        integrations: (defaultIntegrations) => [...defaultIntegrations.filter((integration) => integration.name !== TURBO_MODULE_CONTEXT_INTEGRATION), ...integrations],
+        integrations: (defaultIntegrations) => {
+            // Read from the SDK, so the filter keeps working if Sentry renames the integration. Looked up here rather
+            // than at module load so importing this file does not call into the SDK.
+            const turboModuleContextIntegrationName = Sentry.turboModuleContextIntegration().name;
+            return [...defaultIntegrations.filter((integration) => integration.name !== turboModuleContextIntegrationName), ...integrations];
+        },
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
         dist: buildNumber,
