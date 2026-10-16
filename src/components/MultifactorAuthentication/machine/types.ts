@@ -91,6 +91,9 @@ type MfaContext = {
 
     /** The scenario action's result while `cancellingInFlight`, held until `cancellingInFlight` decides the outcome. */
     scenarioActionResult: ExecuteScenarioActionOutput | undefined;
+
+    /** Whether this flow already re-registered after a recoverable credential failure. A second such failure ends the flow instead. */
+    hasAttemptedRecovery: boolean;
 };
 
 /** See `MfaContext.promptPresentationPhase`. */

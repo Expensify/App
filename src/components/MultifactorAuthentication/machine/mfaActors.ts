@@ -87,8 +87,8 @@ const registerCredentialActor = fromPromise<RegisterCredentialOutput, RegisterCr
 /**
  * Requests the authorization challenge and runs the platform ceremony that signs it. While the flow is
  * active, a local failure showing that the device credential is unusable clears it before returning;
- * cancellation skips that cleanup. The reason itself is forwarded unchanged so the recovery slice can
- * route recoverable failures to re-registration.
+ * cancellation skips that cleanup. The reason itself is forwarded unchanged so the machine can route
+ * recoverable failures to re-registration.
  */
 const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({input, signal}) => {
     const {httpStatusCode, challenge, reason, message} = await requestAuthorizationChallenge();

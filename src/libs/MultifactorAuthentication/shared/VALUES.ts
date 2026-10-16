@@ -191,16 +191,17 @@ const ALTERNATIVE_OUTCOMES = new Set<ReasonValue>([REASON.FLOW_OUTCOMES.TRANSACT
 
 /**
  * Local credential failures that confirm the device credential is unusable, so it should be deleted
- * before recovery. Read failures such as `KEY_ACCESS_FAILED` are deliberately absent: an unreadable
- * keystore may recover, and deleting on one would force a re-registration the device did not need.
+ * before recovery. A transient keystore read failure is retried inside the operation, so a
+ * `KEY_ACCESS_FAILED` that still reaches the caller is treated as a broken key.
  */
 const CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
 ]);
 
-/** Failures the recovery slice will route to re-registration rather than retrying authorization. */
+/** Failures the machine routes to re-registration rather than to the failure outcome. */
 const RECOVERABLE_CREDENTIAL_FAILURES = new Set<ReasonValue>([...CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION, REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. missing reason). */

@@ -125,37 +125,23 @@ describe('MFA authorization', () => {
             actor.stop();
         });
 
-        // This slice has no recovery actor yet — a recoverable failure routes to the generic failure
-        // outcome like any other, with `error.reason` preserved verbatim so the recovery slice has an
-        // exact value to route on once it adds its own branch.
-        it('reaches the failure outcome preserving the exact reason for a recoverable credential failure', () => {
+        // `recoveryTransition.test.ts` pins what recovery does; this only pins that both kinds of
+        // recoverable authorization failure leave for re-registration instead of the outcome.
+        it.each([
+            {
+                name: 'a credential the device cannot use',
+                error: createLocalMFAError(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'Authorization transition spec recoverable failure'),
+            },
+            {name: 'REGISTRATION_REQUIRED', error: createLocalMFAError(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, 'Authorization transition spec registration required')},
+        ])('goes back to the validate-code screen for $name', ({error}) => {
             const actor = createActorAtState(SIGNING_CHALLENGE);
-            const recoverableError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'Authorization transition spec recoverable failure');
 
             actor.start();
-            sendAuthorizeDone(actor, {success: false, error: recoverableError});
-            sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
+            sendAuthorizeDone(actor, {success: false, error});
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
-            expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL);
-
-            actor.stop();
-        });
-
-        it('reaches the failure outcome preserving the exact REGISTRATION_REQUIRED reason', () => {
-            const actor = createActorAtState(SIGNING_CHALLENGE);
-            const registrationRequiredError = createLocalMFAError(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, 'Authorization transition spec registration required');
-
-            actor.start();
-            sendAuthorizeDone(actor, {success: false, error: registrationRequiredError});
-            sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
-
-            const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
-            expect(result.context.error?.reason).toBe(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED);
-            expect(CONST.MULTIFACTOR_AUTHENTICATION.RECOVERABLE_CREDENTIAL_FAILURES.has(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED)).toBe(true);
-            expect(CONST.MULTIFACTOR_AUTHENTICATION.CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION.has(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED)).toBe(false);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: MFA_STATE.VALIDATE_CODE}})).toBe(true);
+            expect(result.context.error).toBeUndefined();
 
             actor.stop();
         });
