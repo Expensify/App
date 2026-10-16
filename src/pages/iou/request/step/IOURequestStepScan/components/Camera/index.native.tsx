@@ -69,6 +69,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const {
         camera,
+        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,
@@ -213,9 +214,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
                 maybeCancelShutterSpan();
-                showCameraAlert();
-                Log.warn('Error taking photo', error);
                 discardPendingPhoto();
+                // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
+                if (isScreenFocused.current) {
+                    showCameraAlert();
+                }
+                Log.warn('Error taking photo', error);
             });
 
         if (shouldUpgradeToPhoto) {

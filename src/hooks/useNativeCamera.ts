@@ -66,6 +66,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const camera = useRef<Camera>(null);
+    const isScreenFocused = useRef(false);
 
     const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
 
@@ -75,6 +76,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     useFocusEffect(
         useCallback(() => {
             setDidCapturePhoto(false);
+            isScreenFocused.current = true;
             onFocusStart?.();
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
@@ -95,6 +97,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
 
             return () => {
                 subscription.remove();
+                isScreenFocused.current = false;
                 onFocusCleanup?.();
 
                 if (isLoaderVisible) {
@@ -106,6 +109,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
 
     return {
         camera,
+        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,

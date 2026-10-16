@@ -73,6 +73,7 @@ function IOURequestStepOdometerImage({
 
     const {
         camera,
+        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,
@@ -243,9 +244,11 @@ function IOURequestStepOdometerImage({
                     .catch((error: unknown) => {
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         isCapturingPhoto.current = false;
-                        showCameraAlert();
-                        const errorMessage = error instanceof Error ? error.message : String(error);
-                        Log.warn('Error taking photo', errorMessage);
+                        // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
+                        if (isScreenFocused.current) {
+                            showCameraAlert();
+                        }
+                        Log.warn('Error taking photo', error instanceof Error ? error.message : String(error));
                     });
             });
     };
