@@ -1,10 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import CategoryPickerModal, {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 
 import type * as Browser from '@libs/Browser';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
@@ -26,7 +26,10 @@ jest.mock('@libs/Browser', () => ({
 
 // A phone-width window by default, where the pop-over is a bottom sheet. A test can widen it to get the pop-over.
 let mockIsSmallScreenWidth = true;
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
+let mockIsInLandscapeMode = false;
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth, isInLandscapeMode: mockIsInLandscapeMode})),
+);
 
 // The window as a mobile browser reports it with the keyboard open: shorter, and panned down past the page top.
 const mockWindowHeight = 500;
@@ -59,6 +62,7 @@ describe('CategoryPickerModal', () => {
         mockPopoverProps = undefined;
         mockIsMobileBrowser = true;
         mockIsSmallScreenWidth = true;
+        mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
     });
 
@@ -99,6 +103,19 @@ describe('CategoryPickerModal', () => {
         // Then the pop-over closes without starting the add-category flow, like the full page's back button leaves the step
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(onAddCategory).not.toHaveBeenCalled();
+    });
+
+    it('leaves the back button out of the wide pop-over', () => {
+        // Given a wide layout, where the list opens as a pop-over that a click outside it already closes
+        mockIsSmallScreenWidth = false;
+
+        // When the pop-over opens with its header, for a user who can add categories
+        renderSheet({onAddCategory: jest.fn()});
+
+        // Then the header keeps its title and add button, but has no back button
+        expect(screen.queryByLabelText('common.back')).toBeNull();
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
+        expect(screen.getByLabelText('workspace.categories.addCategory')).toBeOnTheScreen();
     });
 
     it('shows no header for users who cannot create a category', () => {
@@ -153,6 +170,32 @@ describe('CategoryPickerModal', () => {
         expect(mockPopoverProps?.avoidKeyboard).toBe(true);
     });
 
+    it('fills the screen with the sheet on a phone in landscape instead of handing over to a page', () => {
+        // Given a phone turned to landscape, where a sheet over the form would leave too little room to scroll the list
+        mockIsInLandscapeMode = true;
+
+        // When the list opens, or is already open as the phone turns
+        renderSheet();
+
+        // Then the sheet stays up and fills the window up to the status bar, which the test harness reports as zero, less the
+        // sheet's own top padding, and the modal neither caps nor wraps it, so the list scrolls all the way down on its own
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
+        expect(mockPopoverProps?.shouldLimitHeightIfBottomDockedInLandscapeMode).toBe(false);
+        expect(mockPopoverProps?.shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode).toBe(false);
+    });
+
+    it('fits the full-screen sheet above the keyboard on a phone in landscape', () => {
+        // Given a phone in landscape with the keyboard open, e.g. while searching the list
+        mockIsInLandscapeMode = true;
+        mockKeyboardHeight = 200;
+
+        // When the list opens
+        renderSheet();
+
+        // Then the sheet fills only the room between the keyboard and the status bar, so the search input and the rows stay visible
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - mockKeyboardHeight - BOTTOM_SHEET_TOP_PADDING);
+    });
+
     describe('with a short list', () => {
         const ONE_ROW_HEIGHT = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false});
 
@@ -166,6 +209,18 @@ describe('CategoryPickerModal', () => {
             await Onyx.clear();
         });
 
+        it('still fills the screen on a phone in landscape', async () => {
+            // Given a phone in landscape and a workspace with a single category, whose sheet would otherwise fit that one row
+            mockIsInLandscapeMode = true;
+
+            // When the expense form's category list opens
+            renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the sheet fills the screen anyway, so turning the phone never leaves a sliver of a sheet over the form
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
+        });
+
         it('fits the bottom sheet to the list instead of opening at the window height', async () => {
             // Given a phone, where the list opens as a bottom sheet, and a workspace with a single category
             // When the expense form's category list opens
@@ -174,6 +229,28 @@ describe('CategoryPickerModal', () => {
 
             // Then the sheet is one row tall plus the bottom safe area it pads itself with, leaving no empty space below the row
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SAFE_AREA_PADDING_BOTTOM);
+        });
+
+        it('keeps the header 20px from the top of the sheet, which already pads its own top', async () => {
+            // Given a phone, and a user who can add categories, so the sheet shows a header above the single category
+            // When the expense form's category list opens
+            renderSheet({onAddCategory: jest.fn(), shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - 16 + SAFE_AREA_PADDING_BOTTOM);
+        });
+
+        it('keeps the list top padding above the header in the wide pop-over', async () => {
+            // Given a wide layout, where the pop-over has no top padding of its own, and a user who can add categories
+            mockIsSmallScreenWidth = false;
+
+            // When the expense form's category list opens
+            renderSheet({onAddCategory: jest.fn(), shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the pop-over is one row plus the header, whose 20px from the top comes from the list's padding
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT);
         });
 
         it('fits the pop-over to the list without any bottom safe area', async () => {
