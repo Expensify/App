@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {StartSpanOptions} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 
-import {cancelSpan, cancelSpansByPrefix, endSpan, getSpan, startSpan} from './activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
 
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
@@ -80,6 +80,14 @@ function endSendMessagePhases(reportActionID: string | undefined) {
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT);
 }
 
+// Call from the sent row's onLayout. Ends the remaining phase before the parent and drops the parent's report entry.
+function endSendMessageVisibleSpan(reportActionID: string) {
+    endSendMessagePhases(reportActionID);
+    const spanID = getSendMessageVisibleSpanID(reportActionID);
+    endSpan(spanID);
+    visibleReportIDBySpanID.delete(spanID);
+}
+
 // Call before cancelling the parent. Sentry drops descendants that have not ended when the root span does.
 function cancelSendMessagePhases(parentSpanID: string | undefined) {
     if (!parentSpanID?.startsWith(SEND_MESSAGE_VISIBLE_PREFIX)) {
@@ -110,22 +118,12 @@ function cancelSendMessageSpansForReport(reportID: string | undefined) {
     }
 }
 
-// Call on navigate-away, where the reportActionID is unknown. Phase span ids do not share the parent's prefix, so sweeping only the parent leaks them.
-function cancelAllSendMessageSpans() {
-    for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
-        cancelSpansByPrefix(phase);
-    }
-    cancelSpansByPrefix(SEND_MESSAGE_VISIBLE_PREFIX);
-    visibleReportIDBySpanID.clear();
-}
-
 export {
     getSendMessageVisibleSpanID,
     startSendMessageVisibleSpan,
     startSendMessagePhase,
     markSendMessageCommitted,
-    endSendMessagePhases,
+    endSendMessageVisibleSpan,
     cancelSendMessagePhases,
     cancelSendMessageSpansForReport,
-    cancelAllSendMessageSpans,
 };
