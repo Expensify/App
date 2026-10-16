@@ -1639,6 +1639,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
+        getRoute: (shouldShowQRCodeOnly?: boolean) => getUrlWithParams('share-code', {shouldShowQRCodeOnly: shouldShowQRCodeOnly ? 'true' : undefined}),
+        queryParams: ['shouldShowQRCodeOnly'],
     },
     REFERRAL_DETAILS: {
         path: 'referral/:contentType',
@@ -1649,6 +1651,10 @@ const DYNAMIC_ROUTES = {
         path: 'details/export/:connectionName',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
         getRoute: (connectionName: ConnectionName) => `details/export/${connectionName as string}` as const,
+    },
+    REPORT_DETAILS_SHARE_REPORT: {
+        path: 'share-report',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
     REPORT_CHANGE_WORKSPACE: {
         path: 'change-workspace',

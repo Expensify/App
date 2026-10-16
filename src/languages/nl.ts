@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'De grafiek kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
         apiKey: 'API-sleutel',
         exportsTo: 'Exporteert naar',
+        shareReport: 'Rapport delen',
+        reportShared: 'Rapport gedeeld',
     },
     socials: {
         podcast: 'Volg ons op Podcast',

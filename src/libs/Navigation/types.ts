@@ -2330,11 +2330,15 @@ type ReportDetailsNavigatorParamList = {
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: {
         reportID: string;
+        shouldShowQRCodeOnly?: string;
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+    };
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: {
+        reportID: string;
     };
 };
 
