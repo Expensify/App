@@ -1,5 +1,5 @@
 import CategoryPicker from '@components/CategoryPicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -61,9 +61,8 @@ function DynamicDefaultCategorySelectorPage({route}: DynamicDefaultCategorySelec
                 shouldEnableKeyboardAvoidingView={false}
                 testID="DynamicDefaultCategorySelectorPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.common.defaultCategory')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <CategoryPicker

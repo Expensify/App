@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -59,7 +59,7 @@ function DynamicCategoryRequiredFieldsPage({
                 testID={DynamicCategoryRequiredFieldsPage.displayName}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.categoryRules.requiredFieldsTitle')}
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
