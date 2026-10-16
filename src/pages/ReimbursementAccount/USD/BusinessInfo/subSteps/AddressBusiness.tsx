@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {FormOnyxValues} from '@components/Form/types';
 import AddressStep from '@components/SubStepForms/AddressStep';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,6 +7,8 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +29,12 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
-function AddressBusiness({onNext, onMove, isEditing}: SubPageProps) {
+type AddressBusinessProps = SubPageProps & {
+    /** Saves the address and exits the flow instead of continuing through VBBA substeps */
+    onAddressSubmit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => void;
+};
+
+function AddressBusiness({onNext, onMove, isEditing, onAddressSubmit}: AddressBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -41,11 +49,14 @@ function AddressBusiness({onNext, onMove, isEditing}: SubPageProps) {
         country: reimbursementAccount?.achData?.country ?? '',
     };
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleStepSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
+    const handleSubmit = onAddressSubmit ?? handleStepSubmit;
+    const isSavingAddress = !!onAddressSubmit && (reimbursementAccount?.isLoading ?? false);
+    const addressSaveError = onAddressSubmit ? getLatestErrorMessage(reimbursementAccount ?? {}) || undefined : undefined;
 
     if (isLoadingReimbursementAccount) {
         return (
@@ -69,6 +80,8 @@ function AddressBusiness({onNext, onMove, isEditing}: SubPageProps) {
             defaultValues={defaultValues}
             shouldAllowCountryChange={false}
             streetTranslationKey="common.companyAddress"
+            isLoading={isSavingAddress}
+            additionalServerErrorMessage={addressSaveError}
         />
     );
 }

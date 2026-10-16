@@ -34,9 +34,12 @@ type BaseWidgetItemProps = {
 
     /** The visual variant of the CTA button */
     buttonVariant?: ButtonVariant;
+
+    /** When true, the CTA button shows a loading state and ignores extra presses */
+    isCtaLoading?: boolean;
 };
 
-function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant, isCtaLoading}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {cardPaddingHorizontal} = useLayoutSpacing();
@@ -67,6 +70,8 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
                         size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
                         variant={buttonVariant}
+                        isLoading={isCtaLoading}
+                        isDisabled={isCtaLoading}
                     >
                         <Button.Text>{ctaText}</Button.Text>
                     </Button>

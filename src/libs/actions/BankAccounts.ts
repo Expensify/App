@@ -1346,6 +1346,7 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
+                    errors: null,
                 },
             },
         ],
@@ -1388,7 +1389,13 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string | undefined, isConfirmPage: boolean) {
+function updateCompanyInformationForBankAccount(
+    bankAccountID: number,
+    params: Partial<CompanyStepProps>,
+    policyID: string | undefined,
+    isConfirmPage: boolean,
+    shouldShowLoading = isConfirmPage,
+) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -1397,7 +1404,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY, isConfirmPage),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY, shouldShowLoading),
     );
 }
 
