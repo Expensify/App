@@ -8,13 +8,14 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberLoginByOptimisticAccountID, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
 import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -48,7 +49,7 @@ type WorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route
     };
 
 function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPageProps) {
-    const accountID = Number(route.params.accountID);
+    const routeAccountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,7 +57,9 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canAccessWorkArrangementPage = canWriteMembers && isWorkArrangementBetaEnabled && isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
@@ -65,7 +68,8 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const currentIsOffice = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
 
     const navigateBackToDetails = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        // Go back with the route's accountID so it matches the details screen below, which keeps the optimistic accountID it was opened with.
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID));
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {

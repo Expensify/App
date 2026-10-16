@@ -12,6 +12,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -21,6 +22,7 @@ import WorkspaceMemberDetailsPage from '@pages/workspace/members/WorkspaceMember
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -264,6 +266,27 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         expect(screen.getAllByText('Invited User').length).toBeGreaterThan(0);
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should open the Role page with the stale optimistic accountID from its own route', async () => {
+        // Given a details page whose route still holds the member's optimistic accountID after the invite swapped in the real one
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const staleOptimisticAccountID = generateAccountID(invitedEmail);
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens the member's Role page
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+        fireEvent.press(roleItem, {nativeEvent: {}, type: 'press', target: roleItem, currentTarget: roleItem});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Role route keeps the stale accountID, so going back from it pops to this details screen instead of
+        // stacking a second details screen for the real accountID
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, staleOptimisticAccountID));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, invitedAccountID));
 
         unmount();
         await waitForBatchedUpdatesWithAct();

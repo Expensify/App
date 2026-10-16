@@ -44,6 +44,7 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    getMemberLoginByOptimisticAccountID,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyApprover,
@@ -53,7 +54,6 @@ import {
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {generateAccountID} from '@libs/UserUtils';
 import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
@@ -73,7 +73,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -93,23 +93,6 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
- * personal details once the invite request finishes and the backend supplies the real accountID. A member details page opened
- * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
- * so the page keeps resolving the member across that swap.
- */
-function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
-    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
-    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
-    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
-    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
-    if (primaryLoginOfInvitedSecondary) {
-        return primaryLoginOfInvitedSecondary;
-    }
-    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
 }
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
@@ -140,6 +123,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
+    // Open the member's sub-pages with the route's accountID, even if it is a stale optimistic one, so they go back to this
+    // screen instead of stacking a second details screen for the real accountID. The sub-pages resolve the real accountID themselves.
+    const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const prevMember = usePrevious(member);
@@ -410,17 +396,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldUseDefaultCursorWhenDisabled
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
-                                    if (
-                                        tryNavigateToSubmitWorkspaceUpgrade(
-                                            policy,
-                                            true,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
-                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
-                                        )
-                                    ) {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, memberDetailsRoute)) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
+                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, routeAccountID));
                                 }}
                             />
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
@@ -433,7 +412,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
                                     pressableTestID="member-work-arrangement-menu-item"
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, routeAccountID))}
                                 />
                             )}
                             {isControlPolicy(policy) && (
@@ -441,7 +420,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField1')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField1')) : undefined
+                                            }
                                             testID="member-customField1-menu-item"
                                             value={member.employeeUserID}
                                         />
@@ -449,7 +430,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField2')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField2')) : undefined
+                                            }
                                             testID="member-customField2-menu-item"
                                             value={member.employeePayrollID}
                                         />
