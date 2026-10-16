@@ -530,6 +530,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
+        shareReport: 'レポートを共有',
+        reportShared: 'レポートを共有しました',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -8877,7 +8879,7 @@ ${reportName}`,
                     allSelected: 'すべてのタグ',
                 },
                 offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
-                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+                enableJobStagesOrTags: '続行するには、少なくとも 1 つのジョブのステージまたはタグを選択してください',
             },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
@@ -11037,6 +11039,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'この取引にレシートを照合しました',
+        mergedExpenseDeleted: '経費を統合し、1件を削除済みに移動しました',
     },
     subscription: {
         authenticatePaymentCard: '支払カードを認証',

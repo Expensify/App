@@ -69,6 +69,9 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     hasStaleUnreadReport: false,
 });
 
+/** The Inbox tab's status alone, so tab bars re-render only when it changes, not on every LHN update. */
+const SidebarChatTabBrickRoadContext = createContext<BrickRoad>(undefined);
+
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
     setActiveTab: () => {},
@@ -252,13 +255,19 @@ function SidebarOrderedReportsContextProvider({
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
-            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            <SidebarChatTabBrickRoadContext.Provider value={stateValue.chatTabBrickRoad}>
+                <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            </SidebarChatTabBrickRoadContext.Provider>
         </SidebarOrderedReportsStateContext.Provider>
     );
 }
 
 function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useChatTabBrickRoad() {
+    return useContext(SidebarChatTabBrickRoadContext);
 }
 
 function useSidebarOrderedReportsActions() {
@@ -273,5 +282,5 @@ function useSidebarOrderedReports() {
     return useMemo(() => ({...state, ...actions}), [state, actions]);
 }
 
-export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
+export {SidebarOrderedReportsContextProvider, useChatTabBrickRoad, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
 export type {ReportsToDisplayInLHN};

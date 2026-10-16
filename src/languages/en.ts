@@ -356,6 +356,8 @@ const translations = {
         assignee: 'Assignee',
         with: 'with',
         shareCode: 'Share code',
+        shareReport: 'Share report',
+        reportShared: 'Report shared',
         share: 'Share',
         per: 'per',
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
@@ -8185,7 +8187,7 @@ const translations = {
             },
             filters: {
                 description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
-                enableJobStagesOrTags: 'Enable Job stages or Tags to continue',
+                enableJobStagesOrTags: 'Select at least one Job stage or Tag to continue',
                 stages: {
                     title: 'Job stage',
                     toggleTitle: 'Job stages',
@@ -11501,6 +11503,7 @@ const translations = {
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',
+        mergedExpenseDeleted: 'merged expenses and moved one to Deleted',
     },
     subscription: {
         authenticatePaymentCard: 'Authenticate payment card',

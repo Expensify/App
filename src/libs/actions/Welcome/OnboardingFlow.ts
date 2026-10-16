@@ -144,8 +144,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
             CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
         ]);
     }
+    // Preserve onboarding progress after a direct add while the public domain flag is stale.
+    const shouldResumeOnboardingAfterDirectAdd = currentOnboardingValues?.shouldValidate === false && state?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+
     // A validated account has no reason to be on the onboarding "add work email" screen.
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated && !shouldResumeOnboardingAfterDirectAdd) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
