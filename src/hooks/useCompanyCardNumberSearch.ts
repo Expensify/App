@@ -55,11 +55,19 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
     const isFullNumberQuery = CARD_NUMBER_REGEX.test(debouncedNormalized);
 
     useEffect(() => {
-        if (!policyID || !isFullNumberQuery) {
+        if (!policyID) {
+            return;
+        }
+        // Clearing the input drops any stale results so a later re-type does not briefly show the old match.
+        if (!searchValue) {
+            clearCompanyCardNumberSearch(policyID);
+            return;
+        }
+        if (!isFullNumberQuery) {
             return;
         }
         searchCompanyCardByNumber(policyID, debouncedNormalized, feed, domainAccountID);
-    }, [policyID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized]);
+    }, [policyID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized, searchValue]);
 
     useEffect(
         () => () => {
@@ -72,8 +80,12 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
     );
 
     return useMemo(() => {
-        // Results count only when they belong to the number currently typed, scoped to this feed.
-        const resultsMatchQuery = isFullNumberQuery && searchResult?.query === debouncedNormalized;
+        // Results count only when they belong to the number currently typed. Compare against the immediate
+        // value, not the debounced one, so stale results clear the moment the user edits the input instead
+        // of lingering until the next debounce tick.
+        // Treat stale cards as "no match" while a new request is in flight so an in-progress result never
+        // leaks into the list for a different query.
+        const resultsMatchQuery = isEligibleQuery && searchResult?.query === immediateNormalized && searchResult?.isLoading !== true;
         const relevantCards = resultsMatchQuery
             ? (searchResult?.cards ?? []).filter((card) => card.feed.toLowerCase() === String(feed).toLowerCase() && (!domainAccountID || card.domainAccountID === domainAccountID))
             : [];
@@ -106,7 +118,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
             matchedEncryptedNumbers,
             lastFourCardIDs,
             lastFourEncryptedNumbers,
-            resultsQuery: resultsMatchQuery ? debouncedNormalized : undefined,
+            resultsQuery: resultsMatchQuery ? immediateNormalized : undefined,
             isSearching: isEligibleQuery && !resultsReadyForCurrentInput,
         };
     }, [

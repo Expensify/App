@@ -1500,7 +1500,7 @@ function searchCompanyCardByNumber(policyID: string, cardNumber: string, feed?: 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: searchKey,
-            value: {isLoading: true, query: cardNumber},
+            value: {isLoading: true, query: cardNumber, cards: []},
         },
     ];
 
