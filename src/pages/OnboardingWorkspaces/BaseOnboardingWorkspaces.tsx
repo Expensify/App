@@ -8,6 +8,7 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -109,6 +110,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [accessiblePoliciesRequestID, setAccessiblePoliciesRequestID] = useState<string | undefined>();
     const isFinishingOnboarding = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding();
     const returnToOriginReport = useReturnToOriginReport();
     // Nothing in this stack to go back to. The work email merge and the private domain screen force-replace into this
     // screen, so it is the only route there. `canGoBack()` can't answer this: it bubbles to the root stack.
@@ -157,7 +159,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
-        if (isJoiningCompanyWorkspace && !onboardingPersonalDetails?.firstName.trim()) {
+        if (isJoiningCompanyWorkspace && !onboardingPersonalDetails?.firstName?.trim()) {
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
@@ -265,8 +267,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     useFocusEffect(
         useCallback(() => {
             // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
-            // count at 0, so reacting to those updates would immediately issue another request.
-            if (!isValidated || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies) {
+            // count at 0, so reacting to those updates would immediately issue another request. Joining the last
+            // listed workspace also empties the list, which must not start a lookup while onboarding is finishing.
+            if (!isValidated || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies || isFinishingOnboarding.current) {
                 return;
             }
 
@@ -285,8 +288,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }, [accessiblePoliciesActionRequestID, hasRequestedAccessiblePolicies, isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
     );
 
+    const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
+
     useEffect(() => {
-        if (accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
+        if (
+            isFinishingOnboarding.current ||
+            accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID ||
+            joinablePoliciesLoading !== false ||
+            joinablePoliciesErrors ||
+            joinablePoliciesLength > 0
+        ) {
             return;
         }
 
@@ -306,7 +317,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         if (!isJoiningCompanyWorkspace) {
             return;
         }
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+        continueJoinWorkspaceOnboardingFromEffect({forceReplace: true});
     }, [
         conciergeChat,
         conciergeReportID,
