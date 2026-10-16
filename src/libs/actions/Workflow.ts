@@ -31,6 +31,7 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -248,6 +249,15 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
 
     const defaultApprover = getDefaultApprover(policy);
+
+    // The removed workflow's members are sent with an empty `submitsTo`, which the backend resolves to the default
+    // approver. Storing that empty value optimistically would instead read as "no approver at all" until the response
+    // lands, blanking these members everywhere their approver is shown (and indefinitely while offline), so the
+    // optimistic copy states the resolved value. The request itself still carries the empty string.
+    const optimisticEmployees = Object.fromEntries(
+        Object.entries(updatedEmployees).map(([email, employee]) => [email, employee?.submitsTo === '' ? {...employee, submitsTo: defaultApprover} : employee]),
+    );
+
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
     const hasMoreThanOneWorkflow = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
     // The default workflow can still have a forwardsTo chain (multi-level approvers), which also requires advanced mode
@@ -265,7 +275,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: updatedEmployees,
+                employeeList: optimisticEmployees,
                 approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
             },
         },
@@ -307,18 +317,26 @@ type SetApprovalWorkflowRulesParams = {
 
     /** The rules as currently stored in Onyx, which `rulesDiff` is applied on top of. Used to roll back on failure. */
     previousRules: OnyxCollection<Rule>;
+
+    /**
+     * Members whose approver this save changes without any rule of theirs recording it, which happens when they fall
+     * back to a default workflow that routes through the employee list. They are marked pending so the surfaces
+     * showing their approver dim until the save lands.
+     */
+    membersWithPendingApprover?: string[];
 };
 
 /**
  * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
  * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}: SetApprovalWorkflowRulesParams) {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
+    type ApprovalWorkflowRulesOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.POLICY>;
+    const optimisticData: ApprovalWorkflowRulesOnyxUpdate[] = [];
+    const successData: ApprovalWorkflowRulesOnyxUpdate[] = [];
+    const failureData: ApprovalWorkflowRulesOnyxUpdate[] = [];
 
     for (const [ruleID, rule] of Object.entries(rulesDiff)) {
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
@@ -349,13 +367,22 @@ function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}
         failureData.push(restore);
     }
 
+    if (membersWithPendingApprover?.length) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        const markMembers = (pendingAction: PendingAction | null) => Object.fromEntries(membersWithPendingApprover.map((email) => [email, {pendingFields: {submitsTo: pendingAction}}]));
+
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)}});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(null)}});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(null)}});
+    }
+
     return {optimisticData, successData, failureData};
 }
 
 /**
  * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules, membersWithPendingApprover}: SetApprovalWorkflowRulesParams) {
     if (!policyID || isEmptyObject(rulesDiff)) {
         return;
     }
@@ -365,7 +392,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
         rules: JSON.stringify(rulesDiff),
     };
 
-    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}));
+    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}));
 }
 
 /**
@@ -488,7 +515,11 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff, ...returnToDefaultDiff};
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
+    // Members taken out of this workflow are dropped from its rules, so nothing left in the rules records that their
+    // approver is changing. They are marked here instead.
+    const leavingMemberEmails = previousMemberEmails.filter((email) => !newMemberEmails.includes(email));
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules, membersWithPendingApprover: leavingMemberEmails});
     updatePolicyDefaultApprover(approvalWorkflow, policy);
 }
 
