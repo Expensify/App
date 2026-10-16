@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import CategoryPickerModal, {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 
 import type * as Browser from '@libs/Browser';
@@ -103,6 +103,19 @@ describe('CategoryPickerModal', () => {
         // Then the pop-over closes without starting the add-category flow, like the full page's back button leaves the step
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(onAddCategory).not.toHaveBeenCalled();
+    });
+
+    it('leaves the back button out of the wide pop-over', () => {
+        // Given a wide layout, where the list opens as a pop-over that a click outside it already closes
+        mockIsSmallScreenWidth = false;
+
+        // When the pop-over opens with its header, for a user who can add categories
+        renderSheet({onAddCategory: jest.fn()});
+
+        // Then the header keeps its title and add button, but has no back button
+        expect(screen.queryByLabelText('common.back')).toBeNull();
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
+        expect(screen.getByLabelText('workspace.categories.addCategory')).toBeOnTheScreen();
     });
 
     it('shows no header for users who cannot create a category', () => {
@@ -216,6 +229,28 @@ describe('CategoryPickerModal', () => {
 
             // Then the sheet is one row tall plus the bottom safe area it pads itself with, leaving no empty space below the row
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SAFE_AREA_PADDING_BOTTOM);
+        });
+
+        it('keeps the header 20px from the top of the sheet, which already pads its own top', async () => {
+            // Given a phone, and a user who can add categories, so the sheet shows a header above the single category
+            // When the expense form's category list opens
+            renderSheet({onAddCategory: jest.fn(), shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - 16 + SAFE_AREA_PADDING_BOTTOM);
+        });
+
+        it('keeps the list top padding above the header in the wide pop-over', async () => {
+            // Given a wide layout, where the pop-over has no top padding of its own, and a user who can add categories
+            mockIsSmallScreenWidth = false;
+
+            // When the expense form's category list opens
+            renderSheet({onAddCategory: jest.fn(), shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the pop-over is one row plus the header, whose 20px from the top comes from the list's padding
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT);
         });
 
         it('fits the pop-over to the list without any bottom safe area', async () => {

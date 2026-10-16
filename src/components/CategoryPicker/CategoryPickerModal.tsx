@@ -35,8 +35,12 @@ import {View} from 'react-native';
 
 import CategoryPicker from '.';
 
-/** Height of the add-category header the list shows above its options. Shared with the row sizing the container, so the two never disagree. */
-const CATEGORY_PICKER_HEADER_HEIGHT = variables.componentSizeNormal;
+/**
+ * Height of the add-category header the list shows above its options: its 20px row, 4px above it (20px from the edge
+ * with the 16px top padding of the list, or of the sheet) and 20px below. Shared with the row sizing the container, so
+ * the two never disagree.
+ */
+const CATEGORY_PICKER_HEADER_HEIGHT = variables.iconSizeNormal + 24;
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -108,7 +112,12 @@ function CategoryPickerModal({
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const headerHeight = onAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) + headerHeight;
+    // The bottom sheet already pads its own top, so under a header it skips the list's top padding to keep the header 20px from the edge.
+    const shouldSkipListTopPadding = isSmallScreenWidth && !!onAddCategory;
+    const estimatedContentHeight =
+        getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) +
+        headerHeight -
+        (shouldSkipListTopPadding ? styles.pt4.paddingTop : 0);
 
     // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
     // is drawn on the page behind the sheet, so no room is kept for it.
@@ -164,26 +173,28 @@ function CategoryPickerModal({
             shouldLimitHeightIfBottomDockedInLandscapeMode={false}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, !shouldSkipListTopPadding && styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 {!!onAddCategory && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb4, StyleUtils.getHeight(headerHeight)]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb5, StyleUtils.getHeight(headerHeight)]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <Tooltip text={translate('common.back')}>
-                                <PressableWithFeedback
-                                    accessibilityLabel={translate('common.back')}
-                                    role={CONST.ROLE.BUTTON}
-                                    onPress={onClose}
-                                    shouldUseAutoHitSlop
-                                    sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-                                >
-                                    <Icon
-                                        src={icons.BackArrow}
-                                        fill={theme.icon}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
+                            {isSmallScreenWidth && (
+                                <Tooltip text={translate('common.back')}>
+                                    <PressableWithFeedback
+                                        accessibilityLabel={translate('common.back')}
+                                        role={CONST.ROLE.BUTTON}
+                                        onPress={onClose}
+                                        shouldUseAutoHitSlop
+                                        sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+                                    >
+                                        <Icon
+                                            src={icons.BackArrow}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                        />
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            )}
                             <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
                         </View>
                         <Tooltip text={translate('workspace.categories.addCategory')}>
