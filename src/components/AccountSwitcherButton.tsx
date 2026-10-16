@@ -66,6 +66,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const delegate = account?.delegatedAccess?.delegate;
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -81,6 +83,16 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = canSwitchAccountsSelector(account);
+
+    // Switching accounts resets ONYXKEYS.ACCOUNT until OpenApp reloads it, which would otherwise make the button
+    // disappear for the length of the reload. Remember whether the user could switch before the reload started.
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
+    }
+    // The delegator list isn't known until the account data reloads, so keep the button on screen but inert until then.
+    const isWaitingForAccountData = !canSwitchAccounts && isAccountSwitchInFlight && wasAbleToSwitchAccounts;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -273,7 +285,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
               shouldRender: canSwitchAccounts,
           };
 
-    if (!canSwitchAccounts) {
+    if (!canSwitchAccounts && !isWaitingForAccountData) {
         return null;
     }
 
@@ -286,6 +298,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                         size={CONST.BUTTON_SIZE.SMALL}
                         ref={buttonRef}
                         onPress={onPressSwitcher}
+                        isDisabled={isWaitingForAccountData}
+                        stayNormalOnDisable
                         sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                     >
                         <Button.Text>{translate('delegate.switch')}</Button.Text>
