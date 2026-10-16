@@ -4582,7 +4582,7 @@ describe('ReportUtils', () => {
                 expect(actionBadge).toBeUndefined();
             });
 
-            it('should not read the report metadata from Onyx when the caller does not pass it', async () => {
+            it('should fall back to the report metadata in Onyx while callers have not been threaded yet', async () => {
                 // Given the same pending approve stored in Onyx rather than passed in
                 const policyExpenseChat = await seedTwoChildExpenses();
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
@@ -4598,8 +4598,8 @@ describe('ReportUtils', () => {
                         reportMetadata: undefined,
                     }) ?? {};
 
-                // Then the approve badge still shows: the function no longer falls back to reading Onyx itself
-                expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+                // Then the approve badge is still suppressed, because the fallback reads the pending approve from Onyx
+                expect(actionBadge).toBeUndefined();
             });
         });
 

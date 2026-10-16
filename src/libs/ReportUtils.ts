@@ -5038,7 +5038,7 @@ function getReasonAndReportActionThatRequiresAttention({
     allReportActions: allReportActionsParam,
     reports,
     policies: policiesParam,
-    reportMetadata,
+    reportMetadata: reportMetadataParam,
     cardList,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
@@ -5083,6 +5083,9 @@ function getReasonAndReportActionThatRequiresAttention({
             reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
         };
     }
+
+    // TODO: Remove this fallback once every caller threads the metadata, so this stops reading the module-level Onyx.connect. See https://github.com/Expensify/App/issues/66421
+    const reportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
 
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
@@ -5246,8 +5249,7 @@ function requiresAttentionFromCurrentUser(
         transactionViolations,
         parentReportAction,
         isReportArchived,
-        // Passing reportMetadata as undefined is intentional, this fallback only runs when reportAttributes has not
-        // precomputed `requiresAttention` yet, and threading it here means a param on every shouldReportBeInOptionList caller.
+        // TODO: Pass the real reportMetadata in the next PR. See https://github.com/Expensify/App/issues/66421
         reportMetadata: undefined,
     });
 }
