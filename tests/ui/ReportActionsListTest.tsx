@@ -160,6 +160,7 @@ type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+    onContentSizeChange?: () => void;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -866,6 +867,22 @@ describe('ReportActionsList (body)', () => {
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
+        });
+    });
+
+    describe('Pending scroll-to-bottom', () => {
+        it('flushes a pending scroll-to-bottom when the list content size changes', () => {
+            // Given the list is rendered
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            renderReportActionsList();
+
+            // When the list content size changes, as it does once FlashList lays out a newly sent comment. In an
+            // aligned-to-top report this is the only list event that follows, because onLayout does not fire.
+            getCapturedListProps()?.onContentSizeChange?.();
+
+            // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
+            const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
+            expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
         });
     });
 
