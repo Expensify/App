@@ -1,0 +1,598 @@
+import getPlatform from '@libs/getPlatform';
+import navigationRef from '@libs/Navigation/navigationRef';
+
+import CONST from '@src/CONST';
+
+import type {NativeEventSubscription} from 'react-native';
+
+import * as Sentry from '@sentry/react-native';
+import {AppState, DeviceEventEmitter} from 'react-native';
+
+import type {DeviceTier} from './getDeviceTier/types';
+import type {FrameDropContext, LongTask, Segment} from './types';
+
+import buildSegments from './buildSegments';
+import fetchFramesDelay, {isFramesDelayAvailable} from './fetchFramesDelay';
+import {getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordNavigationStart, recordScroll, setRecording} from './frameDropTimeline';
+import getDeviceTier from './getDeviceTier';
+
+/**
+ * Attributes frame drops to what the app was doing when they happened, and reports the totals to Sentry as metrics.
+ *
+ * Built so it can't slow the app down:
+ * - No frame observer of its own: frame delay comes from the store Sentry's native SDKs already keep.
+ * - Nothing per frame on the JS thread: the timeline only records transitions (see frameDropTimeline).
+ * - Few native queries, never while the user scrolls or presses: one per flush when nothing dropped (the common case),
+ *   and a binary search over the segments when something did, so a single drop among N segments costs about log2(N).
+ * - JS thread blocking comes from React Native's `longtask` entries, which the runtime scheduler reports anyway.
+ * - On-device aggregation: a handful of metrics every few minutes, not one event per frame.
+ */
+
+type Aggregate = FrameDropContext & {
+    activeTimeMs: number;
+    frameDelayMs: number;
+    longTaskTimeMs: number;
+    longTaskCount: number;
+};
+
+/** Frame delay of one press or scroll, summed over the flushes its window spans, sent once the window has ended. */
+type InteractionDelay = {
+    label: string;
+    screen: string;
+    delayMs: number;
+    isMeasured: boolean;
+};
+
+type InteractionCount = {
+    screen: string;
+    interaction: string;
+    count: number;
+};
+
+const UNATTRIBUTED_CONTEXT: FrameDropContext = {
+    screen: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+    interaction: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+    operation: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+    flow: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+};
+
+// The first window after launch, reported as one total (see flushWindow).
+const STARTUP_CONTEXT: FrameDropContext = {
+    screen: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    interaction: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    operation: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    flow: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+};
+
+const OVERFLOW_CONTEXT: FrameDropContext = {
+    screen: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+    interaction: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+    operation: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+    flow: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+};
+
+// Sentry doesn't attach the OS to metrics, so it is sent as an attribute to tell iOS and Android apart.
+const platform = getPlatform();
+// Read once, when a sampled session starts measuring.
+let deviceTier: DeviceTier = CONST.TELEMETRY.FRAME_DROPS.DEVICE_TIER.UNKNOWN;
+const aggregates = new Map<string, Aggregate>();
+const interactionDelays = new Map<number, InteractionDelay>();
+const interactionCounts = new Map<string, InteractionCount>();
+let longTasks: LongTask[] = [];
+
+let isStarted = false;
+// Set when NewDot hands over to OldDot, so AppState events during the dismissal can't resume measuring (see suspendFrameDropMonitor).
+let isSuspended = false;
+let windowStart: number | undefined;
+let lastReportTime = 0;
+let unmeasuredFlushCount = 0;
+let isIdleFlushPending = false;
+let hasFlushedStartupWindow = false;
+// Flushes run one after another, so a flush requested while another is waiting for native data is queued, not dropped.
+let flushQueue: Promise<void> = Promise.resolve();
+let flushIntervalID: ReturnType<typeof setInterval> | undefined;
+let appStateSubscription: NativeEventSubscription | undefined;
+let scrollSubscription: {remove: () => void} | undefined;
+let longTaskObserver: PerformanceObserver | undefined;
+let removeNavigationActionListener: (() => void) | undefined;
+
+function getContextKey(context: FrameDropContext): string {
+    return `${context.screen}|${context.interaction}|${context.operation}|${context.flow}`;
+}
+
+/** Aggregates are capped per report period, so a busy period can't turn into a burst of metric calls. */
+function getAggregate(context: FrameDropContext): Aggregate {
+    const key = getContextKey(context);
+    const existing = aggregates.get(key);
+    if (existing) {
+        return existing;
+    }
+    const isFull = aggregates.size >= CONST.TELEMETRY.FRAME_DROPS.MAX_AGGREGATES;
+    const target = isFull ? OVERFLOW_CONTEXT : context;
+    const targetKey = getContextKey(target);
+    const aggregate = aggregates.get(targetKey) ?? {
+        screen: target.screen,
+        interaction: target.interaction,
+        operation: target.operation,
+        flow: target.flow,
+        activeTimeMs: 0,
+        frameDelayMs: 0,
+        longTaskTimeMs: 0,
+        longTaskCount: 0,
+    };
+    aggregates.set(targetKey, aggregate);
+    return aggregate;
+}
+
+function getInteractionDelay(segment: Segment, interactionID: number): InteractionDelay {
+    let interactionDelay = interactionDelays.get(interactionID);
+    if (!interactionDelay) {
+        interactionDelay = {label: segment.interaction, screen: segment.screen, delayMs: 0, isMeasured: true};
+        interactionDelays.set(interactionID, interactionDelay);
+    }
+    return interactionDelay;
+}
+
+/** Native frame delay is queried with Unix timestamps, the timeline uses performance.now(). One offset per flush keeps them aligned. */
+function createUnixSecondsConverter(): (time: number) => number {
+    const offset = Date.now() - performance.now();
+    return (time) => (time + offset) / 1000;
+}
+
+/** Takes the long tasks of [from, before). Older ones happened outside any measured window (e.g. in the background) and are dropped. */
+function takeLongTasks(from: number, before: number): LongTask[] {
+    const taken = longTasks.filter((task) => task.start >= from && task.start < before);
+    longTasks = longTasks.filter((task) => task.start >= before);
+    return taken;
+}
+
+/**
+ * A long task goes to the segment it overlaps most. Its start isn't enough: a press handler or an API response
+ * handler records its transition from inside the very task it makes long, so by start time the task would land in
+ * the context before the one that caused it.
+ */
+function findLongTaskSegment(segments: Segment[], task: LongTask): Segment | undefined {
+    const taskEnd = task.start + task.duration;
+    let best: Segment | undefined;
+    let bestOverlap = -1;
+    for (const segment of segments) {
+        if (segment.start >= taskEnd) {
+            break;
+        }
+        const overlap = Math.min(segment.end, taskEnd) - Math.max(segment.start, task.start);
+        if (overlap > bestOverlap) {
+            best = segment;
+            bestOverlap = overlap;
+        }
+    }
+    return best;
+}
+
+/** A run of segments [from, to) whose total delay is known but not yet split between them. */
+type DelayRange = {
+    from: number;
+    to: number;
+    delaySeconds: number;
+};
+
+/**
+ * Splits `totalDelaySeconds`, the known delay of all segments, between the segments. Each step queries the left half of
+ * a range and derives the right half by subtraction, and ranges without delay are not searched further, so a single drop
+ * among N segments costs about log2(N) queries.
+ *
+ * The query budget goes to the most valuable range first: ranges with a press or scroll in them (so interaction metrics
+ * aren't lost in a busy window), then the ones with the most delay. Delay that can't be split within `maxQueries` stays
+ * undefined for its segments.
+ */
+async function splitDelay(
+    segments: Segment[],
+    totalDelaySeconds: number,
+    toUnixSeconds: (time: number) => number,
+    maxQueries: number,
+): Promise<{delays: Array<number | undefined>; queryCount: number}> {
+    const delays = new Array<number | undefined>(segments.length).fill(undefined);
+    const hasInteraction = (range: DelayRange) => segments.slice(range.from, range.to).some((segment) => segment.interactionID !== undefined);
+    const getPriority = (range: DelayRange) => (hasInteraction(range) ? Number.MAX_SAFE_INTEGER / 2 : 0) + range.delaySeconds;
+    const pending: DelayRange[] = [{from: 0, to: segments.length, delaySeconds: totalDelaySeconds}];
+    let queryCount = 0;
+
+    while (pending.length > 0) {
+        let bestIndex = 0;
+        for (let i = 1; i < pending.length; i++) {
+            const candidate = pending.at(i);
+            const best = pending.at(bestIndex);
+            if (candidate && best && getPriority(candidate) > getPriority(best)) {
+                bestIndex = i;
+            }
+        }
+        const [range] = pending.splice(bestIndex, 1);
+        if (!range) {
+            break;
+        }
+        if (range.delaySeconds <= 0) {
+            delays.fill(0, range.from, range.to);
+            continue;
+        }
+        if (range.to - range.from === 1) {
+            delays[range.from] = range.delaySeconds;
+            continue;
+        }
+        if (queryCount >= maxQueries) {
+            continue;
+        }
+        const middle = Math.floor((range.from + range.to) / 2);
+        const firstSegment = segments.at(range.from);
+        const lastLeftSegment = segments.at(middle - 1);
+        if (!firstSegment || !lastLeftSegment) {
+            continue;
+        }
+        queryCount++;
+        // Sequential on purpose: one small native call at a time instead of a burst.
+        // eslint-disable-next-line no-await-in-loop
+        const leftDelaySeconds = await fetchFramesDelay(toUnixSeconds(firstSegment.start), toUnixSeconds(lastLeftSegment.end));
+        if (leftDelaySeconds === undefined) {
+            continue;
+        }
+        const clampedLeftDelaySeconds = Math.min(leftDelaySeconds, range.delaySeconds);
+        pending.push({from: range.from, to: middle, delaySeconds: clampedLeftDelaySeconds}, {from: middle, to: range.to, delaySeconds: range.delaySeconds - clampedLeftDelaySeconds});
+    }
+
+    return {delays, queryCount};
+}
+
+function reportEndedInteractions(endedInteractionIDs: Set<number>) {
+    for (const interactionID of endedInteractionIDs) {
+        const interactionDelay = interactionDelays.get(interactionID);
+        interactionDelays.delete(interactionID);
+        if (!interactionDelay?.isMeasured) {
+            continue;
+        }
+        const countKey = `${interactionDelay.screen}|${interactionDelay.label}`;
+        const interactionCount = interactionCounts.get(countKey) ?? {screen: interactionDelay.screen, interaction: interactionDelay.label, count: 0};
+        interactionCount.count++;
+        interactionCounts.set(countKey, interactionCount);
+
+        // Only janky interactions are sent one by one; interaction counts give the share of them (see report()).
+        const delayMs = Math.round(interactionDelay.delayMs);
+        if (delayMs <= 0) {
+            continue;
+        }
+        Sentry.metrics.distribution(CONST.TELEMETRY.FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, delayMs, {
+            unit: 'millisecond',
+            attributes: {
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionDelay.screen,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionDelay.label,
+            },
+        });
+    }
+}
+
+function stopMonitoring() {
+    removeNavigationActionListener?.();
+    removeNavigationActionListener = undefined;
+    if (flushIntervalID) {
+        clearInterval(flushIntervalID);
+        flushIntervalID = undefined;
+    }
+    appStateSubscription?.remove();
+    scrollSubscription?.remove();
+    longTaskObserver?.disconnect();
+    appStateSubscription = undefined;
+    scrollSubscription = undefined;
+    longTaskObserver = undefined;
+    pauseRecording();
+    windowStart = undefined;
+}
+
+/** Matches the timeline of [start, end) against the native frame delay store. */
+async function flushWindow(start: number, end: number) {
+    const isStartupWindow = !hasFlushedStartupWindow;
+    hasFlushedStartupWindow = true;
+    const timeline = getTimeline();
+    const {interactions} = timeline;
+    const segments = buildSegments(start, end, timeline);
+    const endedInteractionIDs = new Set(interactions.filter((interaction) => interaction.end !== undefined && interaction.end <= end).map((interaction) => interaction.id));
+    const windowLongTasks = takeLongTasks(start, end);
+    pruneBefore(end);
+    const remainingInteractionIDs = new Set(interactions.map((interaction) => interaction.id));
+    // An interaction pruned without ending (e.g. a scroll whose end event was lost) is never reported.
+    for (const interactionID of interactionDelays.keys()) {
+        if (!endedInteractionIDs.has(interactionID) && !remainingInteractionIDs.has(interactionID)) {
+            interactionDelays.delete(interactionID);
+        }
+    }
+
+    try {
+        const toUnixSeconds = createUnixSecondsConverter();
+        const totalDelaySeconds = await fetchFramesDelay(toUnixSeconds(start), toUnixSeconds(end));
+
+        // The window isn't covered by the native store. Skipping it entirely keeps active time and delay consistent,
+        // so the delay per active second isn't diluted by time we couldn't measure.
+        if (totalDelaySeconds === undefined) {
+            for (const segment of segments) {
+                if (segment.interactionID !== undefined) {
+                    getInteractionDelay(segment, segment.interactionID).isMeasured = false;
+                }
+            }
+            unmeasuredFlushCount++;
+            // Native frame tracking isn't running at all (e.g. native Sentry isn't initialized in development builds),
+            // so there's nothing to attribute and the monitor turns itself off.
+            if (unmeasuredFlushCount >= CONST.TELEMETRY.FRAME_DROPS.MAX_UNMEASURED_FLUSHES) {
+                stopMonitoring();
+            }
+            return;
+        }
+        unmeasuredFlushCount = 0;
+
+        // Right after launch almost everything drops frames at once (OpenApp/ReconnectApp, Pusher, the first navigations), so
+        // splitting this window would spend the whole query budget on startup, which ManualAppStartup and its stage
+        // spans already measure. It is reported as one "startup" total instead.
+        if (isStartupWindow) {
+            const aggregate = getAggregate(STARTUP_CONTEXT);
+            aggregate.activeTimeMs += end - start;
+            aggregate.frameDelayMs += totalDelaySeconds * 1000;
+            for (const task of windowLongTasks) {
+                aggregate.longTaskCount++;
+                aggregate.longTaskTimeMs += task.duration;
+            }
+            for (const segment of segments) {
+                if (segment.interactionID !== undefined) {
+                    getInteractionDelay(segment, segment.interactionID).isMeasured = false;
+                }
+            }
+            return;
+        }
+
+        const {delays, queryCount} = await splitDelay(segments, totalDelaySeconds, toUnixSeconds, CONST.TELEMETRY.FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
+        console.debug('[FrameDrops] Flushed window', {
+            windowMs: Math.round(end - start),
+            segments: segments.length,
+            frameDelayMs: Math.round(totalDelaySeconds * 1000),
+            nativeQueries: 1 + queryCount,
+            longTasks: windowLongTasks.length,
+        });
+
+        let attributedDelaySeconds = 0;
+        for (const [index, segment] of segments.entries()) {
+            const delaySeconds = delays.at(index);
+            // Segments whose delay couldn't be resolved within the query budget give both their time and their delay to
+            // "unattributed", so the contexts they belong to don't look healthier than they were.
+            const aggregate = getAggregate(delaySeconds === undefined ? UNATTRIBUTED_CONTEXT : segment);
+            aggregate.activeTimeMs += segment.end - segment.start;
+            if (delaySeconds !== undefined) {
+                aggregate.frameDelayMs += delaySeconds * 1000;
+                attributedDelaySeconds += delaySeconds;
+            }
+            if (segment.interactionID === undefined) {
+                continue;
+            }
+            const interactionDelay = getInteractionDelay(segment, segment.interactionID);
+            if (delaySeconds === undefined) {
+                interactionDelay.isMeasured = false;
+                continue;
+            }
+            interactionDelay.delayMs += delaySeconds * 1000;
+        }
+
+        const unattributedDelaySeconds = totalDelaySeconds - attributedDelaySeconds;
+        if (unattributedDelaySeconds > 0.001) {
+            getAggregate(UNATTRIBUTED_CONTEXT).frameDelayMs += unattributedDelaySeconds * 1000;
+        }
+
+        for (const task of windowLongTasks) {
+            const segment = findLongTaskSegment(segments, task);
+            if (!segment) {
+                continue;
+            }
+            const aggregate = getAggregate(segment);
+            aggregate.longTaskCount++;
+            aggregate.longTaskTimeMs += task.duration;
+        }
+    } finally {
+        reportEndedInteractions(endedInteractionIDs);
+    }
+}
+
+/** Sends the aggregates as Sentry metrics. Summing them in Sentry gives total delay per context and delay per active second. */
+function report() {
+    lastReportTime = performance.now();
+    console.debug('[FrameDrops] Reporting aggregates', [...aggregates.values()]);
+    for (const aggregate of aggregates.values()) {
+        const attributes = {
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: aggregate.screen,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: aggregate.interaction,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_OPERATION]: aggregate.operation,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_FLOW]: aggregate.flow,
+        };
+        if (aggregate.activeTimeMs > 0) {
+            Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_ACTIVE_TIME, Math.round(aggregate.activeTimeMs), {unit: 'millisecond', attributes});
+        }
+        if (aggregate.frameDelayMs > 0) {
+            Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_FRAME_DELAY, Math.round(aggregate.frameDelayMs), {unit: 'millisecond', attributes});
+        }
+        if (aggregate.longTaskCount > 0) {
+            Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_LONG_TASK_COUNT, aggregate.longTaskCount, {attributes});
+            Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_LONG_TASK_TIME, Math.round(aggregate.longTaskTimeMs), {unit: 'millisecond', attributes});
+        }
+    }
+    for (const interactionCount of interactionCounts.values()) {
+        Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_INTERACTION_COUNT, interactionCount.count, {
+            attributes: {
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionCount.screen,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionCount.interaction,
+            },
+        });
+    }
+    aggregates.clear();
+    interactionCounts.clear();
+}
+
+/** Closes the current window at `windowEnd` and queues its flush, followed by a report when asked for. */
+function enqueueFlush(windowEnd: number, shouldReport: boolean): Promise<void> {
+    if (windowStart !== undefined && windowEnd > windowStart) {
+        const start = windowStart;
+        windowStart = windowEnd;
+        flushQueue = flushQueue.then(() => flushWindow(start, windowEnd));
+    }
+    if (shouldReport) {
+        flushQueue = flushQueue.then(report);
+    }
+    // A failed flush must not block the ones queued after it.
+    flushQueue = flushQueue.catch(() => {});
+    return flushQueue;
+}
+
+function scheduleFlush() {
+    const run = () => {
+        const now = performance.now();
+        // On iOS every native query runs on the UI thread, so queries wait until the user isn't scrolling or pressing.
+        // The native store keeps delayed frames for minutes, so a deferred window is still fully measurable.
+        if (windowStart !== undefined && isInteractionActive(now) && now - windowStart < CONST.TELEMETRY.FRAME_DROPS.MAX_FLUSH_DEFER_MS) {
+            return;
+        }
+        enqueueFlush(now - CONST.TELEMETRY.FRAME_DROPS.SETTLE_MS, now - lastReportTime >= CONST.TELEMETRY.FRAME_DROPS.REPORT_INTERVAL_MS);
+    };
+    if (typeof requestIdleCallback !== 'function') {
+        run();
+        return;
+    }
+    if (isIdleFlushPending) {
+        return;
+    }
+    isIdleFlushPending = true;
+    // A screen that keeps rendering (a loading spinner, a skeleton) may never leave the JS thread idle, so the flush
+    // runs after a timeout at the latest instead of never.
+    requestIdleCallback(
+        () => {
+            isIdleFlushPending = false;
+            run();
+        },
+        {timeout: CONST.TELEMETRY.FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS},
+    );
+}
+
+function resume() {
+    if (isSuspended || windowStart !== undefined) {
+        return;
+    }
+    windowStart = performance.now();
+    if (!lastReportTime) {
+        lastReportTime = windowStart;
+    }
+    setRecording(true);
+    if (!flushIntervalID) {
+        flushIntervalID = setInterval(scheduleFlush, CONST.TELEMETRY.FRAME_DROPS.FLUSH_INTERVAL_MS);
+    }
+}
+
+/**
+ * Stops measuring while the app isn't active. Aggregates are only sent when it goes to the background, so short
+ * interruptions (a permission prompt, the notification center) don't cause extra reports.
+ */
+function pause(shouldReport: boolean) {
+    if (flushIntervalID) {
+        clearInterval(flushIntervalID);
+        flushIntervalID = undefined;
+    }
+    pauseRecording();
+    enqueueFlush(performance.now(), shouldReport);
+    windowStart = undefined;
+}
+
+function observeLongTasks() {
+    if (typeof PerformanceObserver === 'undefined' || !PerformanceObserver.supportedEntryTypes?.includes('longtask')) {
+        return;
+    }
+    longTaskObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+            if (longTasks.length >= CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS) {
+                return;
+            }
+            longTasks.push({start: entry.startTime, duration: entry.duration});
+        }
+    });
+    longTaskObserver.observe({type: 'longtask'});
+}
+
+function startFrameDropMonitor() {
+    if (isStarted || !isFramesDelayAvailable()) {
+        return;
+    }
+    isStarted = true;
+    // Decided once per app launch. Sessions that aren't sampled never record, query or report anything.
+    if (Math.random() >= CONST.TELEMETRY.FRAME_DROPS.SESSION_SAMPLE_RATE) {
+        return;
+    }
+    try {
+        observeLongTasks();
+    } catch {
+        // Long tasks are extra detail; frame delay attribution works without them.
+    }
+    deviceTier = getDeviceTier();
+    scrollSubscription = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, recordScroll);
+    removeNavigationActionListener = navigationRef.addListener('__unsafe_action__', (event) => {
+        if (event.data.noop) {
+            return;
+        }
+        recordNavigationStart();
+    });
+    appStateSubscription = AppState.addEventListener('change', (state) => {
+        if (state === CONST.APP_STATE.ACTIVE) {
+            resume();
+            return;
+        }
+        pause(state === CONST.APP_STATE.BACKGROUND);
+    });
+    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) === CONST.APP_STATE.ACTIVE) {
+        resume();
+    }
+}
+
+/**
+ * Stops measuring for good because NewDot is handing over to OldDot (HybridApp). OldDot is drawn by the same app, so
+ * its frames would be attributed to the last NewDot screen, and NewDot's JS runtime is torn down right after, so what
+ * was collected so far is sent now instead of being lost.
+ */
+function suspendFrameDropMonitor() {
+    // Only a sampled session that is still measuring has anything to stop and send.
+    if (!appStateSubscription || isSuspended) {
+        return;
+    }
+    isSuspended = true;
+    pause(true);
+    flushQueue = flushQueue
+        .then(() => Sentry.flush())
+        .then(
+            () => {},
+            () => {},
+        );
+}
+
+/** Waits for the queued flushes to finish. Only used by tests. */
+function flush(windowEnd: number): Promise<void> {
+    return enqueueFlush(windowEnd, false);
+}
+
+/** Only used by tests. */
+function stopFrameDropMonitor() {
+    stopMonitoring();
+    aggregates.clear();
+    interactionDelays.clear();
+    interactionCounts.clear();
+    longTasks = [];
+    lastReportTime = 0;
+    unmeasuredFlushCount = 0;
+    isIdleFlushPending = false;
+    hasFlushedStartupWindow = false;
+    flushQueue = Promise.resolve();
+    isStarted = false;
+    isSuspended = false;
+}
+
+export {flush, report, scheduleFlush, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor};
