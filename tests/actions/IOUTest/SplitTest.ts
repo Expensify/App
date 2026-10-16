@@ -2707,7 +2707,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
@@ -2728,7 +2727,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
-            betas: [CONST.BETAS.ALL],
             participantParams: {
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -2744,6 +2742,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled: false,
+            isVendorMatchingBetaEnabled: false,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             transactionViolations: {},
@@ -2804,9 +2803,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             updateSplitTransactionsFromSplitExpensesFlow({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
                 allTransactionsList: allTransactions,
-                betas: [CONST.BETAS.ALL],
                 allReportsList: allReports,
+                reportDrafts: {},
                 allReportActionsList: allReportActions,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 transactionData: {
@@ -2868,6 +2868,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await saveSplitExpenses(draftTransaction?.comment?.splitExpenses ?? [], draftTransaction?.comment?.splitExpensesTotal ?? 0);
 
         expect(await getTotals()).toEqual(totalsBeforeSplit);
+
+        // Resume the paused requests so they don't block the request queue for later tests
+        await mockFetch?.resume?.();
     });
 
     it('should not leave a duplicate IOU action behind when a transaction is split, reverted, split again, and reverted again', async () => {
