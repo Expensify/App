@@ -48,6 +48,18 @@ function isUsableSplitRate(rate: number | undefined): rate is number {
 }
 
 /**
+ * The rate a nonzero distance expense was calculated with, derived from its amount and distance.
+ */
+function getHistoricalDistanceRate(transaction: OnyxEntry<OnyxTypes.Transaction>): number | undefined {
+    const quantity = transaction?.comment?.customUnit?.quantity;
+    const transactionAmount = transaction?.amount;
+    if (typeof quantity !== 'number' || quantity <= 0 || typeof transactionAmount !== 'number' || transactionAmount === 0) {
+        return undefined;
+    }
+    return Math.abs(transactionAmount) / quantity;
+}
+
+/**
  * The distance of one of `splitCount` even splits of `totalQuantity`, rounded to the distance precision,
  * with whatever the rounding leaves over added to the split at `remainderIndex`.
  */
@@ -166,11 +178,15 @@ function resolveSplitMileageRate({
     policy,
     isSelfDMSplit,
     personalPolicyOutputCurrency,
+    expenseTransaction,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     isSelfDMSplit?: boolean;
     personalPolicyOutputCurrency: string | undefined;
+
+    /** The expense being split, when `transaction` is the draft of one of its splits */
+    expenseTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }): ReturnType<typeof DistanceRequestUtils.getRate> {
     const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
     const isP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
@@ -183,6 +199,19 @@ function resolveSplitMileageRate({
         (!rawPolicyRate || rawPolicyRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate.enabled === false);
 
     const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, personalPolicyOutputCurrency});
+    const historicalRate = getHistoricalDistanceRate(transaction);
+
+    // A $0 rate can't have produced a nonzero amount: the rate was changed to $0 after the expense was created.
+    // Split with the rate the expense was calculated with, so its amount and distance are divided consistently.
+    // A split draft's amount was calculated before its distance or rate was edited, so the expense's rate is used,
+    // and only while the split is still on the expense's rate.
+    let expenseHistoricalRate = historicalRate;
+    if (expenseTransaction) {
+        expenseHistoricalRate = expenseTransaction.comment?.customUnit?.customUnitRateID === customUnitRateID ? getHistoricalDistanceRate(expenseTransaction) : undefined;
+    }
+    if (baseMileageRate.rate === 0 && expenseHistoricalRate !== undefined && !isOriginalRateDeleted) {
+        return {...baseMileageRate, rate: expenseHistoricalRate};
+    }
     if (baseMileageRate.rate !== undefined && !isOriginalRateDeleted) {
         return baseMileageRate;
     }
@@ -200,18 +229,13 @@ function resolveSplitMileageRate({
     // policy-driven lookup above produced nothing useful: reconstruct a rate from the transaction
     // itself (amount / quantity) so distance splits render an accurate "X mi @ rate" merchant
     // string instead of falling back to the original-merchant string.
-    if (baseMileageRate.rate === undefined && !isP2PRate) {
-        const quantity = transaction?.comment?.customUnit?.quantity;
-        const transactionAmount = transaction?.amount;
-        if (typeof quantity === 'number' && quantity > 0 && typeof transactionAmount === 'number' && transactionAmount !== 0) {
-            const derivedRate = Math.abs(transactionAmount) / quantity;
-            return {
-                ...baseMileageRate,
-                customUnitRateID: baseMileageRate.customUnitRateID ?? customUnitRateID,
-                rate: derivedRate,
-                currency: baseMileageRate.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
-            };
-        }
+    if (baseMileageRate.rate === undefined && !isP2PRate && historicalRate !== undefined) {
+        return {
+            ...baseMileageRate,
+            customUnitRateID: baseMileageRate.customUnitRateID ?? customUnitRateID,
+            rate: historicalRate,
+            currency: baseMileageRate.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+        };
     }
     return baseMileageRate;
 }
@@ -242,6 +266,12 @@ function resolveSplitItemRate({
 
     const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({policy, customUnitRateID, policies});
     if (!selectedRate || !isUsableSplitRate(selectedRate.rate) || selectedRate.enabled === false) {
+        return {rate: fallbackMileageRate.rate, unit};
+    }
+
+    // The split is still on the expense's own rate, which `resolveSplitMileageRate` replaced with the historical rate
+    // because it was changed to $0 after the expense was created
+    if (selectedRate.rate === 0 && customUnitRateID === fallbackMileageRate.customUnitRateID && isUsableSplitRate(fallbackMileageRate.rate)) {
         return {rate: fallbackMileageRate.rate, unit};
     }
 
@@ -987,7 +1017,13 @@ function updateSplitExpenseField(
 
             // Recalculate amount for distance transactions when rate or distance changes
             if (isDistanceRequest && originalTransaction) {
-                const mileageRate = resolveSplitMileageRate({transaction: splitExpenseDraftTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
+                const mileageRate = resolveSplitMileageRate({
+                    transaction: splitExpenseDraftTransaction,
+                    policy,
+                    isSelfDMSplit,
+                    personalPolicyOutputCurrency,
+                    expenseTransaction: originalTransaction,
+                });
                 const {unit, rate} = resolveSplitItemRate({customUnit: splitExpenseDraftTransaction?.comment?.customUnit, fallbackMileageRate: mileageRate, policy, policies});
 
                 if (isUsableSplitRate(rate)) {
@@ -1129,6 +1165,7 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 
 export {
     getEvenSplitQuantity,
+    getHistoricalDistanceRate,
     isUsableSplitRate,
     isZeroRateDistanceSplit,
     updateSplitExpenseDistanceFromAmount,

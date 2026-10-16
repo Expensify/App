@@ -81,16 +81,17 @@ describe('Split list item amount editability', () => {
     });
 
     it.each([
-        ['an editable split', {}, 'percentage input'],
-        ['a split whose amount is locked', {isAmountEditable: false}, 'percentage display'],
+        ['an editable split', {originalAmount: 1000}, 'percentage input'],
+        ['a split whose amount is locked', {originalAmount: 1000, isAmountEditable: false}, 'percentage display'],
+        ['an editable split of a $0 total', {originalAmount: 0}, 'percentage display'],
     ])('renders the percentage as %s', (_caseName, overrides: Partial<SplitListItemType>, expectedText) => {
-        // Given a split in percentage mode with the case's amount editability
+        // Given a split in percentage mode with the case's amount editability and total
         const splitItem = createSplitItem({mode: CONST.TAB.SPLIT.PERCENTAGE, ...overrides});
 
         // When its percentage input is rendered
         renderPercentageInput(splitItem);
 
-        // Then the percentage is an editable input only when the split's amount is editable, and a read-only display otherwise
+        // Then the percentage is an editable input only when the split's amount is editable and the total isn't $0, and a read-only display otherwise
         expect(screen.getByTestId(expectedText)).toBeOnTheScreen();
     });
 });

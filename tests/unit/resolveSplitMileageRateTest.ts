@@ -263,4 +263,51 @@ describe('resolveSplitMileageRate', () => {
             expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
         });
     });
+
+    describe('rate changed to $0 after the expense was created', () => {
+        const OTHER_ZERO_RATE_ID = 'rate-other-zero';
+        const policy = buildPolicyWithRates({
+            [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 0}),
+            [OTHER_ZERO_RATE_ID]: buildRate(OTHER_ZERO_RATE_ID, {rate: 0, name: 'Other $0 rate'}),
+        });
+
+        it('uses the rate a nonzero expense was calculated with', () => {
+            // Given a $10, 10 mile expense whose rate is now $0
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: -1000, quantity: 10});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            // Then its splits are calculated with $1/mi rather than $0
+            expect(result.rate).toBe(100);
+            expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
+
+        it('keeps the $0 rate for a $0 expense', () => {
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0, quantity: 10});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            expect(result.rate).toBe(0);
+        });
+
+        it("uses the expense's rate for a split draft still on that rate, not the split's own amount and edited distance", () => {
+            // Given a $5 split of the $10, 10 mile expense whose distance was just edited to 8 miles
+            const expenseTransaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: -1000, quantity: 10});
+            const splitDraft = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: -500, quantity: 8});
+
+            const result = resolveSplitMileageRate({transaction: splitDraft, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined, expenseTransaction});
+
+            // Then the split is calculated with the expense's $1/mi
+            expect(result.rate).toBe(100);
+        });
+
+        it('keeps the $0 rate for a split draft moved to another $0 rate', () => {
+            const expenseTransaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: -1000, quantity: 10});
+            const splitDraft = buildDistanceTransaction(OTHER_ZERO_RATE_ID, {amount: -500, quantity: 5});
+
+            const result = resolveSplitMileageRate({transaction: splitDraft, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined, expenseTransaction});
+
+            expect(result.rate).toBe(0);
+        });
+    });
 });

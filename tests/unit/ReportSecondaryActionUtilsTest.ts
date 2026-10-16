@@ -4074,6 +4074,88 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(expected);
     });
 
+    it('does not include SPLIT for a $0 distance expense on another workspace rate above $0', async () => {
+        // Given a $0 distance expense whose amount rounded down to $0 on a positive rate owned by a workspace other than the report's
+        const customUnitID = 'distance-unit';
+        const customUnitRateID = 'distance-rate';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'rounded-zero-distance-transaction',
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 0,
+            merchant: '0.40 mi @ $0.01 / mi',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 0.4,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+        const rateOwnerPolicy = createMock<Policy>({
+            id: 'rate-owner-policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {[customUnitRateID]: {customUnitRateID, currency: CONST.CURRENCY.USD, rate: 1, enabled: true, name: 'Rate'}},
+                },
+            },
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the report's secondary actions are computed with every workspace available
+        const result = getSecondaryReportActions({
+            currentUserLogin: ADMIN_EMAIL,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            policies: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${rateOwnerPolicy.id}`]: rateOwnerPolicy,
+            },
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SPLIT isn't offered, because the rate is above $0 and the $0 amount only comes from rounding
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
     it('includes DELETE option for invoice report submitter when total is zero', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

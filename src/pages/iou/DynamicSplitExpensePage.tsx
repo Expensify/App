@@ -173,6 +173,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getLoginByAccountID(currentReport?.ownerAccountID, personalDetails),
             effectivePolicy,
             parentReport,
+            allPolicies,
         );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
@@ -230,6 +231,22 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
+
+    // A split on a $0 rate is always $0, so its amount can't be typed in and it's valid as long as it has a distance
+    const zeroRateSplitTransactionIDs = new Set(
+        splitExpenses
+            .filter((splitExpense) =>
+                isZeroRateDistanceSplit({
+                    splitExpense,
+                    transaction,
+                    policy: effectivePolicy,
+                    isSelfDMSplit: isDraftSelfDMContext,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    policies: allPolicies,
+                }),
+            )
+            .map((splitExpense) => splitExpense.transactionID),
+    );
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
         const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
         const itemReportID = resolveSplitItemReportID({
@@ -383,6 +400,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isCard,
             translate,
             convertToDisplayString,
+            zeroRateSplitTransactionIDs,
         });
         if (saveError) {
             setErrorMessage(saveError);
@@ -476,7 +494,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
     const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
 
-    // A $0 distance expense is on a $0 rate, so every split stays $0 and only its distance can change
+    // A $0 distance expense is on a $0 rate, so its splits stay $0 and only their distance can change, unless a split is moved to a positive rate
     const isZeroTotalDistanceSplit = isDistance && transactionDetailsAmount === 0;
 
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
@@ -519,17 +537,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
             isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
-            // A split on a $0 rate is always $0, so typing an amount or percentage into it would be discarded
-            isAmountEditable:
-                !isZeroTotalDistanceSplit &&
-                !isZeroRateDistanceSplit({
-                    splitExpense: item,
-                    transaction,
-                    policy: effectivePolicy,
-                    isSelfDMSplit: isDraftSelfDMContext,
-                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                    policies: allPolicies,
-                }),
+            isAmountEditable: !zeroRateSplitTransactionIDs.has(item.transactionID),
         };
     });
 
