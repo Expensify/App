@@ -5,6 +5,8 @@ import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilF
 
 import getPlatform from '@libs/getPlatform';
 
+import {openRecipientPicker} from '@userActions/Report';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -14,7 +16,7 @@ import type {Ref} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {Activity, useImperativeHandle, useRef, useState} from 'react';
+import {Activity, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import ParticipantSearchResults from './ParticipantSearchResults';
 
@@ -100,6 +102,13 @@ function MoneyRequestParticipantsSelector({
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useEffect(() => {
+        if (shouldExcludeWorkspaces) {
+            return;
+        }
+        openRecipientPicker();
+    }, [shouldExcludeWorkspaces]);
 
     useImperativeHandle(ref, () => ({
         focus: () => {

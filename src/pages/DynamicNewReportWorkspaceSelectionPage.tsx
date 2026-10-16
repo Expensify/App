@@ -40,6 +40,7 @@ import {isPerDiemRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 
+import {openRecipientPicker} from '@userActions/Report';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import {setNameValuePair} from '@userActions/User';
 
@@ -199,6 +200,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             setPendingPolicySelection(null);
         },
     });
+
+    useEffect(() => {
+        openRecipientPicker();
+    }, []);
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
