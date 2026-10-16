@@ -9986,6 +9986,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'Spesenrichtliniendokument ersetzt' : 'hat ein Spesenrichtlinien-Dokument hinzugefügt'),
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

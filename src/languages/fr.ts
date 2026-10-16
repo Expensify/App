@@ -10013,6 +10013,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'a remplacé le document de politique de dépenses' : 'a ajouté un document de politique de dépenses'),
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

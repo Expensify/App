@@ -8011,4 +8011,22 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
         });
     });
+
+    describe('getWorkspaceRulesDocumentUpdatedMessage', () => {
+        const buildRulesDocumentAction = (isReplacement?: boolean) =>
+            ({
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT,
+                originalMessage: {isReplacement},
+            }) as ReportAction;
+
+        it('says a document was added when none existed before', () => {
+            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction(false))).toBe('added an expense policy document');
+            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction())).toBe('added an expense policy document');
+        });
+
+        it('says the document was replaced when one already existed', () => {
+            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction(true))).toBe('replaced the expense policy document');
+        });
+    });
 });

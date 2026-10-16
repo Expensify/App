@@ -9903,6 +9903,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `alterou o regime de trabalho de ${displayName} para ${newArrangement} (antes ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `alterou o regime de trabalho padrão para ${newArrangement} (antes ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'substituiu o documento da política de despesas' : 'adicionou um documento de política de despesas'),
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

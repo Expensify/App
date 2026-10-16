@@ -9796,6 +9796,7 @@ ${reportName}`,
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? '経費ポリシー文書を差し替えました' : '経費ポリシー文書を追加しました'),
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

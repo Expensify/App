@@ -9916,6 +9916,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'zastąpił(-a) dokument reguł wydatków' : 'dodano dokument polityki wydatków'),
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

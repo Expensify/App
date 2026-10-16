@@ -9783,6 +9783,7 @@ const translations = {
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
                 : `updated the description of this workspace to "${newDescription}" (previously "${oldDescription}")`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'replaced the expense policy document' : 'added an expense policy document'),
         removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {

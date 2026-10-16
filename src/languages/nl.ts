@@ -9905,6 +9905,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'heeft het onkostendeclaratiebeleid vervangen' : 'heeft een onkostendeclaratiebeleid-document toegevoegd'),
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

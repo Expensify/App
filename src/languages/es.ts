@@ -9805,6 +9805,7 @@ ${reportName}`,
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'reemplazó el documento de la política de gastos' : 'añadió un documento de política de gastos'),
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

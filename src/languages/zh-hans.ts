@@ -9537,6 +9537,7 @@ ${reportName}`,
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? '已替换报销政策文档' : '已添加报销政策文档'),
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

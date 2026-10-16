@@ -9939,6 +9939,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato l'accordo di lavoro di ${displayName} in ${newArrangement} (in precedenza ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `ha modificato la modalità di lavoro predefinita in ${newArrangement} (precedentemente ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'ha sostituito il documento della policy di spesa' : 'ha aggiunto un documento di policy spese'),
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
