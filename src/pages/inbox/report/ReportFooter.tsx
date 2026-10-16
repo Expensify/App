@@ -142,7 +142,7 @@ function ReportFooter() {
         return (
             <View style={[chatFooterStyles, shouldShowConciergeWelcome && styles.conciergeAskColumn, isComposerFullSize && styles.chatFooterFullCompose]}>
                 {merchantRuleBanner}
-                {shouldLabelComposerAsNewQuestion && <Text style={[styles.textLabelSupporting, styles.mb5]}>{translate('common.concierge.askNewQuestion')}</Text>}
+                {shouldLabelComposerAsNewQuestion && !isComposerFullSize && <Text style={[styles.textLabelSupporting, styles.mb5]}>{translate('common.concierge.askNewQuestion')}</Text>}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />
