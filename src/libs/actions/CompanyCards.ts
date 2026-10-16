@@ -501,7 +501,7 @@ function assignWorkspaceCompanyCard(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: true},
+                value: {isAssigning: true, errors: null},
             },
         ],
         successData: [
@@ -529,6 +529,13 @@ function assignWorkspaceCompanyCard(
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.assignCardFailedError'),
                 },
             },
         ],

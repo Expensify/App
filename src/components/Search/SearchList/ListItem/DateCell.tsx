@@ -57,6 +57,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
             text={displayText}
             shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
+            isSelectable
         />
     );
 
@@ -78,8 +79,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
                     shouldPositionFromTop={!isInverted}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"
                     shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}
                 />
