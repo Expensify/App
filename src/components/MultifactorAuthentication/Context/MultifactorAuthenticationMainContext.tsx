@@ -65,7 +65,7 @@ type MultifactorAuthenticationContextProviderProps = {
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const state = useMultifactorAuthenticationState();
-    const {dispatch} = useMultifactorAuthenticationActions();
+    const {dispatch, getActionExecution} = useMultifactorAuthenticationActions();
 
     const biometrics = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -110,9 +110,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const handleCallback = useCallback(
         async (isSuccessful: boolean) => {
+            const execution = getActionExecution();
+            const wasAborted = execution.controller.signal.aborted;
+            // Cancellation still needs its failure outcome, but reset/unmount must invalidate it too.
+            const isCurrentExecution = () => getActionExecution() === execution && (!execution.controller.signal.aborted || (!isSuccessful && wasAborted));
             const {error, scenario, scenarioResponse, payload} = state;
 
-            if (!scenario) {
+            if (!scenario || !isCurrentExecution()) {
                 return;
             }
 
@@ -124,6 +128,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             };
 
             const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
+            if (!isCurrentExecution()) {
+                return;
+            }
 
             addMFABreadcrumb('Flow completed', {
                 isSuccessful,
@@ -134,6 +141,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             });
 
             const endState = await captureCredentialsState();
+            if (!isCurrentExecution()) {
+                return;
+            }
 
             trackMFAFlowOutcome({
                 isSuccessful,
@@ -160,9 +170,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Wait out any callback-initiated transition (e.g. RHP goBack) before pushing the outcome screen.
             // Android raced the two animations and the RHP slide-out leaked through the outgoing screen.
             const outcomeScreen = isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE;
-            Navigation.runAfterTransition(() => mfaNavigate(outcomeScreen));
+            Navigation.runAfterTransition(() => {
+                if (!isCurrentExecution()) {
+                    return;
+                }
+                mfaNavigate(outcomeScreen);
+            });
         },
-        [captureCredentialsState, dispatch, state],
+        [captureCredentialsState, dispatch, getActionExecution, state],
     );
 
     /**
@@ -170,6 +185,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Uses if statements to determine and execute the next step in the flow.
      */
     const process = useCallback(async () => {
+        // Capture before any prerequisite awaits so an old continuation cannot adopt a reset's controller.
+        const execution = getActionExecution();
         const {
             error,
             continuableError,
@@ -206,7 +223,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             addMFABreadcrumb('Flow error', error, 'error');
-            handleCallback(false);
+            await handleCallback(false);
+            return;
+        }
+
+        if (execution.controller.signal.aborted) {
             return;
         }
 
@@ -225,7 +246,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 2b. Check if the device can actually perform the allowed authentication method
-        if (!(await biometrics.doesDeviceSupportAuthenticationMethod())) {
+        const doesDeviceSupportAuthenticationMethod = await biometrics.doesDeviceSupportAuthenticationMethod();
+        if (execution.controller.signal.aborted) {
+            return;
+        }
+        if (!doesDeviceSupportAuthenticationMethod) {
             const reason = biometrics.deviceCheckFailureReason;
             const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
             addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
@@ -235,6 +260,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 3. Check if registration is required (local credentials not known to server yet)
         const isRegistrationRequired = !(await biometrics.areLocalCredentialsKnownToServer()) && !isRegistrationComplete;
+        if (execution.controller.signal.aborted) {
+            return;
+        }
 
         if (isRegistrationRequired) {
             // Need validate code before registration
@@ -248,6 +276,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Request registration challenge after validateCode is set
             if (!registrationChallenge) {
                 const {challenge, httpStatusCode, reason, message} = await requestRegistrationChallenge(validateCode);
+                if (execution.controller.signal.aborted) {
+                    return;
+                }
 
                 if (!isHttpSuccess(httpStatusCode) || !challenge) {
                     const challengeError = createMFAErrorFromApiResponse(httpStatusCode, reason, message);
@@ -269,6 +300,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             await biometrics.register(async (result: RegisterResult) => {
+                if (execution.controller.signal.aborted) {
+                    return;
+                }
                 addMFABreadcrumb('Biometric registration completed', result.success ? {success: true} : result.error, result.success ? 'info' : 'error');
 
                 if (!result.success) {
@@ -279,6 +313,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const registrationResponse = await processRegistration({
                     keyInfo: result.keyInfo,
                 });
+                if (execution.controller.signal.aborted) {
+                    return;
+                }
 
                 addMFABreadcrumb(
                     'Backend registration completed',
@@ -313,6 +350,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
                 const {challenge, httpStatusCode, reason, message} = await requestAuthorizationChallenge();
+                if (execution.controller.signal.aborted) {
+                    return;
+                }
 
                 if (!isHttpSuccess(httpStatusCode) || !challenge) {
                     const challengeError = createMFAErrorFromApiResponse(httpStatusCode, reason, message);
@@ -326,11 +366,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
+            if (execution.controller.signal.aborted || execution.started) {
+                return;
+            }
             await biometrics.authorize(
                 {
                     challenge: authorizationChallenge,
                 },
                 async (result: AuthorizeResult) => {
+                    if (execution.controller.signal.aborted || execution.started) {
+                        return;
+                    }
                     addMFABreadcrumb(
                         'Biometric authorization completed',
                         result.success ? {success: true, authMethod: result.authenticationMethod.code} : result.error,
@@ -349,6 +395,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         ) {
                             addMFABreadcrumb('Authorization key reset', result.error, 'warning');
                             await biometrics.deleteLocalKeysForAccount();
+                            if (execution.controller.signal.aborted) {
+                                return;
+                            }
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
                             dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
                         } else {
@@ -358,11 +407,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     }
 
                     // Call backend with signed challenge
-                    const scenarioAPIResponse = await processScenarioAction(scenario.action, {
-                        signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod.marqetaValue,
-                        ...payload,
-                    });
+                    execution.started = true;
+                    const scenarioAPIResponse = await processScenarioAction(
+                        scenario.action,
+                        {
+                            signedChallenge: result.signedChallenge,
+                            authenticationMethod: result.authenticationMethod.marqetaValue,
+                            ...payload,
+                        },
+                        {signal: execution.controller.signal},
+                    );
+
+                    if (execution.controller.signal.aborted) {
+                        return;
+                    }
 
                     addMFABreadcrumb(
                         'Scenario action completed',
@@ -395,8 +453,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 5. All steps completed - invoke callback to determine whether to show the outcome screen
-        handleCallback(true);
-    }, [biometrics, dispatch, handleCallback, isOffline, state, promptType]);
+        await handleCallback(true);
+    }, [biometrics, dispatch, getActionExecution, handleCallback, isOffline, state, promptType]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.
@@ -414,7 +472,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        const execution = getActionExecution();
         process().catch((error: unknown) => {
+            if (execution.controller.signal.aborted) {
+                return;
+            }
             addMFABreadcrumb('Unhandled error', {message: getErrorMessage(error)}, 'error');
             dispatch({
                 type: 'SET_ERROR',
@@ -470,7 +532,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            startStateRef.current = await captureCredentialsState();
+            const execution = getActionExecution();
+            const startState = await captureCredentialsState();
+            if (execution.controller.signal.aborted) {
+                return;
+            }
+            startStateRef.current = startState;
 
             const breadcrumbData = {
                 scenario,
@@ -495,7 +562,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [captureCredentialsState, dispatch, isOffline, platform, state.scenario],
+        [captureCredentialsState, dispatch, getActionExecution, isOffline, platform, state.scenario],
     );
 
     /**
@@ -504,6 +571,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
+        const execution = getActionExecution();
+        execution.controller.abort();
         if (!state.scenario || isOffline) {
             addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
             dispatch({type: 'CLOSE_MODAL'});
@@ -512,6 +581,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         if (state.scenario.onCancel) {
             const error = await state.scenario.onCancel(state.payload);
+            if (getActionExecution() !== execution) {
+                return;
+            }
             addMFABreadcrumb('Flow cancelled with onCancel', error, 'warning');
             dispatch({type: 'SET_ERROR', payload: error});
             return;
@@ -522,7 +594,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             type: 'SET_ERROR',
             payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'),
         });
-    }, [dispatch, isOffline, state.scenario, state.payload]);
+    }, [dispatch, getActionExecution, isOffline, state.scenario, state.payload]);
 
     const requestCancel = () => {
         if (state.isFlowComplete) {
