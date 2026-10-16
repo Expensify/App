@@ -277,6 +277,7 @@ export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
+export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
@@ -596,6 +597,7 @@ export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesPara
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as ExportReportsToPDFParams} from './ExportReportsToPDFParams';
+export type {default as ShareReportParams} from './ShareReportParams';
 export type {default as ExportReceiptsToZipParams} from './ExportReceiptsToZipParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
@@ -625,6 +627,9 @@ export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyComm
 export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as AddOfficeLocationParams} from './AddOfficeLocationParams';
+export type {default as UpdateOfficeLocationParams} from './UpdateOfficeLocationParams';
+export type {default as DeleteOfficeLocationParams} from './DeleteOfficeLocationParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
