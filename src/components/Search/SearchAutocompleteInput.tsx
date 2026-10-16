@@ -199,6 +199,8 @@ function SearchAutocompleteInput({
                     value={value}
                     onChange={(event) => {
                         // `onChange` fires right before `onChangeText` for the same edit, so the ref holds this edit's timestamp.
+                        // On web during IME composition (e.g. Android Chrome virtual keyboards), MarkdownTextInput only fires `onChangeText`,
+                        // so the ref remains undefined and onSearchQueryChange safely falls back to performance.now().
                         inputEventTimeStampRef.current = event.timeStamp;
                     }}
                     onChangeText={(text) => {
