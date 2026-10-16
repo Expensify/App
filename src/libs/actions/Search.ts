@@ -1435,11 +1435,13 @@ function search({
                     );
                 }
 
-                // Record the reports a to-do response held, apart from rows this device writes. A first-page response starts the record over.
+                // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.
                 if (searchKey && TODO_SEARCH_KEYS.has(searchKey) && result?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    Onyx.merge(snapshotKey, {search: {countedReportIDs: getExpenseReportIDs(response?.data ?? {})}}).catch((error: unknown) =>
-                        Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}),
-                    );
+                    const countedReportIDs = getExpenseReportIDs(response?.data ?? {});
+                    const clearRecord = shouldCalculateTotals ? Onyx.merge(snapshotKey, {search: {countedReportIDs: null}}) : Promise.resolve();
+                    clearRecord
+                        .then(() => Onyx.merge(snapshotKey, {search: {countedReportIDs}}))
+                        .catch((error: unknown) => Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}));
                 }
 
                 if (shouldUpdateLastSearchParams) {

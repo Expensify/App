@@ -1023,7 +1023,7 @@ describe('SearchPageNarrow', () => {
                 jest.advanceTimersByTime(0);
             });
 
-            // Then the next page is asked for without totals, since totals sent with a later page would merge onto older pages
+            // Then the next page is asked for without totals, since a later page with totals would start the counted reports over without page 1's
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
             expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
         });
@@ -1054,7 +1054,7 @@ describe('SearchPageNarrow', () => {
                 jest.advanceTimersByTime(0);
             });
 
-            // Then totals are asked for only when there's no report count, since totals merged onto older pages would take a report that left off twice
+            // Then totals are asked for only when there's no report count, since a later page with totals would start the counted reports over without page 1's
             expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(shouldAskForTotals);
         });
 

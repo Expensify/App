@@ -192,6 +192,19 @@ describe('SearchResultsProvider live to-do report count', () => {
         expectFigures(result, SERVER_REPORT_COUNT, DRAFT_REPORT_IDS.length);
     });
 
+    it('keeps a counted report this device never lists on the count, such as one its own rules hide', async () => {
+        // Given Drafts whose server responses also held a draft this device doesn't list
+        const {result} = await renderDrafts();
+        await act(async () => {
+            await Onyx.merge(snapshotKey, {search: {countedReportIDs: {hiddenDraft: true}}});
+            await waitForBatchedUpdates();
+        });
+
+        // When the provider builds the live results
+        // Then the server's 120 stand, since "Select all" still acts on that draft
+        expect(getReportCount(result)).toBe(SERVER_REPORT_COUNT);
+    });
+
     it('lowers the report count as soon as a report leaves Drafts, without a new search', async () => {
         // Given Drafts with the server's 120 reports
         const {result} = await renderDrafts();

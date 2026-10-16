@@ -234,7 +234,7 @@ function Search({
     // button would stay loading forever.
     const isRequiredAllMatchingTotalMissing =
         isExpenseReportType && areAllMatchingItemsSelected ? typeof searchResults?.search?.reportCount !== 'number' : searchResults?.search?.count === undefined;
-    // Live to-do totals come only with page 1, unless the report count is missing. Merged onto older pages, they'd take a report that left off twice.
+    // Live to-do totals come only with page 1 unless the count is missing, since a response with totals restarts the counted reports.
     const shouldCalculateAllMatchingTotals = areAllMatchingItemsSelected && !isExpenseAllMatchingSelection && (!shouldUseLiveData || isRequiredAllMatchingTotalMissing);
     const shouldCalculateTotals = shouldCalculateAllMatchingTotals || shouldCalculateExpenseTotals;
     const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;

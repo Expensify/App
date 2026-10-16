@@ -7,9 +7,11 @@ import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -63,6 +65,12 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
     return {count, total, currency};
 }
 
+/** Report IDs, each mapped to true */
+type ReportIDSet = Record<string, boolean>;
+
+/** Counted reports this device has listed, per to-do list */
+type SeenReportIDsBySearchKey = Partial<Record<SearchKey, ReportIDSet>>;
+
 type TodoReportCountParams = {
     /** The server's figures for the search, from its snapshot */
     serverSearch: SearchResults['search'] | undefined;
@@ -72,21 +80,23 @@ type TodoReportCountParams = {
 
     /** Whether every collection that decides which reports are to-dos has loaded */
     isLoaded: boolean;
+
+    /** Counted reports this device has listed for the search */
+    seenReportIDs: ReportIDSet;
 };
 
 /**
- * The report count a live to-do search shows: the server's, which also covers reports this device doesn't hold, minus
- * the reports its responses held that have left the list since (`countedReportIDs`). To-do search responses also write
- * their reports to Onyx, so a report that still matches is always in the list.
+ * The server's report count, minus the counted reports this device listed that have since left the list. Reports it
+ * never listed, such as one with a receipt still scanning, never count as left.
  */
-function getTodoReportCount({serverSearch, liveData, isLoaded}: TodoReportCountParams): number | undefined {
+function getTodoReportCount({serverSearch, liveData, isLoaded, seenReportIDs}: TodoReportCountParams): number | undefined {
     if (serverSearch?.reportCount === undefined) {
         return undefined;
     }
 
     // Until everything has loaded, reports that still match are missing from the list, so none counts as left.
     const countedReportIDs = isLoaded ? Object.keys(serverSearch.countedReportIDs ?? {}) : [];
-    const departedReportCount = countedReportIDs.filter((reportID) => !liveData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).length;
+    const departedReportCount = countedReportIDs.filter((reportID) => seenReportIDs[reportID] && !liveData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).length;
     return Math.max(serverSearch.reportCount - departedReportCount, 0);
 }
 
@@ -185,6 +195,7 @@ function useTodoSearchResults(
     const [personalDetailsList, personalDetailsResult] = useAllPersonalDetailsWithoutSnapshots();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [seenReportIDsBySearchKey, setSeenReportIDsBySearchKey] = useState<SeenReportIDsBySearchKey>({});
 
     if (!searchKey) {
         return undefined;
@@ -194,7 +205,7 @@ function useTodoSearchResults(
     const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
     const areTransactionsLoaded = transactionsMetadata.status === 'loaded';
     // Every input of getTodoReportsForSearchKey must be listed here, or a report still loading counts as left.
-    const isLoaded = [
+    const isLoaded = !isLoadingOnyxValue(
         reportsResult,
         policiesResult,
         reportNameValuePairsResult,
@@ -205,7 +216,7 @@ function useTodoSearchResults(
         sessionResult,
         personalDetailsResult,
         rulesResult,
-    ].every((result) => result.status === 'loaded');
+    );
 
     const {reports, transactionsByReportID} = getTodoReportsForSearchKey(searchKey, {
         allReports,
@@ -224,7 +235,16 @@ function useTodoSearchResults(
 
     const data = buildSearchResultsData(reports, transactionsByReportID, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations);
     const {count, total, currency} = computeMetadata(reports, transactionsByReportID, footerTotal);
-    const reportCount = getTodoReportCount({serverSearch, liveData: data, isLoaded});
+
+    // A counted report can only leave the list after this device has listed it, so remember the ones it has, per to-do list.
+    const seenReportIDs = seenReportIDsBySearchKey[searchKey] ?? {};
+    const newlySeenReportIDs = isLoaded
+        ? Object.keys(serverSearch?.countedReportIDs ?? {}).filter((reportID) => !seenReportIDs[reportID] && !!data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
+        : [];
+    if (newlySeenReportIDs.length > 0) {
+        setSeenReportIDsBySearchKey({...seenReportIDsBySearchKey, [searchKey]: {...seenReportIDs, ...Object.fromEntries(newlySeenReportIDs.map((reportID) => [reportID, true]))}});
+    }
+    const reportCount = getTodoReportCount({serverSearch, liveData: data, isLoaded, seenReportIDs});
 
     return {data, metadata: {count, total, currency, reportCount}};
 }

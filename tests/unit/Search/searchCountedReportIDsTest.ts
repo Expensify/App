@@ -148,6 +148,31 @@ describe('search() records the reports a to-do search counted', () => {
         expect(await getCountedReportIDs()).toEqual({A: true});
     });
 
+    it('starts the record over with a response to a request for totals, even when it merges into the snapshot', async () => {
+        // Given a record from an earlier response holding report OLD
+        await Onyx.set(snapshotKey, createMock<SearchResults>({search: {countedReportIDs: {OLD: true}}, data: {}}));
+
+        // When a first page asked for totals answers with report A, merged into the snapshot instead of replacing it
+        answerWith(Onyx.METHOD.MERGE, buildSearchData([{reportID: 'A', type: CONST.REPORT.TYPE.EXPENSE}]));
+        await search({queryJSON: draftsQueryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT, offset: 0, shouldCalculateTotals: true, isLoading: false});
+
+        // Then only report A is recorded, so the record matches the fresh count the response brought
+        expect(await getCountedReportIDs()).toEqual({A: true});
+    });
+
+    it('starts the record over with a later page asked for totals, as when the report count was missing', async () => {
+        // Given Drafts recorded report A from its first page
+        answerWith(Onyx.METHOD.SET, buildSearchData([{reportID: 'A', type: CONST.REPORT.TYPE.EXPENSE}]));
+        await search({queryJSON: draftsQueryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT, offset: 0, shouldCalculateTotals: true, isLoading: false});
+
+        // When a later page asked for totals answers with report C
+        answerWith(Onyx.METHOD.MERGE, buildSearchData([{reportID: 'C', type: CONST.REPORT.TYPE.EXPENSE}]));
+        await search({queryJSON: draftsQueryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT, offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldCalculateTotals: true, isLoading: false});
+
+        // Then only C is recorded, so a page-1 report that left before the fresh count can't come off twice
+        expect(await getCountedReportIDs()).toEqual({C: true});
+    });
+
     it('records nothing for a search that is not a to-do', async () => {
         // Given the same response answers a search that isn't a to-do
         answerWith(Onyx.METHOD.SET, buildSearchData([{reportID: 'A', type: CONST.REPORT.TYPE.EXPENSE}]));
