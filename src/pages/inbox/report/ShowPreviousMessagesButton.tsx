@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,10 +31,12 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
+    const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
 
-    if (!isConciergeChat) {
+    // The main Concierge chat uses ConciergeChatHistoryToggle instead.
+    if (!isConciergeChat || !isInSidePanel) {
         return null;
     }
     if (!onPress) {

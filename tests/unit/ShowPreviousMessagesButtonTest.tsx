@@ -67,9 +67,9 @@ describe('ShowPreviousMessagesButton', () => {
         expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders the button when not in the side panel (main DM)', () => {
+    it('renders nothing when not in the side panel (main DM)', () => {
         renderButton({}, {isInSidePanel: false});
-        expect(screen.getByRole('button')).toBeTruthy();
+        expect(screen.queryByRole('button')).toBeNull();
     });
 
     it('renders nothing when reportID does not match the Concierge report', () => {

@@ -365,6 +365,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportID?: string;
     reportActionID?: string;
     attachmentID?: string;
+    additionalAttachments?: Array<{file: FileObject; attachmentID: string}>;
     isHTML?: boolean;
     delegateAccountIDParam: number | undefined;
     /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
@@ -7578,8 +7579,8 @@ function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachme
     return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
 }
 
-/** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
-function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
+/** The still-uploading attachment tags, re-appended to an edit's optimistic message so they stay on screen. */
+function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined, removedSources: string[] = []): string | undefined {
     if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
         return undefined;
     }
@@ -7587,18 +7588,20 @@ function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | unde
         `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
             `|<video\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</video>` +
             `|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
-        'i',
+        'gi',
     );
-    return currentCommentHtml.match(attachmentTagRegex)?.at(0);
+    const optimisticSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+    const keptTags = (currentCommentHtml.match(attachmentTagRegex) ?? []).filter((tag) => !removedSources.includes(tag.match(optimisticSourceRegex)?.at(1) ?? ''));
+    return keptTags.length > 0 ? keptTags.join('<br />') : undefined;
 }
 
 /**
- * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
+ * The local URIs of still-uploading attachments a draft dropped. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
-function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
-    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
-    return !!localSource && !draftMarkdown.includes(localSource);
+function getUploadingAttachmentSourcesRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): string[] {
+    const localSources = [...(currentCommentHtml ?? '').matchAll(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`, 'g'))].map((match) => match[1]);
+    return localSources.filter((localSource) => !draftMarkdown.includes(localSource));
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -7630,6 +7633,7 @@ function buildOptimisticAddCommentReportAction({
     reportID,
     reportActionID = rand64(),
     attachmentID,
+    additionalAttachments = [],
     currentUserEmail,
     currentUserAccountID,
     isHTML = false,
@@ -7638,7 +7642,12 @@ function buildOptimisticAddCommentReportAction({
     lastActionCreated,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
+    const attachmentHtml = [
+        getUploadingAttachmentHtml(file, attachmentID),
+        ...additionalAttachments.map((attachment) => getUploadingAttachmentHtml(attachment.file, attachment.attachmentID)),
+    ]
+        .filter((html) => !!html)
+        .join('<br />');
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
@@ -15641,7 +15650,7 @@ export {
     canMergeReports,
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentSourcesRemovedFromDraft,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
     parseMovedTransactionReportIDs,

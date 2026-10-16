@@ -176,7 +176,7 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentSourcesRemovedFromDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
@@ -428,6 +428,7 @@ type AddActionsParams = {
     currentUserAccountID: number;
     text?: string;
     file?: FileObject;
+    additionalFiles?: FileObject[];
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
@@ -872,6 +873,7 @@ function addActions({
     currentUserAccountID,
     text = '',
     file,
+    additionalFiles = [],
     isInSidePanel = false,
     sidePanelContext,
     pregeneratedResponseParams,
@@ -907,6 +909,7 @@ function addActions({
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     const attachmentID = rand64();
+    const additionalAttachments = additionalFiles.map((additionalFile) => ({file: additionalFile, attachmentID: rand64()}));
     if (text && !file) {
         const reportComment = buildOptimisticAddCommentReportAction({
             text,
@@ -929,12 +932,16 @@ function addActions({
             file,
             reportID,
             attachmentID,
+            additionalAttachments,
             delegateAccountIDParam: delegateAccountID,
             anchorCreatedToServer: isConciergeChat,
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        for (const additionalAttachment of additionalAttachments) {
+            cacheAttachment({attachmentID: additionalAttachment.attachmentID, uri: additionalAttachment.file.uri ?? '', mimeType: additionalAttachment.file.type});
+        }
     }
 
     if (text && file) {
@@ -1029,6 +1036,13 @@ function addActions({
 
     if (file) {
         parameters.attachmentID = attachmentID;
+    }
+
+    if (file && additionalAttachments.length > 0) {
+        for (const [index, additionalAttachment] of additionalAttachments.entries()) {
+            parameters[`file_${index + 1}`] = additionalAttachment.file;
+        }
+        parameters.attachmentIDs = [attachmentID, ...additionalAttachments.map((additionalAttachment) => additionalAttachment.attachmentID)].join(',');
     }
 
     if (isInSidePanel && (isConciergeChat || isAdminRoom(reportForAction))) {
@@ -1307,8 +1321,9 @@ function addAttachmentWithComment({
         playSound(SOUNDS.DONE);
     };
 
-    // Single attachment
-    if (!Array.isArray(attachments)) {
+    // Single attachment, or several in one message so Concierge answers them in one thread
+    if (!Array.isArray(attachments) || conciergeThreadReportID) {
+        const [file, ...additionalFiles] = Array.isArray(attachments) ? attachments : [attachments];
         addActions({
             report,
             notifyReportID,
@@ -1316,7 +1331,8 @@ function addAttachmentWithComment({
             timezoneParam: timezone,
             currentUserAccountID,
             text,
-            file: attachments,
+            file,
+            additionalFiles,
             isInSidePanel,
             delegateAccountID,
             sidePanelContext,
@@ -1340,10 +1356,6 @@ function addAttachmentWithComment({
         isInSidePanel,
         delegateAccountID,
         conciergeReportID,
-
-        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
-        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
-        shouldNavigateToConciergeThread,
     });
 
     // Remaining: attachment-only actions (no text duplication)
@@ -3719,7 +3731,7 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
-    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(textForNewComment, originalCommentHTML);
+    const removedAttachmentSources = getUploadingAttachmentSourcesRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
 
     // Skip the Edit if draft is not changed
@@ -3748,7 +3760,7 @@ function editReportComment(
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
-    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentSources);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
@@ -3851,7 +3863,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, removedAttachmentSources);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },

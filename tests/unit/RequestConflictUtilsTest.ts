@@ -152,12 +152,65 @@ describe('RequestConflictUtils', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
         const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, true);
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:local']);
         expect(result).toEqual({
             conflictAction: {
                 type: 'replace',
                 index: 0,
                 request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'attachment removed'}},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should drop only the queued attachments the edit removed', () => {
+        // Given a queued message with three files and an attachment ID for each
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'b removed'};
+
+        // When the edit removes the middle file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:b']);
+
+        // Then the request still sends the other two files, renumbered with their own IDs
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportID: '1', reportActionID, reportComment: 'b removed', file: {uri: 'blob:a'}, file_1: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,7'},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should move the remaining queued attachment into the first slot', () => {
+        // Given a queued message with three files
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'only b left'};
+
+        // When the edit removes the first and last files
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:a', 'blob:c']);
+
+        // Then the request sends the one file left as a single attachment
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                data: {reportID: '1', reportActionID, reportComment: 'only b left', file: {uri: 'blob:b'}, attachmentID: '6'},
             },
         });
     });

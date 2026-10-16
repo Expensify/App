@@ -2,6 +2,7 @@ import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
@@ -275,12 +276,17 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/** Reads the local URI of a queued file. Request data is untyped, so the shape is checked rather than cast. */
+function getQueuedFileURI(file: unknown): string {
+    return typeof file === 'object' && file !== null && 'uri' in file && typeof file.uri === 'string' ? file.uri : '';
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
-    shouldRemoveQueuedAttachment = false,
+    removedAttachmentSources: string[] = [],
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -295,11 +301,26 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
 
-        // The queued request keeps its own file, so without dropping it the server would re-add an attachment the edit removed.
-        if (shouldRemoveQueuedAttachment) {
-            delete currentAddComment.data.file;
-            delete currentAddComment.data.attachmentID;
-            currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        // The queued request keeps its own files, so without dropping them the server would re-add attachments the edit removed.
+        if (removedAttachmentSources.length > 0) {
+            const data = currentAddComment.data;
+            const fileKeys = ['file', ...Object.keys(data).filter((key) => CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key))];
+            const attachmentIDs = typeof data.attachmentIDs === 'string' ? data.attachmentIDs.split(',') : [data.attachmentID];
+            const keptAttachments = fileKeys
+                .map((key, index) => ({file: data[key], attachmentID: attachmentIDs.at(index)}))
+                .filter(({file}) => !!file && !removedAttachmentSources.includes(getQueuedFileURI(file)));
+
+            for (const key of fileKeys) {
+                delete data[key];
+            }
+            for (const [index, {file}] of keptAttachments.entries()) {
+                data[index === 0 ? 'file' : `file_${index}`] = file;
+            }
+            data.attachmentID = keptAttachments.at(0)?.attachmentID;
+            data.attachmentIDs = keptAttachments.length > 1 ? keptAttachments.map(({attachmentID}) => attachmentID).join(',') : undefined;
+            if (keptAttachments.length === 0) {
+                currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+            }
         }
 
         nextAction = {

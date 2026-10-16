@@ -3,7 +3,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 
@@ -18,6 +17,7 @@ import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 
 import {setIsComposerFullSize} from '@userActions/Report';
 
@@ -38,7 +38,6 @@ function useComposerSubmit(reportID: string) {
     const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {isBetaEnabled} = usePermissions();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
@@ -48,6 +47,7 @@ function useComposerSubmit(reportID: string) {
     const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useActionListContext();
+    const {setShowFullHistory} = useConciergeSessionActions();
 
     const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
@@ -80,12 +80,11 @@ function useComposerSubmit(reportID: string) {
             clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
-        const shouldRespondInThread = reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+        const shouldRespondInThread = reportID === conciergeReportID;
 
         if (attachmentFileRef.current) {
             const attachments = attachmentFileRef.current;
-            const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
-            const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
+            const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
@@ -110,6 +109,9 @@ function useComposerSubmit(reportID: string) {
         }
 
         if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
+            if (shouldRespondInThread && !isInSidePanel) {
+                setShowFullHistory(true);
+            }
             return;
         }
 
