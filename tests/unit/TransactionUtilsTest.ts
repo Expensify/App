@@ -5163,6 +5163,57 @@ describe('TransactionUtils', () => {
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
+
+            it('should keep a "Force Yes" company card expense reimbursable and not show the step', () => {
+                // Given a kept company card expense whose feed forces it to be reimbursable, and a non-reimbursable duplicate
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_YES},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the forced value is kept, so resolving duplicates can't silently make the expense non-reimbursable
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should surface the reimbursable step when the kept company card expense uses a "Do Not Force" setting', () => {
+                // Given a kept company card expense whose reimbursable value the user can change
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the user picks the reimbursable value in the review step
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should force reimbursable to false when the kept transaction is an Expensify Card expense', () => {
+                // Given a kept Expensify Card expense and a reimbursable duplicate
+                const expensifyCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                });
+                const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then Expensify Card expenses stay non-reimbursable
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
         });
 
         describe('selectedTransactionID parameter', () => {
