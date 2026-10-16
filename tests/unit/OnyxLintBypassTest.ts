@@ -1,4 +1,4 @@
-import {BANNED_RULE_ID, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
+import {BANNED_RULE_ID, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxLintBypass';
 
 const ONYX_CONNECT_CALL = `Onyx${'.connect'}`;
 const onyxConnectCall = (key: string): string => `${ONYX_CONNECT_CALL}({key: "${key}"});`;

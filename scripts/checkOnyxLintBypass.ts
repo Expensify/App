@@ -2,27 +2,25 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when a new inline `eslint-disable` silences one of the bans in `BANNED_RULES`
- * (see `onyxConnectBypass.ts`).
+ * Fails the lint run when a new inline `eslint-disable` silences one of the Onyx lint bans in
+ * `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint rule, so an inline
+ * disable can silence it. The runner re-elevates those disables by scanning source for directives
+ * that name the ban, or blanket directives that cover a real banned call. For the OnyxUtils ban a
+ * named directive counts only when it covers a runtime import. No disable comment can reach this
+ * check.
  *
- * The ban (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify) is a normal lint rule,
- * so an inline disable can silence it. The runner re-elevates those disables by scanning source
- * for directives that name the ban or blanket directives that cover a real call — no disable
- * comment can reach this check.
- *
- * A real bypass requires a file to mention `Onyx` and `connect` and contain an `eslint-disable`
- * directive, so we first narrow the targets to files matching all three (via git grep). The
- * candidate scan does not require the contiguous text `Onyx.connect` — git grep is line-oriented, so a
- * spaced or split `Onyx . connect(` would otherwise be skipped. Extra matches like
- * `Onyx.connectWithoutView` are harmless: we only fail on disable directives that actually
- * suppress the ban.
+ * A real bypass requires a file to contain an `eslint-disable` directive and the ban's search terms,
+ * so we first narrow the targets to files matching all of them (via git grep). The candidate scan
+ * does not require the contiguous text `Onyx.connect`: git grep is line-oriented, so a spaced or
+ * split `Onyx . connect(` would otherwise be skipped. Extra matches like `Onyx.connectWithoutView`
+ * are harmless: we only fail on disable directives that actually suppress a ban.
  */
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 
-import type {BannedRule} from './onyxConnectBypass';
+import type {BannedRule} from './onyxLintBypass';
 
-import {BANNED_RULES, collectDisableDirectivesFromSource, findNewBypasses} from './onyxConnectBypass';
+import {BANNED_RULES, collectDisableDirectivesFromSource, findNewBypasses} from './onyxLintBypass';
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
@@ -77,13 +75,13 @@ async function checkBan(targets: string[], ban: BannedRule): Promise<boolean> {
     return true;
 }
 
-async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
+async function checkOnyxLintBypass(targets: string[]): Promise<boolean> {
     const results = await Promise.all(BANNED_RULES.map((ban) => checkBan(targets, ban)));
     return results.some(Boolean);
 }
 
 if (import.meta.main) {
-    checkOnyxConnectBypass(process.argv.slice(2))
+    checkOnyxLintBypass(process.argv.slice(2))
         .then((failed) => {
             if (!failed) {
                 return;
@@ -96,4 +94,4 @@ if (import.meta.main) {
         });
 }
 
-export default checkOnyxConnectBypass;
+export default checkOnyxLintBypass;

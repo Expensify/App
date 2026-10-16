@@ -11,7 +11,7 @@
 
 import CLI from 'expensify-common/CLI';
 
-import checkOnyxConnectBypass from '../checkOnyxConnectBypass';
+import checkOnyxLintBypass from '../checkOnyxLintBypass';
 import Bench from '../utils/Bench';
 import ESLintLinter from './eslint/ESLintLinter';
 import StylishFormatter from './formatters/StylishFormatter';
@@ -84,6 +84,6 @@ if (result.exitCode !== 0) {
     process.exit(result.exitCode);
 }
 
-if (await checkOnyxConnectBypass(lintTargets)) {
+if (await checkOnyxLintBypass(lintTargets)) {
     process.exit(1);
 }

@@ -1,7 +1,8 @@
 /**
- * Finds `eslint-disable` directives that silence one of the bans in `BANNED_RULES`:
+ * Finds `eslint-disable` directives that silence one of the Onyx lint bans in `BANNED_RULES`:
  * `rulesdir/no-onyx-connect`, `rulesdir/no-unsafe-onyx-read`, and the
  * `@typescript-eslint/no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
+ * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
  * call: `Onyx.connect()` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
