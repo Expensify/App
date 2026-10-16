@@ -77,6 +77,7 @@ import {
     canFlagReportAction,
     canHoldUnholdReportAction,
     canInviteMembersToReport,
+    canInviteMembersToRoom,
     canJoinChat,
     canLeaveChat,
     canMergeReports,
@@ -14284,6 +14285,69 @@ describe('ReportUtils', () => {
             expect(canInviteMembersToReport(reportWithoutManager, memberPolicy, false, undefined)).toBe(false);
             expect(canInviteMembersToReport(processingExpenseReport, adminPolicy, false, undefined)).toBe(true);
             expect(canInviteMembersToReport(processingExpenseReport, auditorPolicy, false, undefined)).toBe(true);
+        });
+    });
+
+    describe('canInviteMembersToRoom', () => {
+        const submitterAccountID = 81001;
+        const otherAccountID = 81002;
+        const approverAccountID = 81003;
+        const adminPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.ADMIN};
+        const auditorPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.USER};
+        const draftExpenseReport: Report = {
+            ...createExpenseReport(81200),
+            ownerAccountID: submitterAccountID,
+            managerID: approverAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const processingExpenseReport: Report = {
+            ...draftExpenseReport,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        // The report action an expense's thread hangs off: the IOU "create" action on the expense report
+        const expenseCreatedAction = {
+            ...createRandomReportAction(81300),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: draftExpenseReport.reportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 4400, currency: CONST.CURRENCY.USD},
+        } as ReportAction;
+
+        it('blocks inviting to an expense on a draft expense report', () => {
+            // Given the thread of a single expense on an expense report that has not been submitted yet
+            // Then nobody can invite to it, the same as the report itself, since that would share the expense
+            expect(canInviteMembersToRoom(draftExpenseReport, expenseCreatedAction, memberPolicy, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToRoom(draftExpenseReport, expenseCreatedAction, adminPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('follows the report roles for an expense once the report is processing', () => {
+            // Given the thread of a single expense on a submitted expense report
+            // Then the submitter, approver, admins and auditors can invite, but other members cannot
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, approverAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, adminPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, auditorPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks inviting to an expense whose report is archived', () => {
+            // Given the thread of an expense on an archived expense report
+            // Then nobody can invite to it
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, adminPolicy, true, submitterAccountID)).toBe(false);
+        });
+
+        it('keeps inviting available in rooms and threads that are not expenses on an expense report', () => {
+            // Given a thread on a plain chat message, and an expense in a 1:1 IOU report
+            const chatReport = createRegularChat(81201, [submitterAccountID, otherAccountID]);
+            const commentAction: ReportAction = {...createRandomReportAction(81301), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const iouReport: Report = createIOUReport(81202, submitterAccountID, otherAccountID);
+
+            // Then inviting is unchanged and stays available to the thread's members
+            expect(canInviteMembersToRoom(chatReport, commentAction, memberPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(iouReport, expenseCreatedAction, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(undefined, undefined, memberPolicy, false, otherAccountID)).toBe(true);
         });
     });
 

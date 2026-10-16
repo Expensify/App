@@ -1921,6 +1921,24 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
+ * Whether the current user can invite new members to a room or thread from its members page.
+ *
+ * Inviting to an expense's thread shares that expense, so the thread follows the rule of the expense report it belongs to.
+ */
+function canInviteMembersToRoom(
+    parentReport: OnyxEntry<Report>,
+    parentReportAction: OnyxEntry<ReportAction>,
+    policy: OnyxEntry<Policy>,
+    isParentReportArchived: boolean,
+    currentUserAccountID?: number,
+): boolean {
+    if (isExpenseReport(parentReport) && isTransactionThread(parentReportAction)) {
+        return canInviteMembersToReport(parentReport, policy, isParentReportArchived, currentUserAccountID);
+    }
+    return true;
+}
+
+/**
  * Only returns true if this is the Expensify DM report.
  *
  * Note that this chat is no longer used for new users. We still need this function for users who have this chat.
@@ -15260,6 +15278,7 @@ export {
     canDeleteReportAction,
     canHoldUnholdReportAction,
     canInviteMembersToReport,
+    canInviteMembersToRoom,
     canEditReportPolicy,
     canCurrentUserEditExpense,
     canEditFieldOfMoneyRequest,
