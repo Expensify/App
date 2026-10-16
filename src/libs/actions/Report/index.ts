@@ -176,7 +176,7 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentSourcesRemovedFromDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
@@ -3731,7 +3731,7 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
-    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(textForNewComment, originalCommentHTML);
+    const removedAttachmentSources = getUploadingAttachmentSourcesRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
 
     // Skip the Edit if draft is not changed
@@ -3760,7 +3760,7 @@ function editReportComment(
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
-    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentSources);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
@@ -3863,7 +3863,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, removedAttachmentSources);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
