@@ -14,11 +14,26 @@ import type {ChartView, GroupedItem, SearchChartDataRow} from './types';
 
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
+    COMPARISON: 'comparison',
 } as const;
+
+/** A second series drawn against the primary one */
+type ChartComparison = {
+    /** The compared rows, each paired with the plotted group stored under the same key */
+    data: GroupedItem[];
+
+    /** Names the series in the tooltip, like "Average" */
+    label: string;
+
+    color: string;
+};
 
 type BuildChartSeriesParams = {
     /** Grouped search results, in the order the search returned them */
     data: GroupedItem[];
+
+    /** Rows the chart is compared against, drawn as a second series */
+    comparison?: ChartComparison;
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
@@ -61,16 +76,21 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /** This is the single place group totals are turned into plotted values. */
-function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel}: BuildChartSeriesParams): SearchChartModel {
+function buildChartSeries({data, comparison, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel}: BuildChartSeriesParams): SearchChartModel {
+    const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
+    const comparedByKey = new Map(comparison?.data.map((item) => [item.keyForList, item]));
     const rows = data.map((item) => {
-        const decimals = getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD);
         const label = StringUtils.normalize(getLabel(item));
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
+        const comparedItem = comparedByKey.get(item.keyForList);
         const point: ChartDataPoint = {
             label,
             shortLabel,
-            values: {[CHART_SERIES_KEY.PRIMARY]: convertToFrontendAmountAsInteger(item.total ?? 0, decimals)},
+            values: {
+                [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
+                ...(comparedItem && {[CHART_SERIES_KEY.COMPARISON]: getAmount(comparedItem)}),
+            },
             percentOfTotal: item.percentOfTotal,
             count: item.count,
         };
@@ -86,7 +106,7 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 
     return {
-        series: [{key: CHART_SERIES_KEY.PRIMARY}],
+        series: [{key: CHART_SERIES_KEY.PRIMARY}, ...(comparison ? [{key: CHART_SERIES_KEY.COMPARISON, color: comparison.color, label: comparison.label}] : [])],
         rows: rows.map((row, index) => {
             let color;
             if (pieColors) {
@@ -101,4 +121,4 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {SearchChartModel};
+export type {ChartComparison, SearchChartModel};

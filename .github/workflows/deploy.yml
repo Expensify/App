@@ -776,12 +776,17 @@ jobs:
         env:
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
-  webDeployTestStaging:
-    name: Deploy Web to test-staging.new.expensify.com
-    needs: [prep, webBuild]
-    if: ${{ needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
+  webDeployCloudflareWorkers:
+    name: Deploy Web to Cloudflare Workers (${{ matrix.environment }})
+    needs: [prep, webBuild, buildStorybook]
+    if: ${{ always() && needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
     # Trial hosting for the web build, so a failure here must not fail the staging deploy.
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        # `staging` serves no traffic until staging.new.expensify.com is routed to its Worker in Cloudflare.
+        environment: [test-staging, staging]
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -807,19 +812,50 @@ jobs:
       - name: Extract web build
         run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
 
+      # The Workers serve these to tabs still running this build after later deploys. Both Workers read the same bucket,
+      # so only one matrix leg uploads.
+      - name: Upload web build to the previous builds bucket
+        if: ${{ matrix.environment == 'staging' }}
+        continue-on-error: true
+        run: |
+          if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
+            echo "::warning::CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID is not set, so this build is not available to future deploys."
+            exit 0
+          fi
+          aws configure set default.s3.preferred_transfer_client classic
+          # Re-uploads every file, so files that stay the same across builds don't hit the bucket's 60-day expiry while still in use.
+          aws s3 cp dist s3://new-expensify-web-assets-staging/ --recursive \
+            --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --no-progress \
+            --exclude '*.br' --exclude '*.map'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Download storybook docs artifact
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: storybook-docs-artifact
+          path: ./dist/docs
+
       - name: Install Cloudflare Worker dependencies
         working-directory: web/cloudflare-worker
         run: npm ci
 
       - name: Deploy to Cloudflare Workers
         working-directory: web/cloudflare-worker
-        run: npx wrangler deploy --env test-staging
+        run: npx wrangler deploy --env "${{ matrix.environment }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           WRANGLER_SEND_METRICS: false
 
       - name: Verify deploy
+        if: ${{ matrix.environment == 'test-staging' }}
         run: |
           APP_VERSION=$(jq -r .version < package.json)
           ./.github/scripts/verifyDeploy.sh https://test-staging.new.expensify.com "$APP_VERSION"
