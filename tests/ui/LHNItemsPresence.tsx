@@ -804,7 +804,7 @@ describe('SidebarLinksData', () => {
             expect(screen.getByText('Task')).toBeOnTheScreen();
         });
 
-        it('should display the report with GRB when the report has unread mention', async () => {
+        it('should display the report with the Mention action badge when the report has unread mention', async () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const reportWithUnreadMention: Report = {
                 ...createReport(false, [1, 2], 0),
@@ -822,8 +822,9 @@ describe('SidebarLinksData', () => {
             // Then the sidebar should display the report with unread mention.
             expect(getDisplayNames()).toHaveLength(1);
 
-            // And the GRB icon should be shown, indicating there is unread mention.
-            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // And the Mention action badge should be shown instead of a bare green dot, indicating there is unread mention.
+            expect(screen.getByText('Mention')).toBeOnTheScreen();
+            expect(screen.queryByTestId('GBR Icon', {includeHiddenElements: true})).not.toBeOnTheScreen();
         });
     });
 });
