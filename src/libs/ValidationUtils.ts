@@ -269,18 +269,23 @@ type AddressFieldValues = {
     addressLine1?: string;
     addressLine2?: string;
     city?: string;
+    state?: string;
     zipPostCode?: string;
     country?: Country | '';
 };
 
 /** Length and zip format errors for the inputs rendered by AddressFields */
 function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate) {
-    const errors: Partial<Record<'addressLine1' | 'addressLine2' | 'city' | 'zipPostCode', string>> = {};
+    const errors: Partial<Record<'addressLine1' | 'addressLine2' | 'city' | 'state' | 'zipPostCode', string>> = {};
     for (const addressInputID of ['addressLine1', 'addressLine2', 'city'] as const) {
         const addressPart = values[addressInputID] ?? '';
         if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
             errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
         }
+    }
+    const state = values.state ?? '';
+    if (values.country !== CONST.COUNTRY.US && state.length > CONST.STATE_CHARACTER_LIMIT) {
+        errors.state = translate('common.error.characterLimitExceedCounter', state.length, CONST.STATE_CHARACTER_LIMIT);
     }
     if (values.zipPostCode && !isValidZipCodeForCountry(values.zipPostCode, values.country)) {
         errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(values.country)?.samples);
