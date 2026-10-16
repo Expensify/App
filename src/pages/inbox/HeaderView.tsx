@@ -160,7 +160,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const {resetSession: resetConciergeSession} = useConciergeSessionActions();
-    const isAskConciergeEnabled = !isInSidePanel;
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -192,7 +191,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, derivedReportHeaderName);
     const chatRoomSubtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, rules, false, isReportHeaderDataArchived);
-    const subtitle = isAskConciergeEnabled && isConciergeChat ? translate('common.concierge.subtitle') : chatRoomSubtitle;
+    const subtitle = !isInSidePanel && isConciergeChat ? translate('common.concierge.subtitle') : chatRoomSubtitle;
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsTransactionThread
         ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
@@ -517,7 +516,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {isAskConciergeEnabled && isConciergeThread && newConciergeChatButton}
+                                    {!isInSidePanel && isConciergeThread && newConciergeChatButton}
                                     {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
