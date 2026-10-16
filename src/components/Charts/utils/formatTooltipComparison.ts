@@ -71,7 +71,7 @@ function formatTooltipComparison(
     const [{key: primarySeriesKey}, comparedSeries] = series;
     const primaryValue = dataPoint.values[primarySeriesKey];
     const comparedValue = comparedSeries && dataPoint.values[comparedSeries.key];
-    if (primaryValue === undefined || comparedValue === undefined) {
+    if (primaryValue === undefined || !comparedSeries) {
         return undefined;
     }
 
@@ -94,7 +94,7 @@ function formatTooltipComparison(
         };
     });
 
-    return {rows, change: formatChange(primaryValue, comparedValue, formatAmount, locale)};
+    return {rows, change: comparedValue === undefined ? undefined : formatChange(primaryValue, comparedValue, formatAmount, locale)};
 }
 
 export default formatTooltipComparison;

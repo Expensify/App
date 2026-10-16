@@ -62,15 +62,31 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toBeUndefined();
     });
 
-    it('leaves the tooltip as it is when the compared series has nothing at the point', () => {
+    it('drops the row of a compared series that has nothing at the point', () => {
         // Given April's spend, compared against an average that has no value for April
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};
 
-        // When the tooltip for that point is built
+        // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then there is no comparison, so the tooltip shows April's amount and expense count rather than one unlabeled row
-        expect(comparison).toBeUndefined();
+        // Then only April's amount is listed, under the April title, with no change to show
+        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: undefined}], change: undefined});
+    });
+
+    it('keeps the named row of a bucket the previous period has no counterpart for', () => {
+        // Given October 31st, which September has no day to pair with
+        const point: ChartDataPoint = {
+            label: '31st',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300},
+            seriesLabels: {[CHART_SERIES_KEY.PRIMARY]: 'October 2026'},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2},
+        };
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then October's row still names its month, so "31st" reads as a day of October, and there is no change to show
+        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: 'October 2026', amount: '$300', percentage: '34.2%'}], change: undefined});
     });
 
     it('shows how much the primary series grew against the compared one', () => {
