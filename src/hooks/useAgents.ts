@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {usingPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
+import {groupByPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {Str} from 'expensify-common';
@@ -57,6 +57,7 @@ function useAgents() {
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+    const policiesByAccountID = groupByPolicyAccountIDPoliciesSelector(allPolicies);
 
     const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
         if (!agent) {
@@ -80,7 +81,7 @@ function useAgents() {
             const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
             ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
-            const policy = usingPolicyAccountIDPoliciesSelector(allPolicies, agent.ownerAccountID);
+            const policy = policiesByAccountID.get(agent.ownerAccountID);
             ownerDisplayName = policy?.name;
             ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {

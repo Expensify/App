@@ -576,8 +576,13 @@ const createAdminPoliciesSelector =
         }, {});
     };
 
-const usingPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>, policyAccountID: number) =>
-    Object.values(policies ?? {}).find((policy) => policy?.policyAccountID === policyAccountID);
+const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).reduce((m, policy) => {
+        if (policy?.policyAccountID) {
+            m.set(policy.policyAccountID, policy);
+        }
+        return m;
+    }, new Map<number, Policy>());
 
 export type {PolicySelector, TimeSensitiveAdminPolicy};
 export {
@@ -614,6 +619,6 @@ export {
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
-    usingPolicyAccountIDPoliciesSelector,
+    groupByPolicyAccountIDPoliciesSelector,
 };
 export type {ReusablePolicyConnectionName};
