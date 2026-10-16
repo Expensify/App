@@ -31,6 +31,8 @@ type ViolationMessagesProps = {
     transactionCurrency?: string;
 };
 
+export type {ViolationMessagesProps};
+
 export default function ViolationMessages({
     violations,
     isLast,

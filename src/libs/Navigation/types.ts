@@ -2375,6 +2375,7 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.COLUMNS]: {
         reportID: string;
     };
+    [SCREENS.REPORT_SETTINGS.FIELDS]: {reportID: string};
 };
 
 type ReportDescriptionNavigatorParamList = {
