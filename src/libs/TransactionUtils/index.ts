@@ -184,6 +184,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const reducedDistance = customUnit?.reimbursableDistance;
     const storedAmount = modifiedAmount ?? transaction.amount;
     const storedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
+    // A rate edit can leave the preferred merchant describing the full route. Keep its saved rate
+    // and amount, and only clear the stale commuter fields.
     if (storedUnit && storedMerchant?.startsWith(`${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `)) {
         return {
             ...transaction,
@@ -195,6 +197,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         };
     }
 
+    // Base fields can preserve the full route while modified fields contain the commuter-reduced
+    // snapshot. Matching rate text confirms both snapshots use the same historical rate.
     if (
         storedUnit &&
         typeof reducedDistance === 'number' &&
@@ -210,6 +214,10 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
             const roundedFullDistance = Number(fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
             const roundedReducedDistance = Number(reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
             if (roundedFullDistance > 0) {
+                // The stored total is rounded to the nearest minor currency unit, so its unrounded
+                // value lies within +/-0.5 of that total. Dividing those bounds by distance gives
+                // the possible historical-rate range; if the whole range reproduces modifiedAmount,
+                // it was an automatic commuter reduction rather than a manual edit.
                 const lowerRate = Math.max(0, (Math.abs(transaction.amount) - 0.5) / roundedFullDistance);
                 const upperRate = (Math.abs(transaction.amount) + 0.5) / roundedFullDistance;
                 const calculatedReducedAmount = Math.round(roundedReducedDistance * lowerRate);
@@ -237,6 +245,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
     const storedReducedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
     const storedReducedAmount = modifiedAmount ?? transaction.amount;
+    // Only allow proportional restoration when both modified fields are available and the merchant
+    // identifies the saved reduced distance; otherwise the full route cannot be reconstructed safely.
     const canRestoreSavedReducedValues =
         modifiedAmount !== undefined &&
         !!transaction.modifiedMerchant &&
@@ -263,6 +273,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         };
     };
 
+    // When the rate cannot be resolved from policy data, recover from the available reduced snapshot
+    // instead of leaving commuter values in a personal report.
     if (!rate) {
         return restoreSavedReducedValues();
     }
@@ -271,10 +283,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const normalizedAmount = (storedAmount ?? 0) < 0 ? -fullDistanceAmount : fullDistanceAmount;
     const currency = mileageRate?.currency ?? getCurrency(transaction);
     const savedCurrency = getCurrency(transaction);
+    // Identical symbols cannot prove that the expense used the newly resolved currency, so avoid
+    // a potentially incorrect conversion.
     if (currency !== savedCurrency && getCurrencySymbol(currency) === getCurrencySymbol(savedCurrency)) {
         return transaction;
     }
 
+    // Verify the live policy rate against the saved reduced merchant. If they do not match, preserve
+    // the historical snapshot instead of risking a reprice from changed or differently formatted data.
     if (canRestoreSavedReducedValues && typeof reducedDistance === 'number') {
         const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
         const merchantAtCurrentRate = getDistanceMerchantForTransaction({
