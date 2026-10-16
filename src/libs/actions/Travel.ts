@@ -1,7 +1,8 @@
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 
@@ -76,17 +77,25 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string)
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
 
-function requestTravelAccess() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS>> = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
-            value: {
-                lastTravelSignupRequestTime: Date.now().toString(),
-            },
-        },
-    ];
-    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
+/**
+ * Requests travel access and resolves whether the account can enable travel straight away. When it can't, the server
+ * opens a guide review, so the request time is recorded to show the review is pending. When it can, any pending request
+ * time is cleared so the account is no longer shown as under review. Rejects when the server returns an error.
+ */
+function requestTravelAccess(): Promise<boolean> {
+    // We need the response to know whether to send the user to enable travel or show that their request is under review
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_TRAVEL_ACCESS, null).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            throw new Error(response?.message ?? 'RequestTravelAccess failed');
+        }
+        if (response.canSkipVerification) {
+            Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: null});
+            return true;
+        }
+        Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: Date.now().toString()});
+        return false;
+    });
 }
 
 function setTravelProvisioningTaxID(taxID: string) {

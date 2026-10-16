@@ -30,7 +30,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ReactElement} from 'react';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -70,6 +70,7 @@ function BookTravelButton({
     const policy = usePolicy(activePolicyID);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
+    const isRequestingTravelAccess = useRef(false);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const primaryContactMethod = usePrimaryContactMethod();
     const {isBetaEnabled} = usePermissions();
@@ -82,23 +83,43 @@ function BookTravelButton({
 
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeBooking?: () => void) => resumeBooking?.());
 
+    const showVerifyCompanyModal = () => {
+        if (!shouldShowVerifyAccountModal) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('travel.verifyCompany.title'),
+            titleStyles: styles.textHeadlineH1,
+            titleContainerStyles: styles.mb2,
+            prompt: translate('travel.verifyCompany.message'),
+            promptStyles: styles.mb2,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            image: illustrations.RocketDude,
+            imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+        });
+    };
+
     const completeTravelAccessRequest = () => {
-        if (shouldShowVerifyAccountModal) {
-            showConfirmModal({
-                title: translate('travel.verifyCompany.title'),
-                titleStyles: styles.textHeadlineH1,
-                titleContainerStyles: styles.mb2,
-                prompt: translate('travel.verifyCompany.message'),
-                promptStyles: styles.mb2,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                image: illustrations.RocketDude,
-                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+        if (isRequestingTravelAccess.current) {
+            return;
+        }
+        isRequestingTravelAccess.current = true;
+
+        // Low-risk and travel-risk-approved accounts can skip the guide review and enable travel straight away
+        requestTravelAccess()
+            .then((canSkipVerification) => {
+                if (!canSkipVerification) {
+                    showVerifyCompanyModal();
+                    return;
+                }
+                cleanupTravelProvisioningSession();
+                Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
+            })
+            .catch(() => setErrorMessage(translate('common.genericErrorMessage')))
+            .finally(() => {
+                isRequestingTravelAccess.current = false;
             });
-        }
-        if (!travelSettings?.lastTravelSignupRequestTime) {
-            requestTravelAccess();
-        }
     };
 
     const navigateToPublicDomainError = () => {
