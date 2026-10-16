@@ -396,14 +396,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldUseDefaultCursorWhenDisabled
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
-                                    if (
-                                        tryNavigateToSubmitWorkspaceUpgrade(
-                                            policy,
-                                            true,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
-                                            memberDetailsRoute,
-                                        )
-                                    ) {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, memberDetailsRoute)) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, routeAccountID));
@@ -427,7 +420,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField1')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField1')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField1')) : undefined
+                                            }
                                             testID="member-customField1-menu-item"
                                             value={member.employeeUserID}
                                         />
@@ -435,7 +430,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField2')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField2')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField2')) : undefined
+                                            }
                                             testID="member-customField2-menu-item"
                                             value={member.employeePayrollID}
                                         />
