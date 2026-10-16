@@ -13,6 +13,7 @@ import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyReque
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -25,7 +26,7 @@ import Onyx from 'react-native-onyx';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isManagedCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, getReimbursable, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
@@ -247,6 +248,7 @@ function compareDuplicateTransactionFields(
     selectedTransactionID: string | undefined,
     policy: OnyxEntry<Policy>,
     policyCategories: OnyxEntry<PolicyCategories>,
+    selectedTransactionCardFeedSettings?: Pick<CustomCardFeedData, 'forceReimbursable'>,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const reportID = report?.reportID;
     const reviewingTransactionID = reviewingTransaction?.transactionID;
@@ -396,16 +398,20 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // Managed card transactions are always non-reimbursable. The resolved reimbursable value is applied to
-                // the transaction that is kept, so we only force it to false — and hide the reimbursable review step —
-                // when that kept transaction is itself a managed card. We gate on the selected (kept) transaction rather
-                // than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
-                // may be the cash expense) while the kept transaction is the managed card, so gating on the reviewing
+                // The resolved reimbursable value is applied to the transaction that is kept, so when that kept transaction
+                // is a card expense whose reimbursable value can't be changed, we keep its own value and hide the
+                // reimbursable review step. Expensify Card expenses are always non-reimbursable, and company card expenses
+                // keep their forced value (e.g. "Force Yes" stays reimbursable). Company card expenses without a stamped setting
+                // fall back to their feed's setting (`selectedTransactionCardFeedSettings`). We gate on the selected (kept) transaction
+                // rather than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
+                // may be the cash expense) while the kept transaction is the card expense, so gating on the reviewing
                 // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
-                // would instead wrongly convert a kept cash expense to non-reimbursable.
+                // would instead wrongly change the reimbursable value of a kept cash expense.
                 const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
-                if (isManagedCardTransaction(selectedTransaction)) {
+                if (isExpensifyCardTransaction(selectedTransaction)) {
                     keep[fieldName] = false;
+                } else if (!isCardTransactionReimbursableEditable(selectedTransaction, selectedTransactionCardFeedSettings)) {
+                    keep[fieldName] = getReimbursable(selectedTransaction);
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 } else {

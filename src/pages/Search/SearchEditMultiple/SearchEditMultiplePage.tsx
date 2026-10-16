@@ -22,6 +22,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import {getFeedSettingsForCard} from '@libs/CardFeedUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -34,6 +35,7 @@ import {
     getTagArrayFromName,
     getTaxName,
     hasSplitExpenseInSelection,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isPerDiemRequest,
@@ -94,6 +96,8 @@ function SearchEditMultiplePage() {
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -153,11 +157,19 @@ function SearchEditMultiplePage() {
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        const transactionCard = transaction.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
+        const transactionCardFeedSettings = transactionCard ? getFeedSettingsForCard(transactionCard, allCardFeeds) : undefined;
+        if (!isCardTransactionReimbursableEditable(transaction, transactionCardFeedSettings)) {
+            return false;
+        }
+
         // Unreported expenses have no policy yet but reimbursable is always applicable
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
+
+        // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
+        return !isIOUReport(report) && !isInvoiceReport(report) && (isManagedCardTransaction(transaction) || transactionPolicy?.disabledFields?.reimbursable === false);
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);

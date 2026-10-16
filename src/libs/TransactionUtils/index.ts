@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -999,7 +1000,7 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -1008,6 +1009,35 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the reimbursable value of a transaction can be changed by the user.
+ * Company card transactions follow their feed's reimbursable setting: only the "Do Not Force" options allow changes.
+ * The value stamped on the transaction at import wins, so changing the feed setting only affects expenses imported afterward.
+ * The feed setting is used as a fallback for transactions that weren't stamped.
+ */
+function isCardTransactionReimbursableEditable(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>,
+    feedSettings?: Pick<CustomCardFeedData, 'forceReimbursable'>,
+): boolean {
+    if (!isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
+    // A feed without a stored reimbursable setting behaves as "Force No"
+    const feedForceReimbursable = feedSettings ? (feedSettings.forceReimbursable ?? CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_NO) : undefined;
+    const forceReimbursable = transaction?.comment?.forceReimbursable ?? feedForceReimbursable;
+
+    return (
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES ||
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_NO ||
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.NONE
+    );
 }
 
 /**
@@ -1893,6 +1923,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,

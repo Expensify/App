@@ -5163,6 +5163,85 @@ describe('TransactionUtils', () => {
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
+
+            it('should keep a "Force Yes" company card expense reimbursable and not show the step', () => {
+                // Given a kept company card expense whose feed forces it to be reimbursable, and a non-reimbursable duplicate
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_YES},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the forced value is kept, so resolving duplicates can't silently make the expense non-reimbursable
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should surface the reimbursable step when the kept company card expense uses a "Do Not Force" setting', () => {
+                // Given a kept company card expense whose reimbursable value the user can change
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the user picks the reimbursable value in the review step
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should surface the reimbursable step when an unstamped company card expense belongs to a "Do Not Force" feed', () => {
+                // Given a kept company card expense imported before the feed setting was stamped on it, from a "Do Not Force" feed
+                const companyCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+                const feedSettings = {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_NO};
+
+                // When the duplicate fields are compared with the kept expense's feed settings
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined, feedSettings);
+
+                // Then the feed setting allows changes, so the user picks the reimbursable value in the review step
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should keep the value of an unstamped company card expense whose feed forces it', () => {
+                // Given a kept unstamped company card expense from a "Force Yes" feed, and a non-reimbursable duplicate
+                const companyCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+                const feedSettings = {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_YES};
+
+                // When the duplicate fields are compared with the kept expense's feed settings
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined, feedSettings);
+
+                // Then the expense stays reimbursable and the step is hidden
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should force reimbursable to false when the kept transaction is an Expensify Card expense', () => {
+                // Given a kept Expensify Card expense and a reimbursable duplicate
+                const expensifyCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                });
+                const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then Expensify Card expenses stay non-reimbursable
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
         });
 
         describe('selectedTransactionID parameter', () => {
@@ -6369,6 +6448,64 @@ describe('isTransactionSubmittable', () => {
         const transaction = generateTransaction();
 
         expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('isCardTransactionReimbursableEditable', () => {
+    const {FORCE_YES, FORCE_NO, DEFAULT_YES, DEFAULT_NO, NONE} = CONST.COMPANY_CARD.FORCE_REIMBURSABLE;
+
+    it('returns true for a cash expense', () => {
+        // Given a cash expense, which follows the workspace cash expense rules instead of a card feed
+        const transaction = generateTransaction();
+
+        // Then the reimbursable value can be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(true);
+    });
+
+    it('returns false for an Expensify Card expense', () => {
+        // Given an Expensify Card expense, which can never be reimbursable, even with a "Do Not Force" value
+        const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK, comment: {forceReimbursable: DEFAULT_YES}});
+
+        // Then the reimbursable value can't be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
+    });
+
+    it.each([
+        [DEFAULT_YES, true],
+        [DEFAULT_NO, true],
+        [NONE, true],
+        [FORCE_YES, false],
+        [FORCE_NO, false],
+    ])('uses the stamped %s value of a company card expense', (forceReimbursable, expected) => {
+        // Given a company card expense stamped with the feed setting at import, on a feed whose setting has since changed
+        const transaction = generateTransaction({managedCard: true, comment: {forceReimbursable}});
+        const feedSettings = {forceReimbursable: forceReimbursable === DEFAULT_YES ? FORCE_NO : DEFAULT_YES};
+
+        // Then only the "Do Not Force" stamped values allow changing the reimbursable value, because feed changes only affect new expenses
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction, feedSettings)).toBe(expected);
+    });
+
+    it.each([
+        [DEFAULT_YES, true],
+        [DEFAULT_NO, true],
+        [NONE, true],
+        [FORCE_YES, false],
+        [FORCE_NO, false],
+        [undefined, false],
+    ])('falls back to the %s feed setting when the company card expense has no stamped value', (forceReimbursable, expected) => {
+        // Given a company card expense with no stamped value, on a feed with the given setting (a missing setting behaves as "Force No")
+        const transaction = generateTransaction({managedCard: true});
+
+        // Then the feed setting decides whether the reimbursable value can be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction, {forceReimbursable})).toBe(expected);
+    });
+
+    it('returns false for a company card expense with no stamped value and no feed settings', () => {
+        // Given a company card expense with no stamped value, viewed by someone who doesn't have its feed settings
+        const transaction = generateTransaction({managedCard: true});
+
+        // Then the reimbursable value can't be changed, matching the "Force No" default
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
     });
 });
 
