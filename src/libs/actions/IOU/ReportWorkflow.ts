@@ -91,6 +91,7 @@ type ApproveMoneyRequestFunctionParams = {
 
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReportTransactions: OnyxTypes.Transaction[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
@@ -993,6 +994,7 @@ function unapproveExpenseReport(
 
 function submitReport({
     expenseReport,
+    expenseReportTransactions,
     policy,
     rules,
     currentUserAccountIDParam,
@@ -1038,11 +1040,10 @@ function submitReport({
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
     // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
-    const reportTransactions = getReportTransactions(expenseReport.reportID);
-    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (hasOnlyHeldExpenses(reportTransactions)) {
+    if (hasOnlyHeldExpenses(expenseReportTransactions)) {
         return;
     }
 
