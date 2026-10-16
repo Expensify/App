@@ -3986,6 +3986,9 @@ ${amount} dla ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: 'Rachunek bankowy jest niedostępny',
+        youCantPayWithDeletedBankAccount:
+            'Wystąpił problem z tym rachunkiem bankowym, więc nie można go użyć do opłacenia tego wydatku. Wybierz inny rachunek bankowy lub skontaktuj się z Concierge, aby uzyskać pomoc.',
         bankInfo: 'Dane bankowe',
         confirmBankInfo: 'Potwierdź dane bankowe',
         manuallyAdd: 'Ręcznie dodaj swoje konto bankowe',

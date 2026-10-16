@@ -3832,6 +3832,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: '银行账户不可用',
+        youCantPayWithDeletedBankAccount: '此银行账户存在问题，因此无法用于支付这笔费用。请选择其他银行账户，或联系 Concierge 寻求帮助。',
         bankInfo: '银行信息',
         confirmBankInfo: '确认银行信息',
         manuallyAdd: '手动添加您的银行账户',

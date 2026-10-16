@@ -3886,6 +3886,9 @@ ${amount} para ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: 'Cuenta bancaria no disponible',
+        youCantPayWithDeletedBankAccount:
+            'Hay un problema con esta cuenta bancaria, por lo que no se puede usar para pagar este gasto. Elige otra cuenta bancaria o contacta con Concierge para obtener ayuda.',
         bankInfo: 'Información bancaria',
         confirmBankInfo: 'Confirmar información bancaria',
         manuallyAdd: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',

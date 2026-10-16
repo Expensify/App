@@ -188,6 +188,16 @@ function SettlementButton({
     // The guards checked after the account-validation gate. Also re-checked when a payment
     // interrupted by account validation resumes, since the validation gate skipped them.
     const checkForPostValidationBlockers = () => {
+        if (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.DELETED) {
+            showConfirmModal({
+                title: translate('bankAccount.bankAccountUnavailable'),
+                prompt: translate('bankAccount.youCantPayWithDeletedBankAccount'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return true;
+        }
+
         if (isBankAccountLocked) {
             if (unlockRequestedAt) {
                 showUnlockAlreadyRequestedModal(showConfirmModal, translate);
