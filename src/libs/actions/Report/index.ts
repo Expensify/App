@@ -428,6 +428,7 @@ type AddActionsParams = {
     currentUserAccountID: number;
     text?: string;
     file?: FileObject;
+    additionalFiles?: FileObject[];
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
@@ -872,6 +873,7 @@ function addActions({
     currentUserAccountID,
     text = '',
     file,
+    additionalFiles = [],
     isInSidePanel = false,
     sidePanelContext,
     pregeneratedResponseParams,
@@ -907,6 +909,7 @@ function addActions({
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     const attachmentID = rand64();
+    const additionalAttachments = additionalFiles.map((additionalFile) => ({file: additionalFile, attachmentID: rand64()}));
     if (text && !file) {
         const reportComment = buildOptimisticAddCommentReportAction({
             text,
@@ -929,12 +932,16 @@ function addActions({
             file,
             reportID,
             attachmentID,
+            additionalAttachments,
             delegateAccountIDParam: delegateAccountID,
             anchorCreatedToServer: isConciergeChat,
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        for (const additionalAttachment of additionalAttachments) {
+            cacheAttachment({attachmentID: additionalAttachment.attachmentID, uri: additionalAttachment.file.uri ?? '', mimeType: additionalAttachment.file.type});
+        }
     }
 
     if (text && file) {
@@ -1029,6 +1036,13 @@ function addActions({
 
     if (file) {
         parameters.attachmentID = attachmentID;
+    }
+
+    if (file && additionalAttachments.length > 0) {
+        for (const [index, additionalAttachment] of additionalAttachments.entries()) {
+            parameters[`file_${index + 1}`] = additionalAttachment.file;
+        }
+        parameters.attachmentIDs = [attachmentID, ...additionalAttachments.map((additionalAttachment) => additionalAttachment.attachmentID)].join(',');
     }
 
     if (isInSidePanel && (isConciergeChat || isAdminRoom(reportForAction))) {
