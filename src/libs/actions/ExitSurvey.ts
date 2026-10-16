@@ -1,3 +1,4 @@
+import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -5,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
+import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 /**
@@ -24,13 +26,14 @@ function switchToOldDot(exitSurveyResponse: string | undefined) {
         },
     ];
 
-    API.write(
+    const request = API.write(
         WRITE_COMMANDS.SWITCH_TO_OLD_DOT,
         {
             surveyResponse: exitSurveyResponse,
         },
         {optimisticData},
     );
+    return Platform.OS === 'web' ? request.then(() => waitForWrites(WRITE_COMMANDS.SWITCH_TO_OLD_DOT)) : request;
 }
 
 /**

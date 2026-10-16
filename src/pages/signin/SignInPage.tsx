@@ -21,18 +21,21 @@ import Visibility from '@libs/Visibility';
 
 import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {Ref} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 
 import type {InputHandle} from './LoginForm/types';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
@@ -189,6 +192,21 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const shouldUseClassicSignIn =
+        Platform.OS === 'web' &&
+        CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL === CONFIG.EXPENSIFY.EXPENSIFY_URL &&
+        !isLoadingOnyxValue(sessionMetadata) &&
+        !session?.authToken &&
+        !isAuthenticatingWithShortLivedToken &&
+        window.location.pathname !== '/transition';
+
+    useEffect(() => {
+        if (!shouldUseClassicSignIn) {
+            return;
+        }
+        window.location.replace(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}signin`);
+    }, [shouldUseClassicSignIn]);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -338,6 +356,10 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         navigateBack,
     }));
     useAndroidBackButtonHandler(navigateBack);
+
+    if (shouldUseClassicSignIn) {
+        return null;
+    }
 
     return (
         <ColorSchemeWrapper>
