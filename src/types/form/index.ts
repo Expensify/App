@@ -51,6 +51,7 @@ export type {AdditionalDetailStepForm} from './AdditionalDetailStepForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {WorkspaceTagForm} from './WorkspaceTagForm';
 export type {WorkspaceNewTaxForm} from './WorkspaceNewTaxForm';
+export type {WorkspaceSubmissionFrequencyForm} from './WorkspaceSubmissionFrequencyForm';
 export type {WorkspaceTaxNameForm} from './WorkspaceTaxNameForm';
 export type {WorkspaceTaxValueForm} from './WorkspaceTaxValueForm';
 export type {WorkspaceTaxCustomName} from './WorkspaceTaxCustomName';
