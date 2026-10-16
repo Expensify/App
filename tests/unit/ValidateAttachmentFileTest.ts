@@ -25,6 +25,12 @@ jest.mock('@libs/fileDownload/canConvertDngToJpeg', () => ({
     },
 }));
 
+let mockHasDngFileHeader = false;
+jest.mock('@libs/fileDownload/hasDngFileHeader', () => ({
+    __esModule: true,
+    default: () => Promise.resolve(mockHasDngFileHeader),
+}));
+
 const mockFileUtils = jest.mocked(FileUtils);
 
 const createMockFile = (name: string, size: number): FileObject => ({
@@ -36,6 +42,7 @@ describe('validateAttachmentFile', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCanConvertDngToJpeg = false;
+        mockHasDngFileHeader = false;
         // Default: pass-through so async validation succeeds
         mockFileUtils.normalizeFileObject.mockImplementation(async (file) => file);
         mockFileUtils.validateImageForCorruption.mockResolvedValue(undefined);
@@ -109,13 +116,30 @@ describe('validateAttachmentFile', () => {
         it.each([
             ['by extension', {name: 'IMG_0001.DNG', size: 1000}],
             ['by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}],
-        ])('still accepts a DNG chat attachment %s on web', async (description, file: FileObject) => {
-            // Given a ProRAW picked as a chat attachment on web, where nothing can transcode it
-            // When validated outside the receipt flow, which has no extension check
+        ])('rejects a DNG chat attachment %s on web even though attachments get no receipt extension check', async (description, file: FileObject) => {
+            // Given a ProRAW picked as a chat attachment on web, where nothing can transcode it and the backend rejects DNG
+            // When validated outside the receipt flow
             const error = await validateAttachmentFile(file, undefined, false);
 
-            // Then it is uploaded like any other attachment, as it was before native learned to convert DNG
-            expect(error.isValid).toBe(true);
+            // Then it is refused with the invalid-file-type modal before upload, instead of failing after it is sent
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+        });
+
+        it('rejects a DNG on web that is recognized only by its header', async () => {
+            // Given a ProRAW renamed to .jpg, so only its TIFF header says it is a DNG
+            mockHasDngFileHeader = true;
+
+            // When validated as a chat attachment
+            const error = await validateAttachmentFile(createMockFile('IMG_0001.jpg', 1000), undefined, false);
+
+            // Then it is refused before upload, since the backend rejects DNG
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('still accepts a plain TIFF chat attachment', async () => {
@@ -172,7 +196,7 @@ describe('validateAttachmentFile', () => {
             // When a DNG receipt is validated
             const error = await validateAttachmentFile(createMockFile('IMG_0001.dng', 1000), undefined, true);
 
-            // Then it falls through to the receipt extension check and the user sees the invalid-file-type error
+            // Then the user sees the invalid-file-type error
             if (error.isValid) {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
