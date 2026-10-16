@@ -16,13 +16,16 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canSendInvoice,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
     hasCompanyAddress,
     hasVendorFeatureOnAnyPolicy,
+    getActiveAdminWorkspaces,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -45,6 +48,7 @@ import {
     getExpensifyTeamExclusions,
     getForwardsToAccount,
     getForwardsToFromRules,
+    getGroupPoliciesWhereReportCanBeCreated,
     getIntegrationLastSuccessfulDate,
     getManagerAccountID,
     getActiveVendorMatchingIntegration,
@@ -60,6 +64,7 @@ import {
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
+    getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
     getReimbursementChoice,
@@ -112,6 +117,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
+    isPolicyAccessible,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     isRoomMemberProtectedByPolicyRole,
@@ -400,25 +406,890 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canUnarchivePolicy', () => {
-        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+    describe('policy', () => {
+        describe('canUnarchivePolicy', () => {
+            it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+            });
+
+            it('returns false when the beta is disabled', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+            });
+
+            it('returns false when the workspace is not archived', () => {
+                expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+            });
+
+            it('returns false when the current user is not the owner', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+            });
+
+            it('returns false when the owner is unknown', () => {
+                expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
+            });
         });
 
-        it('returns false when the beta is disabled', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        describe('getActivePolicies', () => {
+            it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => createMock<Policy>({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: undefined})}),
+                    2,
+                );
+                expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+            });
+
+            it('excludes archived policies while keeping the active sibling', () => {
+                const activePolicy = createMock<Policy>({...createRandomPolicy(1), name: 'active', pendingAction: null});
+                const archivedPolicy = createMock<Policy>({...createRandomPolicy(2), name: 'archived', pendingAction: null, archivedDate: '2024-01-01'});
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? activePolicy : archivedPolicy),
+                    2,
+                );
+
+                const result = getActivePolicies(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(activePolicy.id);
+            });
         });
 
-        it('returns false when the workspace is not archived', () => {
-            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        describe('getActivePoliciesWithExpenseChat', () => {
+            it('excludes archived policies while keeping the active sibling', () => {
+                const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+                const archivedPolicy = createMock<Policy>({
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'archived',
+                    pendingAction: null,
+                    archivedDate: '2024-01-01',
+                });
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? activePolicy : archivedPolicy),
+                    2,
+                );
+
+                const result = getActivePoliciesWithExpenseChat(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(activePolicy.id);
+            });
         });
 
-        it('returns false when the current user is not the owner', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        describe('per diem policy filters', () => {
+            const perDiemCustomUnit = {
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                customUnitID: 'ABCDEF',
+                enabled: true,
+                rates: {
+                    London: {
+                        customUnitRateID: 'London',
+                        name: 'London',
+                    },
+                },
+            };
+
+            it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                    collect: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+            });
+
+            it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporateWithRates: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                    corporateWithoutRates: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: {
+                                ...perDiemCustomUnit,
+                                rates: {},
+                            },
+                        },
+                    },
+                    collectWithRates: {
+                        ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+                expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
+            });
+
+            it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        // Migrated member: flag never arrived, but the configured custom unit is present
+                        arePerDiemRatesEnabled: undefined,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
+            });
+
+            it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        // Explicit off must be respected, so the lingering custom unit cannot re-enable it
+                        arePerDiemRatesEnabled: false,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            });
         });
 
-        it('returns false when the owner is unknown', () => {
-            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
+        describe('hasCompanyAddress', () => {
+            it('only counts a company address that has a street, the same way Auth does', () => {
+                // Given workspaces without an address, with a blank street, and with a street
+                const policy = createRandomPolicy(0);
+                const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
+                const withoutAddress: Policy = {...policy, address: undefined};
+                const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
+                const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
+
+                // When checking whether each has a company address
+                // Then only the one with a street has one, since that's when Auth counts the company address as an office
+                expect(hasCompanyAddress(withoutAddress)).toBe(false);
+                expect(hasCompanyAddress(withBlankStreet)).toBe(false);
+                expect(hasCompanyAddress(withStreet)).toBe(true);
+            });
+        });
+
+        describe('shouldShowPolicy', () => {
+            beforeEach(() => {
+                global.fetch = TestHelper.getGlobalFetchMock();
+                return Onyx.clear().then(waitForBatchedUpdates);
+            });
+            it('should return false', () => {
+                // Given an archived paid policy.
+                const policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: '',
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
+                const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
+                // The result should be false since it is an archived paid policy.
+                expect(result).toBe(false);
+            });
+            it('should return true', () => {
+                // Given a paid policy.
+                const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
+                const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
+                // The result should be true, since it is an active paid policy.
+                expect(result).toBe(true);
+            });
+            it('should return false', () => {
+                // Given a control workspace which is pending delete.
+                const policy = createMock<OnyxEntry<Policy>>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                });
+                const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
+                // The result should be false since it is a policy which is pending deletion.
+                expect(result).toEqual(false);
+            });
+            it('hides an archived policy by default', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+                const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+                expect(result).toBe(false);
+            });
+            it('shows an archived policy when includeArchivedPolicy is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+                const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getOwnedPaidPolicies', () => {
+            const ownerID = 100;
+
+            it('returns only the paid workspaces the account owns', () => {
+                // Given owned Collect, Control, Submit and Personal workspaces, plus a Control workspace owned by someone else
+                const ownedTeam: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), ownerAccountID: ownerID};
+                const ownedCorporate: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID};
+                const ownedSubmit: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.SUBMIT), ownerAccountID: ownerID};
+                const ownedPersonal: Policy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), ownerAccountID: ownerID};
+                const otherOwnersCorporate: Policy = {...createRandomPolicy(5, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID + 1};
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: ownedTeam,
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: ownedCorporate,
+                    [`${ONYXKEYS.COLLECTION.POLICY}3`]: ownedSubmit,
+                    [`${ONYXKEYS.COLLECTION.POLICY}4`]: ownedPersonal,
+                    [`${ONYXKEYS.COLLECTION.POLICY}5`]: otherOwnersCorporate,
+                    [`${ONYXKEYS.COLLECTION.POLICY}6`]: undefined,
+                };
+
+                // When we get the owned paid policies
+                const result = getOwnedPaidPolicies(policies, ownerID);
+
+                // Then only the owned Collect and Control workspaces are returned, since Submit and Personal are not paid plans
+                expect(result.map((policy) => policy.id).sort()).toEqual(['1', '2']);
+            });
+
+            it('returns an empty array when the account ID is unknown', () => {
+                // Given a paid workspace whose owner is unknown to the caller
+                const policies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}1`]: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID}};
+
+                // When we get the owned paid policies without an account ID
+                // Then nothing is returned, because no account can be matched as the owner
+                expect(getOwnedPaidPolicies(policies, undefined)).toEqual([]);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given no policies collection
+                // When we get the owned paid policies
+                // Then nothing is returned
+                expect(getOwnedPaidPolicies(null, ownerID)).toEqual([]);
+            });
+        });
+
+        describe('canCreateCategoryInSitu', () => {
+            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role,
+                areCategoriesEnabled,
+                connections: undefined,
+            });
+
+            it('lets an admin add a category from the picker when the workspace uses categories', () => {
+                // Given an admin of a workspace with categories on and no accounting integration
+                // When we check whether the category picker can offer to add one
+                // Then it can, as the full-page selector's "+" does
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
+            });
+
+            it('does not let a member add a category', () => {
+                // Given a member, who cannot change workspace settings
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, so the pop-over hides its add button
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace has categories turned off', () => {
+                // Given an admin of a workspace that has turned categories off
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because a new category would have nowhere to show
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
+                // Given an admin of a workspace whose categories come from an accounting integration
+                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
+
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because new categories have to be created in the integration
+                expect(canCreateCategoryInSitu(policy)).toBe(false);
+            });
+        });
+
+        describe('getActiveAdminWorkspaces', () => {
+            const currentUserLogin = 'admin@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is active
+            const buildActivePolicy = (id: number, type: ValueOf<typeof CONST.POLICY.TYPE>, role: ValueOf<typeof CONST.POLICY.ROLE>): Policy => ({
+                ...createRandomPolicy(id, type),
+                name: `Workspace ${id}`,
+                role,
+                pendingAction: null,
+                archivedDate: undefined,
+            });
+
+            it('returns only the active workspaces where the user is an admin', () => {
+                // Given an admin workspace and a workspace where the user is only a member
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.ADMIN),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.USER),
+                };
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces(policies, currentUserLogin);
+
+                // Then only the admin workspace is returned
+                expect(result.map((policy) => policy.id)).toEqual(['1']);
+            });
+
+            it('excludes admin workspaces that are pending deletion, archived, or personal', () => {
+                // Given admin workspaces that are pending deletion, archived, or personal, next to a regular one
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: {...buildActivePolicy(2, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [`${ONYXKEYS.COLLECTION.POLICY}3`]: {...buildActivePolicy(3, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'},
+                    [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildActivePolicy(4, CONST.POLICY.TYPE.PERSONAL, CONST.POLICY.ROLE.ADMIN),
+                };
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces(policies, currentUserLogin);
+
+                // Then only the regular workspace is returned, since the others can't be shown or used
+                expect(result.map((policy) => policy.id)).toEqual(['1']);
+            });
+
+            it('resolves the admin role from the employee list when the policy has no role', () => {
+                // Given a workspace with no role of its own that lists the user as an admin
+                const policy = createMock<Policy>({
+                    ...buildActivePolicy(1, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.ADMIN),
+                    role: undefined,
+                    employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN}},
+                });
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces({[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy}, currentUserLogin);
+
+                // Then the workspace is returned, because the employee list says the user is an admin
+                expect(result.map((currentPolicy) => currentPolicy.id)).toEqual(['1']);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given no policies collection
+                // When we get the active admin workspaces
+                // Then nothing is returned
+                expect(getActiveAdminWorkspaces(null, currentUserLogin)).toEqual([]);
+            });
+        });
+
+        describe('canSendInvoiceFromWorkspace', () => {
+            it('returns true when areInvoicesEnabled is true', () => {
+                const policy = createMock<Policy>({areInvoicesEnabled: true});
+                expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
+            });
+
+            it('returns false when areInvoicesEnabled is false', () => {
+                const policy = createMock<Policy>({areInvoicesEnabled: false});
+                expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
+            });
+        });
+
+        describe('canSubmitPerDiemExpenseFromWorkspace', () => {
+            const perDiemCustomUnit = {
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                customUnitID: 'ABCDEF',
+                enabled: true,
+                rates: {},
+            };
+            const buildPolicy = (type: ValueOf<typeof CONST.POLICY.TYPE>, customUnits: Policy['customUnits']): Policy => ({...createRandomPolicy(1, type), customUnits});
+
+            it('returns true for a paid workspace with an enabled per diem custom unit', () => {
+                // Given a Control workspace with an enabled per diem custom unit
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {ABCDEF: perDiemCustomUnit});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it can
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(true);
+            });
+
+            it('returns false when the per diem custom unit is disabled', () => {
+                // Given a Control workspace whose per diem custom unit is turned off
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {ABCDEF: {...perDiemCustomUnit, enabled: false}});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when the workspace has no per diem custom unit', () => {
+                // Given a Control workspace that only has a distance custom unit
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {
+                    DISTANCE: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'DISTANCE', enabled: true, rates: {}},
+                });
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot, because there is no per diem unit to submit against
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it.each([CONST.POLICY.TYPE.SUBMIT, CONST.POLICY.TYPE.PERSONAL])('returns false for a %s workspace even with an enabled per diem custom unit', (type) => {
+                // Given a workspace on a plan that isn't paid, with an enabled per diem custom unit
+                const policy = buildPolicy(type, {ABCDEF: perDiemCustomUnit});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot, because per diem is only available on paid workspaces
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when the policy is undefined', () => {
+                // Given no policy
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot
+                expect(canSubmitPerDiemExpenseFromWorkspace(undefined)).toBe(false);
+            });
+        });
+
+        describe('canSendInvoice', () => {
+            const currentUserLogin = 'admin@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is active
+            const buildActivePolicy = (id: number, role: ValueOf<typeof CONST.POLICY.ROLE>, areInvoicesEnabled: boolean): Policy => ({
+                ...createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE),
+                name: `Workspace ${id}`,
+                role,
+                pendingAction: null,
+                archivedDate: undefined,
+                areInvoicesEnabled,
+            });
+
+            it('returns true when an active admin workspace has invoices enabled', () => {
+                // Given an admin workspace with invoices enabled and one with invoices disabled
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, false),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.ROLE.ADMIN, true),
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they can, from the workspace with invoices enabled
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(true);
+            });
+
+            it('returns false when invoices are only enabled on a workspace where the user is a member', () => {
+                // Given invoices enabled only on a workspace where the user is not an admin
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, false),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.ROLE.USER, true),
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they cannot, because only admins can send invoices
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the only admin workspace with invoices enabled is pending deletion', () => {
+                // Given an admin workspace with invoices enabled that is being deleted
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: {...buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, true), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they cannot, because the workspace is no longer active
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when there are no policies', () => {
+                // Given no policies collection
+                // When we check whether the user can send an invoice
+                // Then they cannot
+                expect(canSendInvoice(null, currentUserLogin)).toBe(false);
+            });
+        });
+
+        describe('sortWorkspacesBySelected', () => {
+            it('should order workspaces with selected workspace first', () => {
+                const workspace1 = {policyID: '1', name: 'Workspace 1'};
+                const workspace2 = {policyID: '2', name: 'Workspace 2'};
+                const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+                const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+                expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+                expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            });
+
+            it('should order workspaces using name if no workspace is selected', () => {
+                const workspace1 = {policyID: '1', name: 'Workspace 1'};
+                const workspace2 = {policyID: '2', name: 'Workspace 2'};
+                const workspace3 = {policyID: '3', name: 'Workspace 3'};
+                const workspace4 = {policyID: '4', name: 'Workspace 4'};
+                expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
+            });
+
+            it('should sort workspaces when using this method correctly', () => {
+                const unsortedWorkspaces = [
+                    {policyID: '2', name: 'Workspace 2'},
+                    {policyID: '1', name: 'Workspace 1'},
+                    {policyID: '4', name: 'Workspace 4'},
+                    {policyID: '3', name: 'Workspace 3'},
+                ];
+                const selectedWorkspaceIDs = ['3', '4'];
+                const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+                expect(sortedWorkspaces).toEqual([
+                    {policyID: '3', name: 'Workspace 3'},
+                    {policyID: '4', name: 'Workspace 4'},
+                    {policyID: '1', name: 'Workspace 1'},
+                    {policyID: '2', name: 'Workspace 2'},
+                ]);
+            });
+        });
+
+        describe('hasOnlyPersonalPolicies', () => {
+            it('should return true when policies is empty', () => {
+                const result = hasOnlyPersonalPolicies({});
+                expect(result).toBe(true);
+            });
+
+            it('should return false when there are policies other than personal policies', () => {
+                const policies = {
+                    '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                };
+                const result = hasOnlyPersonalPolicies(policies);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when there are no policies other than personal policies', () => {
+                const policies = {
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                };
+                const result = hasOnlyPersonalPolicies(policies);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getDefaultWorkspacePlanType', () => {
+            const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+            const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+            it.each([
+                {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
+                {
+                    description: 'the collection holds Submit, Collect and Personal workspaces',
+                    policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
+                    expected: CONST.POLICY.TYPE.TEAM,
+                },
+                {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
+                {
+                    description: 'the collection holds a Control workspace mixed in with other plan types',
+                    policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
+                    expected: CONST.POLICY.TYPE.CORPORATE,
+                },
+                {
+                    description: 'the collection holds a Control workspace between empty entries',
+                    policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
+                    expected: CONST.POLICY.TYPE.CORPORATE,
+                },
+            ])('returns $expected when $description', ({policies, expected}) => {
+                expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+            });
+        });
+
+        describe('isPolicyAccessible', () => {
+            const currentUserLogin = 'member@test.com';
+            const accessiblePolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER, pendingAction: null};
+
+            it('returns true for a workspace the user belongs to', () => {
+                // Given a workspace where the user has a role and that isn't being deleted
+                // When we check whether the user can access it
+                // Then they can
+                expect(isPolicyAccessible(accessiblePolicy, currentUserLogin)).toBe(true);
+            });
+
+            it('returns false when the policy is undefined or empty', () => {
+                // Given no policy data
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(undefined, currentUserLogin)).toBe(false);
+                expect(isPolicyAccessible(createMock<Policy>({}), currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy only holds errors', () => {
+                // Given a policy entry that only holds the error from a failed request, such as an invalid policy ID
+                const policy = createMock<Policy>({errors: {error: 'Policy not found'}});
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy has no ID', () => {
+                // Given a workspace whose ID is missing
+                const policy = createMock<Policy>({...accessiblePolicy, id: undefined});
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy is pending deletion', () => {
+                // Given a workspace that is being deleted
+                const policy: Policy = {...accessiblePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the user has no role in the policy', () => {
+                // Given a workspace with no role for the user and no employee list entry for them
+                const policy = createMock<Policy>({...accessiblePolicy, role: undefined, employeeList: {}});
+
+                // When we check whether the user can access it
+                // Then they cannot, because they are not a member
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns true when the user role comes from the employee list', () => {
+                // Given a workspace with no role of its own that lists the user as a member
+                const policy = createMock<Policy>({...accessiblePolicy, role: undefined, employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER}}});
+
+                // When we check whether the user can access it
+                // Then they can
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(true);
+            });
+        });
+
+        describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+            const currentUserLogin = 'member@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is shown
+            const buildPolicy = (id: string, type: ValueOf<typeof CONST.POLICY.TYPE>): Policy => ({
+                ...createRandomPolicy(0, type),
+                id,
+                role: CONST.POLICY.ROLE.USER,
+                isJoinRequestPending: false,
+                pendingAction: null,
+                archivedDate: undefined,
+            });
+
+            it('returns Collect, Control and Submit workspaces but not Personal ones', () => {
+                // Given workspaces on every plan type
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}team`]: buildPolicy('team', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}corporate`]: buildPolicy('corporate', CONST.POLICY.TYPE.CORPORATE),
+                    [`${ONYXKEYS.COLLECTION.POLICY}submit`]: buildPolicy('submit', CONST.POLICY.TYPE.SUBMIT),
+                    [`${ONYXKEYS.COLLECTION.POLICY}personal`]: buildPolicy('personal', CONST.POLICY.TYPE.PERSONAL),
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then the paid and Submit workspaces are returned, since Submit workspaces support reports even though they're free
+                expect(result.map((policy) => policy.id).sort()).toEqual(['corporate', 'submit', 'team']);
+            });
+
+            it('excludes workspaces with a pending join request, pending deletion, or an archive date', () => {
+                // Given a regular workspace next to ones the user can't create reports in yet or anymore
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}active`]: buildPolicy('active', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}joinPending`]: {...buildPolicy('joinPending', CONST.POLICY.TYPE.TEAM), isJoinRequestPending: true},
+                    [`${ONYXKEYS.COLLECTION.POLICY}deleting`]: {...buildPolicy('deleting', CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [`${ONYXKEYS.COLLECTION.POLICY}archived`]: {...buildPolicy('archived', CONST.POLICY.TYPE.TEAM), archivedDate: '2024-01-01'},
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then only the regular workspace is returned
+                expect(result.map((policy) => policy.id)).toEqual(['active']);
+            });
+
+            it('excludes the TeachersUnite workspace', () => {
+                // Given the TeachersUnite workspace next to a regular one
+                const teachersUnitePolicyID = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}active`]: buildPolicy('active', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}${teachersUnitePolicyID}`]: buildPolicy(teachersUnitePolicyID, CONST.POLICY.TYPE.TEAM),
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then the TeachersUnite workspace is left out
+                expect(result.map((policy) => policy.id)).toEqual(['active']);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given an empty or missing policies collection
+                // When we get the workspaces where a report can be created
+                // Then nothing is returned
+                expect(getGroupPoliciesWhereReportCanBeCreated({}, currentUserLogin)).toEqual([]);
+                expect(getGroupPoliciesWhereReportCanBeCreated(null, currentUserLogin)).toEqual([]);
+            });
+        });
+
+        describe('getDefaultChatEnabledPolicy', () => {
+            const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+            const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+            it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
+                // Regression: a Submit active policy must be recognized as the report-creation default. Previously
+                // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
+                expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
+            });
+
+            it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
+            });
+
+            it('returns the only eligible workspace when the active policy is personal', () => {
+                expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
+            });
+
+            it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
+            });
+
+            it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
+            });
+
+            it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+            });
+        });
+
+        describe('getDefaultChatEnabledPolicySelection', () => {
+            // createRandomPolicy randomizes these, so eligibility comes out flaky
+            const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+            };
+
+            it('resolves the active policy from the collection by ID', () => {
+                expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
+                    defaultChatEnabledPolicyID: corporatePolicy.id,
+                    hasMultipleChatEnabledPolicies: true,
+                });
+            });
+
+            it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
+                expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
+            });
+
+            it('returns the only eligible workspace and reports a single workspace', () => {
+                expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
+                    defaultChatEnabledPolicyID: teamPolicy.id,
+                    hasMultipleChatEnabledPolicies: false,
+                });
+            });
+        });
+
+        describe('hasOtherControlWorkspaces', () => {
+            it('should return false when policies is empty', () => {
+                const result = hasOtherControlWorkspaces([], '1');
+                expect(result).toBe(false);
+            });
+
+            it('should return false when there are no control workspaces other than the current one', () => {
+                const policies = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasOtherControlWorkspaces(policies, '1');
+                expect(result).toBe(false);
+            });
+
+            it('should return true when there are other control workspaces', () => {
+                const policies = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                ];
+                const result = hasOtherControlWorkspaces(policies, '1');
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('sortPoliciesByName', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts policies alphabetically by name', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortPoliciesByName([], localeCompare)).toEqual([]);
+            });
+
+            it('treats undefined or empty names as empty string', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
+            });
+
+            it('returns single-element array as-is', () => {
+                const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+
+            it('does not sort the input array in place', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+
+                expect(result).not.toBe(policies);
+            });
         });
     });
 
@@ -535,45 +1406,6 @@ describe('PolicyUtils', () => {
                 const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
 
                 expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
-            });
-        });
-
-        describe('canCreateCategoryInSitu', () => {
-            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role,
-                areCategoriesEnabled,
-                connections: undefined,
-            });
-
-            it('lets an admin add a category from the picker when the workspace uses categories', () => {
-                // Given an admin of a workspace with categories on and no accounting integration
-                // When we check whether the category picker can offer to add one
-                // Then it can, as the full-page selector's "+" does
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
-            });
-
-            it('does not let a member add a category', () => {
-                // Given a member, who cannot change workspace settings
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, so the pop-over hides its add button
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
-            });
-
-            it('does not offer to add a category when the workspace has categories turned off', () => {
-                // Given an admin of a workspace that has turned categories off
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, because a new category would have nowhere to show
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
-            });
-
-            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
-                // Given an admin of a workspace whose categories come from an accounting integration
-                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
-
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, because new categories have to be created in the integration
-                expect(canCreateCategoryInSitu(policy)).toBe(false);
             });
         });
 
@@ -953,51 +1785,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getActivePolicies', () => {
-        it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
-            const policies = createCollection<Policy>(
-                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => createMock<Policy>({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: undefined})}),
-                2,
-            );
-            expect(getActivePolicies(policies, undefined)).toHaveLength(1);
-        });
-
-        it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1), name: 'active', pendingAction: null});
-            const archivedPolicy = createMock<Policy>({...createRandomPolicy(2), name: 'archived', pendingAction: null, archivedDate: '2024-01-01'});
-            const policies = createCollection<Policy>(
-                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => (index === 0 ? activePolicy : archivedPolicy),
-                2,
-            );
-
-            const result = getActivePolicies(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe(activePolicy.id);
-        });
-    });
-    describe('getActivePoliciesWithExpenseChat', () => {
-        it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
-            const archivedPolicy = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                name: 'archived',
-                pendingAction: null,
-                archivedDate: '2024-01-01',
-            });
-            const policies = createCollection<Policy>(
-                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => (index === 0 ? activePolicy : archivedPolicy),
-                2,
-            );
-
-            const result = getActivePoliciesWithExpenseChat(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe(activePolicy.id);
-        });
-    });
-
     describe('customUnits', () => {
         const perDiemCustomUnit = {
             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
@@ -1349,51 +2136,6 @@ describe('PolicyUtils', () => {
                 };
                 expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
             });
-        });
-    });
-
-    describe('shouldShowPolicy', () => {
-        beforeEach(() => {
-            global.fetch = TestHelper.getGlobalFetchMock();
-            return Onyx.clear().then(waitForBatchedUpdates);
-        });
-        it('should return false', () => {
-            // Given an archived paid policy.
-            const policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role: '',
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
-            const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
-            // The result should be false since it is an archived paid policy.
-            expect(result).toBe(false);
-        });
-        it('should return true', () => {
-            // Given a paid policy.
-            const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
-            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
-            // The result should be true, since it is an active paid policy.
-            expect(result).toBe(true);
-        });
-        it('should return false', () => {
-            // Given a control workspace which is pending delete.
-            const policy = createMock<OnyxEntry<Policy>>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
-            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
-            // The result should be false since it is a policy which is pending deletion.
-            expect(result).toEqual(false);
-        });
-        it('hides an archived policy by default', () => {
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
-            expect(result).toBe(false);
-        });
-        it('shows an archived policy when includeArchivedPolicy is true', () => {
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true);
-            expect(result).toBe(true);
         });
     });
 
@@ -3057,45 +3799,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('sortWorkspacesBySelected', () => {
-        it('should order workspaces with selected workspace first', () => {
-            const workspace1 = {policyID: '1', name: 'Workspace 1'};
-            const workspace2 = {policyID: '2', name: 'Workspace 2'};
-            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
-            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
-            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
-            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
-        });
-
-        it('should order workspaces using name if no workspace is selected', () => {
-            const workspace1 = {policyID: '1', name: 'Workspace 1'};
-            const workspace2 = {policyID: '2', name: 'Workspace 2'};
-            const workspace3 = {policyID: '3', name: 'Workspace 3'};
-            const workspace4 = {policyID: '4', name: 'Workspace 4'};
-            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
-        });
-
-        it('should sort workspaces when using this method correctly', () => {
-            const unsortedWorkspaces = [
-                {policyID: '2', name: 'Workspace 2'},
-                {policyID: '1', name: 'Workspace 1'},
-                {policyID: '4', name: 'Workspace 4'},
-                {policyID: '3', name: 'Workspace 3'},
-            ];
-            const selectedWorkspaceIDs = ['3', '4'];
-            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
-            expect(sortedWorkspaces).toEqual([
-                {policyID: '3', name: 'Workspace 3'},
-                {policyID: '4', name: 'Workspace 4'},
-                {policyID: '1', name: 'Workspace 1'},
-                {policyID: '2', name: 'Workspace 2'},
-            ]);
-        });
-    });
-
     describe('isNonMemberApprover', () => {
         const ownerEmail = 'owner@example.com';
         const policy = createMock<Policy>({
@@ -3981,30 +4684,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasOnlyPersonalPolicies', () => {
-        it('should return true when policies is empty', () => {
-            const result = hasOnlyPersonalPolicies({});
-            expect(result).toBe(true);
-        });
-
-        it('should return false when there are policies other than personal policies', () => {
-            const policies = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            };
-            const result = hasOnlyPersonalPolicies(policies);
-            expect(result).toBe(false);
-        });
-
-        it('should return true when there are no policies other than personal policies', () => {
-            const policies = {
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            };
-            const result = hasOnlyPersonalPolicies(policies);
-            expect(result).toBe(true);
-        });
-    });
-
     describe('getEligibleBankAccountShareRecipientEmails', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -4355,33 +5034,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasOtherControlWorkspaces', () => {
-        it('should return false when policies is empty', () => {
-            const result = hasOtherControlWorkspaces([], '1');
-            expect(result).toBe(false);
-        });
-
-        it('should return false when there are no control workspaces other than the current one', () => {
-            const policies = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasOtherControlWorkspaces(policies, '1');
-            expect(result).toBe(false);
-        });
-
-        it('should return true when there are other control workspaces', () => {
-            const policies = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            ];
-            const result = hasOtherControlWorkspaces(policies, '1');
-            expect(result).toBe(true);
-        });
-    });
-
     describe('tax', () => {
         describe('getAllTaxRatesNamesAndValues', () => {
             it('returns empty object when there are no policies or no tax rates', () => {
@@ -4680,22 +5332,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canSendInvoiceFromWorkspace', () => {
-        it('returns true when areInvoicesEnabled is true', () => {
-            const policy = createMock<Policy>({areInvoicesEnabled: true});
-            expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
-        });
-
-        it('returns false when areInvoicesEnabled is false', () => {
-            const policy = createMock<Policy>({areInvoicesEnabled: false});
-            expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
-        });
-    });
-
     describe('features', () => {
         describe('getDefaultTimeTrackingRate', () => {
             it('should return rate in subunits', () => {
@@ -4820,168 +5456,6 @@ describe('PolicyUtils', () => {
             it('returns false for a team policy with areRulesEnabled explicitly false', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
             });
-        });
-    });
-
-    describe('per diem policy filters', () => {
-        const perDiemCustomUnit = {
-            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-            customUnitID: 'ABCDEF',
-            enabled: true,
-            rates: {
-                London: {
-                    customUnitRateID: 'London',
-                    name: 'London',
-                },
-            },
-        };
-
-        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-                collect: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
-        });
-
-        it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporateWithRates: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-                corporateWithoutRates: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: {
-                            ...perDiemCustomUnit,
-                            rates: {},
-                        },
-                    },
-                },
-                collectWithRates: {
-                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
-            expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
-        });
-
-        it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    // Migrated member: flag never arrived, but the configured custom unit is present
-                    arePerDiemRatesEnabled: undefined,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
-        });
-
-        it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    // Explicit off must be respected, so the lingering custom unit cannot re-enable it
-                    arePerDiemRatesEnabled: false,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
-        });
-    });
-
-    describe('sortPoliciesByName', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts policies alphabetically by name', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
-        });
-
-        it('returns empty array for empty input', () => {
-            expect(sortPoliciesByName([], localeCompare)).toEqual([]);
-        });
-
-        it('treats undefined or empty names as empty string', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
-        });
-
-        it('returns single-element array as-is', () => {
-            const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.name).toBe('Only');
-        });
-
-        it('does not sort the input array in place', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-
-            expect(result).not.toBe(policies);
         });
     });
 
@@ -5360,33 +5834,35 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
-        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
-        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
-        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
+    describe('navigation', () => {
+        describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+            const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+            const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+            const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
 
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
 
-        it('returns false and does not navigate when isEnabling is false', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
+            it('returns false and does not navigate when isEnabling is false', () => {
+                expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
 
-        it('returns false when policy is not Submit', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
+            it('returns false when policy is not Submit', () => {
+                expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
 
-        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
-            const policyID = submitPolicyForNavTest.id;
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
+                const policyID = submitPolicyForNavTest.id;
+                const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
 
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
+                expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
 
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+                expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+                expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+            });
         });
     });
 
@@ -7084,72 +7560,6 @@ describe('PolicyUtils', () => {
     });
 });
 
-describe('getDefaultChatEnabledPolicy', () => {
-    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
-    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
-
-    it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
-        // Regression: a Submit active policy must be recognized as the report-creation default. Previously
-        // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
-        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
-    });
-
-    it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
-    });
-
-    it('returns the only eligible workspace when the active policy is personal', () => {
-        expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
-    });
-
-    it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
-    });
-
-    it('returns undefined when there are no eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
-    });
-
-    it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
-    });
-
-    it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
-    });
-});
-
-describe('getDefaultChatEnabledPolicySelection', () => {
-    // createRandomPolicy randomizes these, so eligibility comes out flaky
-    const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
-    const collection = {
-        [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
-        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
-    };
-
-    it('resolves the active policy from the collection by ID', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
-            defaultChatEnabledPolicyID: corporatePolicy.id,
-            hasMultipleChatEnabledPolicies: true,
-        });
-    });
-
-    it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
-    });
-
-    it('returns the only eligible workspace and reports a single workspace', () => {
-        expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
-            defaultChatEnabledPolicyID: teamPolicy.id,
-            hasMultipleChatEnabledPolicies: false,
-        });
-    });
-});
-
 describe('getPolicyIDFromDomainName', () => {
     it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
         expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
@@ -7206,38 +7616,6 @@ describe('getPolicyForAssignedCard', () => {
         const card = {domainName: 'acme-corp.com', fundID: '88801'};
 
         expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
-    });
-});
-
-describe('getDefaultWorkspacePlanType', () => {
-    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
-    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
-
-    it.each([
-        {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
-        {
-            description: 'the collection holds Submit, Collect and Personal workspaces',
-            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
-            expected: CONST.POLICY.TYPE.TEAM,
-        },
-        {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
-        {
-            description: 'the collection holds a Control workspace mixed in with other plan types',
-            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
-            expected: CONST.POLICY.TYPE.CORPORATE,
-        },
-        {
-            description: 'the collection holds a Control workspace between empty entries',
-            policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
-            expected: CONST.POLICY.TYPE.CORPORATE,
-        },
-    ])('returns $expected when $description', ({policies, expected}) => {
-        expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
     });
 });
 
@@ -7310,22 +7688,5 @@ describe('isMemberInHomeAndOfficeWorkspace', () => {
         expect(isEligibleMember).toBe(true);
         expect(isEligibleForOtherWorkspaceMode).toBe(false);
         expect(isEligibleForUnknownMember).toBe(false);
-    });
-});
-
-describe('hasCompanyAddress', () => {
-    it('only counts a company address that has a street, the same way Auth does', () => {
-        // Given workspaces without an address, with a blank street, and with a street
-        const policy = createRandomPolicy(0);
-        const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
-        const withoutAddress: Policy = {...policy, address: undefined};
-        const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
-        const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
-
-        // When checking whether each has a company address
-        // Then only the one with a street has one, since that's when Auth counts the company address as an office
-        expect(hasCompanyAddress(withoutAddress)).toBe(false);
-        expect(hasCompanyAddress(withBlankStreet)).toBe(false);
-        expect(hasCompanyAddress(withStreet)).toBe(true);
     });
 });
