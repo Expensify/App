@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -87,8 +86,6 @@ function WorkspaceCompanyCardTableRow({
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
-    const hasErrors = !isEmptyValueObject(errors ?? {});
-
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
