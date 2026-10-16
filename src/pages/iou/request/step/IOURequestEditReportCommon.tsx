@@ -14,7 +14,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOutstandingReports from '@hooks/useOutstandingReports';
+import useOutstandingReports, {shouldListAllPolicies} from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -127,25 +127,38 @@ function IOURequestEditReportCommon({
     const [hasMoreOutstandingReports] = useOnyx(ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS);
     const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
 
-    // Matches the workspace scope of useOutstandingReports, which lists every workspace in these cases
-    const outstandingReportsPolicyID = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport) ? undefined : selectedPolicyID;
+    const outstandingReportsPolicyID = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport) ? undefined : selectedPolicyID;
     const outstandingReportsOffset = useRef(0);
+    const isLoadingMoreOutstandingReports = useRef(false);
     const loadOutstandingReports = useCallback(() => {
+        // The list is empty when the expenses have several submitters, so there is nothing to load for it
+        if (hasMultipleSubmitters) {
+            return;
+        }
         outstandingReportsOffset.current = 0;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, 0);
-    }, [resolvedReportOwnerAccountID, outstandingReportsPolicyID]);
+    }, [hasMultipleSubmitters, resolvedReportOwnerAccountID, outstandingReportsPolicyID]);
 
     useEffect(() => {
         loadOutstandingReports();
     }, [loadOutstandingReports]);
 
+    useEffect(() => {
+        if (isLoadingOutstandingReports) {
+            return;
+        }
+        isLoadingMoreOutstandingReports.current = false;
+    }, [isLoadingOutstandingReports]);
+
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
 
     const loadMoreOutstandingReports = () => {
-        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
+        // The loading flag only updates after a render, so the ref also blocks a second end-reached event fired before that
+        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isLoadingMoreOutstandingReports.current || isOffline) {
             return;
         }
+        isLoadingMoreOutstandingReports.current = true;
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
