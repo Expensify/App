@@ -16,7 +16,6 @@ jobs:
     if: |
       github.actor != 'OSBotify'
       && github.actor != 'imgbot[bot]'
-      && github.actor != 'MelvinBot'
       && github.event.pull_request.user.login != 'MelvinBot'
     steps:
       - name: Checkout
