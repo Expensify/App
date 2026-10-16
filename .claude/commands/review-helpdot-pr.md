@@ -9,6 +9,11 @@ Perform a comprehensive HelpDot documentation review using two specialized subag
 - **docs/HELP_AUTHORING_GUIDELINES.md** — Structure, headings, metadata, AI retrieval, validation
 - **docs/TEMPLATE.md** — YAML frontmatter, heading guidance, FAQ structure
 
+## Mode
+The arguments include `MODE: summary-only` or `MODE: full`.
+- `MODE: summary-only`: skip Step 1. Run only Step 2 (the summary review). Do not post any inline comments.
+- `MODE: full`, or no MODE given: run both steps.
+
 ## Step 1: Inline Review
 Use the helpdot-inline-reviewer agent to:
 - Scan all changed documentation files
@@ -21,7 +26,7 @@ Use the helpdot-summary-reviewer agent to:
 - Provide comprehensive assessment with scoring
 - Post one top-level PR comment with summary and recommendations
 
-Run both agents and ensure their feedback is posted to the PR.
+Run the steps for the given MODE and ensure their feedback is posted to the PR.
 
 <important>
 Keep feedback concise.
