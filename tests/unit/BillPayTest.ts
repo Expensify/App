@@ -54,6 +54,15 @@ describe('Bill Pay', () => {
         expect(canPayBill({...approved, isWaitingOnBankAccount: true}, policy, accountID, email)).toBe(false);
     });
 
+    it('lets the payer pay a bill again after its payment is canceled on a workspace with approvals turned off', () => {
+        // Given a bill that a canceled payment left Submitted and Closed.
+        const canceled = {...bill, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+        // Then the payer can pay it when approvals are turned off, but not when the workspace requires approval.
+        expect(canPayBill(canceled, {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}, accountID, email)).toBe(true);
+        expect(canPayBill(canceled, policy, accountID, email)).toBe(false);
+    });
+
     it.each([
         [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.REPORT.PRIMARY_ACTIONS.APPROVE],
         [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.PRIMARY_ACTIONS.PAY],
