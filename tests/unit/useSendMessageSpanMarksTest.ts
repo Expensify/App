@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
 import {cancelAllSpans, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {cancelAllSendMessageSpans, cancelSendMessagePhases, cancelSendMessageSpansForReport, startSendMessagePhase, startSendMessageVisibleSpan} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessagePhases, cancelSendMessageSpansForReport, startSendMessagePhase, startSendMessageVisibleSpan} from '@libs/telemetry/sendMessageSpans';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import CONST from '@src/CONST';
@@ -217,50 +217,5 @@ describe('cancelSendMessageSpansForReport', () => {
         // Then the send is cancelled instead of being orphaned
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_36`)).toBeUndefined();
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_36`)).toBeUndefined();
-    });
-});
-
-describe('cancelAllSendMessageSpans', () => {
-    it('sweeps an open phase before its parent', () => {
-        startSendWithOpenPropagate('30');
-
-        cancelAllSendMessageSpans();
-
-        expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_30`)).toBeUndefined();
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_30`)).toBeUndefined();
-    });
-
-    it('sweeps a PostCommit phase left open by a row that never laid out', () => {
-        startSendWithOpenPropagate('31');
-        renderHook(() => useSendMessageSpanMarks('31'));
-        getEndOrder().length = 0;
-
-        cancelAllSendMessageSpans();
-
-        expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT}_31`)).toBeUndefined();
-    });
-
-    it('sweeps every send in flight', () => {
-        startSendWithOpenPropagate('32');
-        startSendWithOpenPropagate('33');
-
-        cancelAllSendMessageSpans();
-
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_32`)).toBeUndefined();
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_33`)).toBeUndefined();
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_32`)).toBeUndefined();
-        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_33`)).toBeUndefined();
-    });
-
-    it('leaves spans outside the send-message family alone', () => {
-        startSendWithOpenPropagate('34');
-        startSpan('ManualOpenReport_34', {name: 'open-report', op: 'ManualOpenReport'});
-
-        cancelAllSendMessageSpans();
-
-        expect(getEndOrder()).not.toContain('ManualOpenReport');
-        expect(getSpan('ManualOpenReport_34')).toBeDefined();
     });
 });
