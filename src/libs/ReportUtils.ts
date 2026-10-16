@@ -6528,9 +6528,19 @@ function getReportPreviewMessageForCopy(
 function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    params: GetReportPreviewMessageBaseParams,
+    params: GetReportPreviewMessageBaseParams & {
+        linkedTransaction?: OnyxEntry<Transaction>;
+    },
 ): string {
-    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
+    const {
+        reportOrID,
+        iouReportAction = null,
+        shouldConsiderScanningReceiptOrPendingRoute = false,
+        isPreviewMessageForParentChatReport = false,
+        policy,
+        isForListPreview = false,
+        linkedTransaction: linkedTransactionParam,
+    } = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6550,7 +6560,8 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
+        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -6572,7 +6583,8 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
+        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
         if (isEmptyObject(linkedTransaction)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
@@ -6627,7 +6639,7 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -6721,7 +6733,7 @@ function getReportPreviewMessage(
     }
 
     if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
