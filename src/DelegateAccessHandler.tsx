@@ -1,10 +1,9 @@
-import usePrevious from '@hooks/usePrevious';
-
 import {useEffect, useRef} from 'react';
 
 import CONST from './CONST';
 import useIsLoadingAppRecovery from './hooks/useIsLoadingAppRecovery';
 import useOnyx from './hooks/useOnyx';
+import usePrevious from './hooks/usePrevious';
 import {disconnect, resumeSelfRemovalAsDelegate} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
