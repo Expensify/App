@@ -576,8 +576,6 @@ describe('NumericInput number pad', () => {
                     <NumericInput
                         value={val}
                         onInputChange={setVal}
-                        decimals={4}
-                        maxLength={4}
                     >
                         <NumericInput.TextInput testID={INPUT_TEST_ID} />
                     </NumericInput>
