@@ -321,6 +321,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / held
       / action
       / has
       / is

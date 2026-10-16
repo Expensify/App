@@ -10075,6 +10075,7 @@ ${reportName}`,
             posted: 'Contabilización',
             withdrawn: 'Retirada',
             billable: 'Facturable',
+            held: 'Retenido',
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             sortOrder: {

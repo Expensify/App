@@ -42,6 +42,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isOnHold,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -362,6 +363,20 @@ function TransactionItemRowWide({
                             dataSet={COPYABLE_TEXT_DATA_SET}
                         >
                             {transactionItem.billable ? translate('common.yes') : translate('common.no')}
+                        </Text>
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.HELD)]}
+                    >
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {isOnHold(transactionItem) ? translate('common.yes') : translate('common.no')}
                         </Text>
                     </View>
                 );
