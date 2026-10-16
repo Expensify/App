@@ -105,6 +105,9 @@ function useComposerSubmit(reportID: string) {
             if (conciergeThreadReportID && isInSidePanel) {
                 openSidePanel({reportID: conciergeThreadReportID});
             }
+            if (shouldRespondInThread && !willOpenThread && !isInSidePanel) {
+                setShowFullHistory(true);
+            }
             attachmentFileRef.current = null;
             return;
         }
