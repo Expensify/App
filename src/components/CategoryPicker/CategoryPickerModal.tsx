@@ -114,16 +114,17 @@ function CategoryPickerModal({
     // is drawn on the page behind the sheet, so no room is kept for it.
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
     const bottomSheetHeight = getBottomSheetHeight({
-        // A phone in landscape is too short for the dropdown cap, so there the sheet grows with the window instead.
-        preferredHeight: isInLandscapeMode ? windowHeight : popoverHeight,
-        maxHeight: isInLandscapeMode ? windowHeight : undefined,
+        preferredHeight: popoverHeight,
         windowHeight,
         keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
         topSafeAreaInset: safeAreaTop,
         minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
+        // A phone in landscape is too short for a sheet over the form, so there the sheet fills the screen instead.
+        shouldFillWindow: isInLandscapeMode,
     });
-    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
-    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
+    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave. In landscape
+    // the sheet fills the screen whatever the list's length.
+    const fittedSheetHeight = shouldFitContentHeight && !isInLandscapeMode ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
     const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};

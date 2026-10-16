@@ -4,7 +4,7 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 
 import type * as Browser from '@libs/Browser';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
@@ -157,29 +157,30 @@ describe('CategoryPickerModal', () => {
         expect(mockPopoverProps?.avoidKeyboard).toBe(true);
     });
 
-    it('lets the sheet grow with the window on a phone in landscape instead of handing over to a page', () => {
-        // Given a phone turned to landscape, where the dropdown cap and the modal's own landscape cap would clip the list
+    it('fills the screen with the sheet on a phone in landscape instead of handing over to a page', () => {
+        // Given a phone turned to landscape, where a sheet over the form would leave too little room to scroll the list
         mockIsInLandscapeMode = true;
-        const minHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false});
-        const windowHeightSheet = getBottomSheetHeight({
-            preferredHeight: mockWindowHeight,
-            maxHeight: mockWindowHeight,
-            windowHeight: mockWindowHeight,
-            keyboardHeight: 0,
-            topSafeAreaInset: 0,
-            minHeight,
-        });
-        const cappedSheet = getBottomSheetHeight({preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight: mockWindowHeight, keyboardHeight: 0, topSafeAreaInset: 0, minHeight});
 
         // When the list opens, or is already open as the phone turns
         renderSheet();
 
-        // Then the sheet stays up and takes the window's height rather than the dropdown cap, and the modal neither caps nor wraps it,
-        // so the list scrolls all the way down on its own
-        expect(mockPopoverProps?.popoverDimensions?.height).toBe(windowHeightSheet);
-        expect(windowHeightSheet).toBeGreaterThan(cappedSheet);
+        // Then the sheet stays up and fills the window up to the status bar, which the test harness reports as zero, less the
+        // sheet's own top padding, and the modal neither caps nor wraps it, so the list scrolls all the way down on its own
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
         expect(mockPopoverProps?.shouldLimitHeightIfBottomDockedInLandscapeMode).toBe(false);
         expect(mockPopoverProps?.shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode).toBe(false);
+    });
+
+    it('fits the full-screen sheet above the keyboard on a phone in landscape', () => {
+        // Given a phone in landscape with the keyboard open, e.g. while searching the list
+        mockIsInLandscapeMode = true;
+        mockKeyboardHeight = 200;
+
+        // When the list opens
+        renderSheet();
+
+        // Then the sheet fills only the room between the keyboard and the status bar, so the search input and the rows stay visible
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - mockKeyboardHeight - BOTTOM_SHEET_TOP_PADDING);
     });
 
     describe('with a short list', () => {
@@ -193,6 +194,18 @@ describe('CategoryPickerModal', () => {
 
         afterEach(async () => {
             await Onyx.clear();
+        });
+
+        it('still fills the screen on a phone in landscape', async () => {
+            // Given a phone in landscape and a workspace with a single category, whose sheet would otherwise fit that one row
+            mockIsInLandscapeMode = true;
+
+            // When the expense form's category list opens
+            renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the sheet fills the screen anyway, so turning the phone never leaves a sliver of a sheet over the form
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
         });
 
         it('fits the bottom sheet to the list instead of opening at the window height', async () => {
