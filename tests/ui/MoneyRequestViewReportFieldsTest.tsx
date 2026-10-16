@@ -291,8 +291,8 @@ describe('MoneyRequestViewReportFields', () => {
         });
     });
 
-    it('does not save and restores the saved value when a field is cleared', async () => {
-        // Given a report with 2 fields that already hold values
+    it('saves an empty value when a text field is cleared', async () => {
+        // Given a report with 2 text fields that already hold values
         await renderReportFields(2);
 
         // When the first field is emptied and left
@@ -301,12 +301,30 @@ describe('MoneyRequestViewReportFields', () => {
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
-        // Then nothing is saved, the same as on the report field editor page, because a cleared field would post a
-        // `set Field1 to ""` system message
-        expect(updateReportField).not.toHaveBeenCalled();
+        // Then the empty value is saved, because OldDot lets a text field be cleared and the report history then shows
+        // `removed Field1 (previously "Value1")`
+        expect(updateReportField).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
+            reportField: {fieldID: 'field1', value: ''},
+            previousReportField: {fieldID: 'field1', value: 'Value1'},
+        });
+    });
 
-        // Then the field shows its saved value again, so it does not look empty while the report still holds a value
-        expect(screen.getByLabelText('Field1')).toHaveProp('value', 'Value1');
+    it('saves an empty value rather than whitespace when a text field is left holding only spaces', async () => {
+        // Given a report with 2 text fields that already hold values
+        await renderReportFields(2);
+
+        // When the first field is replaced with spaces and left
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, '   ');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then an empty value is saved, so the report never stores a value that looks empty but is not
+        expect(updateReportField).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
+            reportField: {fieldID: 'field1', value: ''},
+        });
     });
 
     it('does not save when the option a list field already holds is picked again', async () => {

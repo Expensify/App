@@ -38,9 +38,9 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
             return;
         }
 
-        // An empty value is discarded rather than saved. A report always has a name, and the field change system
-        // message has no wording for a cleared field, so saving one would show `set <field> to ""`.
-        if (value === '') {
+        // Only a text field can be cleared, the same as on OldDot. A report always has a name, so the title can never be
+        // empty, and the other field types have no way to enter an empty value.
+        if (value === '' && (isReportFieldOfTypeTitle(reportField) || reportField.type !== CONST.REPORT_FIELD_TYPES.TEXT)) {
             return;
         }
 

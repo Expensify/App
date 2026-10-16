@@ -100,11 +100,16 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const isReadOnly = isDisabled || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
 
     const saveDraftValue = () => {
-        const valueToSave = StringUtils.lineBreaksToSpaces(draftValue);
-        const trimmedValue = valueToSave.trim();
+        const draftWithoutLineBreaks = StringUtils.lineBreaksToSpaces(draftValue);
+        const trimmedValue = draftWithoutLineBreaks.trim();
 
-        // A cleared field is not saved, the same as on the report field editor page, so it goes back to its saved value.
-        if (trimmedValue === lastSavedValue.trim() || trimmedValue === '') {
+        // Whitespace alone is saved as an empty value, so clearing a field never stores the spaces left behind.
+        const valueToSave = trimmedValue === '' ? '' : draftWithoutLineBreaks;
+
+        // Only a text field can be cleared, the same as on OldDot, so any other field goes back to its saved value.
+        const isClearingNotAllowed = trimmedValue === '' && reportField.type !== CONST.REPORT_FIELD_TYPES.TEXT;
+
+        if (trimmedValue === lastSavedValue.trim() || isClearingNotAllowed) {
             setValidationError('');
             // Nothing is sent, so the saved value never changes and the resync above that follows it never runs.
             // Without this the field would keep displaying the whitespace the user left behind until it remounted,
