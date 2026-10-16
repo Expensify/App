@@ -60,7 +60,8 @@ function useNativeTabNavigator() {
     // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
-    const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
+    // Read from the partial cold-start state too (no index = first tab, as in TabRouter), so a restored non-root screen doesn't flash the bar.
+    const activeTabRoute = tabState?.routes.at(tabState.index ?? 0);
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
