@@ -1,6 +1,3 @@
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 import {createRequire as __createRequire} from 'module'; const require = __createRequire(import.meta.url);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
