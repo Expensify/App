@@ -79,7 +79,8 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string)
 
 /**
  * Requests travel access and resolves whether the account can enable travel straight away. When it can't, the server
- * opens a guide review, so the request time is recorded to show the review is pending.
+ * opens a guide review, so the request time is recorded to show the review is pending. When it can, any pending request
+ * time is cleared so the account is no longer shown as under review.
  */
 function requestTravelAccess(): Promise<boolean> {
     // We need the response to know whether to send the user to enable travel or show that their request is under review
@@ -89,6 +90,7 @@ function requestTravelAccess(): Promise<boolean> {
             return false;
         }
         if (response.canSkipVerification) {
+            Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: null});
             return true;
         }
         Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: Date.now().toString()});

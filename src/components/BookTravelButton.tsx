@@ -30,7 +30,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ReactElement} from 'react';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -70,6 +70,7 @@ function BookTravelButton({
     const policy = usePolicy(activePolicyID);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
+    const isRequestingTravelAccess = useRef(false);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const primaryContactMethod = usePrimaryContactMethod();
     const {isBetaEnabled} = usePermissions();
@@ -100,20 +101,25 @@ function BookTravelButton({
     };
 
     const completeTravelAccessRequest = () => {
-        if (travelSettings?.lastTravelSignupRequestTime) {
-            showVerifyCompanyModal();
+        if (isRequestingTravelAccess.current) {
             return;
         }
+        isRequestingTravelAccess.current = true;
 
         // Low-risk and travel-risk-approved accounts can skip the guide review and enable travel straight away
-        requestTravelAccess().then((canSkipVerification) => {
-            if (!canSkipVerification) {
-                showVerifyCompanyModal();
-                return;
-            }
-            cleanupTravelProvisioningSession();
-            Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
-        });
+        requestTravelAccess()
+            .then((canSkipVerification) => {
+                if (!canSkipVerification) {
+                    showVerifyCompanyModal();
+                    return;
+                }
+                cleanupTravelProvisioningSession();
+                Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
+            })
+            .catch(() => setErrorMessage(translate('common.genericErrorMessage')))
+            .finally(() => {
+                isRequestingTravelAccess.current = false;
+            });
     };
 
     const navigateToPublicDomainError = () => {

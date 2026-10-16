@@ -239,6 +239,23 @@ describe('BookTravelButton', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
+        it('shows an error instead of the verify-company modal when the request fails', async () => {
+            // Given an unprovisioned workspace and a validated admin whose request cannot reach the server
+            jest.mocked(requestTravelAccess).mockRejectedValueOnce(new Error('Failed to fetch'));
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they see the generic error and are neither told their request is under review nor sent to enable travel
+            expect(screen.getByText(/something went wrong/)).toBeTruthy();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         it('routes an unvalidated admin to verify their account, then resumes the request and shows the verify-company modal', async () => {
             // Given an unprovisioned workspace and an admin who has not validated their account
             await seedOnyx(false, unprovisionedPolicy);
