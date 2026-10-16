@@ -136,7 +136,7 @@ describe('biometrics operations (native)', () => {
 
         it('should return true when the first keystore read throws and the retry finds the server-known key', async () => {
             mockGetAllKeys
-                .mockRejectedValueOnce(Object.assign(new Error('Keystore unavailable'), {code: 'KEY_ACCESS_FAILED'}))
+                .mockRejectedValueOnce(Object.assign(new Error('Keystore unavailable'), {code: 'GET_ALL_KEYS_ERROR'}))
                 .mockResolvedValueOnce({keys: [{publicKey: LOCAL_PUBLIC_KEY_BASE64}]});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_CREDENTIAL_ID]});
 
@@ -249,10 +249,9 @@ describe('biometrics operations (native)', () => {
 
         // A read that fails twice is no longer treated as transient, so its reason reaches the actor,
         // which deletes the key and lets the machine recover.
-        it('reports the second read error when the keystore cannot be read after the retry', async () => {
-            mockGetAllKeys
-                .mockRejectedValueOnce(Object.assign(new Error('Keystore busy'), {code: 'UNKNOWN_LIBRARY_CODE'}))
-                .mockRejectedValueOnce(Object.assign(new Error('Keystore unavailable'), {code: 'KEY_ACCESS_FAILED'}));
+        // The codes the installed library actually rejects getAllKeys with: Android, then iOS.
+        it.each(['GET_ALL_KEYS_ERROR', 'KEYCHAIN_QUERY_FAILED', 'UNKNOWN_ERROR'])('reports KEY_ACCESS_FAILED when the keystore read rejects with %s after the retry', async (code) => {
+            mockGetAllKeys.mockRejectedValue(Object.assign(new Error('Keystore unavailable'), {code}));
 
             const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
 
@@ -269,7 +268,7 @@ describe('biometrics operations (native)', () => {
 
         it('signs when the first keystore read throws and the retry finds the key', async () => {
             mockGetAllKeys
-                .mockRejectedValueOnce(Object.assign(new Error('Keystore unavailable'), {code: 'KEY_ACCESS_FAILED'}))
+                .mockRejectedValueOnce(Object.assign(new Error('Keystore unavailable'), {code: 'GET_ALL_KEYS_ERROR'}))
                 .mockResolvedValueOnce({keys: [{publicKey: LOCAL_PUBLIC_KEY_BASE64}]});
 
             const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});

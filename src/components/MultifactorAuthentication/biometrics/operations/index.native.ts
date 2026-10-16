@@ -78,7 +78,7 @@ async function readLocalCredential(accountID: number): Promise<LocalCredentialLo
         if (readError.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND) {
             return {status: 'absent'};
         }
-        return {status: 'readFailed', error: readError};
+        return {status: 'readFailed', error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, readError.message)};
     }
 }
 
