@@ -73,6 +73,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
@@ -83,6 +84,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         : getCategoryContextualRules({
               policy,
               policyCategories,
+              policyRules: rules,
               category: policyCategory,
               categoryName: policyCategory.name,
               translate,

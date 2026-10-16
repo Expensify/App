@@ -4,7 +4,7 @@ import RuleTaxesDisabledEmptyState from '@components/Rule/RuleTaxesDisabledEmpty
 import useOnyx from '@hooks/useOnyx';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {hasUsableTaxRates, isCategoryRuleDraft, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
+import {hasUsableTaxRates, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -37,14 +37,12 @@ function AddTaxPage({route}: AddTaxPageProps) {
     // showing an empty picker.
     const areTaxesEnabled = hasUsableTaxRates(policy);
 
-    const isCategoryRule = isCategoryRuleDraft(form, categoryName);
-
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
         // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled,
         // or become the workspace default, after a rule chose it, and dropping it here left the picker with nothing
         // marked selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
-        .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(policy, taxKey, tax, isCategoryRule))
+        .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(tax))
         .map(([taxKey, tax]) => ({
             name: `${tax.name} (${tax.value})`,
             value: taxKey,
@@ -68,10 +66,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
                     items={taxItems}
                     onSave={onSave}
                     backToRoute={backToRoute}
-                    // A category rule exists to set a rate, so it has no "leave the tax alone" state to offer. Reading
-                    // "None" as the current value is wrong too: without a rule the category falls back to the
-                    // workspace default rate, which this list deliberately leaves out.
-                    allowNoneOption={!isCategoryRule}
+                    allowNoneOption
                 />
             ) : (
                 <RuleTaxesDisabledEmptyState policyID={policyID} />

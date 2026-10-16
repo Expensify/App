@@ -9,10 +9,13 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import {getCategoryTaxRuleTaxID, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import {getCategoryTaxDefaultID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getTaxByID} from './PolicyUtils';
 import {
@@ -59,6 +62,7 @@ function getFlagForReviewContextualSummary(
 function getCategoryContextualRules({
     policy,
     policyCategories,
+    policyRules,
     category,
     categoryName,
     translate,
@@ -68,6 +72,8 @@ function getCategoryContextualRules({
     policy: Policy | undefined;
     /** Read for the pending delete of the category a tax default depends on. */
     policyCategories: PolicyCategories | undefined;
+    /** Holds the rule that acts as this category's tax default. */
+    policyRules?: OnyxCollection<Rule>;
     category: PolicyCategory | undefined;
     categoryName: string;
     translate: LocaleContextProps['translate'];
@@ -115,9 +121,9 @@ function getCategoryContextualRules({
         }
     }
 
-    // A tax default lives in `policy.rules.expenseRules` rather than on the category, and carries no pending state of
-    // its own, so it follows the Expense defaults table and borrows the delete of the category or rate it depends on.
-    const taxID = getCategoryTaxRuleTaxID(policy.rules?.expenseRules, categoryName);
+    // A tax default is an ordinary rule matching on this category alone, so it is looked up rather than read off
+    // the category. It borrows the delete of the category or rate it depends on, the way the table does.
+    const taxID = getCategoryTaxDefaultID(policyRules, policy.id, categoryName);
     if (taxID) {
         const taxPendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
         const isTaxPendingDelete = taxPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;

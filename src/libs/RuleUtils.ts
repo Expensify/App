@@ -44,14 +44,11 @@ function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule
 }
 
 /**
- * An expense default rule fires on transaction creation, matches on a merchant, and sets at least one field.
+ * An expense default rule fires on transaction creation, matches on at least one condition, and sets at least one field.
  *
  * This mirrors the rules engine's own definition. It is a heuristic over triggers, filters and action names rather
  * than a full check of every action's shape, so callers that go on to read the values still validate them field by
  * field.
- *
- * The merchant condition is what keeps category rules out. They are moving into the same collection, and a client
- * that has no way to edit them must not list them either.
  */
 function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDefaultRule {
     if (!rule) {
@@ -63,9 +60,9 @@ function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDef
     const actions = fromIndexMap(actionsByIndex);
     const hasCreateTransactionTrigger = getRuleTriggers(rule).some((trigger) => trigger === CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
     const hasSetAction = actions.some((action) => action?.name === CONST.RULES.ACTIONS.SET);
-    const hasMerchantFilter = getRuleFilterLeaves(rule.filters).some((leaf) => leaf.left === CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT);
+    const hasCondition = getRuleFilterLeaves(rule.filters).length > 0;
 
-    return hasCreateTransactionTrigger && hasMerchantFilter && hasSetAction;
+    return hasCreateTransactionTrigger && hasCondition && hasSetAction;
 }
 
 /** Whether an unknown value read off a rule is shaped like a node of its filter tree. */
