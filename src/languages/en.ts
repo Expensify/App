@@ -1311,6 +1311,11 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
         },
         emptyState: {
             title: 'Nothing to show',

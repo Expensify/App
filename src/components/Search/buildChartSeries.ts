@@ -1,6 +1,7 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts';
 import getPrimaryValue from '@components/Charts/utils/getPrimaryValue';
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
@@ -10,22 +11,30 @@ import CONST from '@src/CONST';
 
 import type {NonEmptyTuple} from 'type-fest';
 
-import type {ChartView, GroupedItem, SearchChartDataRow} from './types';
+import type {ChartComparisonPeriods, ChartPeriod} from './comparisonBuckets';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
+
+import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import {getComparedBucketLabels, getCounterpartBucketRange} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
     COMPARISON: 'comparison',
 } as const;
 
-/** A second series drawn against the primary one */
+/** Rows drawn as a second series against the primary one */
 type ChartComparison = {
-    /** The compared rows, each paired with the plotted group stored under the same key */
+    /** The compared rows, paired with the chart's own rows by key, or by position in their period when `periods` is set */
     data: GroupedItem[];
 
-    /** Names the series in the tooltip, like "Average" */
-    label: string;
+    /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
+    label?: string;
 
+    /** Color of the compared line */
     color: string;
+
+    /** Set when the rows are another period's */
+    periods?: ChartComparisonPeriods;
 };
 
 type BuildChartSeriesParams = {
@@ -34,6 +43,9 @@ type BuildChartSeriesParams = {
 
     /** Rows the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
+
+    /** Decides how the groups of the two periods pair up */
+    groupBy: SearchGroupBy;
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
@@ -46,6 +58,12 @@ type BuildChartSeriesParams = {
 
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
+
+    /** Formats labels shared by paired time buckets */
+    translate: LocaleContextProps['translate'];
+
+    /** Locale the names of compared periods are formatted in */
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
 
     /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
@@ -76,28 +94,70 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /** This is the single place group totals are turned into plotted values. */
-function buildChartSeries({data, comparison, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel}: BuildChartSeriesParams): SearchChartModel {
+function buildChartSeries({
+    data,
+    comparison,
+    groupBy,
+    view,
+    getLabel,
+    getShortLabel,
+    getCurrencyDecimals,
+    translate,
+    dateFnsLocale,
+    getInProgressLabel,
+}: BuildChartSeriesParams): SearchChartModel {
+    const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    const periods = bucketUnit && getBucketRange ? comparison?.periods : undefined;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
-    const comparedByKey = new Map(comparison?.data.map((item) => [item.keyForList, item]));
+    // A search returns only the buckets holding expenses, so another period's bucket is looked up by its start date.
+    const comparedByKey = new Map(comparison?.data.map((item) => [periods && getBucketRange ? getBucketRange(item).start : item.keyForList, item]));
+
     const rows = data.map((item) => {
         const label = StringUtils.normalize(getLabel(item));
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
-        const comparedItem = comparedByKey.get(item.keyForList);
         const point: ChartDataPoint = {
             label,
             shortLabel,
-            values: {
-                [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
-                ...(comparedItem && {[CHART_SERIES_KEY.COMPARISON]: getAmount(comparedItem)}),
-            },
+            values: {[CHART_SERIES_KEY.PRIMARY]: getAmount(item)},
             percentOfTotal: item.percentOfTotal,
             count: item.count,
         };
+
+        if (periods && bucketUnit && getBucketRange) {
+            const bucketRange = getBucketRange(item);
+            const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
+            const bucketLabels = getComparedBucketLabels(bucketRange, counterpartRange, periods, bucketUnit, translate, dateFnsLocale);
+            point.label = bucketLabels.label;
+            point.shortLabel = bucketLabels.shortLabel;
+            point.seriesLabels = {[CHART_SERIES_KEY.PRIMARY]: bucketLabels.seriesLabels.primary};
+            point.seriesPercentOfTotal = {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal};
+
+            // A bucket with no counterpart plots nothing for the comparison, unlike one with no expenses, which plots 0.
+            if (counterpartRange) {
+                const comparedItem = comparedByKey.get(counterpartRange.start);
+                point.values[CHART_SERIES_KEY.COMPARISON] = comparedItem ? getAmount(comparedItem) : 0;
+                point.seriesLabels[CHART_SERIES_KEY.COMPARISON] = bucketLabels.seriesLabels.comparison;
+                point.seriesPercentOfTotal[CHART_SERIES_KEY.COMPARISON] = comparedItem?.percentOfTotal;
+            }
+        } else if (comparison) {
+            const comparedItem = comparedByKey.get(item.keyForList);
+            point.seriesPercentOfTotal = {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal};
+            if (comparedItem) {
+                point.values[CHART_SERIES_KEY.COMPARISON] = getAmount(comparedItem);
+                point.seriesPercentOfTotal[CHART_SERIES_KEY.COMPARISON] = comparedItem.percentOfTotal;
+            }
+        }
+
         if (inProgressLabel !== undefined) {
-            point.label = inProgressLabel;
-            point.shortLabel = shortLabel ?? label;
             point.isInProgress = true;
+            const primaryDates = point.seriesLabels?.[CHART_SERIES_KEY.PRIMARY];
+            if (point.seriesLabels && primaryDates) {
+                point.seriesLabels[CHART_SERIES_KEY.PRIMARY] = translate('search.periodSoFar', {period: primaryDates});
+            } else {
+                point.label = inProgressLabel;
+                point.shortLabel = shortLabel ?? label;
+            }
         }
 
         return {point, item};
@@ -121,4 +181,4 @@ function buildChartSeries({data, comparison, view, getLabel, getShortLabel, getC
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {ChartComparison, SearchChartModel};
+export type {ChartComparison, ChartComparisonPeriods, ChartPeriod, SearchChartModel};

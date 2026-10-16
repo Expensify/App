@@ -1181,7 +1181,16 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
-        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
+        compare: {
+            label: 'Comparer',
+            previousPeriod: 'Période précédente',
+            average: 'Moyenne',
+            dayLabel: (day?: number) => (day === undefined ? 'Jour' : `Jour ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semaine' : `Semaine ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mois' : `Mois ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

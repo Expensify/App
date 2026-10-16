@@ -16,15 +16,42 @@ const COMPARED_SERIES: NonEmptyTuple<ChartSeries> = [
 describe('formatTooltipComparison', () => {
     it('gives each compared series a row in its color, named by the series', () => {
         // Given April's spend, with its share of the period's spend, plotted against the average
-        const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100}, percentOfTotal: 34.2};
+        const point: ChartDataPoint = {
+            label: 'April',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2},
+        };
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then each series gets a row whose dot matches its line, and only April's own amount carries its share
+        // Then each series gets a row whose dot matches its line, and only April's own amount carries a share, since the average has none
         expect(comparison?.rows).toEqual([
             {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: '34.2%'},
             {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average', amount: '$100', percentage: undefined},
+        ]);
+    });
+
+    it("names each period's row by its dates and gives it its own period's share", () => {
+        // Given April plotted for two years, each with its share of that year's spend
+        const point: ChartDataPoint = {
+            label: 'April',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesLabels: {[CHART_SERIES_KEY.PRIMARY]: '2026', [CHART_SERIES_KEY.COMPARISON]: '2025'},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2, [CHART_SERIES_KEY.COMPARISON]: 16.1},
+        };
+        const series: NonEmptyTuple<ChartSeries> = [
+            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400},
+            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200},
+        ];
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, series, formatAmount, 'en');
+
+        // Then each year gets a row named by its year, since a previous period has no single name, and each carries its own year's share
+        expect(comparison?.rows).toEqual([
+            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: '2026', amount: '$300', percentage: '34.2%'},
+            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: '2025', amount: '$100', percentage: '16.1%'},
         ]);
     });
 
@@ -39,15 +66,15 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toBeUndefined();
     });
 
-    it('leaves the tooltip as it is when the compared series has nothing at the point', () => {
+    it('drops the row of a compared series that has nothing at the point', () => {
         // Given April's spend, compared against an average that has no value for April
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};
 
-        // When the tooltip for that point is built
+        // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then there is no comparison, so the tooltip shows April's amount and expense count rather than one unlabeled row
-        expect(comparison).toBeUndefined();
+        // Then only April's amount is listed, under the April title, with no change to show
+        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: undefined}], change: undefined});
     });
 
     it('shows how much the primary series grew against the compared one', () => {
@@ -70,5 +97,16 @@ describe('formatTooltipComparison', () => {
 
         // Then the change is the unsigned difference, marked as a decrease
         expect(comparison?.change).toEqual({amount: '$50', percentage: '50%', isIncrease: false});
+    });
+
+    it('shows spend that is new against nothing as an infinite increase', () => {
+        // Given April spend for a group with no spend in the compared period
+        const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 0}};
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then the change has no finite share of nothing, so it reads as an infinite increase
+        expect(comparison?.change).toEqual({amount: '$300', percentage: '∞%', isIncrease: true});
     });
 });

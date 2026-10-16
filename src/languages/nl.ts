@@ -1176,7 +1176,16 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Bekijken in Uitgaven',
         emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
         noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
-        compare: {label: 'Vergelijken', previousPeriod: 'Vorige periode', average: 'Gemiddeld'},
+        compare: {
+            label: 'Vergelijken',
+            previousPeriod: 'Vorige periode',
+            average: 'Gemiddeld',
+            dayLabel: (day?: number) => (day === undefined ? 'Dag' : `Dag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Maand' : `Maand ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartaal' : `Kwartaal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jaar' : `Jaar ${year}`),
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

@@ -14,12 +14,12 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
-    /** Names the series, like "Average" */
+    /** Names the series, like "Average", or the dates its amount covers */
     label?: string;
 
     amount: string;
 
-    /** The amount's share of total spend */
+    /** The amount's share of its own period's total spend */
     percentage?: string;
 };
 
@@ -28,8 +28,8 @@ type TooltipChange = {
     /** The difference, without its sign */
     amount: string;
 
-    /** The difference relative to the compared amount, absent when that amount is zero */
-    percentage?: string;
+    /** The difference relative to the compared amount */
+    percentage: string;
 
     isIncrease: boolean;
 };
@@ -41,6 +41,12 @@ type TooltipComparison = {
     change?: TooltipChange;
 };
 
+/** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
+function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
+    const difference = primaryValue - comparedValue;
+    return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
+}
+
 /** Formats how much the primary value rose or fell against the compared one. */
 function formatChange(primaryValue: number, comparedValue: number, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
     if (primaryValue === comparedValue) {
@@ -50,7 +56,7 @@ function formatChange(primaryValue: number, comparedValue: number, formatAmount:
     const difference = primaryValue - comparedValue;
     return {
         amount: formatAmount(Math.abs(difference)),
-        percentage: comparedValue === 0 ? undefined : formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale),
+        percentage: formatChangePercentage(primaryValue, comparedValue, locale),
         isIncrease: difference > 0,
     };
 }
@@ -65,7 +71,7 @@ function formatTooltipComparison(
     const [{key: primarySeriesKey}, comparedSeries] = series;
     const primaryValue = dataPoint.values[primarySeriesKey];
     const comparedValue = comparedSeries && dataPoint.values[comparedSeries.key];
-    if (primaryValue === undefined || comparedValue === undefined) {
+    if (primaryValue === undefined || !comparedSeries) {
         return undefined;
     }
 
@@ -74,17 +80,17 @@ function formatTooltipComparison(
         if (value === undefined) {
             return [];
         }
-        const isPrimary = key === primarySeriesKey;
+        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color,
-            label,
+            label: dataPoint.seriesLabels?.[key] ?? label,
             amount: formatAmount(value),
-            percentage: isPrimary && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, locale) : undefined,
+            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
         };
     });
 
-    return {rows, change: formatChange(primaryValue, comparedValue, formatAmount, locale)};
+    return {rows, change: comparedValue === undefined ? undefined : formatChange(primaryValue, comparedValue, formatAmount, locale)};
 }
 
 export default formatTooltipComparison;
