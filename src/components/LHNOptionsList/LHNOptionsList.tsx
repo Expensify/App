@@ -2,10 +2,7 @@ import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/us
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,7 +11,6 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
@@ -40,11 +36,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const reportAttributes = useReportAttributes();
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useAllPersonalDetails();
-
     const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -72,31 +63,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (!item) {
                 return null;
             }
-            const reportID = item.reportID;
-            const itemReportAttributes = reportAttributes?.[reportID];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
-
-            let invoiceReceiverPolicyID = '-1';
-            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
-                invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
-            }
-            if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
-                invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
-            }
-            const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-
             return (
                 <OptionRowLHNData
-                    reportID={reportID}
+                    reportID={item.reportID}
                     fullReport={item}
-                    reportAttributes={itemReportAttributes}
-                    reportAttributesDerived={reportAttributes}
-                    oneTransactionThreadReport={itemOneTransactionThreadReport}
-                    policy={itemPolicy}
-                    invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
-                    personalDetails={personalDetails ?? {}}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
@@ -105,13 +75,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 />
             );
         },
-        [reportAttributes, reports, policy, personalDetails, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
+        [optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
     );
 
-    const extraData = useMemo(
-        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-    );
+    const extraData = useMemo(() => [data.length, optionMode, isOffline], [data.length, optionMode, isOffline]);
 
     const previousOptionMode = usePrevious(optionMode);
 

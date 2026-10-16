@@ -1,7 +1,6 @@
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {Report} from '@src/types/onyx';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
@@ -35,14 +34,7 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
-    personalDetails?: PersonalDetailsList;
     fullReport: OnyxEntry<Report>;
-    oneTransactionThreadReport: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy?: OnyxEntry<Policy>;
-
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportID: string;
 
     /** Toggle between compact and default view */
@@ -53,9 +45,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    reportAttributes: OnyxEntry<ReportAttributes>;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** TestID of the row, indicating order */
     testID: number;
