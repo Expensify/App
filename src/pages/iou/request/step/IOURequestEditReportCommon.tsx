@@ -136,6 +136,7 @@ function IOURequestEditReportCommon({
             return;
         }
         outstandingReportsOffset.current = 0;
+        isLoadingMoreOutstandingReports.current = false;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, 0);
     }, [hasMultipleSubmitters, resolvedReportOwnerAccountID, outstandingReportsPolicyID]);
 
