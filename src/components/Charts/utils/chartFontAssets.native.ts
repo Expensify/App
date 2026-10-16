@@ -1,22 +1,20 @@
+import CUSTOM_EMOJI_FONT from '@assets/fonts/native/CustomEmojiNativeFont.ttf';
+import EXPENSIFY_MONO_BOLD from '@assets/fonts/native/ExpensifyMono-Bold.otf';
+import EXPENSIFY_MONO_BOLD_ITALIC from '@assets/fonts/native/ExpensifyMono-BoldItalic.otf';
+import EXPENSIFY_MONO_ITALIC from '@assets/fonts/native/ExpensifyMono-Italic.otf';
+import EXPENSIFY_MONO_REGULAR from '@assets/fonts/native/ExpensifyMono-Regular.otf';
+import EXPENSIFY_NEUE_BOLD from '@assets/fonts/native/ExpensifyNeue-Bold.otf';
+import EXPENSIFY_NEUE_BOLD_ITALIC from '@assets/fonts/native/ExpensifyNeue-BoldItalic.otf';
+import EXPENSIFY_NEUE_ITALIC from '@assets/fonts/native/ExpensifyNeue-Italic.otf';
+import EXPENSIFY_NEUE_REGULAR from '@assets/fonts/native/ExpensifyNeue-Regular.otf';
+import EXPENSIFY_NEW_KANSAS_MEDIUM from '@assets/fonts/native/ExpensifyNewKansas-Medium.otf';
+import EXPENSIFY_NEW_KANSAS_MEDIUM_ITALIC from '@assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf';
+import SANS_SYMBOLS_FONT from '@assets/fonts/NotoSans-Symbols.ttf';
+import SANS_SC_MONTHS_FONT from '@assets/fonts/NotoSansSC-Months.ttf';
+
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
-import type {DataModule} from '@shopify/react-native-skia';
-
-const EXPENSIFY_MONO_REGULAR = require('@assets/fonts/native/ExpensifyMono-Regular.otf') as DataModule;
-const EXPENSIFY_MONO_BOLD = require('@assets/fonts/native/ExpensifyMono-Bold.otf') as DataModule;
-const EXPENSIFY_MONO_ITALIC = require('@assets/fonts/native/ExpensifyMono-Italic.otf') as DataModule;
-const EXPENSIFY_MONO_BOLD_ITALIC = require('@assets/fonts/native/ExpensifyMono-BoldItalic.otf') as DataModule;
-const EXPENSIFY_NEUE_REGULAR = require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule;
-const EXPENSIFY_NEUE_BOLD = require('@assets/fonts/native/ExpensifyNeue-Bold.otf') as DataModule;
-const EXPENSIFY_NEUE_ITALIC = require('@assets/fonts/native/ExpensifyNeue-Italic.otf') as DataModule;
-const EXPENSIFY_NEUE_BOLD_ITALIC = require('@assets/fonts/native/ExpensifyNeue-BoldItalic.otf') as DataModule;
-const EXPENSIFY_NEW_KANSAS_MEDIUM = require('@assets/fonts/native/ExpensifyNewKansas-Medium.otf') as DataModule;
-const EXPENSIFY_NEW_KANSAS_MEDIUM_ITALIC = require('@assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf') as DataModule;
-const CUSTOM_EMOJI_FONT = require('@assets/fonts/native/CustomEmojiNativeFont.ttf') as DataModule;
-const SANS_SYMBOLS_FONT = require('@assets/fonts/NotoSans-Symbols.ttf') as DataModule;
-const SANS_SC_MONTHS_FONT = require('@assets/fonts/NotoSansSC-Months.ttf') as DataModule;
-
-const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule> = {
+const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, number | string> = {
     MONOSPACE: EXPENSIFY_MONO_REGULAR,
     MONOSPACE_BOLD: EXPENSIFY_MONO_BOLD,
     MONOSPACE_ITALIC: EXPENSIFY_MONO_ITALIC,

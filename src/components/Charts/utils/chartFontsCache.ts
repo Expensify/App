@@ -3,6 +3,8 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 
 import Log from '@libs/Log';
 
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
 
 import {Skia} from '@shopify/react-native-skia';
@@ -15,7 +17,7 @@ import loadChartTypefacesFromAssets from './loadChartTypefacesFromAssets';
 import logChartFontLoadError from './logChartFontLoadError';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
-    typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
+    typefaces: ObjectUtils.typedFromEntries<ChartSkiaTypefaceKey, SkTypeface | null>(ObjectUtils.typedKeys(CHART_SKIA_TYPEFACE_ASSETS).map((key) => [key, null])),
     fontManager: null,
 };
 
