@@ -6,9 +6,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy, PolicyCategories, Rule} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Rule} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
@@ -17,7 +17,7 @@ import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTax
 import {getDecodedCategoryName} from './CategoryUtils';
 import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy, isXeroActiveMatchingSource} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -102,6 +102,7 @@ function getMerchantRulesTableData({
     policy,
     policyID,
     rules,
+    policyTags,
     translate,
     isOffline,
     onNavigate,
@@ -109,6 +110,7 @@ function getMerchantRulesTableData({
     policy: Policy | undefined;
     policyID: string;
     rules: OnyxCollection<Rule> | undefined;
+    policyTags?: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
@@ -143,7 +145,11 @@ function getMerchantRulesTableData({
                 return secondCreated < firstCreated ? -1 : 1;
             })
             .map(({ruleID, rule}) => {
-                const summaryFields = getExpenseDefaultRuleSummaryFields(rule);
+                // The backend keeps a deleted tag on the rule so it applies again if the tag is recreated, so hide it here.
+                // Tags that haven't loaded yet are kept to avoid flicker.
+                const summaryFields = getExpenseDefaultRuleSummaryFields(rule).filter(
+                    ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
+                );
                 const {merchants: merchantName} = getRuleMerchantMatchSummary(rule.filters);
 
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
@@ -219,6 +225,7 @@ function getExpenseDefaultsTableData({
     policyID,
     rules,
     policyCategories,
+    policyTags,
     translate,
     isOffline,
     onNavigate,
@@ -228,12 +235,14 @@ function getExpenseDefaultsTableData({
     rules: OnyxCollection<Rule> | undefined;
     /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
     policyCategories: PolicyCategories | undefined;
+    /** Read to hide a deleted tag from a merchant rule's summary. */
+    policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
-    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, translate, isOffline, onNavigate});
+    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];

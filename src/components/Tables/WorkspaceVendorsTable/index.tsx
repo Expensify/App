@@ -89,7 +89,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
 
         return (
             <Table.Row
-                interactive={false}
+                interactive={selectionEnabled}
                 accessibilityLabel={accessibilityLabel}
                 rowIndex={index}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}

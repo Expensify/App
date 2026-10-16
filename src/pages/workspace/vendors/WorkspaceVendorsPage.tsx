@@ -157,8 +157,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
     const defaultVendorID = getDefaultVendorID(policy, connectedIntegration);
 
-    const canSelectMultiple = canWriteVendors && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
-
     const clearTableSelection = () => {
         setSelectedVendorKeys((prev) => (prev.length > 0 ? [] : prev));
     };
@@ -283,7 +281,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 {!isLoading && (
                     <WorkspaceVendorsTable
                         vendors={vendorRows}
-                        selectionEnabled={canSelectMultiple}
+                        selectionEnabled={canWriteVendors}
                         selectedKeys={selectedVendorKeys}
                         onRowSelectionChange={setSelectedVendorKeys}
                         headerComponent={headerContent}
