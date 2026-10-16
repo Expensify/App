@@ -309,18 +309,11 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             for (const key of fileKeys) {
                 delete data[key];
             }
-            delete data.attachmentID;
-            delete data.attachmentIDs;
-
-            for (const [index, keptAttachment] of keptAttachments.entries()) {
-                data[index === 0 ? 'file' : `file_${index}`] = keptAttachment.file;
+            for (const [index, {file}] of keptAttachments.entries()) {
+                data[index === 0 ? 'file' : `file_${index}`] = file;
             }
-            if (keptAttachments.length > 0) {
-                data.attachmentID = keptAttachments.at(0)?.attachmentID;
-            }
-            if (keptAttachments.length > 1) {
-                data.attachmentIDs = keptAttachments.map((keptAttachment) => keptAttachment.attachmentID).join(',');
-            }
+            data.attachmentID = keptAttachments.at(0)?.attachmentID;
+            data.attachmentIDs = keptAttachments.length > 1 ? keptAttachments.map(({attachmentID}) => attachmentID).join(',') : undefined;
             if (keptAttachments.length === 0) {
                 currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
             }
