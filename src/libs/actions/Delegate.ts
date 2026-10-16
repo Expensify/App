@@ -122,10 +122,6 @@ type WithFieldName = {
     fieldName: 'addDelegate' | 'updateDelegateRole' | 'connect' | 'removeDelegator' | 'removeDelegate';
 };
 
-type WithOldDotFlag = {
-    isFromOldDot?: boolean;
-};
-
 type WithStashedCredentials = {
     stashedCredentials: Credentials | undefined;
 };
@@ -179,7 +175,7 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithCredentials & WithSession & WithActivePolicyID;
 
 /**
  * Connects the user as a delegate to another account.
