@@ -341,6 +341,8 @@ InputWrapper component will automatically provide the following props to any inp
 
 ## Dynamic Form Inputs
 
+For forms whose fields are described by data rather than JSX, use the schema-driven renderer in [DYNAMIC_FORMS.md](DYNAMIC_FORMS.md).
+
 It's possible to conditionally render inputs (or more complex components with multiple inputs) inside a form. For example, an IdentityForm might be nested as input for a Form component.
 In order for Form to track the nested values properly, each field must have a unique identifier. It's not safe to use an index because adding or removing fields from the child Form component will not update these internal keys. Therefore, we will need to define keys and dynamically access the correlating child form data for validation/submission.
 
