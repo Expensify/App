@@ -1,12 +1,15 @@
 import {useEditingCellState} from '@components/EditableCell';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useCardList} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
@@ -14,10 +17,20 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
+import {getCardDescription} from '@libs/CardUtils';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getTransactionRejectErrorKey, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
+import {
+    EMPTY_VIOLATIONS,
+    getReportRowCards,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getReportRowReport,
+    getTransactionRejectErrorKey,
+    getVisibleReportRowViolations,
+    isSelectableReportTransaction,
+} from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
@@ -27,6 +40,7 @@ import variables from '@styles/variables';
 import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 
@@ -34,23 +48,22 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {useOnyxState} from 'react-native-onyx';
 
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
-    transaction: TransactionWithOptionalHighlight;
+    /** ID of the transaction this row renders. The row reads the transaction, its card and its violations itself, so a write to one transaction re-renders only its row. */
+    transactionID: string;
 
-    /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
-    violations: TransactionViolations;
+    /** Login of the report owner, used to filter the violations the current user can see */
+    reportOwnerLogin: string | undefined;
 
-    /** Report to which the transaction belongs */
-    report: Report;
+    /** ID of the report to which the transaction belongs */
+    reportID: string;
 
-    /** Policy to which the transaction belongs */
-    policy: OnyxEntry<Policy>;
-
-    /** Categories for the policy to which the transaction belongs */
-    policyCategories?: PolicyCategories;
+    /** ID of the report's policy */
+    policyID: string | undefined;
 
     /** Tag lists for the policy to which the transaction belongs */
     policyTagLists?: PolicyTagLists;
@@ -80,7 +93,6 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    nonPersonalAndWorkspaceCards: CardList;
     isLastItem?: boolean;
     shouldScrollHorizontally?: boolean;
 
@@ -91,7 +103,24 @@ type MoneyRequestReportTransactionItemProps = {
 
 // `shouldBeHighlighted` is omitted: the highlight animation is computed by the outer component (so its timeline
 // survives the narrow↔wide swap) and reaches the body as `animatedHighlightStyle`.
-type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'shouldBeHighlighted'> & {
+type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'reportID' | 'policyID' | 'shouldBeHighlighted'> & {
+    transaction: TransactionWithOptionalHighlight;
+
+    /** Violations of this transaction the current user can see */
+    violations: TransactionViolations;
+
+    /** Report to which the transaction belongs, without the fields rows never read */
+    report: OnyxEntry<Report>;
+
+    /** Policy to which the transaction belongs, without the fields rows never read */
+    policy: OnyxEntry<Policy>;
+
+    /** The transaction's category from the policy categories */
+    policyCategories?: PolicyCategories;
+
+    /** The transaction's card from the card list */
+    nonPersonalAndWorkspaceCards: CardList;
+
     /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
     inlineEdit?: InlineEditValues;
 
@@ -354,12 +383,60 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyReques
     );
 }
 
-function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
-    const {shouldBeHighlighted} = props;
+function MoneyRequestReportTransactionItem({
+    transactionID,
+    reportOwnerLogin,
+    shouldBeHighlighted,
+    reportID,
+    policyID,
+    policyTagLists,
+    isSelectionModeEnabled,
+    toggleTransaction,
+    handleOnPress,
+    handleLongPress,
+    isSelected,
+    dateColumnSize,
+    postedColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
+    columns,
+    onArrowRightPress,
+    isLastItem,
+    shouldScrollHorizontally,
+    transactionThreadReportID,
+}: MoneyRequestReportTransactionItemProps) {
+    const {translate} = useLocalize();
+    const {email, accountID} = useCurrentUserPersonalDetails();
+    const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const cardList = useCardList();
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policyCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;
+    // Violation visibility needs the whole report and policy, while the row shows only some of their fields, one category and one card.
+    // Deriving them here means a write the row doesn't show leaves the output, and the row, unchanged.
+    const {violations, report, policy, policyCategories, cards} = useOnyxState(
+        (state) => {
+            const stateTransaction = state[transactionKey];
+            const stateReport = state[reportKey];
+            const statePolicy = state[policyKey];
+            return {
+                violations: stateTransaction
+                    ? getVisibleReportRowViolations(stateTransaction, state[violationsKey], email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, stateReport, reportOwnerLogin, statePolicy)
+                    : EMPTY_VIOLATIONS,
+                report: getReportRowReport(stateReport),
+                policy: getReportRowPolicy(statePolicy),
+                policyCategories: getReportRowPolicyCategories(state[policyCategoriesKey], stateTransaction?.category),
+                cards: getReportRowCards(state[ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST], stateTransaction?.cardID),
+            };
+        },
+        {dependencies: [transactionKey, violationsKey, reportKey, policyKey, policyCategoriesKey, ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]},
+    );
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
-    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
+    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally);
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -369,19 +446,40 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 
-    if (isNarrowLayout) {
-        return (
-            <MoneyRequestReportTransactionItemBody
-                {...props}
-                animatedHighlightStyle={animatedHighlightStyle}
-                shouldSkipDeferRBR
-            />
-        );
+    if (!rawTransaction) {
+        return null;
     }
 
+    // The search API pre-resolves the card name, local Onyx transactions carry the raw one
+    const card = rawTransaction.cardID ? cardList?.[rawTransaction.cardID] : undefined;
+    const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
+    const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
+
+    // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
+    const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;
     return (
-        <MoneyRequestReportTransactionItemWithInlineEdit
-            {...props}
+        <Body
+            transaction={transaction}
+            violations={violations}
+            report={report}
+            policy={policy}
+            policyCategories={policyCategories}
+            policyTagLists={policyTagLists}
+            isSelectionModeEnabled={isSelectionModeEnabled}
+            toggleTransaction={toggleTransaction}
+            handleOnPress={handleOnPress}
+            handleLongPress={handleLongPress}
+            isSelected={isSelected}
+            dateColumnSize={dateColumnSize}
+            postedColumnSize={postedColumnSize}
+            amountColumnSize={amountColumnSize}
+            taxAmountColumnSize={taxAmountColumnSize}
+            columns={columns}
+            onArrowRightPress={onArrowRightPress}
+            nonPersonalAndWorkspaceCards={cards}
+            isLastItem={isLastItem}
+            shouldScrollHorizontally={shouldScrollHorizontally}
+            transactionThreadReportID={transactionThreadReportID}
             animatedHighlightStyle={animatedHighlightStyle}
             shouldSkipDeferRBR
         />

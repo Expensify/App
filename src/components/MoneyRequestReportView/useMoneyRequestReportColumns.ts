@@ -19,6 +19,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import {useState} from 'react';
+
 type UseMoneyRequestReportColumnsParams = {
     /** The money request report containing the transactions */
     report: StableReport;
@@ -77,7 +79,7 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
     // The saved column list is account-wide, so the vendor column only shows on reports whose workspace has the vendor feature.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-    const columnsToShow = getColumnsToShow({
+    const computedColumns = getColumnsToShow({
         currentAccountID: currentUserDetails?.accountID,
         data: transactions,
         report,
@@ -91,6 +93,11 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
         isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
         isVendorColumnAvailable,
     });
+    // Keeps the previous array while the visible columns are the same, so every row skips its re-render when only the inputs changed
+    const [columnsToShow, setColumnsToShow] = useState(computedColumns);
+    if (computedColumns.join(',') !== columnsToShow.join(',')) {
+        setColumnsToShow(computedColumns);
+    }
 
     const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
     const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
