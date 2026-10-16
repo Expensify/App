@@ -82,23 +82,38 @@ function BookTravelButton({
 
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeBooking?: () => void) => resumeBooking?.());
 
+    const showVerifyCompanyModal = () => {
+        if (!shouldShowVerifyAccountModal) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('travel.verifyCompany.title'),
+            titleStyles: styles.textHeadlineH1,
+            titleContainerStyles: styles.mb2,
+            prompt: translate('travel.verifyCompany.message'),
+            promptStyles: styles.mb2,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            image: illustrations.RocketDude,
+            imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+        });
+    };
+
     const completeTravelAccessRequest = () => {
-        if (shouldShowVerifyAccountModal) {
-            showConfirmModal({
-                title: translate('travel.verifyCompany.title'),
-                titleStyles: styles.textHeadlineH1,
-                titleContainerStyles: styles.mb2,
-                prompt: translate('travel.verifyCompany.message'),
-                promptStyles: styles.mb2,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                image: illustrations.RocketDude,
-                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-            });
+        if (travelSettings?.lastTravelSignupRequestTime) {
+            showVerifyCompanyModal();
+            return;
         }
-        if (!travelSettings?.lastTravelSignupRequestTime) {
-            requestTravelAccess();
-        }
+
+        // Low-risk and travel-risk-approved accounts can skip the guide review and enable travel straight away
+        requestTravelAccess().then((canSkipVerification) => {
+            if (!canSkipVerification) {
+                showVerifyCompanyModal();
+                return;
+            }
+            cleanupTravelProvisioningSession();
+            Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
+        });
     };
 
     const navigateToPublicDomainError = () => {
