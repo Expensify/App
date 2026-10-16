@@ -1,12 +1,14 @@
-import {render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 
+import Tab from '@libs/actions/Tab';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import * as SplitExpenseUtils from '@libs/SplitExpenseUtils';
 
 import DynamicSplitExpensePage from '@pages/iou/DynamicSplitExpensePage';
 
@@ -14,7 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
+import type ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -70,7 +75,10 @@ jest.mock('@components/ScreenWrapper', () => {
     return MockScreenWrapper;
 });
 
-jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/HeaderWithBackButton', () => {
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    return ({title}: {title: string}) => <Text testID="split-header-title">{title}</Text>;
+});
 
 jest.mock('@components/CollapsibleHeaderOnKeyboard', () => {
     function MockCollapsibleHeaderOnKeyboard({children}: {children: React.ReactNode}) {
@@ -120,24 +128,26 @@ function makeTransaction(transactionID: string, reportID: string, amount: number
     };
 }
 
-function renderPage() {
+function renderPage(splitExpenseTransactionID = OPEN_SPLIT_TRANSACTION_ID) {
     const route = createMock<DynamicSplitExpensePageProps['route']>({
         key: 'DynamicSplitExpenseSearch',
         name: SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH,
         params: {
             splitReportID: SELF_DM_REPORT_ID,
             originalTransactionID: ORIGINAL_TRANSACTION_ID,
-            splitExpenseTransactionID: OPEN_SPLIT_TRANSACTION_ID,
+            splitExpenseTransactionID,
         },
     });
-    return render(
+    const navigation = createMock<DynamicSplitExpensePageProps['navigation']>({});
+    const result = render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <DynamicSplitExpensePage
                 route={route}
-                navigation={createMock<DynamicSplitExpensePageProps['navigation']>({})}
+                navigation={navigation}
             />
         </ComposeProviders>,
     );
+    return {...result, route, navigation};
 }
 
 describe('DynamicSplitExpensePage', () => {
@@ -187,6 +197,10 @@ describe('DynamicSplitExpensePage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('marks a split whose approved report is only in search results data as non-editable', async () => {
         // Given a split opened from Spend whose transaction and approved report are only in the search snapshot, not in Onyx
         const searchResultsData: SearchResultDataType = {};
@@ -229,5 +243,78 @@ describe('DynamicSplitExpensePage', () => {
         // Then both rows stay editable - only frozen splits are locked
         expect(capturedSplitListData).toHaveLength(2);
         expect(capturedSplitListData.every((item) => item.isEditable)).toBe(true);
+    });
+
+    it.each([
+        [CONST.TAB.SPLIT.AMOUNT, 'Split'],
+        [CONST.TAB.SPLIT.PERCENTAGE, 'Split by percentage'],
+        [CONST.TAB.SPLIT.DATE, 'Split by date'],
+        [undefined, 'Split'],
+        ['other', 'Split'],
+    ])('uses the selected split tab %s for its header title', async (tab, title) => {
+        // Given a selected tab value from Onyx, including absent and unrecognized values
+        if (tab !== undefined) {
+            Tab.setSelectedTab(CONST.TAB.SPLIT_EXPENSE_TAB_TYPE, tab);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        // When the real split page renders its header
+        renderPage('');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only a matching split tab changes the header title
+        expect(screen.getByTestId('split-header-title')).toHaveTextContent(title);
+    });
+
+    it.each([CONST.TAB.SPLIT.PERCENTAGE, CONST.TAB.SPLIT.DATE])('prefers the edit title over the %s title', async (tab) => {
+        // Given an edit transaction and a tab with a distinct title
+        Tab.setSelectedTab(CONST.TAB.SPLIT_EXPENSE_TAB_TYPE, tab);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the real split page renders its header
+        renderPage('3');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then editing takes precedence over the selected tab
+        expect(screen.getByTestId('split-header-title')).toHaveTextContent('Edit splits');
+    });
+
+    it('keeps the missing split array stable across rerenders and uses a new draft array', async () => {
+        // Given a draft without splitExpenses and the real warning calculation
+        const draft = {...makeTransaction(ORIGINAL_TRANSACTION_ID, SELF_DM_REPORT_ID, 300), comment: {}};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, draft);
+        await waitForBatchedUpdatesWithAct();
+        const warning = jest.spyOn(SplitExpenseUtils, 'computeSplitWarningMessage');
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(warning).toHaveBeenCalled();
+        const firstWarning = warning.mock.lastCall?.at(0);
+        const first = firstWarning?.splitExpenses;
+        expect(first).toEqual([]);
+        expect(Math.abs(firstWarning?.transactionDetailsAmount ?? 0)).toBe(300);
+        const firstCallCount = warning.mock.calls.length;
+
+        // When the draft amount changes while splitExpenses is still absent
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, {...draft, amount: 301});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(warning.mock.calls.length).toBeGreaterThan(firstCallCount);
+        const changedAmountWarning = warning.mock.lastCall?.at(0);
+        expect(Math.abs(changedAmountWarning?.transactionDetailsAmount ?? 0)).toBe(301);
+        expect(Math.sign(changedAmountWarning?.transactionDetailsAmount ?? 0)).toBe(Math.sign(firstWarning?.transactionDetailsAmount ?? 0));
+        expect(changedAmountWarning?.splitExpenses).toBe(first);
+        const secondCallCount = warning.mock.calls.length;
+
+        const nextSplits: SplitExpense[] = [{transactionID: '3', amount: 100, created: '2026-10-06'}];
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, {...draft, amount: 301, comment: {splitExpenses: nextSplits}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the real page passes the changed array to its warning consumer
+        expect(warning.mock.calls.length).toBeGreaterThan(secondCallCount);
+        expect(warning.mock.lastCall?.at(0)?.splitExpenses).toEqual(nextSplits);
+        warning.mockRestore();
     });
 });
