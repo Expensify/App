@@ -330,7 +330,7 @@ describe('useAskConcierge', () => {
             expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
         });
 
-        it('keeps several attachments in the Concierge chat', async () => {
+        it('shows the thread in the side panel for several attachments', async () => {
             // Given web, where Concierge answers each question in its own thread
             mockIsInSidePanel = true;
             mockIsBetaEnabled = true;
@@ -341,9 +341,10 @@ describe('useAskConcierge', () => {
             // When two attachments are sent at once
             result.current.askConciergeWithAttachment([...FILES, {name: 'second.jpg', type: 'image/jpeg', uri: 'file://second.jpg'}], 'Here they are');
 
-            // Then no thread is created and the side panel stays on the Concierge chat
-            expect(mockAddAttachmentWithComment).toHaveBeenCalledWith(expect.objectContaining({conciergeThreadReportID: undefined}));
-            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: undefined});
+            // Then the side panel shows the thread they were posted to
+            const conciergeThreadReportID = mockAddAttachmentWithComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID;
+            expect(conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
         });
     });
 });
