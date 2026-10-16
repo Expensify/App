@@ -42,6 +42,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+import {beginSearchRouterQuerySession, endSearchRouterQuerySession, getSearchRouterQueryChangedAt, startSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
 
 import Navigation from '@navigation/Navigation';
 
@@ -177,12 +178,25 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const [textInputValue, setTextInputValue] = useState(initialQuery);
+    // When the autocomplete query last changed, so the ManualSearchRouterQuery span can start at the keystroke and include
+    // the debounce delay. Tracked here rather than in useDebouncedState to keep that hook generic.
+    const queryChangedAtRef = useRef<number | undefined>(undefined);
+    const lastAutocompleteQueryRef = useRef(initialQuery);
     // Debounced value gates expensive filtering in the autocomplete list
-    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
+    // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
+        onDebouncedValueChange: (value) => startSearchRouterQuerySpan(value, queryChangedAtRef.current),
+    });
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
         clearPendingRouterState();
+    }, []);
+
+    useEffect(() => {
+        beginSearchRouterQuerySession();
+        return endSearchRouterQuerySession;
     }, []);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
@@ -376,13 +390,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
-        (userQuery: string, autoScrollToRight = false) => {
+        (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number) => {
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
+            // A same-value update does not restart the debounce timer, so it must not move the span start either.
+            if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
+                lastAutocompleteQueryRef.current = updatedUserQuery;
+                queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
+            }
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
@@ -417,6 +436,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             );
 
             setTextInputValue('');
+            lastAutocompleteQueryRef.current = '';
             setAutocompleteQueryValue('');
         },
         [
