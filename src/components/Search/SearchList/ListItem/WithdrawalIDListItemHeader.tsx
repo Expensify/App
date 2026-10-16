@@ -231,7 +231,7 @@ function WithdrawalIDListItemHeaderImpl({
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
-                            containerStyle={styles.m0}
+                            containerStyle={styles.checkboxContainerTableRow}
                         />
                     )}
                     {!isLargeScreenWidth && (

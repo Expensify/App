@@ -158,7 +158,7 @@ function BaseListItemHeaderImpl({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            containerStyle={styles.m0}
+                            containerStyle={styles.checkboxContainerTableRow}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                         />
                     )}

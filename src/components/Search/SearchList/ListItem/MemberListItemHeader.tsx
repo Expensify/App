@@ -139,7 +139,7 @@ function MemberListItemHeaderImpl({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            containerStyle={styles.m0}
+                            containerStyle={styles.checkboxContainerTableRow}
                         />
                     )}
                     {!isLargeScreenWidth && (
