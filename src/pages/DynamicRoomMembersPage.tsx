@@ -309,9 +309,10 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [icons.RemoveMembers, translate, selectedMembers.length, showRemoveMembersModal]);
 
     const headerButtons = useMemo(() => {
+        const isSelecting = isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0;
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                {isSelecting && (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         shouldAlwaysShowDropdownMenu
@@ -324,7 +325,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                         isDisabled={!selectedMembers.length}
                     />
-                ) : canInvite ? (
+                )}
+                {!isSelecting && canInvite && (
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={inviteUser}
@@ -334,7 +336,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         <Button.Icon src={icons.Plus} />
                         <Button.Text>{translate('workspace.invite.member')}</Button.Text>
                     </Button>
-                ) : null}
+                )}
             </View>
         );
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus, canInvite]);
