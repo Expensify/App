@@ -1,6 +1,7 @@
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
@@ -8,6 +9,8 @@ import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/A
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
+
+import CONST from '@src/CONST';
 
 import {SafeString} from 'expensify-common';
 import React, {memo, useCallback, useContext, useEffect} from 'react';
@@ -59,6 +62,8 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
             navigation={navigation}
             testID={`attachment-modal-${testID}`}
             enableEdgeToEdgeBottomSafeAreaPadding
+            // Keep keyboard avoidance inside the password form so it does not resize the iOS pager.
+            shouldEnableKeyboardAvoidingView={getPlatform() !== CONST.PLATFORM.IOS}
         >
             <AttachmentStateContextProvider>
                 <AttachmentModalBaseContent
