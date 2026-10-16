@@ -231,7 +231,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         titleComponent?: ReactElement;
-        titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
@@ -501,7 +500,6 @@ function MenuItem({
     title,
     accessibilityLabel,
     titleComponent,
-    titleContainerStyle,
     subtitle,
     subtitleStyle,
     shouldShowBasicTitle,
@@ -1026,12 +1024,7 @@ function MenuItem({
                                                         </View>
                                                     )}
                                                     <View
-                                                        style={[
-                                                            styles.justifyContentCenter,
-                                                            styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
-                                                            titleContainerStyle,
-                                                        ]}
+                                                        style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact)]}
                                                     >
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
