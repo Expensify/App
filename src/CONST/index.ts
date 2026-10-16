@@ -1002,6 +1002,49 @@ const CONST = {
             VERIFIED: 'VERIFIED',
             REJECTED: 'REJECTED',
         },
+        // Who put a KYC requirement on the list: our pre-collection before Submit, or Wise's live review after
+        KYC_REQUIREMENT_REQUESTED_BY: {
+            EXPENSIFY: 'EXPENSIFY',
+            WISE: 'WISE',
+        },
+        // Wise's KYC requirement types the App has a page for. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
+        KYC_REQUIREMENT: {
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
+        // Wise's source-of-wealth values, shared by BUSINESS_SOURCE_OF_WEALTH_INFO and BUSINESS_SOURCE_OF_WEALTH_PROOF
+        SOURCE_OF_WEALTH: {
+            REVENUE: 'REVENUE',
+            PERSONAL_FUNDING: 'PERSONAL_FUNDING',
+            BUSINESS_LOAN: 'BUSINESS_LOAN',
+            FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'FUNDING_AND_SHAREHOLDER_INVESTMENTS',
+            INVESTMENT_INCOME: 'INVESTMENT_INCOME',
+            DONATIONS: 'DONATIONS',
+            GRANTS: 'GRANTS',
+            LEGAL: 'LEGAL',
+        },
+        // Wise's documentType values on BUSINESS_SOURCE_OF_WEALTH_PROOF
+        SOURCE_OF_WEALTH_DOCUMENT_TYPE: {
+            PAYSLIP: 'PAYSLIP',
+            INVOICES: 'INVOICES',
+            CONTRACTS: 'CONTRACTS',
+            TAX_DOCUMENTS: 'TAX_DOCUMENTS',
+            AUDITED_FINANCIAL_STATEMENTS: 'AUDITED_FINANCIAL_STATEMENTS',
+            E_COMMERCE_STATEMENTS: 'E_COMMERCE_STATEMENTS',
+            PERSONAL_INVESTMENT: 'PERSONAL_INVESTMENT',
+            PERSONAL_LOAN_AGREEMENT: 'PERSONAL_LOAN_AGREEMENT',
+            PERSONAL_TAX_DECLARATION: 'PERSONAL_TAX_DECLARATION',
+            LOAN_AGREEMENT: 'LOAN_AGREEMENT',
+            EQUITY_AGREEMENT: 'EQUITY_AGREEMENT',
+            SUBSCRIPTION_AGREEMENT: 'SUBSCRIPTION_AGREEMENT',
+            SAVINGS_STATEMENT: 'SAVINGS_STATEMENT',
+            ASSET_SALE_AGREEMENT: 'ASSET_SALE_AGREEMENT',
+            SHARE_SALE_CERTIFICATE: 'SHARE_SALE_CERTIFICATE',
+            DONATION_RECEIPTS: 'DONATION_RECEIPTS',
+            GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
+            WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
+            BANK_STATEMENT: 'BANK_STATEMENT',
+        },
         // Wise's companyRole values on the business profile
         COMPANY_ROLE: {
             OWNER: 'OWNER',

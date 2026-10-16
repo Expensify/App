@@ -2,12 +2,11 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import type {DynamicFormField} from './DynamicFormField';
 import type {Errors} from './OnyxCommon';
 
-/** One thing Wise still needs on the business's KYC review, as the server builds it from the live review. Never stored. */
+/** One KYC requirement the business's application needs right now, derived by the server on every read. Never stored. The App draws the page from its own layout for the key. */
 type WiseKYCRequirement = {
-    /** Wise's requirement key, such as PROOF_OF_TRADING_ADDRESS; also the step a native page saves under */
+    /** Wise's requirement type, such as BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID; also the step the page saves under */
     key: string;
 
     /** Wise's state for it, NOT_PROVIDED until submitted */
@@ -16,8 +15,11 @@ type WiseKYCRequirement = {
     /** True when only Wise's own page can collect it, so the task opens the embedded page instead of a form */
     hostedOnly: boolean;
 
-    /** The page to render; empty when hostedOnly */
-    fields: DynamicFormField[];
+    /** EXPENSIFY while we pre-collect it before Submit so Wise does not have to ask, WISE once it comes from Wise's live review */
+    requestedBy: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY>;
+
+    /** Wise's data for the requirement, such as the UBOs that still need an ID, passed through for the layout */
+    attributes?: Record<string, unknown>;
 };
 
 /** A fresh link to Wise's embedded KYC page. Its fragment carries a token, so the key is RAM only and never logged. */

@@ -272,9 +272,6 @@ type WiseBusinessOnboarding = {
     /** The last page saved, so a resume on another device lands after it */
     step?: string;
 
-    /** Set with the business page: a chosen industry is one Wise treats as high risk, so the source-of-wealth page is asked before Submit */
-    requiresSourceOfWealth?: boolean;
-
     /** The business page's answers */
     business?: {
         companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
@@ -291,7 +288,7 @@ type WiseBusinessOnboarding = {
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The pages are authored by the server, before the review for the ones below and from the live review after, and Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
+    /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The intake collects the ones below before Submit so Wise does not ask for them after; Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
     requirements?: {
         /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
