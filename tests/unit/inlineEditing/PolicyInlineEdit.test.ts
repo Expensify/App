@@ -4,6 +4,7 @@ import {
     canUpdateExpensifyCardLimitTypeInline,
     getExpensifyCardLimitInlineUpdate,
     renameCategoryInline,
+    renameExpensifyCardInline,
     updateExpensifyCardLimitInline,
     updateExpensifyCardLimitTypeInline,
     updateMemberRoleInline,
@@ -159,6 +160,41 @@ describe('PolicyInlineEdit', () => {
             updateMemberRoleInline(policy, 'user@expensify.com', 1, CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN);
 
             expect(mockUpdateWorkspaceMembersRole).toHaveBeenCalledWith(policy, ['user@expensify.com'], [1], CONST.POLICY.ROLE.ADMIN);
+        });
+    });
+
+    describe('renameExpensifyCardInline', () => {
+        it('does not persist a name the user never changed', () => {
+            // Given a card named "Travel"
+            // When the editor closes on blur with that same name
+            renameExpensifyCardInline(1, 10, 'Travel', 'Travel');
+
+            // Then nothing is written, so opening the editor and clicking away costs no request
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('does not persist a name that sanitizes to nothing', () => {
+            // Given a card named "Travel"
+            // When the editor commits whitespace only
+            renameExpensifyCardInline(1, 10, '   ', 'Travel');
+
+            // Then nothing is written, matching the RHP name form which rejects this too
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('persists the sanitized name', () => {
+            // Given a card named "Travel"
+            // When the editor commits a new name padded with whitespace
+            renameExpensifyCardInline(1, 10, '  Travel card  ', 'Travel');
+
+            // Then the trimmed name reaches the backend, so a padded paste cannot be stored verbatim
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE,
+                expect.objectContaining({
+                    cardTitle: 'Travel card',
+                }),
+                expect.anything(),
+            );
         });
     });
 
