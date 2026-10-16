@@ -117,15 +117,12 @@ function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress
         <ScrollView
             testID={testID}
             onMouseDown={handleMouseDown}
-            // On touch screens the pad ends the body, so the bottom spacing belongs to the screen edge rather than to the pad or the
-            // footer, and stays the same whether a footer follows the pad or not. Without a touch screen the footer owns it.
+            // On touch screens, pad the scroll container bottom so the pad or footer clears the screen edge.
             contentContainerStyle={[styles.flexGrow1, canUseTouchScreen && styles.pb5]}
             style={[styles.flex1, styles.cursorAuto]}
             addBottomSafeAreaPadding
         >
-            {/* The body only grows (`flexGrow1`, not `flex1`): its basis stays its content height and it never shrinks, so when the
-                screen is shorter than the amount plus the pad, the content overflows and the scroll view scrolls instead of
-                squeezing the amount under the pad */}
+            {/* Keep natural basis height so content scrolls instead of shrinking on short screens. */}
             <View
                 testID={getPartTestID(testID, 'body')}
                 style={styles.flexGrow1}
