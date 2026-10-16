@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutFooterSelections,
@@ -61,6 +62,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -5364,6 +5366,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
                 [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
+            });
+        });
+    });
+
+    describe('getMerchantFilterFormValues', () => {
+        it('keeps the match type when not negated', () => {
+            // Given a Merchant filter that is not negated
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', false, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is kept, because it decides between Contains and Equal to
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_NOT]: undefined,
+                [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            });
+        });
+
+        it('clears the match type when negated', () => {
+            // Given a negated Merchant filter
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', true, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is cleared, because a negated Merchant filter always uses the not-equal operator
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: undefined,
+                [FILTER_KEYS.MERCHANT_NOT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_OPERATOR]: undefined,
             });
         });
     });

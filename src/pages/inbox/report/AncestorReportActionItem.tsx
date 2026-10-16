@@ -18,6 +18,7 @@ import {
     navigateToLinkedReportAction,
 } from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -64,6 +65,9 @@ type AncestorReportActionItemProps = {
     shouldAllowConciergeFeedback: boolean;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
+
+    /** Parent links of the thread and its ancestors, used to clear related errors on dismiss */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function AncestorReportActionItem({
@@ -83,6 +87,7 @@ function AncestorReportActionItem({
     shouldAllowConciergeFeedback,
     shouldUseThreadDividerLine,
     transactionThreadReport,
+    reportsParentHierarchy,
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
@@ -167,6 +172,7 @@ function AncestorReportActionItem({
                 isThreadReportParentAction
                 isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                 linkedTransactionRouteError={linkedTransactionRouteError}
+                reportsParentHierarchy={reportsParentHierarchy}
             />
         </OfflineWithFeedback>
     );

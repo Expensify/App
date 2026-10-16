@@ -1,0 +1,151 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index e6ea55b..4d577fe 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -4,11 +4,11 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
+ import { CommonActions, NavigationMetaContext, StackActions, useTheme } from '@react-navigation/native';
+ import Color from 'color';
+ import * as React from 'react';
+-import { Platform, PlatformColor } from 'react-native';
++import { Platform, PlatformColor, StyleSheet, View } from 'react-native';
+ import { Tabs } from 'react-native-screens';
+ import { Deferred } from "./Deferred.js";
+ import { NativeScreen } from "./NativeScreen/NativeScreen.js";
+-import { jsx as _jsx } from "react/jsx-runtime";
++import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+ const meta = {
+   type: 'native-tabs'
+ };
+@@ -32,9 +32,21 @@ export function NativeBottomTabView({
+     fonts
+   } = useTheme();
+   const focusedRouteKey = state.routes[state.index].key;
++  // A route with `tabBarItemHidden` gets no native tab item. While it is focused, it is drawn over the native host
++  // and the tab bar is hidden, and the host keeps the last focused visible tab selected underneath.
++  const isRouteHidden = route => descriptors[route.key]?.options.tabBarItemHidden === true;
++  const isFocusedRouteHidden = isRouteHidden(state.routes[state.index]);
++  // Derived from the history rather than remembered, so a route that became hidden since it was focused is skipped.
++  const isRouteKeyVisible = key => state.routes.some(route => route.key === key && !isRouteHidden(route));
++  const nativeSelectedRouteKey = isFocusedRouteHidden ? state.history.findLast(entry => isRouteKeyVisible(entry.key))?.key ?? state.routes.find(route => !isRouteHidden(route))?.key ?? focusedRouteKey : focusedRouteKey;
++  // Hidden routes stay mounted once visited, the same as the native tabs.
++  const visitedHiddenRouteKeysRef = React.useRef(new Set());
++  if (isFocusedRouteHidden) {
++    visitedHiddenRouteKeysRef.current.add(focusedRouteKey);
++  }
+   const [nativeState, dispatch] = React.useReducer(reducer, {
+     confirmed: {
+-      routeKey: focusedRouteKey,
++      routeKey: nativeSelectedRouteKey,
+       provenance: 0
+     }
+   });
+@@ -189,17 +201,17 @@ export function NativeBottomTabView({
+   const tabBarMinimizeBehavior = currentOptions.tabBarMinimizeBehavior === 'auto' ? 'automatic' : currentOptions.tabBarMinimizeBehavior === 'none' ? 'never' : currentOptions.tabBarMinimizeBehavior;
+   const shouldHideTabBar = currentOptions.tabBarStyle?.display === 'none';
+   const bottomAccessory = currentOptions.bottomAccessory;
+-  return /*#__PURE__*/_jsx(SafeAreaProviderCompat, {
+-    children: /*#__PURE__*/_jsx(Tabs.Host, {
++  return /*#__PURE__*/_jsxs(SafeAreaProviderCompat, {
++    children: [/*#__PURE__*/_jsx(Tabs.Host, {
+       navStateRequest: {
+-        selectedScreenKey: focusedRouteKey,
++        selectedScreenKey: nativeSelectedRouteKey,
+         baseProvenance: nativeState.confirmed.provenance
+       },
+       rejectStaleNavStateUpdates: true,
+       onTabSelected: onTabSelected,
+       onTabSelectionRejected: onTabSelectionRejected,
+       onTabSelectionPrevented: onTabSelectionPrevented,
+-      tabBarHidden: shouldHideTabBar,
++      tabBarHidden: shouldHideTabBar || isFocusedRouteHidden,
+       colorScheme: dark ? 'dark' : 'light',
+       nativeContainerStyle: {
+         backgroundColor: colors.background
+@@ -213,6 +225,9 @@ export function NativeBottomTabView({
+         tabBarTintColor: activeTintColor
+       },
+       children: state.routes.map((route, index) => {
++        if (isRouteHidden(route)) {
++          return null;
++        }
+         const {
+           options,
+           render,
+@@ -224,6 +239,7 @@ export function NativeBottomTabView({
+           title,
+           lazy = false,
+           tabBarLabel,
++          tabBarAccessibilityLabel,
+           tabBarSelectionEnabled,
+           tabBarBadgeStyle,
+           tabBarIcon,
+@@ -290,6 +306,7 @@ export function NativeBottomTabView({
+           preventNativeSelection: tabBarSelectionEnabled === false,
+           badgeValue: tabBarBadge?.toString(),
+           title: tabTitle,
++          tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,
+           nativeContainerStyle: {
+             backgroundColor: colors.background
+           },
+@@ -369,9 +386,40 @@ export function NativeBottomTabView({
+           })
+         }, route.key);
+       })
+-    })
++    }, "native-tabs-host"), ...state.routes.map((route, index) => {
++      if (!isRouteHidden(route) || !visitedHiddenRouteKeysRef.current.has(route.key)) {
++        return null;
++      }
++      const {
++        options,
++        render,
++        navigation
++      } = descriptors[route.key];
++      const isFocused = state.index === index;
++      return /*#__PURE__*/_jsx(View, {
++        style: [StyleSheet.absoluteFill, {
++          backgroundColor: colors.background
++        }, !isFocused && styles.hiddenRoute],
++        pointerEvents: isFocused ? 'auto' : 'none',
++        children: /*#__PURE__*/_jsx(ScreenWithHeader, {
++          isFocused: isFocused,
++          route: route,
++          navigation: navigation,
++          options: options,
++          children: /*#__PURE__*/_jsx(NavigationMetaContext.Provider, {
++            value: meta,
++            children: render()
++          })
++        })
++      }, route.key);
++    })]
+   });
+ }
++const styles = StyleSheet.create({
++  hiddenRoute: {
++    display: 'none'
++  }
++});
+ function ScreenWithHeader({
+   isFocused,
+   route,
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+index ac25ed1..c05b04b 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
++++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+@@ -78,6 +78,15 @@ type IconIOSSfSymbol = {
+ };
+ export type NativeBottomTabIcon = IconIOSSfSymbol | IconImage;
+ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
++    /**
++     * Whether the tab gets no item in the native tab bar. While a hidden tab is focused, it is drawn over the
++     * native tabs and the tab bar is hidden.
++     */
++    tabBarItemHidden?: boolean;
++    /**
++     * Accessibility label for the tab bar item, read by the screen reader. Useful when the tab has no visible label.
++     */
++    tabBarAccessibilityLabel?: string;
+     /**
+      * Title text for the screen.
+      */

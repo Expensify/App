@@ -91,6 +91,12 @@ const VictoryTheme = {
     },
 } as const;
 
+const CARTESIAN_Y_AXIS = {
+    tickCount: VictoryTheme.axis.tickCount,
+    axisSide: 'right',
+    lineWidth: 0,
+} as const;
+
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
 
@@ -134,6 +140,7 @@ const DASH_INTERVALS = [4, 8];
 const GLYPH_PADDING = 4;
 
 export {
+    CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
     X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,

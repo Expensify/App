@@ -387,6 +387,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                iouReportTransactions: allReportTransactions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -636,6 +637,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    iouReportTransactions: Transaction[];
 };
 
 function getPayActionCallback({
@@ -666,6 +668,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    iouReportTransactions,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -698,6 +701,7 @@ function getPayActionCallback({
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
+        iouReportTransactions,
         introSelected,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',

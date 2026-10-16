@@ -175,7 +175,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
-let mockCurrentSearchResults: {search: {type: string}; data: Record<string, unknown>} | undefined;
+let mockCurrentSearchResults: {search: {type: string}; data?: Record<string, unknown>} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -552,6 +552,35 @@ describe('useSearchBulkActions - CSV export flow', () => {
             key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'report2'}],
         });
+    });
+
+    it('does not crash when selected reports remain while the snapshot has no data', async () => {
+        // Given a report is still selected while a new search's snapshot only has `search` (its optimistic loading state),
+        // because the selection is cleared from an effect that runs after this render
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+        ];
+        mockCurrentSearchResults = {search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}};
+
+        // When the bulk actions are created for an expense-report search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the hook renders its options instead of throwing, and Merge stays hidden until the results load
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS)).toBe(false);
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {

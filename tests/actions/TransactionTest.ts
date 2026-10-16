@@ -34,6 +34,7 @@ import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
 import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs} from '../../src/libs/actions/TransactionThreadNavigation';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -577,6 +578,100 @@ describe('actions/Transaction', () => {
             const updatedThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${liveTransactionThread.reportID}`);
             expect(updatedThread?.parentReportID).toBe(destinationReport.reportID);
             expect(updatedThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+        });
+
+        describe('carousel cleanup', () => {
+            const carouselPolicy: Policy = {...createRandomPolicy(90, CONST.POLICY.TYPE.TEAM, 'Carousel Workspace'), id: 'policy-for-carousel'};
+            const sourceReport: Report = {...createRandomReport(91), reportID: '91', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const destinationReport: Report = {...createRandomReport(92), reportID: '92', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const buildTransaction = (transactionID: string): Transaction => ({
+                transactionID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: sourceReport.reportID,
+            });
+            const transactionIDs = ['carousel-transaction-1', 'carousel-transaction-2', 'carousel-transaction-3'];
+
+            const moveFirstTransactionToDestination = async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${carouselPolicy.id}`, carouselPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+                for (const transactionID of transactionIDs) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, buildTransaction(transactionID));
+                }
+                await waitForBatchedUpdates();
+
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+                await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transactionIDs.at(0) ?? ''],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CARLOS_ACCOUNT_ID,
+                    email: CARLOS_EMAIL,
+                    newReport: destinationReport,
+                    policy: carouselPolicy,
+                    allTransactions,
+                    policyTagList: {},
+                    transactionViolations: {},
+                    reports: allReports,
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+            };
+
+            beforeEach(() => clearActiveTransactionIDs().then(waitForBatchedUpdates));
+
+            it('removes a moved expense from a carousel seeded from the report it left', async () => {
+                // Given a carousel seeded by opening an expense row in the source report, which is how the report's arrows get their list
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the moved expense is gone from the carousel, so the arrows only page through the expenses still in the report
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('does not write the carousel back when the move fails', async () => {
+                // Given a carousel seeded by opening an expense row in the source report
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved but the request fails, which returns the expense to the report
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // Then the failure leaves the carousel alone, because by the time it lands the screen that owned the list
+                // may already have cleared it, and writing it back would leave an orphaned list that nothing clears
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('leaves a carousel seeded from another source untouched', async () => {
+                // Given a carousel seeded from search results, which legitimately spans several reports
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});
+                await waitForBatchedUpdates();
+
+                // When one of the expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the search carousel keeps every expense, since the moved one still matches the search
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs);
+            });
         });
 
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {

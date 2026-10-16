@@ -230,9 +230,8 @@ type GetAlternateTextConfig = {
     lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    currentUserAccountID: number;
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
@@ -395,10 +394,9 @@ type CreateOptionParams = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    currentUserAccountID: number;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
     currentUserLogin?: string;
@@ -2127,7 +2125,7 @@ function prepareReportOptionsForDisplay(
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
-        currentUserAccountID?: number;
+        currentUserAccountID: number;
         currentUserLogin?: string;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];

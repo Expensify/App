@@ -168,12 +168,13 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 return result ? getRehydratedState(result, configOptions) : result;
             }
             if (isPushingSidebarOnCentralPane(state, action, options)) {
-                if (getIsNarrowLayout()) {
+                if (getIsNarrowLayout() && state.index > 0) {
                     const newAction = StackActions.popToTop();
                     // popToTop returns null when the sidebar is already the only screen, so there is nothing to do.
                     return stackRouter.getStateForAction(state, newAction, configOptions) ?? state;
                 }
                 // On wide screen do nothing as we want to keep the central pane screen and the sidebar is visible.
+                // On narrow screen the sidebar is already on top, and the stack router reports popToTop with nothing to pop as unhandled.
                 return state;
             }
 

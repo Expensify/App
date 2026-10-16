@@ -193,6 +193,9 @@ type GetTrackExpenseInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -427,6 +430,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {createChat: null},
             },
         },
         {
@@ -882,6 +886,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransaction,
         existingTransactionID,
         optimisticTransactionID: providedOptimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -1168,7 +1175,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
-    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, newCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
         getCurrencyDecimals,
         iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -1179,11 +1186,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         participants: [participant],
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: !shouldUseMoneyReport,
-        existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+        existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        reportActionID: currentReportActionID,
         currentUserAccountID: currentUserAccountIDParam,
         delegateAccountIDParam: delegateAccountID,
     });
+
+    const optimisticCreatedActionForTransactionThread =
+        existingTransactionThreadReportID && existingTransactionThreadCreatedReportActionID
+            ? buildOptimisticCreatedReportAction({emailCreatingAction: payeeEmail, optimisticReportActionID: existingTransactionThreadCreatedReportActionID})
+            : newCreatedActionForTransactionThread;
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
@@ -1215,6 +1228,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             threadReport: optimisticTransactionThread ?? {},
         },
         shouldCreateNewMoneyRequestReport,
+        existingTransactionThreadReportID,
         actionableTrackExpenseWhisper,
         retryParams,
         isASAPSubmitBetaEnabled,
@@ -2491,6 +2505,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         isASAPSubmitBetaEnabled,
         currentUser,
         introSelected,
@@ -2629,6 +2646,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID

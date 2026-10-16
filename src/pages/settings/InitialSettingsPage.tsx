@@ -2,7 +2,8 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -11,6 +12,9 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -27,13 +31,14 @@ import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -48,11 +53,35 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
-    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
+    const tabRootScrollProps = useTabRootScrollProps(styles.w100);
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const navigation = useNavigation();
+    const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+
+    // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
+    // With nothing behind it, as after a deep link, Home replaces Account so that going back does not reopen it.
+    const goBackFromAccount = () => {
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
+    };
+
+    useAndroidBackButtonHandler(() => {
+        if (!isDrawnOverTabs) {
+            return false;
+        }
+
+        goBackFromAccount();
+        return true;
+    });
+
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
@@ -67,9 +96,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         Navigation.clearPreloadedRoutes();
     }, [hasAccountBeenSwitched]);
 
+    const hasAccountBeenShown = useHasTabBeenShown(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
     useEffect(() => {
+        if (!hasAccountBeenShown) {
+            return;
+        }
+
         openInitialSettingsPage();
-    }, []);
+    }, [hasAccountBeenShown]);
 
     const getMenuItemsSection = (menuItemsData: MenuSection, sectionStyle: StyleProp<ViewStyle>) => {
         return (
@@ -154,13 +189,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
-            bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             <TopBarWithLoadingBar
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
+                onBackButtonPress={isDrawnOverTabs ? goBackFromAccount : undefined}
             >
                 {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
                     /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
@@ -173,7 +208,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                contentContainerStyle={[styles.w100]}
+                {...tabRootScrollProps}
             >
                 {headerContent}
                 {accountMenuItems}

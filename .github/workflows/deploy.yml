@@ -201,6 +201,8 @@ jobs:
   androidBuild:
     name: Build Android HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
@@ -429,6 +431,8 @@ jobs:
   iosBuild:
     name: Build iOS HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
     with:
@@ -703,6 +707,8 @@ jobs:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]
     if: ${{ always() && needs.webBuild.result == 'success' }}
+    # Preserve the default token scopes while adding OIDC access
+    permissions: write-all
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -735,8 +741,8 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-${{ env.DEPLOY_ENV }}-web-deploy-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
           aws-region: us-east-1
 
       - name: Deploy to S3

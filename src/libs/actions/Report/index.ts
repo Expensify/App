@@ -3385,19 +3385,34 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
+type DeleteReportCommentParams = {
+    report: OnyxEntry<Report>;
+    reportAction: ReportAction;
+    originalReportActions: OnyxEntry<ReportActions>;
+    reportActions: OnyxEntry<ReportActions>;
+    ancestors: Ancestor[];
+    isReportArchived: boolean | undefined;
+    isOriginalReportArchived: boolean | undefined;
+    currentEmail: string;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(
-    report: OnyxEntry<Report>,
-    reportAction: ReportAction,
-    originalReportActions: OnyxEntry<ReportActions>,
-    reportActions: OnyxEntry<ReportActions>,
-    ancestors: Ancestor[],
-    isReportArchived: boolean | undefined,
-    isOriginalReportArchived: boolean | undefined,
-    currentEmail: string,
-    isOffline: boolean,
-    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
-) {
+function deleteReportComment({
+    report,
+    reportAction,
+    originalReportActions,
+    reportActions,
+    ancestors,
+    isReportArchived,
+    isOriginalReportArchived,
+    currentEmail,
+    isOffline,
+    currentUserAccountID,
+    visibleReportActionsData,
+}: DeleteReportCommentParams) {
     const reportID = report?.reportID;
     const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const reportActionID = reportAction.reportActionID;
@@ -3499,7 +3514,13 @@ function deleteReportComment(
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const optimisticLastReportData = optimisticReportLastData(originalReportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isOriginalReportArchived);
+    const optimisticLastReportData = optimisticReportLastData(
+        originalReportID,
+        currentUserAccountID,
+        optimisticReportActions as ReportActions,
+        canUserPerformWriteAction,
+        isOriginalReportArchived,
+    );
 
     const optimisticReport: Partial<Report> = {
         ...optimisticLastReportData,
@@ -3511,7 +3532,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsDataParam),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsData),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
@@ -5961,12 +5982,13 @@ function removeFromGroupChat(report: Report, accountIDList: number[]) {
 
 function optimisticReportLastData(
     reportID: string,
+    currentUserAccountID: number,
     optimisticReportActions: Record<string, NullishDeep<ReportAction> | null> = {},
     canUserPerformWriteAction?: boolean,
     isReportArchived?: boolean,
 ) {
     const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions, undefined, undefined, currentUserAccountID);
     return {
         lastMessageText,
         lastVisibleActionCreated: lastVisibleAction?.created ?? '',
@@ -5975,7 +5997,13 @@ function optimisticReportLastData(
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived: boolean | undefined) {
+function flagComment(
+    reportAction: OnyxEntry<ReportAction>,
+    severity: string,
+    originalReport: OnyxEntry<Report> | undefined,
+    isOriginalReportArchived: boolean | undefined,
+    currentUserAccountID: number,
+) {
     const originalReportID = originalReport?.reportID;
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
@@ -6031,6 +6059,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
 
     const optimisticLastReportData = optimisticReportLastData(
         originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        currentUserAccountID,
         {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         } as ReportActions,

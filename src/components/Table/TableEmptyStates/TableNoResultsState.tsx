@@ -28,10 +28,11 @@ export default function TableNoResultsState({shouldShowLoadingIndicator = false,
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isEmptyResult, tableListMetadata} = useTableContext();
+    const {isEmptyResult, isDefaultViewEmpty, tableListMetadata} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
-    if (!isEmptyResult) {
+    // The default view hiding every row is not a search/filter result, so the empty state handles it instead.
+    if (!isEmptyResult || isDefaultViewEmpty) {
         return null;
     }
 

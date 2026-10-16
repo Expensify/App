@@ -107,11 +107,11 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 
 | Environment | Worker | Route | CSP |
 | --- | --- | --- | --- |
-| `test-staging` | `test-staging-new-expensify-assets` | `test-staging.new.expensify.com/*` | Staging |
+| `test-staging` | `test-staging-new-expensify-assets` | `test-staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
 | `staging` | `staging-new-expensify-assets` | None until switchover, then `staging.new.expensify.com/*` | Staging |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` | Production |
 
-`test-staging` serves a staging build on a hostname nobody else uses. Every staging deploy also deploys the same build there (the `webDeployTestStaging` job in `.github/workflows/deploy.yml`), using `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit this Worker. A failure there does not fail the staging deploy. To deploy it by hand, put a staging build in `dist/` and run:
+`test-staging` serves a staging build on a hostname nobody else uses. Every staging deploy also deploys the same build there (the `webDeployTestStaging` job in `.github/workflows/deploy.yml`), using `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit this Worker. That token can't read zones, so the route isn't in `wrangler.jsonc`: wrangler would try to sync it and fail. A failure there does not fail the staging deploy. To deploy it by hand, put a staging build in `dist/` and run:
 
 ```bash
 npx wrangler deploy --env test-staging

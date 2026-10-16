@@ -108,13 +108,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
-        if (onboardingValues?.shouldValidate === false) {
+        const backTo = route.params?.backTo as Route | undefined;
+        // When this screen was opened directly from the intent list (backTo is the purpose route), go straight
+        // back there instead of running the work-email restore path, which would insert a work-email screen.
+        if (onboardingValues?.shouldValidate === false && backTo !== ROUTES.ONBOARDING_PURPOSE.getRoute()) {
             updateOnboardingValuesAndNavigation(onboardingValues);
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-        Navigation.goBack(routeToNavigate);
+        Navigation.goBack(backTo ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
     }, [route.params?.backTo, onboardingValues]);
 
     const navigateToNextOnboardingStep = useCallback(
