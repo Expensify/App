@@ -64,10 +64,12 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const StyleUtils = useStyleUtils();
 
     const yAxisDomain = useDynamicYDomain(data);
-    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+    const openPointFlags = data.map((point) => !!point.isInProgress);
 
+    // Periods that haven't ended, the current one and any later ones, are drawn dashed, starting from the segment that leads into the first of them.
     // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
-    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
+    const firstOpenPointIndex = openPointFlags.indexOf(true);
+    const shouldDashOpenPoints = firstOpenPointIndex !== -1 && data.length > 1;
     const [{key: primarySeriesKey}] = series;
     const chartData = data.map((point, index) => ({
         x: index,
@@ -220,7 +222,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         chartBottom,
     });
 
-    const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
+    const isActivePointHollow = useDerivedValue(() => {
+        const index = matchedIndex.get();
+        return index >= 0 && !!openPointFlags.at(index);
+    });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
@@ -239,29 +244,34 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        const completePoints = shouldDashLastSegment ? args.points.y.slice(0, -1) : args.points.y;
+        const completePoints = shouldDashOpenPoints ? args.points.y.slice(0, firstOpenPointIndex) : args.points.y;
 
         return (
             <>
-                <AreaGradient
-                    points={completePoints}
-                    baselineY={chartBoundsBottom}
-                    color={VictoryTheme.colors.default}
-                />
-                <Line
-                    points={completePoints}
-                    color={VictoryTheme.colors.default}
-                    strokeWidth={VictoryTheme.line.strokeWidth}
-                    strokeCap="round"
-                    strokeJoin="round"
-                    curveType="linear"
-                />
-                {shouldDashLastSegment && (
+                {completePoints.length > 0 && (
+                    <>
+                        <AreaGradient
+                            points={completePoints}
+                            baselineY={chartBoundsBottom}
+                            color={VictoryTheme.colors.default}
+                        />
+                        <Line
+                            points={completePoints}
+                            color={VictoryTheme.colors.default}
+                            strokeWidth={VictoryTheme.line.strokeWidth}
+                            strokeCap="round"
+                            strokeJoin="round"
+                            curveType="linear"
+                        />
+                    </>
+                )}
+                {shouldDashOpenPoints && (
                     <Line
-                        points={args.points.y.slice(-2)}
+                        points={args.points.y.slice(Math.max(firstOpenPointIndex - 1, 0))}
                         color={VictoryTheme.colors.default}
                         strokeWidth={VictoryTheme.line.strokeWidth}
                         strokeCap="round"
+                        strokeJoin="round"
                         curveType="linear"
                     >
                         <DashPathEffect intervals={DASH_INTERVALS} />
