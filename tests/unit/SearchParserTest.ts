@@ -231,7 +231,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: 'marriott',
                 },
@@ -261,7 +261,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: "McDonald's",
                 },
@@ -596,7 +596,7 @@ const tests = [
                             },
                         },
                         right: {
-                            operator: 'eq',
+                            operator: 'contains',
                             left: 'merchant',
                             right: 'Expensify, Inc.',
                         },
@@ -1130,6 +1130,50 @@ const tests = [
 
 const keywordTests = [
     {
+        query: '-merchant*:Uber',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['-merchant*:Uber'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'category*:travel',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['category*:travel'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is not supported for default keys
+        query: 'type*:expense',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['type*:expense'],
+            },
+        },
+    },
+    {
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
@@ -1427,6 +1471,20 @@ const keywordTests = [
             sortOrder: 'desc',
             view: 'table',
             filters: {
+                operator: 'contains',
+                left: 'merchant',
+                right: 'tax',
+            },
+        },
+    },
+    {
+        query: 'merchant=tax',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
                 operator: 'eq',
                 left: 'merchant',
                 right: 'tax',
@@ -1668,7 +1726,7 @@ const limitTests = [
             view: 'table',
             limit: '50',
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },
@@ -1699,6 +1757,71 @@ const limitTests = [
                 operator: 'eq',
                 left: 'category',
                 right: ['travel', 'hotel'],
+            },
+        },
+    },
+];
+
+// The footer's selections parse as filters, since that is where the backend reads them from.
+const footerSelectionTests = [
+    {
+        description: 'every footer selection in its canonical spelling',
+        query: 'type:expense-report footerCount:reports footerTotal:non-reimbursable',
+        expected: {
+            type: 'expense-report',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'footerCount',
+                    right: 'reports',
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'footerTotal',
+                    right: 'non-reimbursable',
+                },
+            },
+        },
+    },
+    {
+        description: 'every footer selection in its user-friendly spelling, alongside a filter',
+        query: 'type:expense footer-currency:USD merchant:Amazon',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'footerCurrency',
+                    right: 'USD',
+                },
+                right: {
+                    operator: 'contains',
+                    left: 'merchant',
+                    right: 'Amazon',
+                },
+            },
+        },
+    },
+    {
+        description: 'footer selections are case-insensitive',
+        query: 'type:expense FOOTER-TOTAL:reimbursable',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'footerTotal',
+                right: 'reimbursable',
             },
         },
     },
@@ -1743,7 +1866,7 @@ const compareTests = [
             groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },
@@ -1822,6 +1945,12 @@ describe('search parser - view and groupBy defaults', () => {
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
+    });
+});
+
+describe('search parser - Spend footer selections', () => {
+    test.each(footerSelectionTests)('$description: $query', ({query, expected}) => {
         expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });

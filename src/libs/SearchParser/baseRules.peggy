@@ -194,7 +194,8 @@ groupQuarter            = "group-quarter"i &wordBoundary            { return "gr
 
 
 operator "operator"
-  = (":" / "=") { return "eq"; }
+  = "*:" { return "contains"; }
+  / (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
@@ -204,7 +205,7 @@ operator "operator"
 filterOperator
   = o:operator {
       if (nameOperator) {
-        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+        expectingNestedQuote = (o === "eq" || o === "contains");
       }
       isColumnsContext = false;
       return o;
@@ -255,3 +256,8 @@ validClosingCondition
 wordBoundary
   = [ \t\n\r\xA0,]  // whitespace or comma
   / !.              // or end of input
+
+// Spend footer display selections. Root keys, not filters: they change what the footer shows, never which rows match.
+footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
+footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
+footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }

@@ -4,8 +4,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
-import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
@@ -83,14 +83,22 @@ import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type {
+    DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormContentItem,
+    DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
+    DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 } from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
@@ -464,14 +472,22 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormContentItem,
+    DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
+    DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
@@ -514,7 +530,7 @@ export type {
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
-    AgentPrompt,
+    Agent,
     SuggestedAgentRule,
     SuggestedAgent,
 };
