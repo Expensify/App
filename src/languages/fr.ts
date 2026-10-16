@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
+        shareReport: 'Partager la note de frais',
+        reportShared: 'Note de frais partagée',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -982,6 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter'},
             addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
             addBankAccount: {title: 'Ajoutez un compte bancaire pour être remboursé'},
+            addDepositAccount: {title: 'Ajoutez un compte bancaire pour recevoir des paiements'},
             activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Carte Expensify',
@@ -8486,6 +8489,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
+                preventPayoutNonReimbursableReportsTitle: 'Empêcher de marquer les notes de frais non remboursables comme payées',
+                preventPayoutNonReimbursableReportsSubtitle: 'Ne pas autoriser les administrateurs à marquer les notes de frais non remboursables comme payées.',
             },
             agentsPromoBanner: {
                 title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
@@ -10011,6 +10016,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -10246,6 +10253,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             past: 'Passé',
             submitted: 'Soumis',
             approved: 'Approuvé',
+            anyApproval: 'Toute approbation',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
             paidBy: 'Payé par',
@@ -11273,6 +11281,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
+        mergedExpenseDeleted: 'a fusionné des dépenses et en a déplacé une vers Supprimées',
     },
     subscription: {
         authenticatePaymentCard: 'Authentifier la carte de paiement',
@@ -11515,6 +11524,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 refundedOn: ({date}: {date: string}) => `Remboursé le ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
             },
+            billedTo: 'Facturé à',
+            viewReceipt: 'Voir le reçu',
+            viewInvoice: 'Voir la facture',
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
@@ -12076,22 +12088,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         addPaymentCardButton: 'Ajouter une carte de paiement',
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nouveau dans Concierge IA',
-        confirmText: 'Allons-y !',
-        spendAnalysis: {
-            title: 'Analyse interactive des dépenses',
-            description: `<muted-text>Concierge met en avant des analyses mensuelles des dépenses et vous permet d’examiner en détail chaque chiffre. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">En savoir plus</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Découvrez votre nouvel assistant de dépenses',
-            description: `<muted-text>Discutez avec Concierge pour créer et mettre à jour des dépenses, directement dans l’application ou par e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">En savoir plus</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Créez vos propres agents',
-            description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problème d’e-mail',
         intro: (login: string) => `Notre fournisseur d’e-mails a interrompu l’envoi vers <strong>${login}</strong> en raison de problèmes de distribution. Pour résoudre ce problème :`,

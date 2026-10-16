@@ -519,6 +519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'viajero diario',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
         exportsTo: 'Exporta a',
+        shareReport: 'Compartir informe',
+        reportShared: 'Informe compartido',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -982,6 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Añadir',
             },
             addBankAccount: {title: 'Añade una cuenta bancaria para recibir el reembolso'},
+            addDepositAccount: {title: 'Añade una cuenta bancaria para recibir pagos'},
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
@@ -8495,6 +8498,8 @@ ${reportName}`,
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
+                preventPayoutNonReimbursableReportsTitle: 'Evitar marcar como pagados los informes no reembolsables',
+                preventPayoutNonReimbursableReportsSubtitle: 'No permitir que los administradores marquen los informes no reembolsables como pagados.',
             },
             agentsPromoBanner: {
                 title: '¿No ves la regla que necesitas? Añade un agente',
@@ -9803,6 +9808,8 @@ ${reportName}`,
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -10065,6 +10072,7 @@ ${reportName}`,
             past: 'Anterior',
             submitted: 'Envío',
             approved: 'Aprobación',
+            anyApproval: 'Cualquier aprobación',
             firstApprover: 'Primer aprobador',
             firstApproved: 'Primera aprobación',
             paidBy: 'Pagado por',
@@ -11441,6 +11449,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+        mergedExpenseDeleted: 'combinó gastos y movió uno a Eliminados',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
@@ -11677,6 +11686,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
             },
+            billedTo: 'Facturado a',
+            viewReceipt: 'Ver recibo',
+            viewInvoice: 'Ver factura',
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
@@ -12308,22 +12320,6 @@ ${reportName}`,
             button: 'Ver progreso',
             lockScreenBadgeText: 'Distancia',
             lockScreenTrackingText: 'Siguiendo...',
-        },
-    },
-    aiFeaturesPromoModal: {
-        subtitle: 'Nuevo en Concierge AI',
-        confirmText: '¡Vamos!',
-        spendAnalysis: {
-            title: 'Análisis interactivo del gasto',
-            description: `<muted-text>Concierge muestra información mensual sobre gastos y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Conoce a tu nuevo asistente de gastos',
-            description: `<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crea tus propios agentes',
-            description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
     emailIssuePage: {

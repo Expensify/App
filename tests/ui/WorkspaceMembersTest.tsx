@@ -191,10 +191,10 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
-            // Guest role assignment is temporarily blocked, so the "Make guest" item is not present
+            // Find and verify "Make guest" dropdown menu item
             const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
-            const makeGuestMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeGuestText}`);
-            expect(makeGuestMenuItem).not.toBeOnTheScreen();
+            const makeGuestMenuItem = screen.getByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});

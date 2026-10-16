@@ -526,6 +526,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
+        shareReport: '分享报表',
+        reportShared: '报表已分享',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -946,6 +948,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             addBankAccount: {title: '添加银行账户以接收报销'},
+            addDepositAccount: {title: '添加银行账户以接收付款'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify 卡',
@@ -8108,6 +8111,8 @@ ${reportName}`,
                 autoPayReportsUnderDescription: '在此金额以下且完全合规的报销单将被自动支付。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
+                preventPayoutNonReimbursableReportsTitle: '防止将不可报销的报告标记为已支付',
+                preventPayoutNonReimbursableReportsSubtitle: '不允许管理员将不予报销的报表标记为已支付。',
             },
             agentsPromoBanner: {title: '找不到需要的规则？添加代理人', subtitle: '添加复杂规则，并通过自定义代理减少人工审批。', cta: '试用一下'},
             merchantRules: {
@@ -9535,6 +9540,8 @@ ${reportName}`,
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `已将“防止将不可报销报表标记为已支付”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -9760,6 +9767,7 @@ ${reportName}`,
             past: '过去',
             submitted: '已提交',
             approved: '已批准',
+            anyApproval: '任意审批',
             firstApprover: '首位审批人',
             firstApproved: '首次批准',
             paidBy: '付款人',
@@ -10751,6 +10759,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: '已将一张收据匹配到此交易',
+        mergedExpenseDeleted: '已合并报销并将其中一笔移至已删除',
     },
     subscription: {
         authenticatePaymentCard: '验证支付卡',
@@ -10980,6 +10989,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `${date} 已退款`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
             },
+            billedTo: '账单对象',
+            viewReceipt: '查看收据',
+            viewInvoice: '查看发票',
         },
         subscriptionSettings: {
             title: '订阅设置',
@@ -11517,22 +11529,6 @@ ${reportName}`,
         addPaymentCardButton: '添加付款卡',
     },
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Concierge AI 新手指南',
-        confirmText: '出发吧！',
-        spendAnalysis: {
-            title: '交互式支出分析',
-            description: `<muted-text>Concierge 会提供每月支出洞察，并让你深入查看每个数字背后的详细信息。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">了解详情</a>。</muted-text>`,
-        },
-        expenseAssistant: {
-            title: '认识你的全新报销助手',
-            description: `<muted-text>在应用内或通过电子邮件、短信与 Concierge 聊天来创建和更新报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">了解更多</a>。</muted-text>`,
-        },
-        customAgents: {
-            title: '构建你自己的代理',
-            description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: '邮件问题',
         intro: (login: string) => `由于投递问题，我们的邮件服务提供商已暂停向 <strong>${login}</strong> 发送邮件。要解决此问题：`,
