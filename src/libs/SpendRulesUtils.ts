@@ -17,6 +17,10 @@ function isSpendRuleASTNode(value: unknown): value is ExpensifyCardRuleFilter {
     return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
 }
 
+function isDefinedSpendRuleASTNode(node: ExpensifyCardRuleFilter | undefined): node is ExpensifyCardRuleFilter {
+    return node !== undefined;
+}
+
 function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): ExpensifyCardRuleFilter | undefined {
     const [firstNode, ...remainingNodes] = nodes;
     if (!firstNode) {
@@ -71,7 +75,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
     }
 
     const merchantNode = combineSpendRuleASTNodes(merchantNodes, CONST.SEARCH.SYNTAX_OPERATORS.OR);
-    const categoryNode =
+    const categoryNode: ExpensifyCardRuleFilter | undefined =
         categories.length > 0
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
@@ -80,9 +84,9 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
               }
             : undefined;
 
-    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
+    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(isDefinedSpendRuleASTNode), CONST.SEARCH.SYNTAX_OPERATORS.OR);
 
-    const currencyNode =
+    const currencyNode: ExpensifyCardRuleFilter | undefined =
         currencies.length > 0
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
@@ -91,7 +95,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
               }
             : undefined;
 
-    const amountNode =
+    const amountNode: ExpensifyCardRuleFilter | undefined =
         maxAmount !== ''
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
@@ -104,11 +108,11 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
             : undefined;
 
     const ruleNode = combineSpendRuleASTNodes(
-        [amountNode, currencyNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
+        [amountNode, currencyNode, criteriaNode].filter(isDefinedSpendRuleASTNode),
         spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
     );
 
-    const filters = cardIDs.length > 0 ? combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND) : ruleNode;
+    const filters = cardIDs.length > 0 ? combineSpendRuleASTNodes([cardNode, ruleNode].filter(isDefinedSpendRuleASTNode), CONST.SEARCH.SYNTAX_OPERATORS.AND) : ruleNode;
 
     if (!filters) {
         return undefined;
