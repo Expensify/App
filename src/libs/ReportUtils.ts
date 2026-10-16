@@ -364,6 +364,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportID?: string;
     reportActionID?: string;
     attachmentID?: string;
+    additionalAttachments?: Array<{file: FileObject; attachmentID: string}>;
     isHTML?: boolean;
     delegateAccountIDParam: number | undefined;
     /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
@@ -7627,6 +7628,7 @@ function buildOptimisticAddCommentReportAction({
     reportID,
     reportActionID = rand64(),
     attachmentID,
+    additionalAttachments = [],
     currentUserEmail,
     currentUserAccountID,
     isHTML = false,
@@ -7635,7 +7637,12 @@ function buildOptimisticAddCommentReportAction({
     lastActionCreated,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
+    const attachmentHtml = [
+        getUploadingAttachmentHtml(file, attachmentID),
+        ...additionalAttachments.map((attachment) => getUploadingAttachmentHtml(attachment.file, attachment.attachmentID)),
+    ]
+        .filter((html) => !!html)
+        .join('<br />');
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
