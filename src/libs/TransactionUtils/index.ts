@@ -184,6 +184,9 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const reducedDistance = customUnit?.reimbursableDistance;
     const storedAmount = modifiedAmount ?? transaction.amount;
     const storedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
+    const rate = mileageRate?.rate;
+    const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
     // A rate edit can leave the preferred merchant describing the full route. Keep its saved rate
     // and amount, and only clear the stale commuter fields.
     if (storedUnit && storedMerchant?.startsWith(`${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `)) {
@@ -221,8 +224,39 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
                 const lowerRate = Math.max(0, (Math.abs(transaction.amount) - 0.5) / roundedFullDistance);
                 const upperRate = (Math.abs(transaction.amount) + 0.5) / roundedFullDistance;
                 const calculatedReducedAmount = Math.round(roundedReducedDistance * lowerRate);
-                const isCalculatedAmount =
+                let isCalculatedAmount =
                     modifiedAmount === undefined || (calculatedReducedAmount === Math.round(roundedReducedDistance * upperRate) && calculatedReducedAmount === Math.abs(modifiedAmount));
+                if (!isCalculatedAmount && modifiedAmount !== undefined && typeof rate === 'number' && unit === storedUnit) {
+                    const resolvedCurrency = mileageRate?.currency ?? getCurrency(transaction);
+                    const savedCurrency = getCurrency(transaction);
+                    if (resolvedCurrency === savedCurrency) {
+                        const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedFullDistance, unit);
+                        const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedReducedDistance, unit);
+                        const fullMerchantAtResolvedRate = getDistanceMerchantForTransaction({
+                            transaction,
+                            distanceInMeters: fullDistanceInMeters,
+                            unit,
+                            rate,
+                            currency: resolvedCurrency,
+                            translate,
+                            getCurrencySymbol,
+                        });
+                        const reducedMerchantAtResolvedRate = getDistanceMerchantForTransaction({
+                            transaction,
+                            distanceInMeters: reducedDistanceInMeters,
+                            unit,
+                            rate,
+                            currency: resolvedCurrency,
+                            translate,
+                            getCurrencySymbol,
+                        });
+                        isCalculatedAmount =
+                            transaction.merchant === fullMerchantAtResolvedRate &&
+                            transaction.modifiedMerchant === reducedMerchantAtResolvedRate &&
+                            Math.abs(transaction.amount) === DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate) &&
+                            Math.abs(modifiedAmount) === DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, rate);
+                    }
+                }
                 const amountToDisplay = isCalculatedAmount ? Math.abs(transaction.amount) : Math.abs(modifiedAmount ?? transaction.amount);
                 return {
                     ...transaction,
@@ -235,9 +269,6 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         }
     }
 
-    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
-    const rate = mileageRate?.rate;
-    const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
     if (!unit) {
         return transaction;
     }
