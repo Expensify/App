@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -140,10 +140,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                 style={styles.defaultModalContainer}
                 testID={testID}
             >
-                <HeaderWithBackButton
-                    title={currentValueName ?? oldValueName}
-                    shouldSetModalVisibility={false}
-                />
+                <HeaderWithBackButtonAndTitle title={currentValueName ?? oldValueName} />
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

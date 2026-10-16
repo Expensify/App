@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -57,7 +57,7 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
                 testID="DynamicWorkspaceOwnerChangeErrorPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
                 />
