@@ -9327,14 +9327,6 @@ const CONST = {
     // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
     SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
 
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
-
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
@@ -10559,10 +10551,6 @@ const CONST = {
         FEATURE_TRAINING: {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
-        },
-        AI_FEATURES_PROMO_MODAL: {
-            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
-            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
         },
     },
 

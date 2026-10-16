@@ -12261,22 +12261,6 @@ ${reportName}`,
             inviteBoss: 'Προσκαλέστε το/τη διευθυντή/ρια σας όταν είστε έτοιμοι',
         },
     },
-    aiFeaturesPromoModal: {
-        subtitle: 'Νέο στο Concierge AI',
-        confirmText: 'Πάμε!',
-        spendAnalysis: {
-            title: 'Διαδραστική ανάλυση δαπανών',
-            description: `<muted-text>Το Concierge εμφανίζει πληροφορίες για τις μηνιαίες δαπάνες και σας επιτρέπει να εξερευνήσετε τις λεπτομέρειες πίσω από κάθε αριθμό. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Γνωρίστε τον νέο σας βοηθό εξόδων',
-            description: `<muted-text>Συνομιλήστε με το Concierge για να δημιουργείτε και να ενημερώνετε δαπάνες, απευθείας στην εφαρμογή ή μέσω email ή μηνύματος κειμένου. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Δημιουργήστε τους δικούς σας πράκτορες',
-            description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-    },
     productMarketingWindow: {
         heading: 'Συνδέστε το Expensify με το Claude',
         body: 'Αναζητήστε, αναλύστε και συνοψίστε δεδομένα δαπανών απευθείας στο Claude.',

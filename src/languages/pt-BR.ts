@@ -11958,22 +11958,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         addPaymentCardButton: 'Adicionar cartão de pagamento',
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Novo no Concierge AI',
-        confirmText: 'Vamos lá!',
-        spendAnalysis: {
-            title: 'Análise interativa de gastos',
-            description: `<muted-text>O Concierge apresenta insights mensais de gastos e permite que você aprofunde nos detalhes por trás de cada número. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Saiba mais</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Conheça seu novo assistente de despesas',
-            description: `<muted-text>Converse com o Concierge para criar e atualizar despesas, direto no app ou por e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Saiba mais</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crie seus próprios agentes',
-            description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problema de e-mail',
         intro: (login: string) => `Nosso provedor de e-mail pausou o envio para <strong>${login}</strong> devido a problemas de entrega. Para resolver esse problema:`,
