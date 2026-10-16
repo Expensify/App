@@ -2,6 +2,7 @@ import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
@@ -299,7 +300,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
         // The queued request keeps its own files, so without dropping them the server would re-add attachments the edit removed.
         if (removedAttachmentSources.length > 0) {
             const data = currentAddComment.data;
-            const fileKeys = ['file', ...Object.keys(data).filter((key) => /^file_\d+$/.test(key))];
+            const fileKeys = ['file', ...Object.keys(data).filter((key) => CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key))];
             const attachmentIDs = typeof data.attachmentIDs === 'string' ? data.attachmentIDs.split(',') : [data.attachmentID];
             const keptAttachments = fileKeys
                 .map((key, index) => ({file: data[key] as FileObject | undefined, attachmentID: attachmentIDs.at(index)}))
