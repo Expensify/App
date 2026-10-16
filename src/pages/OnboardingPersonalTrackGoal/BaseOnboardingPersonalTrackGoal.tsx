@@ -3,6 +3,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import OnboardingHeader from '@components/OnboardingHeader';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -13,9 +14,11 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import scrollFocusedInputToTop from '@libs/scrollFocusedInputToTop';
 
 import variables from '@styles/variables';
 
@@ -38,11 +41,14 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldFooterBeInsideScrollView = useShouldFooterBeInsideList();
     const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
     const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
     const [inputError, setInputError] = useState('');
     const [shouldScrollToSomethingElseInput, setShouldScrollToSomethingElseInput] = useState(false);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
+    const scrollContentRef = useRef<View>(null);
+    const inputRef = useRef<AnimatedTextInputRef>(null);
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -124,72 +130,79 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
+                onLayout={() => scrollFocusedInputToTop(scrollViewRef, scrollContentRef, inputRef)}
                 style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}
                 onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text
-                        style={styles.textHeadlineH1}
-                        accessibilityRole={CONST.ROLE.HEADER}
-                    >
-                        {translate('onboarding.personalTrackGoal.title')}
-                    </Text>
-                </View>
-                {personalTrackGoalOptions.map((goal) => {
-                    const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
-                    const isSelected = goal === selectedGoal;
-                    return (
-                        <MenuItem
-                            key={translationKey}
-                            title={translate(translationKey)}
-                            icon={menuIcons[goal]}
-                            displayInDefaultIconColor
-                            iconWidth={variables.menuIconSize}
-                            iconHeight={variables.menuIconSize}
-                            iconStyles={[styles.mh3]}
-                            wrapperStyle={[styles.purposeMenuItem, isSelected && styles.activeComponentBG]}
-                            numberOfLinesTitle={0}
-                            shouldShowRightIcon={isSelected}
-                            iconRight={expensifyIcons.Checkmark}
-                            success={isSelected}
-                            shouldRemoveHoverBackground={isSelected}
-                            onPress={() => {
-                                setSelectedGoalOverride(goal);
-                                setInputError('');
-                                setShouldScrollToSomethingElseInput(goal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
-                                if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
-                                    completeTrackGoalSelection(goal);
-                                }
-                            }}
-                        />
-                    );
-                })}
-                {isSomethingElseSelected && (
-                    <View style={[styles.mt4, styles.mb5]}>
-                        <TextInput
-                            autoFocus
-                            accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
-                            label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
-                            value={somethingElseText}
-                            onChangeText={(text) => {
-                                setSomethingElseTextOverride(text);
-                                setInputError('');
-                            }}
-                        />
-                        {!!inputError && (
-                            <FormHelpMessage
-                                style={[styles.ph1, styles.mt2]}
-                                isError
-                                message={inputError}
-                            />
-                        )}
+                <View
+                    ref={scrollContentRef}
+                    style={styles.flex1}
+                >
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.personalTrackGoal.title')}
+                        </Text>
                     </View>
-                )}
+                    {personalTrackGoalOptions.map((goal) => {
+                        const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
+                        const isSelected = goal === selectedGoal;
+                        return (
+                            <MenuItem
+                                key={translationKey}
+                                title={translate(translationKey)}
+                                icon={menuIcons[goal]}
+                                displayInDefaultIconColor
+                                iconWidth={variables.menuIconSize}
+                                iconHeight={variables.menuIconSize}
+                                iconStyles={[styles.mh3]}
+                                wrapperStyle={[styles.purposeMenuItem, isSelected && styles.activeComponentBG]}
+                                numberOfLinesTitle={0}
+                                shouldShowRightIcon={isSelected}
+                                iconRight={expensifyIcons.Checkmark}
+                                success={isSelected}
+                                shouldRemoveHoverBackground={isSelected}
+                                onPress={() => {
+                                    setSelectedGoalOverride(goal);
+                                    setInputError('');
+                                    setShouldScrollToSomethingElseInput(goal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
+                                    if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
+                                        completeTrackGoalSelection(goal);
+                                    }
+                                }}
+                            />
+                        );
+                    })}
+                    {isSomethingElseSelected && (
+                        <View style={[styles.mt4, styles.mb5]}>
+                            <TextInput
+                                ref={inputRef}
+                                autoFocus
+                                accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
+                                label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
+                                value={somethingElseText}
+                                onChangeText={(text) => {
+                                    setSomethingElseTextOverride(text);
+                                    setInputError('');
+                                }}
+                            />
+                            {!!inputError && (
+                                <FormHelpMessage
+                                    style={[styles.ph1, styles.mt2]}
+                                    isError
+                                    message={inputError}
+                                />
+                            )}
+                        </View>
+                    )}
 
-                {isSomethingElseSelected && isInLandscapeMode && continueButton}
+                    {isSomethingElseSelected && shouldFooterBeInsideScrollView && continueButton}
+                </View>
             </ScrollView>
-            {isSomethingElseSelected && !isInLandscapeMode && continueButton}
+            {isSomethingElseSelected && !shouldFooterBeInsideScrollView && continueButton}
         </ScreenWrapper>
     );
 }
