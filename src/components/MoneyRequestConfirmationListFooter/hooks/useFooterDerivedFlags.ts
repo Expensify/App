@@ -1,16 +1,26 @@
 import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 
+import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
+import {getCompanyCardFeed} from '@libs/CardUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getCurrency,
+    isCardTransactionReimbursableEditable,
+    isManagedCardTransaction,
+    isScanRequest,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -71,6 +81,10 @@ function useFooterDerivedFlags({
     const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath: canNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
+    const [cardFeedsForTransactionCard] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${getNonEmptyStringOnyxID(transactionCard?.fundID)}`);
+    const transactionCardFeedSettings = transactionCard ? cardFeedsForTransactionCard?.settings?.companyCards?.[getCompanyCardFeed(transactionCard.bank)] : undefined;
 
     // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
@@ -94,8 +108,13 @@ function useFooterDerivedFlags({
 
     // A flag for showing the billable field
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
-        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+        (isPolicyExpenseChat || isTrackExpense) &&
+        !!policy &&
+        (isManagedCardTransaction(transaction) || policy?.disabledFields?.reimbursable !== true) &&
+        isCardTransactionReimbursableEditable(transaction, transactionCardFeedSettings) &&
+        !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);
     const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;

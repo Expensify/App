@@ -1000,7 +1000,7 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -1017,7 +1017,10 @@ function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'mana
  * The value stamped on the transaction at import wins, so changing the feed setting only affects expenses imported afterward.
  * The feed setting is used as a fallback for transactions that weren't stamped.
  */
-function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Transaction>, feedSettings?: Pick<CustomCardFeedData, 'forceReimbursable'>): boolean {
+function isCardTransactionReimbursableEditable(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>,
+    feedSettings?: Pick<CustomCardFeedData, 'forceReimbursable'>,
+): boolean {
     if (!isManagedCardTransaction(transaction)) {
         return true;
     }
