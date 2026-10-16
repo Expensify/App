@@ -45,7 +45,7 @@ type TagPickerModalProps = {
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
 
-    /** Height of the picker. Defaults to the full dropdown height, pass a smaller value to fit it into limited space. */
+    /** Height of the picker. Defaults to the full dropdown height. */
     popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 

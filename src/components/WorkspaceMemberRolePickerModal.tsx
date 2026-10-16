@@ -45,12 +45,12 @@ type WorkspaceMemberRolePickerModalProps = {
 
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 
-    /** Height of the picker. Defaults to the height its roles need, pass a smaller value to fit it into limited space. */
+    /** Height of the picker. Defaults to the height its roles need. */
     popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
- * Authorized Payer rows only show two roles, so picking the side to open on has to use that shorter height instead of the full dropdown max.
+ * Authorized Payer rows only show two roles, so inversion has to use that shorter height instead of the full dropdown max.
  */
 function useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles}: Pick<WorkspaceMemberRolePickerModalProps, 'policy' | 'selectedRole' | 'allowedRoles'>) {
     const styles = useThemeStyles();

@@ -30,7 +30,7 @@ const popoverDimensions = {
     width: CONST.POPOVER_DATE_WIDTH,
 };
 
-// A zero height opts the popover into measuring the calendar's real rendered height (see `shouldMeasureContentHeight`).
+// A zero height makes the popover measure the calendar's rendered height.
 const measuredPopoverDimensions = {
     height: 0,
     width: CONST.POPOVER_DATE_WIDTH,

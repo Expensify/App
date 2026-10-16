@@ -525,7 +525,6 @@ describe('usePopoverEditState', () => {
             // Then the popover opens above the cell at full height, so it doesn't cover the cell being edited
             expect(result.current.shouldOpenAbove).toBe(true);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
-            // The bottom edge of the popover sits `PADDING` above the top of the cell, so the cell stays visible
             expect(result.current.popoverPosition.vertical).toBe(anchor.y - PADDING);
             expect(result.current.popoverHeight).toBe(PREFERRED_HEIGHT);
         });
@@ -544,7 +543,6 @@ describe('usePopoverEditState', () => {
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
             expect(result.current.popoverHeight).toBe(spaceAbove);
             expect(result.current.popoverHeight).toBeLessThan(PREFERRED_HEIGHT);
-            // The popover still ends above the cell and starts inside the window
             expect(result.current.popoverPosition.vertical).toBe(anchor.y - PADDING);
             expect(result.current.popoverPosition.vertical - result.current.popoverHeight).toBeGreaterThanOrEqual(0);
         });

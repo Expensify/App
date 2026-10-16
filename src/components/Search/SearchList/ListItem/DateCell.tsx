@@ -35,8 +35,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
-        // The calendar has a fixed height, so pass its real height to pick the side to open on. It isn't shrunk.
-        // The bottom-edge anchoring is what keeps it off the cell.
         popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT,
         onSave,
     });
@@ -78,14 +76,10 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     onSelected={handleSave}
                     anchorPosition={popoverPosition}
                     anchorAlignment={anchorAlignment}
-                    // The calendar's height varies by month and exceeds POPOVER_DATE_MIN_HEIGHT, so measure it: when
-                    // opening above the cell (bottom-edge anchored) a too-short assumed height would clip the top.
                     shouldMeasureContentHeight
-                    // The calendar can't shrink, so when it's clamped inside a short window keep the same gap from the
-                    // window edge that the shrinking category/tag pickers leave, instead of sitting flush against it.
+                    // The calendar can't shrink, so keep the same edge gap the shrinking pickers leave.
                     windowMargin={CONST.MODAL.POPOVER_MENU_PADDING}
                     shouldPositionFromTop={!shouldOpenAbove}
-                    // The side is already picked on open, so stay on it. Flipping would move the popover onto the cell.
                     shouldSwitchPositionIfOverflow={false}
                     isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"

@@ -72,8 +72,7 @@ function PopoverWithMeasuredContentBase({
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    // Static dimensions skip the `onLayout` measurement below, so `popoverHeight` would otherwise keep its first-render
-    // value forever. Mirror the prop so callers that adapt the height to the space available are positioned correctly.
+    // Static dimensions skip `onLayout`, so sync height changes from the prop.
     if (hasStaticDimensions && popoverHeight !== popoverDimensions.height) {
         setPopoverHeight(popoverDimensions.height);
     }
@@ -187,7 +186,6 @@ function PopoverWithMeasuredContentBase({
             const maxTop = windowHeight - popoverHeight - positionCalculations.verticalShift;
             let clampedTop = Math.min(Math.max(positionCalculations.verticalShift, top), maxTop);
             if (windowMargin > 0) {
-                // Keep `windowMargin` of breathing room from the window edges instead of sitting flush against them.
                 clampedTop = Math.min(Math.max(clampedTop, windowMargin), Math.max(windowHeight - popoverHeight - windowMargin, windowMargin));
             }
             result.top = clampedTop;
@@ -195,9 +193,7 @@ function PopoverWithMeasuredContentBase({
 
         if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
             const bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - positionCalculations.verticalShift;
-            // Keep the popover inside the window. When the space above the anchor is smaller than the popover, pinning
-            // the bottom edge would push the top edge above the window and clip the content, so cap `bottom` at the
-            // value that keeps the top edge inside the window, leaving `windowMargin` of breathing room from the edge.
+            // Keep the top edge inside the window when the popover is taller than the space above the anchor.
             const maxBottom = windowHeight - popoverHeight - windowMargin;
             result.bottom = windowMargin > 0 ? Math.min(Math.max(bottom, windowMargin), Math.max(maxBottom, windowMargin)) : Math.min(bottom, maxBottom);
         }

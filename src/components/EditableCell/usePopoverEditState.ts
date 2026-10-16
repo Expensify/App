@@ -29,7 +29,7 @@ type UsePopoverEditStateOptions = {
     /** Custom equality function. If not provided, Object.is is used. */
     isEqual?: (newValue: unknown, originalValue: unknown) => boolean;
 
-    /** Preferred height of the popover content. It is used to pick the side to open on, and is shrunk when that side can't fit it. */
+    /** Preferred popover height. Shrunk when the chosen side has less room. */
     popoverHeight?: number;
 
     /** Padding between the anchor and the popover */
@@ -64,23 +64,17 @@ function usePopoverEditStateImpl({
 
     const openPopover = () => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
-            // Space usable on either side of the anchor, reserving `padding` between the popover and the anchor plus the
-            // same gap between the popover and the window edge.
+            // Reserve `padding` next to the anchor and next to the window edge.
             const spaceBelow = windowHeight - (y + height + padding) - padding;
             const spaceAbove = y - padding - padding;
 
-            // Open below whenever the preferred height fits there, otherwise take whichever side has more room.
             const shouldOpenPopoverAbove = spaceBelow < preferredPopoverHeight && spaceAbove > spaceBelow;
             const availableSpace = shouldOpenPopoverAbove ? spaceAbove : spaceBelow;
 
             setShouldOpenAbove(shouldOpenPopoverAbove);
-            // Shrink to the available space, but not below the minimum usable height. Never grow past the preferred height,
-            // so a short list (for example, two member roles) keeps its own height.
             setPopoverHeight(Math.min(preferredPopoverHeight, Math.max(availableSpace, CONST.POPOVER_DROPDOWN_MIN_USABLE_HEIGHT)));
             setPopoverPosition({
                 horizontal: anchorEdge === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? x : x + width,
-                // When opening above, this is the popover's bottom edge (see `anchorAlignment` below), so the popover
-                // ends `padding` above the anchor instead of starting on top of it.
                 vertical: shouldOpenPopoverAbove ? y - padding : y + height + padding,
             });
             setIsPopoverVisible(true);
@@ -118,8 +112,7 @@ function usePopoverEditStateImpl({
         });
     }, [canEdit, isEditing]);
 
-    // Pin the popover's bottom edge to `popoverPosition.vertical` when opening above, so the popover is placed fully
-    // outside the anchor regardless of how tall its content ends up being.
+    // When opening above, pin the popover's bottom edge above the anchor so it never covers it.
     const anchorAlignment: AnchorAlignment = {
         horizontal: anchorEdge,
         vertical: shouldOpenAbove ? CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM : CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -155,8 +148,10 @@ type UsePopoverEditStateOptionsGeneric<T> = {
  * Handles:
  *   - Anchor ref for popover positioning
  *   - measureInWindow-based position calculation
- *   - Side selection (opens above the anchor, bottom-edge aligned, when the popover can't fit below it)
+ *   - Side selection (opens above the anchor when the popover can't fit below it)
  *   - Adaptive height calculation (shrinks popover when space is limited)
+ *
+ * Callers should pass `shouldSwitchPositionIfOverflow={false}` to the popover, since flipping the chosen side would cover the anchor.
  *   - Auto-open after layout via requestAnimationFrame
  *   - isEditing + isPopoverVisible toggling
  *   - Auto-cancel when canEdit becomes false

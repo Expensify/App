@@ -17,12 +17,10 @@ const POPOVER_HEIGHT = 400;
 const POPOVER_WIDTH = 300;
 const WINDOW_MARGIN = CONST.MODAL.POPOVER_MENU_PADDING;
 
-// `mock`-prefixed so `jest.mock`'s factory is allowed to reference it.
 let mockAnchorPosition: PopoverAnchorPosition | undefined;
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 1000, windowHeight: 600}));
 
-// Capture the anchor position the popover computed, which is the value under test.
 jest.mock('@components/Popover', () => {
     const MockPopover = ({anchorPosition, children}: {anchorPosition: PopoverAnchorPosition; children: ReactNode}) => {
         mockAnchorPosition = anchorPosition;
@@ -31,10 +29,7 @@ jest.mock('@components/Popover', () => {
     return MockPopover;
 });
 
-/**
- * Renders the popover with static dimensions (so no `onLayout` measurement is needed) and returns the anchor position
- * it computed for the underlying `Popover`.
- */
+/** Renders the popover with static dimensions and returns the anchor position it passes to `Popover` */
 function renderPopoverAt(vertical: number, verticalAlignment: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>, windowMargin?: number): PopoverAnchorPosition | undefined {
     mockAnchorPosition = undefined;
     render(

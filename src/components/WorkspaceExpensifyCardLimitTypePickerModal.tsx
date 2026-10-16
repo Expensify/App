@@ -59,12 +59,12 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
 
     onSelected?: (limitType: CardLimitType) => void;
 
-    /** Height of the picker. Defaults to the height its limit types need, pass a smaller value to fit it into limited space. */
+    /** Height of the picker. Defaults to the height its limit types need. */
     popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
- * Picking the side to open on has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.
+ * Inversion has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.
  */
 function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<WorkspaceExpensifyCardLimitTypePickerModalProps, 'card' | 'policy'>) {
     const styles = useThemeStyles();
