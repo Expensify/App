@@ -290,7 +290,6 @@ type WiseBusinessOnboarding = {
 
     /** KYC requirement answers, by requirement then by Wise's field name */
     requirements?: {
-        /** Asked when a chosen industry is high risk */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
             businessSourceOfWealthInfo: string;
         };
