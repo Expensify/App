@@ -155,6 +155,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasReadOnlyAllReportsAccess,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
@@ -5864,7 +5865,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
     const isManager = isReportManager(report);
     const isSubmitter = isReportOwner(report);
-    const isReportAuditor = isAuditor(report);
     const isIOUType = isIOUReport(report);
     const isInvoiceType = isInvoiceReport(report);
     const isExpenseType = isExpenseReport(report);
@@ -5877,7 +5877,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     }
 
     if (isInvoiceType) {
-        return isOpen && !isReportAuditor;
+        return isOpen && !hasReadOnlyAllReportsAccess(reportPolicy);
     }
 
     if (isExpenseType) {
@@ -12370,6 +12370,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isEmpty(policy) &&
         hasParticipantInArray(report, deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : []) &&
         !isAuditor(report) &&
+        !hasReadOnlyAllReportsAccess(policy) &&
         !isPolicyGuest(policy)
     );
 }
