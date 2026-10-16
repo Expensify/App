@@ -13,7 +13,6 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 type DomainNameOrNotFoundWrapperProps = {
-    /** AccountID of the domain */
     domainAccountID: number;
 
     /** Called when the not found page's link is pressed */
@@ -27,7 +26,7 @@ function DomainNameOrNotFoundWrapper({domainAccountID, onLinkPress, children}: D
     const [domainName, domainNameResult] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     if (isLoadingOnyxValue(domainNameResult)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domainName) {

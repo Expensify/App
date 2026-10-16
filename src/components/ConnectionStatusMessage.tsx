@@ -1,5 +1,5 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,7 +10,7 @@ import type {ComponentProps} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
@@ -36,7 +36,7 @@ function ConnectionStatusMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (!message && !actionText) {
         return null;
@@ -44,7 +44,7 @@ function ConnectionStatusMessage({
 
     let statusMessageRowPadding;
     if (shouldIncludeHorizontalPadding) {
-        statusMessageRowPadding = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;
+        statusMessageRowPadding = cardPaddingHorizontal;
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';

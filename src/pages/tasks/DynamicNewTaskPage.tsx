@@ -1,4 +1,3 @@
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -6,12 +5,13 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import UserPill from '@components/UserPill';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,9 +19,10 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,17 +30,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
+import Parser from '@libs/Parser';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
+import {isAllowedToComment} from '@libs/ReportUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentRef} from 'react';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -58,10 +61,10 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 
     return (
         <ReportActionAvatars
-            singleAvatarContainerStyle={[styles.actionAvatar]}
-            subscriptAvatarBorderColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
+            singleAvatarContainerStyle={styles.actionAvatar}
+            subscriptAvatarContainerStyle={styles.mr0}
+            backdropColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
             reportID={reportID}
-            noRightMarginOnSubscriptContainer
         />
     );
 }
@@ -71,27 +74,31 @@ function DynamicNewTaskPage() {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const policy = usePolicy(parentReport?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
-    });
+    const taskCreatorAndAssigneeDetails = getPersonalDetailsListByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID], personalDetails);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
-        false,
-        localeCompare,
-        formatPhoneNumber,
-        translate,
-    );
+    const assigneePersonalDetails = task?.assigneeAccountID ? personalDetails?.[task.assigneeAccountID] : undefined;
     const shareDestination = task?.shareDestination
-        ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, reportAttributes, pendingDeleteMemberAccountIDs)
+        ? getShareDestination(
+              parentReport,
+              personalDetails,
+              localeCompare,
+              formatPhoneNumber,
+              policy,
+              conciergeReportID,
+              translate,
+              rules,
+              derivedSharedDestinationReportName,
+              pendingDeleteMemberAccountIDs,
+          )
         : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
@@ -108,7 +115,7 @@ function DynamicNewTaskPage() {
     const {paddingBottom} = useSafeAreaPaddings();
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
-    const confirmButtonRef = useRef<View>(null);
+    const confirmButtonRef = useRef<ComponentRef<typeof View>>(null);
 
     const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
     const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));
@@ -204,57 +211,42 @@ function DynamicNewTaskPage() {
                 >
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
-                            <MenuItemWithTopDescription
-                                description={translate('task.title')}
-                                title={task?.title}
+                            <MenuItemFieldHTML
+                                name={translate('task.title')}
+                                value={task?.title ? Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]}) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
-                                shouldShowRightIcon
-                                rightLabel={translate('common.required')}
-                                shouldParseTitle
-                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('task.description')}
-                                title={task?.description}
+                            >
+                                {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemFieldHTML>
+                            <MenuItemFieldHTML
+                                name={translate('task.description')}
+                                value={task?.description ? Parser.replace(task.description) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
-                                shouldShowRightIcon
-                                shouldParseTitle
-                                numberOfLinesTitle={2}
-                                titleStyle={styles.flex1}
                             />
                             {assignee?.displayName ? (
-                                <MenuItemWithLabel
-                                    label={translate('task.assignee')}
-                                    onPress={navigateToAssignee}
+                                <MenuItem.Root
+                                    accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
+                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee)}
                                 >
                                     <MenuItem.Row>
-                                        {!!task?.assigneeAccountID && (
-                                            <MenuItem.Leading>
-                                                <AccountAvatar
-                                                    accountID={task.assigneeAccountID}
-                                                    containerStyle={[styles.actionAvatar]}
-                                                />
-                                            </MenuItem.Leading>
-                                        )}
                                         <MenuItem.Content>
-                                            <MenuItem.Title accessibilityLabel={assignee.displayName}>
-                                                <DisplayNames
-                                                    fullTitle={assignee.displayName}
-                                                    displayNamesWithTooltips={assigneeTooltipDetails}
-                                                    tooltipEnabled
-                                                    numberOfLines={1}
-                                                />
-                                            </MenuItem.Title>
-                                            {!!assignee.subtitle && <MenuItem.Description>{formatPhoneNumber(assignee.subtitle)}</MenuItem.Description>}
+                                            <MenuItem.Label>{translate('task.assignee')}</MenuItem.Label>
+                                            <UserPill
+                                                avatar={assigneePersonalDetails?.avatar}
+                                                displayName={assignee.displayName}
+                                                accountID={task?.assigneeAccountID}
+                                                email={assigneePersonalDetails?.login}
+                                                style={styles.userPillStandalone}
+                                            />
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
                                             <MenuItem.Chevron />
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
-                                </MenuItemWithLabel>
+                                </MenuItem.Root>
                             ) : (
-                                <MenuItemEmptyField
-                                    description={translate('task.assignee')}
+                                <MenuItemField
+                                    name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
                             )}
@@ -290,20 +282,12 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItem.Root
-                                    onPress={navigateToShareDestination ? callFunctionIfActionIsAllowed(navigateToShareDestination) : undefined}
-                                    accessibilityLabel={translate('common.share')}
+                                <MenuItemField
+                                    name={translate('common.share')}
+                                    onPress={navigateToShareDestination}
                                 >
-                                    <MenuItem.Row>
-                                        <MenuItem.Content>
-                                            <MenuItem.DescriptionPlaceholder>{translate('common.share')}</MenuItem.DescriptionPlaceholder>
-                                        </MenuItem.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                            {!!navigateToShareDestination && <MenuItem.Chevron />}
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemField>
                             )}
                         </View>
                     </View>

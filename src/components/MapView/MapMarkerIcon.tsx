@@ -2,7 +2,6 @@ import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 
 type MapMarkerIconProps = {
-    /** The type of the map marker to display */
     markerType: MapMarkerType;
 };
 

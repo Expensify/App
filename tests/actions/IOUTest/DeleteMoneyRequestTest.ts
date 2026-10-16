@@ -23,7 +23,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -35,6 +34,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -61,26 +61,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const TEST_INTRO_SELECTED: IntroSelected = {
@@ -161,12 +143,13 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -192,11 +175,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 existingTransactionDraft: undefined,
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -293,6 +276,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
@@ -382,6 +366,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
@@ -426,6 +411,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -451,11 +437,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 existingTransactionDraft: undefined,
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -471,6 +457,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -550,7 +537,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -591,6 +577,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -660,7 +647,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -691,6 +677,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
+                    isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
                     transactions: {},
                     transactionThreadReport: thread,
@@ -721,6 +708,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -752,6 +740,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -797,7 +786,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -878,6 +866,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -946,7 +935,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -1076,6 +1064,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1137,6 +1126,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1162,11 +1152,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     existingTransactionDraft: undefined,
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }
 
@@ -1195,6 +1185,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1225,6 +1216,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
@@ -1250,11 +1242,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 existingTransactionDraft: undefined,
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1277,7 +1269,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -1315,6 +1306,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isSingleTransactionView: true,
@@ -1375,6 +1367,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1405,6 +1398,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1430,11 +1424,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfTourViewed: false,
                     existingTransactionDraft: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }
 
@@ -1467,7 +1461,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -1557,6 +1550,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1650,6 +1644,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1, transaction2, transaction3],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [],
@@ -1666,6 +1661,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1, transaction2, transaction3],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
@@ -1689,6 +1685,86 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(report?.total).toBe(10);
             expect(report?.unheldTotal).toBe(10);
             expect(report?.unheldNonReimbursableTotal).toBe(10);
+        });
+    });
+
+    describe('deleteMoneyRequest report preview message wording', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
+
+        it('uses "spent" wording in the report preview when a remaining transaction is non-reimbursable', async () => {
+            const chatReport: Report = {...createRandomReport(40, undefined)};
+            const expenseReport: Report = {
+                ...createRandomReport(41, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                total: 20,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactionToDelete: Transaction = {
+                ...createRandomTransaction(40),
+                amount: 10,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+            const remainingTransaction: Transaction = {
+                ...createRandomTransaction(41),
+                amount: 10,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: false,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(40),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                childReportID: '40',
+                originalMessage: {
+                    amount: transactionToDelete.amount,
+                    currency: transactionToDelete.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+            const reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                ...createRandomReportAction(42),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportID: chatReport.reportID,
+                originalMessage: {linkedReportID: expenseReport.reportID},
+                message: [{type: 'COMMENT', html: 'test@email.com owes $20.00', text: 'test@email.com owes $20.00'}],
+                previousMessage: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionToDelete.transactionID}`, transactionToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransaction.transactionID}`, remainingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+            await waitForBatchedUpdates();
+
+            deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transactionToDelete.transactionID,
+                reportAction: moneyRequestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: [transactionToDelete, remainingTransaction],
+                chatReport,
+                transactionThreadReport: undefined,
+                transactionThreadReportActions: undefined,
+                transactionIDsPendingDeletion: [],
+                selectedTransactionIDs: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            const iouPreview = getReportPreviewReportAction(chatReport.reportID, expenseReport.reportID);
+            expect(getReportActionText(iouPreview)).toContain('spent');
         });
     });
 
@@ -1748,6 +1824,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: transactionViolations,
@@ -1815,6 +1892,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -1962,6 +2040,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -1989,6 +2068,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: afterFirstDelete,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2039,6 +2119,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2084,6 +2165,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2135,6 +2217,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [t21.transactionID],
@@ -2186,6 +2269,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2218,6 +2302,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: afterFirst,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2287,6 +2372,93 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(result.optimisticData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
             expect(result.failureData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
+        });
+
+        it("resolves the report preview's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '70001';
+            const IOU_REPORT_ID = '70002';
+            const WHISPER_TARGET_ACCOUNT_ID = 808;
+
+            const olderIOUAction: ReportAction = {
+                ...createRandomReportAction(10),
+                reportActionID: 'deleteOlderAction',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderIOUAction`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...createRandomReportAction(11),
+                reportActionID: 'deleteWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            const previewAction: ReportAction = {
+                ...createRandomReportAction(12),
+                reportActionID: 'deletePreview',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childVisibleActionCount: 2,
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            };
+            // The money-request action being deleted. Its reportID is what resolves the IOU report below.
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(13),
+                reportActionID: 'deletedIOU',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childVisibleActionCount: 1,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '70003', amount: 100, currency: 'USD', IOUReportID: IOU_REPORT_ID},
+            };
+
+            const chatReport: Report = {...createRandomReport(70001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...createRandomReport(70002, undefined),
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[previewAction.reportActionID]: previewAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+                [olderIOUAction.reportActionID]: olderIOUAction,
+                [whisper.reportActionID]: whisper,
+                [deletedIOUAction.reportActionID]: deletedIOUAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getPreviewCreated = (currentUserAccountID: number) => {
+                const result = getCleanUpTransactionThreadReportOnyxData({
+                    shouldDeleteTransactionThread: false,
+                    reportAction: deletedIOUAction,
+                    iouReport,
+                    chatReport,
+                    currentUserAccountID,
+                });
+                const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
+                const value: unknown = entry && 'value' in entry ? entry.value : undefined;
+                if (!isObject(value)) {
+                    return undefined;
+                }
+                const updatedPreview = value[previewAction.reportActionID];
+                if (!isObject(updatedPreview) || typeof updatedPreview.childLastVisibleActionCreated !== 'string') {
+                    return undefined;
+                }
+                return updatedPreview.childLastVisibleActionCreated;
+            };
+
+            // Given the whisper targets the deleting user, it is the newest action they can see
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // Given the whisper targets somebody else, it is invisible and the older comment wins
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
         });
     });
 });

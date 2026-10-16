@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
 type Data = {
@@ -11,6 +12,9 @@ type Data = {
 
     /** Collection of auth write requests */
     authWriteCommands: string[];
+
+    /** Workspaces the vacation delegate is missing from, returned with jsonCode 305 by SetVacationDelegate */
+    policyDiff?: VacationDelegatePolicyDiff;
 };
 
 /** Model of server response */
@@ -30,7 +34,6 @@ type Response<TKey extends OnyxKey> = {
     /** ID of the request that triggered this response */
     requestID?: string;
 
-    /** Report ID of the updated report */
     reportID?: string;
 
     /**
@@ -48,7 +51,6 @@ type Response<TKey extends OnyxKey> = {
     /** Registered multifactor public keys */
     publicKeys?: string[];
 
-    /** Multifactor authentication challenge object */
     challenge?: MultifactorAuthenticationChallengeObject;
 
     /** User session auth token when connecting as a delegate */
@@ -85,13 +87,8 @@ type Response<TKey extends OnyxKey> = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
 
-    /** Setup Url */
     setupUrl?: string;
-
-    /** The accountID of the user */
     accountID?: number;
-
-    /** The email of the user */
     email?: string;
 
     /** If there is older data to load for pagination commands */

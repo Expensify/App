@@ -26,28 +26,23 @@ import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
-    /** Duration of a video. */
     duration: number;
 
     /** Position of progress pointer. */
     position: number;
 
-    /** Url of a video. */
     url: string;
 
-    /** Ref for video player. */
+    /** Original file name of the video, used to name the file saved by the popover menu's Download action. */
+    fileName?: string;
+
     videoPlayerRef: RefObject<VideoPlayer | null>;
-
-    /** Ref for video view component. */
     videoViewRef: RefObject<VideoView | null>;
-
-    /** Is video playing. */
     isPlaying: boolean;
 
     /** Defines if component should have small icons and tighter spacing inline. */
     small?: boolean;
 
-    /** Style of video player controls. */
     style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Function to play and pause the video.  */
@@ -65,7 +60,7 @@ type VideoPlayerControlsProps = {
 };
 
 /** Three-dots overflow trigger; records the active player + source before opening. */
-function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; small: boolean}) {
+function MoreMenuTrigger({videoPlayerRef, url, fileName, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; fileName: string | undefined; small: boolean}) {
     const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const {translate} = useLocalize();
@@ -76,7 +71,7 @@ function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObjec
             return;
         }
         updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        updateSource(url);
+        updateSource(url, fileName);
     };
 
     return (
@@ -96,6 +91,7 @@ function VideoPlayerControls({
     duration,
     position,
     url,
+    fileName,
     videoPlayerRef,
     videoViewRef,
     isPlaying,
@@ -179,6 +175,7 @@ function VideoPlayerControls({
                         <MoreMenuTrigger
                             videoPlayerRef={videoPlayerRef}
                             url={url}
+                            fileName={fileName}
                             small={small}
                         />
                     </View>

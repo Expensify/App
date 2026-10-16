@@ -1,4 +1,4 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,7 +11,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -19,7 +19,6 @@ import Text from './Text';
 const ICON_SIZE = variables.iconSizeNormal;
 
 type BaseWidgetItemProps = {
-    /** Icon to display */
     icon: IconAsset;
 
     /** Primary title text */
@@ -31,7 +30,6 @@ type BaseWidgetItemProps = {
     /** Text for the CTA button */
     ctaText: string;
 
-    /** Callback when CTA is pressed */
     onCtaPress: () => void;
 
     /** The visual variant of the CTA button */
@@ -41,7 +39,7 @@ type BaseWidgetItemProps = {
 function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     return (
         <PressableWithoutFeedback
@@ -51,7 +49,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={icon}

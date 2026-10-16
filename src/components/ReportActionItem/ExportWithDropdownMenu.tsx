@@ -69,6 +69,8 @@ function ExportWithDropdownMenu({
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
 

@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -18,22 +20,14 @@ type MoneyRequestReportTotalSpendProps = {
     /** Report for which the total spend is being displayed */
     report: OnyxTypes.Report;
 
-    /** Whether the report has any comments */
     hasComments?: boolean;
-
-    /** Whether the report is loading report actions */
     isLoadingReportActions?: boolean;
 
     /** Whether the report has any transactions */
     isEmptyTransactions: boolean;
 
-    /** The total display spend of the report */
     totalDisplaySpend: number;
-
-    /** Whether the report has any pending actions */
     hasPendingAction: boolean;
-
-    /** Style for the text container of the total spend */
     textContainerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -53,7 +47,8 @@ function MoneyRequestReportTotalSpend({
     const isFocused = useIsFocused();
     const shouldShowComments = hasComments || isLoadingReportActions;
 
-    const commentContainerStyle = [styles.ph5, styles.justifyContentBetween, styles.mb2];
+    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
+    const commentContainerStyle = [pageGutter, styles.justifyContentBetween, styles.mb2];
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd, shouldShowComments && commentContainerStyle]}>

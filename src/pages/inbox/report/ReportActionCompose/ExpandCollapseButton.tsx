@@ -17,17 +17,11 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExpandCollapseButtonProps = ViewProps & {
-    /** Whether the full composer is available */
     isFullComposerAvailable: boolean;
-    /** Whether the composer is full size */
     isComposerFullSize: boolean;
-    /** The report ID */
     reportID: string;
-    /** Function to raise the scroll is likely layout triggered */
     raiseIsScrollLikelyLayoutTriggered: () => void;
-    /** Function to set the composer full size */
     setIsComposerFullSize: (reportID: string, isFullSize: boolean) => void;
-    /** Whether the button is disabled */
     disabled?: boolean;
 };
 

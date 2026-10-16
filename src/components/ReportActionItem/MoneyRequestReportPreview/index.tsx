@@ -14,16 +14,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
+    getAllReportActions,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getOriginalMessage,
+    isDeletedAction,
     isMoneyRequestAction,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
+import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getReportOrDraftReport, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -35,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
@@ -53,6 +56,10 @@ const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Ob
 
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
+
+function isLiveIOUAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction {
+    return !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -75,7 +82,6 @@ function MoneyRequestReportPreview({
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -229,9 +235,20 @@ function MoneyRequestReportPreview({
 
     const resolveChildReportID = useCallback(
         (transaction: Transaction) => {
-            const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
+                const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
+                if (!liveIOUAction) {
+                    return undefined;
+                }
+                transactionIOUAction = liveIOUAction;
+            }
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
+                const existingThread = getReportOrDraftReport(childReportID);
+                if (existingThread && !existingThread.reportID) {
+                    return undefined;
+                }
                 setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
             } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
@@ -241,7 +258,6 @@ function MoneyRequestReportPreview({
                         conciergeChat,
                         currentUserLogin: currentUserEmail ?? '',
                         currentUserAccountID,
-                        betas,
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
@@ -250,7 +266,7 @@ function MoneyRequestReportPreview({
             }
             return childReportID;
         },
-        [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
@@ -267,35 +283,23 @@ function MoneyRequestReportPreview({
                 .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
                 .map((pressedTransaction) => pressedTransaction.transactionID);
 
+            // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
+            // release it and every other writer was free to overwrite it while the expense was still open.
+            const carouselSource = CAROUSEL_SOURCE.reportPreview(iouReportID);
+
             if (isSmallScreenWidth && iouReportID) {
                 const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs);
-                const release = () => {
-                    seeded.then(() => {
-                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
-                            return;
-                        }
-                        clearActiveTransactionIDs();
-                    });
-                };
-                const timer = setTimeout(() => {
-                    cascadeTimerRef.current = null;
-                    if (!Navigation.isActiveRoute(reportRoute)) {
-                        release();
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                }, PRESSED_EXPENSE_CASCADE_DELAY);
-                cascadeTimerRef.current = {timer, release};
+                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
 
             if (isSmallScreenWidth) {
-                setActiveTransactionIDs(openableTransactionIDs);
+                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
                 return;
             }
@@ -307,7 +311,7 @@ function MoneyRequestReportPreview({
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                const seeded = setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 markReportRHPWidth(childReportID, 'wide');
                 const release = () => {
                     unmarkReportRHPWidth(childReportID);
@@ -317,7 +321,7 @@ function MoneyRequestReportPreview({
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
                         }
-                        clearActiveTransactionIDs();
+                        clearActiveTransactionIDsForSource(carouselSource);
                     });
                 };
                 const timer = setTimeout(() => {
@@ -332,7 +336,7 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            setActiveTransactionIDs(openableTransactionIDs).then(() => {
+            setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource}).then(() => {
                 markReportRHPWidth(childReportID, 'wide');
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
             });
@@ -373,7 +377,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -381,14 +385,13 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
             openReportFromPreview();
         },
         [
-            betas,
             conciergeChat,
             currentUserAccountID,
             hasIOUReportActions,

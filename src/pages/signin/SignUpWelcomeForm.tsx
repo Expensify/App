@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
 
@@ -29,6 +29,7 @@ function SignUpWelcomeForm() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [login] = useOnyx(ONYXKEYS.CREDENTIALS, {selector: (credentials) => credentials?.login});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
@@ -53,7 +54,7 @@ function SignUpWelcomeForm() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined, marketingAttribution);
                         setReadyToShowAuthScreens(true);
                     }}
                     style={[styles.mb2]}

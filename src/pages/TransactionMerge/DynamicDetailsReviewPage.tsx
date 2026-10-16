@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -82,8 +82,6 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
-            targetReportOwnerAsAttendee,
-            sourceReportOwnerAsAttendee,
         );
 
         setMergeTransactionKey(transactionID, mergeableData);
@@ -98,8 +96,6 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         targetTransactionPolicy,
         sourceTransactionPolicy,
         getCurrencyDecimals,
-        targetReportOwnerAsAttendee,
-        sourceReportOwnerAsAttendee,
     ]);
 
     // Handle selection

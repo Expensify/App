@@ -16,6 +16,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const FAKE_REPORT_ID = '1';
@@ -24,7 +25,8 @@ const FAKE_TRANSACTION_ID = '2';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
-const mockShowConfirmModal = jest.fn();
+// The homeAddressRequired modal chains a `.then()` off the confirm result to decide whether to open the address page.
+const mockShowConfirmModal = jest.fn().mockResolvedValue({action: 'CLOSE'});
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
@@ -41,6 +43,8 @@ const renderIOURequestEditReportCommon = ({
     transactionIDs,
     isManualDistanceRequest = false,
     isOdometerDistanceRequest = false,
+    isDistanceRequest = false,
+    isPerDiemRequest = false,
     selectReport = jest.fn(),
     createReport,
 }: {
@@ -50,6 +54,8 @@ const renderIOURequestEditReportCommon = ({
     transactionIDs?: string[];
     isManualDistanceRequest?: boolean;
     isOdometerDistanceRequest?: boolean;
+    isDistanceRequest?: boolean;
+    isPerDiemRequest?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
 }) =>
@@ -63,10 +69,11 @@ const renderIOURequestEditReportCommon = ({
                     transactionIDs={transactionIDs}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
+                    isDistanceRequest={isDistanceRequest}
                     selectReport={selectReport}
                     createReport={createReport}
                     backTo=""
-                    isPerDiemRequest={false}
+                    isPerDiemRequest={isPerDiemRequest}
                 />
             </ComposeProviders>
         </NavigationContainer>,
@@ -191,6 +198,68 @@ describe('IOURequestEditReportCommon', () => {
             expect(selectReport).toHaveBeenCalledTimes(1);
         });
 
+        const setUpHomeAndOfficeCommuterExclusionTest = async () => {
+            const currentReport: Report = {
+                reportID: 'currentReport',
+                reportName: 'Current Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: 'currentPolicy',
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: undefined,
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            return currentReport;
+        };
+
+        it('blocks moving a map/GPS distance expense (e.g. created in a self DM) to a report with home and office commuter exclusions when the user has no home address', async () => {
+            const currentReport = await setUpHomeAndOfficeCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isDistanceRequest: true,
+                selectReport,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(selectReport).not.toHaveBeenCalled();
+        });
+
+        it('allows moving a map/GPS distance expense to a report with home and office commuter exclusions when the user has a home address', async () => {
+            const currentReport = await setUpHomeAndOfficeCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: [{street: '123 Main St', city: 'San Francisco', state: 'CA', zip: '94105', country: 'US', current: true}]});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isDistanceRequest: true,
+                selectReport,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(selectReport).toHaveBeenCalledTimes(1);
+        });
+
         it('blocks creating a report for a manual distance expense with commuter exclusions', async () => {
             const currentReport = await setUpCommuterExclusionTest();
             const createReport = jest.fn();
@@ -207,6 +276,59 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(createReport).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('blocks moving a per diem expense to a report whose policy is missing its custom unit', async () => {
+            const currentReport: Report = {
+                reportID: 'currentReport',
+                reportName: 'Current Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: 'currentPolicy',
+            };
+
+            // Given a destination policy that accepts per diem expenses, but not through the custom unit this expense uses
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: undefined,
+                    customUnits: {
+                        destinationUnit: {
+                            customUnitID: 'destinationUnit',
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                            enabled: true,
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {},
+                        },
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: currentReport.reportID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {customUnit: {customUnitID: 'unitMissingFromDestination'}},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], isPerDiemRequest: true, selectReport});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the destination report is selected
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            // Then the move is blocked and the warning is shown through the global confirm modal
+            expect(selectReport).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    prompt: translateLocal('iou.moveExpensesError'),
+                    shouldShowCancelButton: false,
+                }),
+            );
         });
     });
 

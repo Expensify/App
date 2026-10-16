@@ -187,6 +187,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -215,6 +216,7 @@ describe('useTimeSensitiveCards', () => {
             ...baseFraudAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
             originalMessage: {
+                cardID: 1,
                 resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
             },
         };
@@ -254,6 +256,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(2),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -334,6 +337,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(3),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -358,6 +362,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(10),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -382,6 +387,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(11),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -462,5 +468,94 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should identify cards pending digital wallet approval and set shouldShowConfirmDigitalWalletAddition to true', async () => {
+        const cardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': cardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.cardsPendingDigitalWalletApproval.at(0)?.cardID).toBe(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should not surface a digital wallet to-do for a card without a pending approval', async () => {
+        const openCard = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
+        const cardList: CardList = {'1': openCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(0);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(false);
+    });
+
+    it('should surface digital wallet approvals for virtual cards, which are the likeliest to be added to a wallet', async () => {
+        const virtualCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                isVirtual: true,
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': virtualCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should surface digital wallet approvals for cards with a custom $0 limit, since approving a wallet token is not spending', async () => {
+        const zeroLimitCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                hasCustomUnapprovedExpenseLimit: true,
+                unapprovedExpenseLimit: 0,
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': zeroLimitCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should not surface digital wallet approvals for cards that are no longer in an active state', async () => {
+        const closedCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': closedCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(0);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(false);
     });
 });

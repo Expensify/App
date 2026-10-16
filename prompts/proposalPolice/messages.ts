@@ -7,7 +7,8 @@ const DUPLICATE_CHECK_WITHDRAW_MESSAGE = '#### 🚫 Duplicated proposal withdraw
 
 /**
  * Marks a comment ProposalPolice has already flagged as substantively edited. Matched against comment
- * bodies to avoid flagging the same edit twice, so it must stay a literal prefix of the message below.
+ * bodies to detect an already-bannered proposal so the banner can be replaced rather than stacked,
+ * and so it must stay a literal prefix of the message below.
  */
 const SUBSTANTIVE_EDIT_MESSAGE_PREFIX = '🚨 Edited by **proposal-police**:';
 
@@ -17,6 +18,17 @@ const SUBSTANTIVE_EDIT_MESSAGE_PREFIX = '🚨 Edited by **proposal-police**:';
  * ProposalPoliceMessagesTest pins this against buildSubstantiveEditMessage so the two cannot drift.
  */
 const SUBSTANTIVE_EDIT_MESSAGE_REGEX = /^🚨 Edited by \*\*proposal-police\*\*:[^\n]*\n+/;
+
+/**
+ * Drop a banner a previous run prepended, leaving the contributor's proposal. Only leading
+ * whitespace before a real banner is discarded, so a stray newline cannot hide it from the
+ * ^-anchored regex. A comment that never had a complete banner is returned byte-for-byte unchanged.
+ */
+function stripSubstantiveEditBanner(body: string): string {
+    const trimmedStart = body.trimStart();
+    const stripped = trimmedStart.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, '');
+    return stripped === trimmedStart ? body : stripped;
+}
 
 function buildTemplateReminderMessage(proposalAuthor: string | undefined): string {
     return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
@@ -42,6 +54,7 @@ export {
     DUPLICATE_CHECK_WITHDRAW_MESSAGE,
     SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
     SUBSTANTIVE_EDIT_MESSAGE_REGEX,
+    stripSubstantiveEditBanner,
     buildTemplateReminderMessage,
     buildJobClaimReminderMessage,
     buildSubstantiveEditMessage,

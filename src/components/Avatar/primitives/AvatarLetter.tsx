@@ -1,14 +1,13 @@
 import type {AvatarPrimitivesCommonProps} from '@components/Avatar/types';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import {avatarStyleColorSelector} from '@src/selectors/PersonalDetails';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
@@ -29,7 +28,6 @@ type AvatarLetterProps = AvatarPrimitivesCommonProps & {
     /** Styles for View wrapping the initials. */
     containerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Additional styles for the wrapping View. */
     containerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
@@ -40,9 +38,7 @@ function AvatarLetter({initials, urlColors, accountID, size, shape, containerSty
     const baseContainerStyles = containerStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, containerStyles] : undefined;
 
     // A picked avatarStyle color is authoritative over the color encoded in the URL.
-    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: avatarStyleColorSelector(accountID),
-    });
+    const [pickedColorKey] = usePersonalDetail(accountID, avatarStyleColorSelector);
     const colors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : urlColors;
 
     return (

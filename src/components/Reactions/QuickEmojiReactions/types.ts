@@ -4,18 +4,17 @@ import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-type PickerRefElement = RefObject<TextInput | View | null>;
+type PickerRefElement = RefObject<ComponentRef<typeof TextInput> | ComponentRef<typeof View> | null>;
 
 type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 
 type CloseContextMenuCallback = () => void;
 
 type BaseReactionsProps = {
-    /** Callback to fire when an emoji is selected. */
     onEmojiSelected: (emoji: Emoji, emojiReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => void;
 
     /**
@@ -36,19 +35,13 @@ type BaseReactionsProps = {
     /** Id of the ReportAction for EmojiPicker. */
     reportActionID: string;
 
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type BaseQuickEmojiReactionsProps = BaseReactionsProps;
 
 type QuickEmojiReactionsProps = BaseReactionsProps & {
-    /**
-     * Function that can be called to close the context menu
-     * in which this component is rendered.
-     */
     closeContextMenu: (callback?: CloseContextMenuCallback) => void;
-
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 

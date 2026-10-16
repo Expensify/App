@@ -8,6 +8,7 @@ import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxValues} from '@src/ONYXKEYS';
+import type {Domain} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Connections} from '@src/types/onyx/Policy';
 
@@ -316,6 +317,90 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             const {indicatorPolicyID} = result.current;
 
             expect(indicatorPolicyID).toBe(SECOND_WORKSPACE.policyID);
+        });
+    });
+
+    describe('domain admin pending requests (info)', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                        [domainKey]: domainWithAdmin,
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('returns HAS_PENDING_DOMAIN_ADMIN_REQUESTS status with success color', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS);
+            expect(indicatorColor).toBe(defaultTheme.success);
+        });
+    });
+
+    describe('domain errors take priority over domain admin pending requests', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const;
+
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                        [domainKey]: domainWithAdmin,
+                        [domainErrorsKey]: {errors: {domainError: 'Domain error'}},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('shows red domain error instead of the green pending-requests indicator', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+            expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 

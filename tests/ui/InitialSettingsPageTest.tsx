@@ -8,7 +8,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import usePermissions from '@hooks/usePermissions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -68,9 +67,9 @@ jest.mock('@userActions/App', () => ({
 
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
-jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
+jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
 
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
+jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
 
 jest.mock('@components/AccountSwitcher', () => {
     function MockAccountSwitcher() {
@@ -86,14 +85,6 @@ jest.mock('@components/AccountSwitcherSkeletonView', () => {
     }
     MockAccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
     return MockAccountSwitcherSkeletonView;
-});
-
-jest.mock('@components/Navigation/TabBarBottomContent', () => {
-    function MockTabBarBottomContent() {
-        return null;
-    }
-    MockTabBarBottomContent.displayName = 'TabBarBottomContent';
-    return MockTabBarBottomContent;
 });
 
 jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
@@ -131,7 +122,6 @@ jest.mock('@components/MenuItem', () => {
         );
 });
 
-const mockUsePermissions = jest.mocked(usePermissions);
 const mockUseSubscriptionPlan = jest.mocked(useSubscriptionPlan);
 
 const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
@@ -173,7 +163,6 @@ describe('InitialSettingsPage - agent account', () => {
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
         jest.clearAllMocks();
-        mockUsePermissions.mockImplementation(() => ({isBetaEnabled: () => false}));
         mockUseSubscriptionPlan.mockImplementation(() => null);
     });
 
@@ -237,6 +226,7 @@ describe('InitialSettingsPage - agent account', () => {
                 'Profile',
                 'Wallet',
                 'Expense rules',
+                'Agents',
                 'Preferences',
                 'Copilot',
                 'Security',
@@ -257,6 +247,7 @@ describe('InitialSettingsPage - agent account', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
                 id: '1',
                 name: 'Boulder Development',
+                areDistanceRatesEnabled: true,
                 commuterExclusions: {method: 'homeAndOffice'},
             });
         });
@@ -311,7 +302,6 @@ describe('InitialSettingsPage - agent account', () => {
 
     it('preserves dynamic menu decorations and general menu ordering', async () => {
         mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.CORPORATE);
-        mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
         await setupUser('user@expensify.com');
 
         const policy = createRandomPolicy(accountID, CONST.POLICY.TYPE.CORPORATE);
@@ -335,7 +325,7 @@ describe('InitialSettingsPage - agent account', () => {
                     errorFields: {revoke: {error: 'Unable to revoke device'}},
                 },
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 nameErrors: {error: 'Agent name error'},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -363,8 +353,7 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
-    it('hides Agents for agent account when CUSTOM_AGENT beta is enabled', async () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
+    it('hides Agents for agent account', async () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         renderPage();
@@ -375,8 +364,7 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
-    it('shows Agents for non-agent account when CUSTOM_AGENT beta is enabled', async () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
+    it('shows Agents for non-agent account', async () => {
         await setupUser('user@expensify.com');
 
         renderPage();
@@ -408,7 +396,6 @@ describe('InitialSettingsPage - scrolling', () => {
     });
 
     it('should emit a scrolling event so anchored tooltips can follow or hide', async () => {
-        mockUsePermissions.mockImplementation(() => ({isBetaEnabled: () => false}));
         mockUseSubscriptionPlan.mockImplementation(() => null);
         await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
         await act(async () => {

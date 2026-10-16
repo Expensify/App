@@ -34,16 +34,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -116,6 +106,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating a field other than tag
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -155,6 +147,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag field
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -198,6 +192,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag2 while tag1 is already in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -243,6 +239,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag1 which already exists in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -278,6 +276,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: undefined
         const {onyxData: withUndefined} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -298,6 +298,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: {} (empty)
         const {onyxData: withEmpty} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -364,6 +366,8 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
 
     function getParamsForRateChange() {
         return getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
@@ -483,6 +487,8 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
 
     function getOptimisticPageCountForDistanceChange() {
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,

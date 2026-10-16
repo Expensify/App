@@ -20,7 +20,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {buildOOOCommand, computeDurationDays, computeEndDate, parseDate} from '@libs/ChronosUtils';
+import {buildOOOCommand, computeDurationDays, computeEndDate} from '@libs/ChronosUtils';
+import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {replaceCommasWithPeriod} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,6 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ChronosScheduleOOOForm';
 
 import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -74,12 +76,12 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         {value: CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL, label: translate('chronos.normalOOO')},
         ...Object.values(CONST.CHRONOS.OOO_LEAVE_TYPES)
             .filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL)
-            .map((leaveType) => ({value: leaveType, label: leaveType})),
+            .map((leaveType) => ({value: leaveType, label: Str.recapitalize(leaveType)})),
     ];
     const selectedLeaveTypeItem = leaveTypeItems.find((item) => item.value === selectedLeaveType);
     const shouldShowReason = selectedLeaveType === CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL;
 
-    const startDateAsDate = parseDate(startDate);
+    const startDateAsDate = DateUtils.parseCalendarDate(startDate);
     const isHourDuration = selectedDurationUnit === CONST.CHRONOS.OOO_DURATION_UNITS.HOUR;
 
     const applyDurationDays = (days: number) => {
@@ -172,8 +174,8 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
         }
 
-        const start = parseDate(values[INPUT_IDS.DATE] ?? '');
-        const end = parseDate(values[INPUT_IDS.END_DATE] ?? '');
+        const start = DateUtils.parseCalendarDate(values[INPUT_IDS.DATE]);
+        const end = DateUtils.parseCalendarDate(values[INPUT_IDS.END_DATE]);
         if (start && end && differenceInCalendarDays(end, start) < 0) {
             addErrorMessage(errors, INPUT_IDS.END_DATE, translate('chronos.endDateBeforeStart'));
         }
@@ -267,7 +269,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                             valueType="string"
                             label={translate('chronos.endDate')}
                             value={endDate}
-                            minDate={startDateAsDate ?? undefined}
+                            minDate={startDateAsDate}
                             onValueChange={applyEndDate}
                         />
                     </View>
@@ -317,7 +319,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 <View style={styles.mb4}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        style={styles.ph0}
+                        outerWrapperStyle={styles.mhn5}
                         title={selectedLeaveTypeItem?.label ?? ''}
                         description={translate('chronos.leaveType')}
                         onPress={() => setIsLeaveTypeModalVisible(true)}

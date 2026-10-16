@@ -18,7 +18,6 @@ import {Polygon, Svg} from 'react-native-svg';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type ReportActionItemImagesProps = {
-    /** array of image and thumbnail URIs */
     images: ThumbnailAndImageURI[];
 
     // We're not providing default values for size and total and disabling the ESLint rule

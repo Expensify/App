@@ -56,7 +56,6 @@ beforeEach(async () => {
     mockConfig.IS_USING_LOCAL_WEB = false;
     mockConfig.EXPENSIFY.QA_API_ROOT = 'https://qa.exops.io/';
     // Clear so every test starts from the same Onyx state — otherwise same-value writes are deduped
-    // and the ApiUtils subscription never re-runs with the updated CONFIG flags.
     await Onyx.clear();
     await waitForBatchedUpdates();
 });

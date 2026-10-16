@@ -9,19 +9,19 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     canModifyTask,
     completeTask,
     completeTestDriveTask,
     createTaskAndNavigate,
     createTaskFromMarkdown,
-    deleteTask,
     editTask,
     editTaskAssignee,
     getAssignee,
     getFinishOnboardingTaskOnyxData,
-    getNavigationUrlOnTaskDelete,
     getShareDestination,
 } from '@libs/actions/Task';
+import {deleteTask, getNavigationUrlOnTaskDelete} from '@libs/actions/TaskDeletion';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -324,6 +324,39 @@ describe('actions/Task', () => {
                     expect(canActionTask(taskReport, undefined, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
+        });
+    });
+
+    describe('canDeleteTaskAsPolicyAdmin', () => {
+        const adminAccountID = 1;
+        const employeeAccountID = 2;
+        const guideAccountID = 3;
+        const adminPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+        const policyRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM};
+        const adminsRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+        const employeeTask: Report = {...getFakeReport([adminAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK, ownerAccountID: employeeAccountID};
+
+        it('lets an admin delete a task someone else created in a workspace room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [])).toBe(true);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, adminsRoom, adminPolicy, [])).toBe(true);
+        });
+
+        it('does not let a non-admin delete the task', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, role: CONST.POLICY.ROLE.USER}, [])).toBe(false);
+        });
+
+        it('does not apply to personal workspaces or to chats that are not workspace rooms', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, type: CONST.POLICY.TYPE.PERSONAL}, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, getFakeReport([adminAccountID, employeeAccountID]), adminPolicy, [])).toBe(false);
+        });
+
+        it('does not let an admin delete a task in an archived room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [], true)).toBe(false);
+        });
+
+        it('does not let an admin delete a Guide or Concierge setup task in #admins', () => {
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: CONST.ACCOUNT_ID.CONCIERGE}, adminsRoom, adminPolicy, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: guideAccountID}, adminsRoom, adminPolicy, [guideAccountID])).toBe(false);
         });
     });
 
@@ -1448,9 +1481,9 @@ describe('actions/Task', () => {
             const mostRecentReportID = 'recent_456';
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined);
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined, mostRecentReportID);
             expect(result).toBe(`r/${mostRecentReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith('concierge_123', mostRecentReportID);
         });
 
         it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
@@ -1460,7 +1493,7 @@ describe('actions/Task', () => {
 
             const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, undefined);
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(conciergeReportID, undefined);
         });
 
         it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {
@@ -1820,7 +1853,7 @@ describe('actions/Task', () => {
             const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID, undefined, undefined);
 
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(conciergeReportID, undefined);
             expect(Navigation.goBack).toHaveBeenCalled();
         });
 
@@ -1943,6 +1976,70 @@ describe('actions/Task', () => {
             const cancelAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
             expect(cancelAction.delegateAccountID).toBeUndefined();
         });
+
+        it("should resolve the parent report's last visible action from the acting user's own visibility", async () => {
+            const parentReportID = 'parent_report_delete_whisper';
+            const taskReportID = 'task_report_delete_whisper';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Whisper visibility task',
+                parentReportID,
+                parentReportActionID: '90001',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT};
+            const parentReportAction = createMock<OnyxEntry<ReportAction>>({reportActionID: '90001', reportID: parentReportID, childReportID: taskReportID});
+
+            const olderComment = createMock<ReportAction>({
+                reportActionID: '90002',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2027-03-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = createMock<ReportAction>({
+                reportActionID: '90003',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2027-03-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            });
+
+            // Given a parent report whose newest action is a whisper aimed at one account
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const deleteAsAndReadParentUpdate = async (currentUserAccountID: number) => {
+                mockWrite.mockClear();
+                deleteTask(taskReport, parentReport, false, currentUserAccountID, false, parentReportAction, 'concierge_123', undefined, undefined);
+                await waitForBatchedUpdatesWithAct();
+
+                const update = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const);
+                return 'value' in update && update.value && typeof update.value === 'object' && 'lastVisibleActionCreated' in update.value
+                    ? update.value.lastVisibleActionCreated
+                    : undefined;
+            };
+
+            // When the whispered-to account deletes the task, the whisper is the newest action they can see
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the older comment is tracked instead
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
+        });
     });
 
     describe('getShareDestination', () => {
@@ -1971,7 +2068,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined, undefined);
 
             // Then the subtitle is the other participant's login and the display name matches getReportName
             expect(result.subtitle).toBe(OTHER_LOGIN);
@@ -1988,7 +2085,7 @@ describe('actions/Task', () => {
             };
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal, undefined, undefined);
 
             // Then the subtitle falls back to the workspace name resolved by getChatRoomSubtitle
             expect(result.subtitle).toBe(policy.name);
@@ -2000,7 +2097,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined, undefined);
 
             // Then it includes the icons and tooltip metadata used to render the destination
             expect(Array.isArray(result.icons)).toBe(true);

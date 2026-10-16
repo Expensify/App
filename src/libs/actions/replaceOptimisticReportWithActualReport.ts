@@ -223,19 +223,35 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         callback();
 
                         // We are already on the parent one expense report, so just call the API to fetch report data
-                        // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
-                        // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
-                        // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
+                        // conciergeChat is safe to pass as undefined because introSelected is undefined, so the
+                        // guided-setup code path that uses it is never reached. Passing it explicitly so the compiler
+                        // flags this when it becomes required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                        // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
+                        openReport({
+                            reportID: parentReportID,
+                            introSelected: undefined,
+                            conciergeChat: undefined,
+                            personalDetails: undefined,
+                            hasReportActions,
+                            currentUserAccountID,
+                        });
                     });
                 } else {
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
-                    // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
-                    // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
+                    // conciergeChat is safe to pass as undefined because introSelected is undefined, so the
+                    // guided-setup code path that uses it is never reached. Passing it explicitly so the compiler
+                    // flags this when it becomes required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                    // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
+                    openReport({
+                        reportID: parentReportID,
+                        introSelected: undefined,
+                        conciergeChat: undefined,
+                        personalDetails: undefined,
+                        hasReportActions,
+                        currentUserAccountID,
+                    });
                 }
                 return;
             }

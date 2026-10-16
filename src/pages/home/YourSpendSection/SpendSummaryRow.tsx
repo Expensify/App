@@ -2,11 +2,13 @@ import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from '@pages/home/common/widgetSkeletonRow';
 
 import variables from '@styles/variables';
 
@@ -21,22 +23,12 @@ import type {useYourSpendData} from './useYourSpendData';
 
 import {YOUR_SPEND_ROW_STATE} from './const';
 
-// Skeleton geometry mirrors `ForYouSection/ForYouSkeleton.tsx` so the home page
-// loading states feel cohesive across widgets. The right-side button rect from
-// `ForYouSkeleton` is intentionally omitted here because Your spend rows show a
-// chevron / limit circle, not a CTA button.
-const SKELETON_ROW_HEIGHT = 64;
-const SKELETON_NARROW_OFFSET_X = 20;
-const SKELETON_WIDE_OFFSET_X = 32;
-const SKELETON_ICON_SIZE = 40;
-const SKELETON_ICON_OFFSET_Y = 12;
-const SKELETON_ICON_BORDER_RADIUS = 8;
-const SKELETON_GAP = 12;
-const SKELETON_TEXT_OFFSET_Y = 26;
-const SKELETON_TEXT_HEIGHT = 12;
+// The skeleton reads its geometry from the same helper the other home widget skeletons use, so a change to
+// the real row layout moves all of them together. The trailing button rect those rows draw is left out here
+// because Your spend rows end in a chevron or limit circle, not a CTA button.
 
-// Cycle the title width across rows to match `ForYouSkeleton.getTitleSkeletonWidth`,
-// so stacked Your spend rows have the same visual rhythm as For You rows.
+// Cycle the title width across rows so a stack of them reads as a list of
+// differently named rows rather than one bar repeated.
 function getSkeletonTitleWidth(index: number) {
     switch (index % 3) {
         case 0:
@@ -58,8 +50,7 @@ type SpendSummaryRowProps = {
     iconSrc: IconAsset;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
-    // Position of this row within the Your spend list. Used to vary the skeleton
-    // title width across stacked rows, mirroring `ForYouSkeleton`.
+    /** Position of this row within the Your spend list, used to vary the skeleton title width across stacked rows */
     skeletonRowIndex: number;
     /** Greys the total when a queued offline change may have made it stale. */
     isStale?: boolean;
@@ -68,31 +59,28 @@ type SpendSummaryRowProps = {
 function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
 
     if (state === YOUR_SPEND_ROW_STATE.LOADING) {
-        const horizontalPadding = shouldUseNarrowLayout ? SKELETON_NARROW_OFFSET_X : SKELETON_WIDE_OFFSET_X;
-        const titleX = horizontalPadding + SKELETON_ICON_SIZE + SKELETON_GAP;
+        const titleX = horizontalPadding + ICON_SLOT_SIZE + iconTextGap;
         const titleWidth = getSkeletonTitleWidth(skeletonRowIndex);
         return (
             <View testID={`${testIDPrefix}-skeleton`}>
                 <ItemListSkeletonView
                     fixedNumItems={1}
-                    itemViewHeight={SKELETON_ROW_HEIGHT}
+                    itemViewHeight={rowHeight}
                     shouldAnimate
                     renderSkeletonItem={() => (
                         <>
-                            <SkeletonRect
-                                transform={[{translateX: horizontalPadding}, {translateY: SKELETON_ICON_OFFSET_Y}]}
-                                width={SKELETON_ICON_SIZE}
-                                height={SKELETON_ICON_SIZE}
-                                borderRadius={SKELETON_ICON_BORDER_RADIUS}
+                            <WidgetSkeletonRowIcon
+                                horizontalPadding={horizontalPadding}
+                                rowHeight={rowHeight}
                             />
                             <SkeletonRect
-                                transform={[{translateX: titleX}, {translateY: SKELETON_TEXT_OFFSET_Y}]}
+                                transform={[{translateX: titleX}, {translateY: (rowHeight - BAR_HEIGHT) / 2}]}
                                 width={titleWidth}
-                                height={SKELETON_TEXT_HEIGHT}
+                                height={BAR_HEIGHT}
                             />
                         </>
                     )}

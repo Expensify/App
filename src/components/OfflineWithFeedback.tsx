@@ -35,13 +35,8 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | OnyxCommon.TranslationKeyErrors | ReceiptErrors | null;
-
-    /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
-
-    /** Whether we should disable opacity */
     shouldDisableOpacity?: boolean;
 
     /** A function to run when the X button next to the error is clicked */
@@ -53,10 +48,7 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Additional styles to add to the children wrapper container after local styles. Applied to the children wrapper container */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error row text */
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** Whether applying strikethrough to the children should be disabled */
@@ -68,11 +60,10 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Whether we should render the error message above the children */
     shouldDisplayErrorAbove?: boolean;
 
-    /** Whether we should force opacity */
     shouldForceOpacity?: boolean;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
+
+    onRetryReceiptUpload?: () => void;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -92,6 +83,7 @@ function OfflineWithFeedback({
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
     dismissError = () => {},
+    onRetryReceiptUpload,
     errorRowTextStyles,
     ...restProps
 }: OfflineWithFeedbackProps) {
@@ -153,6 +145,7 @@ function OfflineWithFeedback({
                     onDismiss={onDismiss}
                     errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
+                    onRetryReceiptUpload={onRetryReceiptUpload}
                 />
             )}
             {hasChildren && !hideChildren && (
@@ -170,6 +163,7 @@ function OfflineWithFeedback({
                     errorRowTextStyles={errorRowTextStyles}
                     onDismiss={onDismiss}
                     dismissError={dismissError}
+                    onRetryReceiptUpload={onRetryReceiptUpload}
                 />
             )}
         </View>

@@ -1,13 +1,16 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {
     accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
+    adminshipRequesterPendingActionSelector,
+    getPendingDomainAdminRequests,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSecurityGroupSettingErrorsSelector,
@@ -19,6 +22,7 @@ import {
     isSecurityGroupEntry,
     isSecurityGroupPendingDeleteSelector,
     memberAccountIDsSelector,
+    pendingAdminRequesterAccountIDsSelector,
     selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
@@ -139,6 +143,18 @@ describe('domainSelectors', () => {
         it('Should return an empty array if the domain object is empty', () => {
             const domain = createDomainFixture({empty: true});
             expect(adminAccountIDsSelector(domain)).toEqual([]);
+        });
+
+        it('Should list an account once when several permission keys point at it', () => {
+            const domain = createDomainFixture({
+                admins: [
+                    ['0', 123],
+                    ['123', 123],
+                    ['1', 321],
+                ],
+            });
+
+            expect(adminAccountIDsSelector(domain)).toEqual([123, 321]);
         });
     });
 
@@ -872,6 +888,150 @@ describe('domainSelectors', () => {
         it('Should return false when domain_adminRequesters is missing entirely', () => {
             const domain = createDomainFixture();
             expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(false);
+        });
+    });
+
+    describe('pendingAdminRequesterAccountIDsSelector', () => {
+        it('Should return an empty array if the domain object is undefined', () => {
+            expect(pendingAdminRequesterAccountIDsSelector(undefined)).toEqual([]);
+        });
+
+        it('Should return an empty array when domain_adminRequesters is missing entirely', () => {
+            const domain = createDomainFixture();
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
+        });
+
+        it('Should return accountIDs with truthy values and skip null tombstones', () => {
+            const domain = createDomainFixture({
+                boundaryEntries: {
+                    domain_adminRequesters: {[userID1]: 'read', [userID2]: null},
+                },
+            });
+
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([userID1]);
+        });
+
+        it('Should return an empty array when domain_adminRequesters is empty', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {}}});
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
+        });
+    });
+
+    describe('getPendingDomainAdminRequests', () => {
+        it('Should return an empty result if the domains collection is undefined', () => {
+            expect(getPendingDomainAdminRequests(undefined, undefined, userID1)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should return an empty result if the current user accountID is undefined', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+            };
+            expect(getPendingDomainAdminRequests(domains, undefined, undefined)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should count pending requesters only on domains the current user administers', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+                [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: createDomainFixture({
+                    // The current user is a requester, not an admin, on this domain (the "Request sent" state).
+                    boundaryEntries: {accountID: 2, domain_adminRequesters: {[userID1]: 'read'}},
+                }),
+            };
+
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 1, domainAccountIDs: [1]});
+        });
+
+        it('Should ignore null tombstones and exclude the current user from their own requester count', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID1]: 'read', [userID2]: null}},
+                }),
+            };
+
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should sum counts and collect accountIDs across multiple admin domains', () => {
+            const userID3 = 789;
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+                [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 2, domain_adminRequesters: {[userID2]: 'read', [userID3]: 'read'}},
+                }),
+            };
+
+            expect(getPendingDomainAdminRequests(domains, undefined, userID1)).toEqual({count: 3, domainAccountIDs: [1, 2]});
+        });
+
+        it('Should exclude requesters whose decline is optimistically pending (DELETE)', () => {
+            const userID3 = 789;
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read', [userID3]: 'read'}},
+                }),
+            };
+            const allDomainPendingActions: OnyxCollection<DomainPendingActions> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}1`]: {
+                    adminshipRequester: {
+                        [userID2]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(getPendingDomainAdminRequests(domains, allDomainPendingActions, userID1)).toEqual({count: 1, domainAccountIDs: [1]});
+        });
+
+        it('Should return an empty result when every pending requester has been optimistically declined', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+            };
+            const allDomainPendingActions: OnyxCollection<DomainPendingActions> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}1`]: {
+                    adminshipRequester: {
+                        [userID2]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(getPendingDomainAdminRequests(domains, allDomainPendingActions, userID1)).toEqual({count: 0, domainAccountIDs: []});
+        });
+    });
+
+    describe('adminshipRequesterPendingActionSelector', () => {
+        it.each([
+            ['undefined', undefined, {}],
+            ['empty object', createFixture(domainPendingActionsFixture), {}],
+        ])('Should return empty object when pendingAction is %s', (_description, pendingAction, expected) => {
+            expect(adminshipRequesterPendingActionSelector(pendingAction)).toEqual(expected);
+        });
+
+        it('Should return the adminship requester pending actions when they exist', () => {
+            const pendingAction: OnyxEntry<DomainPendingActions> = {
+                adminshipRequester: {
+                    [userID1]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            };
+
+            expect(adminshipRequesterPendingActionSelector(pendingAction)).toEqual({
+                [userID1]: {pendingAction: 'delete'},
+            });
         });
     });
 

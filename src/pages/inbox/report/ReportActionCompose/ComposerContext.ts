@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
 
 import {createContext, useContext} from 'react';
@@ -83,10 +83,10 @@ type ComposerEditActions = {
 
 // Frozen — stable refs, set once
 type ComposerMeta = {
-    containerRef: RefObject<View | null>;
+    containerRef: RefObject<ComponentRef<typeof View> | null>;
     composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
-    actionButtonRef: RefObject<View | HTMLDivElement | null>;
+    actionButtonRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
     textRef: RefObject<string>;

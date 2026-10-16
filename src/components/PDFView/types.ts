@@ -8,7 +8,6 @@ type PDFViewProps = {
     /** PDF file name */
     fileName?: string;
 
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
     /** Notify parent that the keyboard has opened or closed */

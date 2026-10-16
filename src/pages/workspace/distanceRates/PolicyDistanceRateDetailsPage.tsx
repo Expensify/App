@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -217,13 +217,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('name')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.name}
-                            description={translate('common.name')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editRateName}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('common.name')}
+                            onPress={canWriteDistanceRates ? editRateName : undefined}
+                            value={rate.name}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -232,13 +229,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('rate')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={`${rateValueToDisplay} / ${unitToDisplay}`}
-                            description={translate('workspace.distanceRates.rate')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editRateValue}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.rate')}
+                            onPress={canWriteDistanceRates ? editRateValue : undefined}
+                            value={`${rateValueToDisplay} / ${unitToDisplay}`}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -247,13 +241,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('startDate')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
-                            description={translate('workspace.distanceRates.startDate')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editStartDate}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.startDate')}
+                            onPress={canWriteDistanceRates ? editStartDate : undefined}
+                            value={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -262,13 +253,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('endDate')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
-                            description={translate('workspace.distanceRates.endDate')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editEndDate}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.endDate')}
+                            onPress={canWriteDistanceRates ? editEndDate : undefined}
+                            value={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
                         />
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
@@ -279,12 +267,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    onPress={editTaxRateValue}
-                                    interactive={canWriteDistanceRates}
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    value={taxRate}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -296,13 +282,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={taxClaimableValueToDisplay}
-                                description={translate('workspace.taxes.taxReclaimableOn')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editTaxReclaimableValue}
-                                interactive={canWriteDistanceRates}
+                            <MenuItemField
+                                name={translate('workspace.taxes.taxReclaimableOn')}
+                                onPress={canWriteDistanceRates ? editTaxReclaimableValue : undefined}
+                                value={taxClaimableValueToDisplay}
                             />
                         </OfflineWithFeedback>
                     )}

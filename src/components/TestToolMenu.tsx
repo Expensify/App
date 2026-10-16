@@ -1,25 +1,36 @@
+import useActiveServer from '@hooks/useActiveServer';
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveServer} from '@libs/ApiUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import variables from '@styles/variables';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setActiveServer, setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
+import {getBackToParam} from '@userActions/TestTool';
+import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
-import {Platform} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
-import Button from './ButtonComposed';
+import Button from './Button';
+import Icon from './Icon';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -27,21 +38,48 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-function TestToolMenu() {
+type TestToolMenuProps = {
+    serverPageRoute: typeof ROUTES.SETTINGS_TROUBLESHOOT_SERVER | ReturnType<typeof ROUTES.TEST_TOOLS_SERVER.getRoute>;
+};
+
+function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const {activeServer, isPinnedByEnvironment} = useActiveServer();
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
+    const {isProduction} = useEnvironment();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
     // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
     const isAgentAccount = useIsAgentAccount();
+
+    // Only the pinned row needs an accessible title: the pressable below announces it on every other build.
+    const serverRow = (
+        <TestToolRow
+            title={translate('initialSettingsPage.troubleshoot.server')}
+            isTitleAccessible={isPinnedByEnvironment}
+        >
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                <Text style={styles.textSupporting}>{translate(`initialSettingsPage.troubleshoot.servers.${activeServer}.label`)}</Text>
+                {!isPinnedByEnvironment && (
+                    <Icon
+                        src={icons.ArrowRight}
+                        fill={theme.icon}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                    />
+                )}
+            </View>
+        </TestToolRow>
+    );
 
     return (
         <>
@@ -116,26 +154,49 @@ function TestToolMenu() {
                         </Button>
                     </TestToolRow>
 
+                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because this is not something regular users should reach, and forcing a beta on can leave the app half broken. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
+                            <Button
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                onPress={() => {
+                                    const activeRoute = Navigation.getActiveRoute();
+                                    if (!activeRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BETA_OVERRIDES.path, activeRoute));
+                                        return;
+                                    }
+                                    // The modal stores the screen it was opened from in backTo, so the page opens over that screen and survives a reload
+                                    const backTo = getBackToParam() ?? ROUTES.HOME;
+                                    Navigation.dismissModal();
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BETA_OVERRIDES.path, backTo));
+                                }}
+                            >
+                                <Button.Text>{translate('common.view')}</Button.Text>
+                            </Button>
+                        </TestToolRow>
+                    )}
+
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
             )}
 
-            {/* Option to switch between staging and default api endpoints.
-        This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
-        This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
-            {!CONFIG.IS_USING_LOCAL_WEB && (
-                <TestToolRow
-                    title={translate('initialSettingsPage.troubleshoot.useStagingServer')}
-                    isTitleAccessible={false}
-                >
-                    <Switch
-                        accessibilityLabel="Use Staging Server"
-                        isOn={activeServer === CONST.SERVER.STAGING}
-                        onToggle={(isOn) => setActiveServer(isOn ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION)}
-                    />
-                </TestToolRow>
-            )}
+            {/* This row enables QA, internal testers and external devs to take advantage of sandbox environments
+        for 3rd party services like Plaid and Onfido. It is not rendered for internal devs, as they make
+        environment changes directly to the .env file. */}
+            {!CONFIG.IS_USING_LOCAL_WEB &&
+                (isPinnedByEnvironment ? (
+                    serverRow
+                ) : (
+                    <PressableWithoutFeedback
+                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.server')}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SERVER}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => Navigation.navigate(serverPageRoute)}
+                    >
+                        {serverRow}
+                    </PressableWithoutFeedback>
+                ))}
 
             {/* QA server auth flow. Web only, and only when it is configured. */}
             <QAAuthTestToolRows />

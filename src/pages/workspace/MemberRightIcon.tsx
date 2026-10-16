@@ -20,9 +20,7 @@ type MemberRightIconProps = {
 export default function MemberRightIcon({role, owner, login, badgeStyles}: MemberRightIconProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isFocused, isFocusVisible} = useListItemContext();
-    // New providers (ListItemPressable) set isFocusVisible; legacy providers still set only isFocused.
-    const isRowFocused = isFocusVisible ?? isFocused;
+    const {isFocusVisible} = useListItemContext();
 
     let badgeText = '';
     if (owner && owner === login) {
@@ -30,6 +28,7 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
     } else if (
         role === CONST.POLICY.ROLE.ADMIN ||
         role === CONST.POLICY.ROLE.AUDITOR ||
+        role === CONST.POLICY.ROLE.GUEST ||
         role === CONST.POLICY.ROLE.CARD_ADMIN ||
         role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
         role === CONST.POLICY.ROLE.PAYMENTS_ADMIN
@@ -42,7 +41,7 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         return (
             <Badge
                 text={badgeText}
-                badgeStyles={[isRowFocused && styles.badgeDefaultActive, badgeStyles]}
+                badgeStyles={[isFocusVisible && styles.badgeDefaultActive, badgeStyles]}
             />
         );
     }

@@ -14,7 +14,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type WhyLinkProps = {
-    /** Style for wrapping View */
     containerStyles?: StyleProp<ViewStyle>;
 };
 

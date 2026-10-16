@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
@@ -22,7 +22,6 @@ import {View} from 'react-native';
 const DIVIDER_HEIGHT = 25;
 
 type TableDisplaySettingsPopoverComponentProps = {
-    /** Function to call to close the overlay */
     closeOverlay: () => void;
 };
 
@@ -69,11 +68,10 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    description={translate('search.display.sortOrder')}
-                    title={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
+                <MenuItemField
+                    name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
+                    value={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
                 />
                 <View style={styles.dividerLine} />
                 <SelectionList
@@ -95,13 +93,14 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
         columns,
         activeSorting,
         initialSortColumn,
+        initialSortOrder,
         tableMethods: {updateSorting},
     } = useTableContext();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
     const defaultSorting: ActiveSorting<string> = {
         columnKey: initialSortColumn,
-        order: CONST.SEARCH.SORT_ORDER.ASC,
+        order: initialSortOrder,
     };
     const [pendingSorting, setPendingSorting] = useState<ActiveSorting<string>>(defaultSorting);
 
@@ -170,7 +169,7 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                 ]}
                 value={selectedOrder}
                 label={translate('search.display.sortOrder')}
-                defaultValue={CONST.SEARCH.SORT_ORDER.ASC}
+                defaultValue={defaultSorting.order}
                 onBackButtonPress={() => setSelectedSetting('sortBy')}
                 closeOverlay={closeSettingsOverlay}
                 onChange={(item) => {
@@ -185,12 +184,11 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
 
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                description={translate('search.display.sortBy')}
-                title={sortByTitle}
+            <MenuItemField
+                name={translate('search.display.sortBy')}
                 onPress={openSortBy}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                value={sortByTitle}
             />
         </ScrollView>
     );

@@ -1,9 +1,10 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import WorkspaceMemberRoleCell from '@components/Tables/WorkspaceMembersTable/WorkspaceMemberRoleCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,7 +16,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
 import {View} from 'react-native';
 
 import type {AgentRowData} from '.';
@@ -24,14 +24,14 @@ type AgentsTableRowProps = {
     /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
     item: TableRow<AgentRowData>;
 
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Whether to show the role column */
+    shouldShowRoleColumn?: boolean;
 };
 
-export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AgentsTableRowProps) {
+export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn = false}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,9 +42,13 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
-    const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
+    const areActionsDisabled = !item.canManage || isPendingAddOrDelete || item.accountID <= 0 || !item.login;
+    const isEditable = item.canManage && !isPendingDeletion;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
+
+    const agentRoleLabel = item.role ? translate('workspace.common.roleName', item.role) : undefined;
+    const agentSubtitle = shouldShowRoleColumn && shouldUseNarrowTableLayout && agentRoleLabel ? `${agentRoleLabel} • ${item.login}` : item.login;
 
     return (
         <Table.Row
@@ -80,11 +84,23 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
-                                text={item.login}
+                                text={agentSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, isPendingDeletion && styles.offlineFeedbackDeleted]}
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowRoleColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <WorkspaceMemberRoleCell
+                                role={item.role}
+                                memberLogin={item.login}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
@@ -115,7 +131,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                 <Button
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.action}
-                                    isDisabled={isPendingDeletion}
+                                    isDisabled={!isEditable}
                                     innerStyles={selectedButtonInnerStyle}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
                                 >

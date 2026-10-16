@@ -11,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ComponentRef} from 'react';
+
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -104,7 +106,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
     const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 
@@ -153,9 +155,14 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const onBackButtonPress = useCallback(() => {
         // When the bank account is pending validation it has already been submitted, so stepping back through the
-        // setup pages doesn't make sense. Pop back to the entry point screen the user came from.
+        // setup pages doesn't make sense. Leave the flow entirely rather than popping to ReimbursementAccountPage:
+        // that page redirects a pending account straight back here, so returning to it would trap the user in a loop.
         if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.dismissModal();
+            }
             return;
         }
 

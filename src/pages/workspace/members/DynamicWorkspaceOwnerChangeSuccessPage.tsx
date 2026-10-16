@@ -16,12 +16,13 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
+import {openPolicyProfilePage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 
 type DynamicWorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS>;
 
@@ -39,6 +40,11 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
 
     const policy = usePolicy(policyID);
     const shouldShowRef = useRef(!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
+
+    // The server has already moved the payer. Refetch so the local policy stops reporting the former owner as payer.
+    useEffect(() => {
+        openPolicyProfilePage(policyID);
+    }, [policyID]);
 
     return (
         <AccessOrNotFoundWrapper

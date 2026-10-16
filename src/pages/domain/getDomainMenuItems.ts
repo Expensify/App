@@ -1,4 +1,4 @@
-import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import {getDomainBrickRoadIndicator, hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 
@@ -7,9 +7,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 const DOMAIN_MENU_ICON_NAMES = ['UserLock', 'UserShield', 'User', 'Users'] as const;
@@ -42,14 +44,19 @@ type GetDomainMenuItemsParams = {
     /** Errors used to show indicators on the affected Domain sections. */
     domainErrors?: DomainErrors;
 
-    /** Icons used by the Domain menu items. */
+    /** Whether the domain has pending adminship requests awaiting review. */
+    hasPendingAdminRequests?: boolean;
+
+    /** The domain itself, used to tell which adminship request errors still have a row to be dismissed from. */
+    domain?: OnyxEntry<Domain>;
+
     icons: DomainMenuIconMap;
 };
 
 /**
  * Menu order is significant because it controls the on-screen layout. Callers attach navigation actions so those actions can retain page-specific lifecycle handling.
  */
-function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMenuItemsParams): DomainMenuItem[] {
+function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminRequests, domain, icons}: GetDomainMenuItemsParams): DomainMenuItem[] {
     return [
         {
             translationKey: 'domain.domainMembers',
@@ -63,7 +70,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMen
             icon: icons.UserShield,
             route: ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.ADMINS,
-            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainAdminsErrors(domainErrors, domain), hasPendingAdminRequests),
         },
         {
             translationKey: 'domain.groups.title',

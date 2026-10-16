@@ -13,7 +13,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,7 +102,7 @@ const renderPage = () =>
                         <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.WORKFLOWS}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
+                                component={WorkspaceWorkflowsPageRevamp}
                                 initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.APPROVALS}}
                             />
                         </Stack.Navigator>
@@ -118,7 +118,7 @@ const queryAddApprovalButton = () => screen.queryByText(TestHelper.translateLoca
 // dropdown that would hold them is gone too. Asserting on the button covers both filters at once.
 const queryMoreButton = () => screen.queryByText(TestHelper.translateLocal('common.more'));
 
-describe('WorkspaceWorkflowsPage - DEW "Hide People Table Columns"', () => {
+describe('WorkspaceWorkflowsPageRevamp - DEW "Hide People Table Columns"', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

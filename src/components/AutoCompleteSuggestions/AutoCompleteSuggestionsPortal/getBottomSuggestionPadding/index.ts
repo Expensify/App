@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getBottomSuggestionPadding(bottom?: number, isInLandscapeMode?: boolean): number {
+function getBottomSuggestionPadding(isMenuAbove: boolean): number {
     return 6;
 }
 

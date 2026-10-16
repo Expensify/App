@@ -10,8 +10,6 @@ type ValidateCodeFormProps = {
     setIsUsingRecoveryCode: (value: boolean) => void;
 
     isVisible: boolean;
-
-    /** Reference to the outer element */
     ref: ForwardedRef<BaseValidateCodeFormRef>;
 };
 

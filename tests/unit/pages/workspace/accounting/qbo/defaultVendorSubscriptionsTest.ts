@@ -10,7 +10,7 @@ type NonReimbursableDestination = QBOConnectionConfig['nonReimbursableExpensesEx
 
 const POLICY_ID = 'policy123';
 
-const EXISTING_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false};
+const EXISTING_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false, campfire: false};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const mockTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
@@ -33,13 +33,9 @@ function buildPolicy(nonReimbursableExpensesExportDestination: NonReimbursableDe
 }
 
 function getIntegrationData(nonReimbursableExpensesExportDestination: NonReimbursableDestination, autoCreateVendor = false) {
-    return getAccountingIntegrationData(
-        CONST.POLICY.CONNECTIONS.NAME.QBO,
-        POLICY_ID,
-        mockTranslate,
-        EXISTING_CONNECTIONS,
-        buildPolicy(nonReimbursableExpensesExportDestination, autoCreateVendor),
-    );
+    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBO, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, {
+        policy: buildPolicy(nonReimbursableExpensesExportDestination, autoCreateVendor),
+    });
 }
 
 describe('QBO default vendor export subscriptions', () => {

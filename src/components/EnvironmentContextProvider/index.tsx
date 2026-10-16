@@ -10,7 +10,6 @@ import type {EnvironmentActionsContextType, EnvironmentStateContextType, Environ
 import {defaultEnvironmentActionsContextValue, defaultEnvironmentStateContextValue} from './default';
 
 type EnvironmentProviderProps = {
-    /** Actual content wrapped by this component */
     children: ReactNode;
 };
 
