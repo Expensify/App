@@ -274,19 +274,18 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newMerchant: string): string | undefined {
-    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
-    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
-    // thread report for an edit we're about to discard, so validate first.
+    // The merchant form uses strict HTML validation, which also rejects values like <✓>. FormProvider runs that
+    // check after validate and overwrites any length error, so a value that fails both must show invalid character.
+    if (containsHtmlTag(newMerchant, true)) {
+        return translate('common.error.invalidCharacter');
+    }
+
     const merchantError = getMerchantError(newMerchant, isMerchantRequired(params.parentReport, params.transaction));
     if (merchantError) {
         return getMerchantErrorMessage(translate, merchantError);
     }
 
-    // The merchant form uses strict HTML validation, which also rejects values like <✓>. Inline edit skips that form, so match it here.
-    if (containsHtmlTag(newMerchant, true)) {
-        return translate('common.error.invalidCharacter');
-    }
-
+    // Building params can create a transaction thread, so do it only once the merchant is valid.
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({

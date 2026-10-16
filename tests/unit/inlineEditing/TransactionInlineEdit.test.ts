@@ -812,6 +812,18 @@ describe('TransactionInlineEdit', () => {
             expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
         });
 
+        it('rejects a merchant that is both too long and tagged as invalid character', () => {
+            // Given a merchant that is past the byte limit and also contains a tag, so both failures apply at once
+            const taggedMerchant = `<b>${'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES)}</b>`;
+
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), taggedMerchant);
+
+            // Then HTML wins, matching FormProvider, which replaces the length error when a tag is present
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
         it.each(['<✓>', '<@>'])('rejects a merchant with a non-standard tag %s without saving', (merchant) => {
             // Given a merchant the merchant step rejects through strict HTML validation, which the default tag check allows
             // When that merchant is saved from the table
