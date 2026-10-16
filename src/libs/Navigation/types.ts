@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
@@ -130,6 +132,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+
+        /** Whether the validation was opened from the join-workspace Concierge task. */
+        isJoinWorkspaceTask?: 'true';
     };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]:
         | {
@@ -282,23 +287,23 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.AGENTS.NEW]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
-    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -350,6 +355,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
@@ -366,6 +372,15 @@ type SettingsNavigatorParamList = {
         country?: Country | '';
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: {
+        policyID: string;
+        country?: Country | '';
+    };
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: {
+        policyID: string;
+        officeID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -834,6 +849,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_HR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
@@ -2199,6 +2226,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+        domainAccountID: number;
+        accountID: number;
+    };
     [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
         domainAccountID: number;
         accountID: number;
@@ -2299,11 +2330,15 @@ type ReportDetailsNavigatorParamList = {
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: {
         reportID: string;
+        shouldShowQRCodeOnly?: string;
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+    };
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: {
+        reportID: string;
     };
 };
 
@@ -3236,6 +3271,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CONNECTIONS]: {
+        policyID: string;
+        newConnectionName?: ConnectionName;
+        integrationToDisconnect?: ConnectionName;
+        shouldDisconnectIntegrationBeforeConnecting?: boolean;
+        isIntuitEnterpriseSuite?: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
         integration: string;
@@ -3313,6 +3355,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.AGENTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ROOMS]: {
@@ -3427,10 +3472,14 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
+        isJoinWorkspaceTask?: string;
+        reportID?: string;
     };
     [SCREENS.ONBOARDING.WORKSPACES]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
+        isJoinWorkspaceTask?: string;
+        shouldCreateJoinWorkspaceTaskOnExit?: string;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -3442,8 +3491,8 @@ type OnboardingModalNavigatorParamList = {
     };
     [SCREENS.ONBOARDING.ACCOUNTING]: undefined;
     [SCREENS.ONBOARDING.INTERESTED_FEATURES]: undefined;
-    [SCREENS.ONBOARDING.WORK_EMAIL]: undefined;
-    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL]: {isJoinWorkspaceTask?: string; reportID?: string};
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {isJoinWorkspaceTask?: string; reportID?: string};
     [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
@@ -3587,6 +3636,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
         policyID: string;
     };
+    [SCREENS.BILLING_RECEIPT]: AttachmentModalContainerModalProps & {purchaseID: string};
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;
         policyID?: string;
