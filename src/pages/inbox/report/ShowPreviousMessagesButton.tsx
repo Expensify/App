@@ -35,11 +35,8 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
 
-    if (!isConciergeChat) {
-        return null;
-    }
-    // ConciergeChatHistoryToggle takes over in the Ask Concierge design, where the control also collapses the history again.
-    if (!isInSidePanel) {
+    // The main Concierge chat uses ConciergeChatHistoryToggle instead.
+    if (!isConciergeChat || !isInSidePanel) {
         return null;
     }
     if (!onPress) {
