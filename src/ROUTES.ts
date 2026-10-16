@@ -2581,14 +2581,12 @@ const ROUTES = {
     },
     SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
         route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
-        getRoute: (backTo?: string, subPage?: string, action?: 'edit') => {
+        getRoute: (subPage?: string, action?: 'edit') => {
             if (!subPage) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
-                return getUrlWithBackToParam('settings/wallet/collect-deposit-account', backTo);
+                return 'settings/wallet/collect-deposit-account' as const;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
-            return getUrlWithBackToParam(`settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}`, backTo);
+            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {

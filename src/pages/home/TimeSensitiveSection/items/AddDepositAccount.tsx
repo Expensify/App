@@ -20,7 +20,7 @@ function AddDepositAccount() {
             title={translate('homePage.timeSensitiveSection.addDepositAccount.title')}
             subtitle={translate('common.wallet')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(Navigation.getActiveRoute()))}
+            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute())}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
