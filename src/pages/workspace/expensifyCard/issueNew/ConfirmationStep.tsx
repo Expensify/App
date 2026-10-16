@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -22,6 +23,8 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -249,11 +252,21 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     />
                 )}
                 {isPhoneNumberStepShown && (
-                    <MenuItemField
-                        name={translate('common.phoneNumber')}
-                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER)}
-                        value={shippingAddress?.phoneNumber}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER))}>
+                        <MenuItemField.Row
+                            name={translate('common.phoneNumber')}
+                            value={shippingAddress?.phoneNumber}
+                        >
+                            {isPhoneNumberMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {isPhoneNumberMissing && (
+                            <MenuItem.HelpText
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        )}
+                    </MenuItem.Root>
                 )}
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
