@@ -16,7 +16,7 @@ Do not re-check these:
 | `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
 | A read during render or at module scope | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
-| A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-unsafe-onyx-read` |
+| A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
 | An inline `eslint-disable` of the rule, or one over a runtime OnyxUtils import | `scripts/checkOnyxLintBypass.ts` |
 | A missing `await` whose value is then used | `tsc` |
