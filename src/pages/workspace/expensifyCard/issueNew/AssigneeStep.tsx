@@ -21,7 +21,15 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    isExpensifyTeam,
+    shouldFilterExpensifyTeam,
+} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -147,10 +155,20 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
+    // Expensify staff (guides, support) are hidden from the Workspace Members page, so they must not be offered as
+    // cardholders either, whether they come from the member list or from search results. The already-assigned
+    // cardholder stays visible so editing an assignment doesn't blank out.
+    const shouldFilterExpensifyStaff = shouldFilterExpensifyTeam(policy?.owner, session?.email);
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldFilterExpensifyStaff && !!login && login !== initialAssigneeEmail && isExpensifyTeam(login);
+
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                continue;
+            }
+
+            if (isHiddenExpensifyStaff(email)) {
                 continue;
             }
 
@@ -196,10 +214,12 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
               ]
             : filteredMembers;
 
-        assignees = options.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-        }));
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+            }));
     } else if (debouncedSearchTerm) {
         assignees = [];
     }
