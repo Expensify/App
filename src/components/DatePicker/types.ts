@@ -127,7 +127,11 @@ type DatePickerProps = {
      */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 
-    /** Measure the calendar's real height, which varies by month, so its top isn't clipped when opening above the anchor */
+    /**
+     * Whether to measure the calendar's rendered height instead of assuming `POPOVER_DATE_MIN_HEIGHT`, which only covers
+     * a 5-row month: months that need a sixth week row reach `POPOVER_DATE_MAX_HEIGHT` instead. Needed where the popover
+     * can open above its anchor, or its top edge clips in those months.
+     */
     shouldMeasureContentHeight?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
