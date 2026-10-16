@@ -259,6 +259,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
 
+        /** The date the report was paid (created date of the latest payment report action that was not cancelled) */
+        paid?: string;
+
         firstApproverAvatar?: AvatarSource;
 
         /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
@@ -301,6 +304,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was exported in past years
          */
         shouldShowYearExported: boolean;
+
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;

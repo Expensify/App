@@ -1240,6 +1240,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1398,7 +1399,8 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1474,6 +1476,7 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
@@ -1505,6 +1508,7 @@ function Search({
         isApprovedColumnWide: shouldShowYearApproved,
         isPostedColumnWide: shouldShowYearPosted,
         isExportedColumnWide: shouldShowYearExported,
+        isPaidColumnWide: shouldShowYearPaid,
         isWithdrawnColumnWide: shouldShowYearWithdrawn,
         isAmountColumnWide: shouldShowAmountInWideColumn,
         isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,

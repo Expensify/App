@@ -357,6 +357,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID]: 'paid' as const,
     [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'formattedPaidBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
@@ -1080,6 +1081,7 @@ type ShouldShowYearResult = {
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearPaid: boolean;
     shouldShowYearWithdrawn: boolean;
 };
 
@@ -1162,6 +1164,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         shouldShowYearWithdrawn: false,
     };
 
@@ -1263,6 +1266,10 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+
+            if (!result.shouldShowYearPaid && isPaidDateFromAPastYear(item, data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`])) {
+                result.shouldShowYearPaid = true;
+            }
         } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
             const group = data[key];
             if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
@@ -1277,6 +1284,7 @@ function shouldShowYear(
             result.shouldShowYearApproved &&
             result.shouldShowYearPosted &&
             result.shouldShowYearExported &&
+            result.shouldShowYearPaid &&
             result.shouldShowYearWithdrawn
         ) {
             return result;
@@ -1428,6 +1436,7 @@ type PreprocessingContext = {
     shouldShowYearSubmittedReport: boolean;
     shouldShowYearApprovedReport: boolean;
     shouldShowYearExportedReport: boolean;
+    shouldShowYearPaidReport: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
@@ -1456,6 +1465,7 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearSubmittedReport: false,
         shouldShowYearApprovedReport: false,
         shouldShowYearExportedReport: false,
+        shouldShowYearPaidReport: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
@@ -1545,6 +1555,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (lastReimbursedAction) {
         ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
+    }
+
+    if (!ctx.shouldShowYearPaidReport && report && isPaidDateFromAPastYear(report, actions)) {
+        ctx.shouldShowYearPaidReport = true;
     }
 }
 
@@ -2658,15 +2672,14 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 }
 
 /**
- * Returns the latest payment action between the snapshot-derived one and the given report actions, mirroring the
- * backend paid-by rules: payment actions at or before the latest reimbursement cancellation don't count, and a
- * payment action recorded by the report owner that is paired with a MARKED_REDEEMED action is a "received payment"
- * self-attestation, which doesn't identify a payer.
+ * Returns the latest payment action between the snapshot-derived one and the given report actions. Payment actions
+ * at or before the latest reimbursement cancellation don't count, because that payment was reversed.
+ * `shouldCountPayment` lets a caller leave out payments that don't answer its question.
  */
-function getLastPaidAction(
+function getLastPaymentAction(
     snapshotPaidAction: OnyxTypes.ReportAction | undefined,
     actions: OnyxTypes.ReportAction[],
-    ownerAccountID: number | undefined,
+    shouldCountPayment: (action: OnyxTypes.ReportAction) => boolean = () => true,
 ): OnyxTypes.ReportAction | undefined {
     const latestCancellation = findActionByCreated(
         actions,
@@ -2677,13 +2690,36 @@ function getLastPaidAction(
         if (!action) {
             return false;
         }
-        if (isMoneyRequestAction(action)) {
-            const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
-            if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY || originalMessage.isSubmitterMarkedPaymentReceived) {
-                return false;
-            }
+        if (isMoneyRequestAction(action) && getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            return false;
         }
         if (latestCancellation && action.created <= latestCancellation.created) {
+            return false;
+        }
+        return shouldCountPayment(action);
+    };
+    const seed = isValidPaymentAction(snapshotPaidAction) ? snapshotPaidAction : undefined;
+    const candidates = actions.filter(isValidPaymentAction);
+    return findActionByCreated(
+        candidates,
+        [CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION, CONST.REPORT.ACTIONS.TYPE.IOU],
+        'latest',
+        seed,
+    );
+}
+
+/**
+ * Returns the latest payment action that identifies a payer, mirroring the backend paid-by rules: a payment action
+ * recorded by the report owner that is paired with a MARKED_REDEEMED action is a "received payment"
+ * self-attestation, which doesn't identify a payer.
+ */
+function getLastPaidAction(
+    snapshotPaidAction: OnyxTypes.ReportAction | undefined,
+    actions: OnyxTypes.ReportAction[],
+    ownerAccountID: number | undefined,
+): OnyxTypes.ReportAction | undefined {
+    return getLastPaymentAction(snapshotPaidAction, actions, (action) => {
+        if (isMoneyRequestAction(action) && getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.isSubmitterMarkedPaymentReceived) {
             return false;
         }
         if (action.actorAccountID !== ownerAccountID) {
@@ -2695,15 +2731,27 @@ function getLastPaidAction(
                 redeemedAction.actorAccountID === action.actorAccountID &&
                 redeemedAction.created >= action.created,
         );
-    };
-    const seed = isValidPaymentAction(snapshotPaidAction) ? snapshotPaidAction : undefined;
-    const candidates = actions.filter(isValidPaymentAction);
-    return findActionByCreated(
-        candidates,
-        [CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION, CONST.REPORT.ACTIONS.TYPE.IOU],
-        'latest',
-        seed,
-    );
+    });
+}
+
+/**
+ * Returns the created time of the report's latest payment action, or blank when the report is not Paid. Unlike
+ * the paid-by lookup, a payment the submitter marked as received counts: the report was still paid on that date.
+ */
+function getPaidDate(reportItem: OnyxTypes.Report, snapshotPaidAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+        return '';
+    }
+    return getLastPaymentAction(snapshotPaidAction, actions)?.created ?? '';
+}
+
+/**
+ * Whether the report's paid date, taken from the snapshot's report actions, is from a past year, so the Paid column
+ * needs the wide width to fit the year.
+ */
+function isPaidDateFromAPastYear(report: OnyxTypes.Report, actions: Record<string, OnyxTypes.ReportAction> | undefined): boolean {
+    const paidDate = getPaidDate(report, undefined, Object.values(actions ?? {}));
+    return !!paidDate && DateUtils.doesDateBelongToAPastYear(paidDate);
 }
 
 /**
@@ -2791,6 +2839,7 @@ function getReportSections({
         shouldShowYearSubmittedReport,
         shouldShowYearApprovedReport,
         shouldShowYearExportedReport,
+        shouldShowYearPaidReport,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
         hasDeletedTransaction,
@@ -2901,6 +2950,7 @@ function getReportSections({
                     approved: getApprovedDate(reportItem, actions),
                     exportedTo: getExportedToSortValue(exportedToNamesByReportID, reportItem.reportID),
                     firstApproved,
+                    paid: getPaidDate(reportItem, lastReimbursedActionByReportID.get(reportItem.reportID), actions),
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
@@ -2918,6 +2968,7 @@ function getReportSections({
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
+                    shouldShowYearPaid: shouldShowYearPaidReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                     isRejectedReport,
                     totalDisplaySpend,
@@ -4481,6 +4532,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'search.filters.firstApprover';
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
             return 'search.filters.firstApproved';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID:
+            return 'search.filters.paid';
         case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             return 'search.filters.paidBy';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:

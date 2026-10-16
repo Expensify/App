@@ -1195,7 +1195,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1327,7 +1329,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1465,7 +1469,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1689,7 +1695,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -7940,6 +7948,208 @@ describe('SearchUIUtils', () => {
                 expect(item?.paidByAccountID).toBeUndefined();
             });
 
+            it('should populate paid from a snapshot payment action on a paid report', () => {
+                // Given a paid report whose only payment action comes from the Search snapshot, which is the case when the report was never opened
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: paidAt,
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is the payment action's created time, because the report itself carries no paid date
+                expect(item?.paid).toBe(paidAt);
+            });
+
+            it('should populate paid from a live pay action missing from the snapshot (pay from Search)', () => {
+                // Given a paid report whose payment action only exists in the live report actions, as it does right after paying from Search
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+                // When the report sections are built with the live actions
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: paidAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date shows without waiting for the snapshot to catch up
+                expect(item?.paid).toBe(paidAt);
+            });
+
+            it('should populate paid when the submitter marked the payment as received', () => {
+                // Given a paid report that the submitter marked as received, which identifies no payer
+                const receivedAt = '2024-12-22 09:30:00';
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'received-pay-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                    actorAccountID: adminAccountID,
+                                    created: receivedAt,
+                                },
+                                {
+                                    reportActionID: 'received-reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: adminAccountID,
+                                    created: receivedAt,
+                                },
+                                {
+                                    reportActionID: 'received-redeemed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:01',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then Paid by stays blank but the paid date is set, because the report was still paid on that date
+                expect(item?.paidByAccountID).toBeUndefined();
+                expect(item?.paid).toBe(receivedAt);
+            });
+
+            it('should leave paid blank when the payment was cancelled', () => {
+                // Given a report still marked Paid whose only payment action precedes a reimbursement cancellation
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                                {
+                                    reportActionID: 'dequeued-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-21 10:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because the reversed payment no longer counts
+                expect(item?.paid).toBe('');
+            });
+
+            it('should leave paid blank when the report is not paid', () => {
+                // Given an approved report that still holds a payment action from an earlier payment
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because only a report in the Paid status has a paid date
+                expect(item?.paid).toBe('');
+            });
+
+            it('should widen the Paid column when a report was paid in a past year', () => {
+                // Given a report paid in a past year
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then both the row and the header use the wide Paid column, so the date has room for its year
+                expect(item?.shouldShowYearPaid).toBe(true);
+                expect(yearFlags.shouldShowYearPaid).toBe(true);
+            });
+
+            it('should keep the Paid column narrow when every report was paid this year', () => {
+                // Given a report paid this year
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: `${new Date().getFullYear()}-01-02 09:30:00`,
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then the row and the header keep the narrow Paid column, matching the other date columns
+                expect(item?.shouldShowYearPaid).toBe(false);
+                expect(yearFlags.shouldShowYearPaid).toBe(false);
+            });
+
             it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
                 const reApprovedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData(
@@ -8775,6 +8985,30 @@ describe('SearchUIUtils', () => {
                 'report_reversed',
                 'report_domestic',
             ]);
+        });
+
+        it('should sort expense reports by paid date, leaving the unpaid reports at the empty end', () => {
+            // Given two paid reports and one that has no paid date
+            const withPaid = (keyForList: string, paid: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    transactions: [],
+                    paid,
+                });
+            const reports = [withPaid('report_paid_later', '2025-09-02 10:00:00'), withPaid('report_unpaid', ''), withPaid('report_paid_earlier', '2025-08-20 10:00:00')];
+
+            // When the reports are sorted by the Paid column in each direction
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.PAID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then the paid dates are ordered and the unpaid report groups at one end, the same as a blank Approved date
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_unpaid', 'report_paid_earlier', 'report_paid_later']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_paid_later', 'report_paid_earlier', 'report_unpaid']);
         });
 
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
