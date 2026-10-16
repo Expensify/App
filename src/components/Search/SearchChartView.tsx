@@ -19,7 +19,7 @@ import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {SearchChartModel} from './buildChartSeries';
+import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries} from './buildChartSeries';
@@ -51,6 +51,9 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
+    /** Rows the chart is compared against, drawn as a second series */
+    comparison?: ChartComparison;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
@@ -71,6 +74,7 @@ function SearchChartView({
     shouldShowGroupLabels = true,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
+    comparison,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
@@ -83,8 +87,10 @@ function SearchChartView({
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const isSinglePointBar = shouldShowSinglePointAsBar && data.length === 1;
     const {series, rows} = buildChartSeries({
         data,
+        comparison: isSinglePointBar ? undefined : comparison,
         view,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
@@ -133,27 +139,26 @@ function SearchChartView({
                 shouldShowLabels={shouldShowGroupLabels}
             />
         ),
-        [CONST.SEARCH.VIEW.LINE]:
-            shouldShowSinglePointAsBar && points.length === 1 ? (
-                <BarChart
-                    data={points}
-                    series={series}
-                    isLoading={isLoading}
-                    onBarPress={onItemPress}
-                    yAxisUnit={unit}
-                    yAxisUnitPosition={unitPosition}
-                />
-            ) : (
-                <LineChart
-                    data={points}
-                    series={series}
-                    isLoading={isLoading}
-                    onPointPress={onItemPress}
-                    labelSteps={labelSteps}
-                    yAxisUnit={unit}
-                    yAxisUnitPosition={unitPosition}
-                />
-            ),
+        [CONST.SEARCH.VIEW.LINE]: isSinglePointBar ? (
+            <BarChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onBarPress={onItemPress}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+            />
+        ) : (
+            <LineChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onPointPress={onItemPress}
+                labelSteps={labelSteps}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+            />
+        ),
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
