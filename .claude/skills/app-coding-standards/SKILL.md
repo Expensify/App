@@ -80,6 +80,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
 - [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
 
+### Onyx
+- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
+
 ## Usage
 
 **During development**: When writing or modifying `src/` files, consult the relevant standard files for detailed conditions, examples, and exceptions.
