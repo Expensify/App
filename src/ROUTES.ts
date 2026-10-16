@@ -2588,9 +2588,11 @@ const ROUTES = {
     SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
         route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+            if (!subPage) {
+                return 'settings/wallet/collect-deposit-account' as const;
+            }
+
+            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
@@ -3410,6 +3412,10 @@ const ROUTES = {
     WORKSPACE_DOCUMENT: {
         route: 'workspaces/:policyID/document',
         getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
+    },
+    BILLING_RECEIPT: {
+        route: 'settings/subscription/payment-history/:purchaseID/receipt',
+        getRoute: (purchaseID: number) => `settings/subscription/payment-history/${purchaseID}/receipt` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',

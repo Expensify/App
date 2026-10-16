@@ -1117,9 +1117,9 @@
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"no-restricted-imports"	1
-"../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
+"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"no-restricted-imports"	1
+"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepCurrencyModal.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/Waypoints/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1

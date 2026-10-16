@@ -279,6 +279,12 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
+                            name={SCREENS.BILLING_RECEIPT}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.TRANSACTION_RECEIPT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}

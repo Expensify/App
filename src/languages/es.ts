@@ -984,6 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Añadir',
             },
             addBankAccount: {title: 'Añade una cuenta bancaria para recibir el reembolso'},
+            addDepositAccount: {title: 'Añade una cuenta bancaria para recibir pagos'},
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
@@ -11689,6 +11690,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
             },
+            billedTo: 'Facturado a',
+            viewReceipt: 'Ver recibo',
+            viewInvoice: 'Ver factura',
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
