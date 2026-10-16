@@ -10,7 +10,7 @@ import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 
-import {removeFailedReport} from '@libs/actions/Report';
+import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -92,12 +92,18 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({
             reportPendingAction: r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
-            reportErrors: r?.errorFields?.createReport,
+            // Fall back to the report errors (e.g. a failed submit) so they can be shown and dismissed in the report
+            reportErrors: r?.errorFields?.createReport ?? r?.errors,
+            hasReportCreationErrors: !!r?.errorFields?.createReport,
         }),
     });
-    const {reportPendingAction, reportErrors} = reportPendingActionAndErrors ?? {};
+    const {reportPendingAction, reportErrors, hasReportCreationErrors} = reportPendingActionAndErrors ?? {};
 
     const dismissReportCreationError = () => {
+        if (!hasReportCreationErrors) {
+            clearReportErrors(reportIDFromRoute);
+            return;
+        }
         Navigation.goBack(undefined, {
             afterTransition: () => removeFailedReport(reportIDFromRoute),
         });

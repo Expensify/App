@@ -11445,6 +11445,7 @@ const translations = {
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
         reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
+        reportHasErrors: 'Report has errors.',
     },
     violationDismissal: {
         rter: {
