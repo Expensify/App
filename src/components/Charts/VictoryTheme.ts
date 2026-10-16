@@ -12,7 +12,7 @@ import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 const CHART_PALETTE_SHADES = [400, 600, 300, 500, 700] as const;
 
 /** Hues cycling within each shade group */
-const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'blue', 'ice'] as const;
+const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
 
 /**
  * Expensify Chart Color Palette.
@@ -20,7 +20,7 @@ const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'blue', 'ice
  * Shades are ordered (400, 600, 300, 500, 700) so that sequential colors have
  * maximum contrast, making adjacent chart segments easy to distinguish.
  *
- * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Blue, Ice.
+ * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
  */
 const CHART_PALETTE: string[] = (() => {
     const palette: string[] = [];
