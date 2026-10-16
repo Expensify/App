@@ -168,6 +168,7 @@ describe('RequestConflictUtils', () => {
         const persistedRequests = [
             {
                 command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
                 data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
             },
         ];
@@ -182,6 +183,7 @@ describe('RequestConflictUtils', () => {
             index: 0,
             request: {
                 command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
                 data: {reportID: '1', reportActionID, reportComment: 'b removed', file: {uri: 'blob:a'}, file_1: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,7'},
             },
         });
@@ -193,6 +195,7 @@ describe('RequestConflictUtils', () => {
         const persistedRequests = [
             {
                 command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
                 data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
             },
         ];

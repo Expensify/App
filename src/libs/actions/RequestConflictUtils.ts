@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -277,6 +276,11 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/** Reads the local URI of a queued file. Request data is untyped, so the shape is checked rather than cast. */
+function getQueuedFileURI(file: unknown): string {
+    return typeof file === 'object' && file !== null && 'uri' in file && typeof file.uri === 'string' ? file.uri : '';
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
@@ -303,8 +307,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             const fileKeys = ['file', ...Object.keys(data).filter((key) => CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key))];
             const attachmentIDs = typeof data.attachmentIDs === 'string' ? data.attachmentIDs.split(',') : [data.attachmentID];
             const keptAttachments = fileKeys
-                .map((key, index) => ({file: data[key] as FileObject | undefined, attachmentID: attachmentIDs.at(index)}))
-                .filter(({file}) => !!file && !removedAttachmentSources.includes(file.uri ?? ''));
+                .map((key, index) => ({file: data[key], attachmentID: attachmentIDs.at(index)}))
+                .filter(({file}) => !!file && !removedAttachmentSources.includes(getQueuedFileURI(file)));
 
             for (const key of fileKeys) {
                 delete data[key];
