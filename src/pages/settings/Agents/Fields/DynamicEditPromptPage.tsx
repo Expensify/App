@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -25,6 +26,7 @@ import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInpu
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 
@@ -32,9 +34,9 @@ import {Str} from 'expensify-common';
 import React, {useRef} from 'react';
 import {Platform, View} from 'react-native';
 
-type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
+type DynamicEditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>;
 
-function EditPromptPage({route}: EditPromptPageProps) {
+function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -46,10 +48,11 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
-    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
     const scrollToInput = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};
@@ -61,7 +64,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
-        Navigation.goBack();
+        Navigation.goBack(backPath);
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
@@ -85,7 +88,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
 
     return (
         <ScreenWrapper
-            testID={EditPromptPage.displayName}
+            testID={DynamicEditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
@@ -93,7 +96,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
@@ -147,6 +150,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
     );
 }
 
-EditPromptPage.displayName = 'EditPromptPage';
+DynamicEditPromptPage.displayName = 'DynamicEditPromptPage';
 
-export default EditPromptPage;
+export default DynamicEditPromptPage;
