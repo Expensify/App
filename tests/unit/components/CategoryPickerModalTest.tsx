@@ -26,7 +26,10 @@ jest.mock('@libs/Browser', () => ({
 
 // A phone-width window by default, where the pop-over is a bottom sheet. A test can widen it to get the pop-over.
 let mockIsSmallScreenWidth = true;
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
+let mockIsInLandscapeMode = false;
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth, isInLandscapeMode: mockIsInLandscapeMode})),
+);
 
 // The window as a mobile browser reports it with the keyboard open: shorter, and panned down past the page top.
 const mockWindowHeight = 500;
@@ -59,6 +62,7 @@ describe('CategoryPickerModal', () => {
         mockPopoverProps = undefined;
         mockIsMobileBrowser = true;
         mockIsSmallScreenWidth = true;
+        mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
     });
 
@@ -151,6 +155,31 @@ describe('CategoryPickerModal', () => {
         // Then the sheet is sized for that window and lifts above the keyboard
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(expectedHeight);
         expect(mockPopoverProps?.avoidKeyboard).toBe(true);
+    });
+
+    it('lets the sheet grow with the window on a phone in landscape instead of handing over to a page', () => {
+        // Given a phone turned to landscape, where the dropdown cap and the modal's own landscape cap would clip the list
+        mockIsInLandscapeMode = true;
+        const minHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false});
+        const windowHeightSheet = getBottomSheetHeight({
+            preferredHeight: mockWindowHeight,
+            maxHeight: mockWindowHeight,
+            windowHeight: mockWindowHeight,
+            keyboardHeight: 0,
+            topSafeAreaInset: 0,
+            minHeight,
+        });
+        const cappedSheet = getBottomSheetHeight({preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight: mockWindowHeight, keyboardHeight: 0, topSafeAreaInset: 0, minHeight});
+
+        // When the list opens, or is already open as the phone turns
+        renderSheet();
+
+        // Then the sheet stays up and takes the window's height rather than the dropdown cap, and the modal neither caps nor wraps it,
+        // so the list scrolls all the way down on its own
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(windowHeightSheet);
+        expect(windowHeightSheet).toBeGreaterThan(cappedSheet);
+        expect(mockPopoverProps?.shouldLimitHeightIfBottomDockedInLandscapeMode).toBe(false);
+        expect(mockPopoverProps?.shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode).toBe(false);
     });
 
     describe('with a short list', () => {

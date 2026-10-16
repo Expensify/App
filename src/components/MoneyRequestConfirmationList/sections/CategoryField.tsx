@@ -122,8 +122,8 @@ function CategoryField({
         canReopen: canOpenListInPlace,
     });
 
-    const getCategoryStepRoute = (currentTransactionID: string, shouldCloseInPortrait?: boolean) =>
-        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: currentTransactionID, reportID, reportActionID, shouldCloseInPortrait}));
+    const getCategoryStepRoute = (currentTransactionID: string) =>
+        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: currentTransactionID, reportID, reportActionID}));
 
     const openCategoryPage = () => {
         if (!transactionID) {
@@ -154,13 +154,6 @@ function CategoryField({
         }
     };
 
-    const openCategoryPageInLandscape = () => {
-        if (!transactionID) {
-            return;
-        }
-        Navigation.navigate(getCategoryStepRoute(transactionID, true));
-    };
-
     if (shouldUseDropdownRows) {
         return (
             <ExpenseFieldDropdown
@@ -176,7 +169,6 @@ function CategoryField({
                 shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
-                onLandscapePress={openCategoryPageInLandscape}
                 shouldOpenInDropdown={canOpenListInPlace}
                 listHeaderHeight={canAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0}
                 renderDropdown={(dropdownProps) =>

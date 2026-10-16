@@ -2099,19 +2099,11 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
         ],
-        getRoute: (params: {
-            action: IOUAction;
-            iouType: IOUType;
-            transactionID: string;
-            reportID: string | undefined;
-            reportActionID?: string;
-            /** Set when the page stands in for the form's list on a phone in landscape, so it closes itself in portrait */
-            shouldCloseInPortrait?: boolean;
-        }) => {
-            const {action, iouType, transactionID, reportID, reportActionID, shouldCloseInPortrait} = params;
-            return getUrlWithParams('category', {action, iouType, transactionID, reportID, reportActionID, shouldCloseInPortrait: shouldCloseInPortrait ? 'true' : undefined});
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined; reportActionID?: string}) => {
+            const {action, iouType, transactionID, reportID, reportActionID} = params;
+            return getUrlWithParams('category', {action, iouType, transactionID, reportID, reportActionID});
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID', 'shouldCloseInPortrait'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
     },
     MONEY_REQUEST_STEP_CATEGORY_CREATE: {
         path: 'add-category',

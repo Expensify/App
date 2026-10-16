@@ -89,6 +89,7 @@ function BaseModal({
     shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+    shouldLimitHeightIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -408,7 +409,8 @@ function BaseModal({
                                 modalPaddingStyles,
                                 !isVisible && styles.pointerEventsNone,
                                 sidePanelAnimatedStyle,
-                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
+                                isBottomDockedModalInLandscapeMode &&
+                                    shouldLimitHeightIfBottomDockedInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
                             ]}
                             ref={ref}
                             fsClass={forwardedFSClass}

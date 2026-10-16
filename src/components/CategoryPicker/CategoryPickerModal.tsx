@@ -76,7 +76,6 @@ type CategoryPickerModalProps = {
 function CategoryPickerModal({
     isVisible,
     onClose,
-    onModalHide,
     anchorPosition,
     policyID,
     selectedCategory,
@@ -96,7 +95,7 @@ function CategoryPickerModal({
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Plus']);
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -115,7 +114,9 @@ function CategoryPickerModal({
     // is drawn on the page behind the sheet, so no room is kept for it.
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
     const bottomSheetHeight = getBottomSheetHeight({
-        preferredHeight: popoverHeight,
+        // A phone in landscape is too short for the dropdown cap, so there the sheet grows with the window instead.
+        preferredHeight: isInLandscapeMode ? windowHeight : popoverHeight,
+        maxHeight: isInLandscapeMode ? windowHeight : undefined,
         windowHeight,
         keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
         topSafeAreaInset: safeAreaTop,
@@ -145,7 +146,6 @@ function CategoryPickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
-            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
@@ -159,6 +159,9 @@ function CategoryPickerModal({
             enableEdgeToEdgeBottomSafeAreaPadding
             avoidKeyboard={isSmallScreenWidth}
             outerStyle={outerStyle}
+            // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
+            shouldLimitHeightIfBottomDockedInLandscapeMode={false}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 {!!onAddCategory && (

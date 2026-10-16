@@ -63,7 +63,6 @@ const renderDropdown = (onClose: () => void, canAddCategory = true) =>
             <CategoryFieldDropdown
                 isVisible
                 onClose={onClose}
-                onModalHide={jest.fn()}
                 anchorPosition={{horizontal: 0, vertical: 0}}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                 shouldMeasureAnchorPositionFromTop
