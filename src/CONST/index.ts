@@ -9787,6 +9787,7 @@ const CONST = {
         TABLE: {
             FILTERS: 'Table-Filters',
             SETTINGS: 'Table-Settings',
+            RESET_COLUMNS: 'Table-ResetColumns',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {

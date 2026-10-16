@@ -1,3 +1,5 @@
+import CompactMenuContext from '@components/CompactMenuContext';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
@@ -9,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {ActiveSorting} from '@components/Table/middlewares/sorting';
 import {useTableContext} from '@components/Table/TableContext';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -89,12 +92,14 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
 export default function TableDisplaySettingsPopoverComponent({closeOverlay}: TableDisplaySettingsPopoverComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['RotateLeft']);
     const {
         columns,
         activeSorting,
         initialSortColumn,
         initialSortOrder,
         tableMethods: {updateSorting},
+        resetColumnWidths,
     } = useTableContext();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
@@ -184,12 +189,27 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
 
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
-            <MenuItemField
-                name={translate('search.display.sortBy')}
-                onPress={openSortBy}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                value={sortByTitle}
-            />
+            {sortableColumns.length > 0 && (
+                <MenuItemField
+                    name={translate('search.display.sortBy')}
+                    onPress={openSortBy}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                    value={sortByTitle}
+                />
+            )}
+            {!!resetColumnWidths && (
+                <CompactMenuContext.Provider value>
+                    <MenuItemAction
+                        icon={expensifyIcons.RotateLeft}
+                        title={translate('search.resetColumns')}
+                        onPress={() => {
+                            closeOverlay();
+                            resetColumnWidths();
+                        }}
+                        sentryLabel={CONST.SENTRY_LABEL.TABLE.RESET_COLUMNS}
+                    />
+                </CompactMenuContext.Provider>
+            )}
         </ScrollView>
     );
 }
