@@ -458,6 +458,13 @@ function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     });
 }
 
+/** Shows the empty description error above the submit button of the new rule prompt form */
+function setNewRulePromptEmptyError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.rules.newRule.selectTemplateOrDescribe'),
+    });
+}
+
 function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
@@ -732,6 +739,7 @@ export {
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
     generateRule,
+    setNewRulePromptEmptyError,
     setNewRulePromptError,
     setNewRulePromptErrorMessage,
     clearGeneratedRule,

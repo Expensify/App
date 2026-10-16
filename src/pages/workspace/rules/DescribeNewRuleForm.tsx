@@ -148,6 +148,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             submitButtonText={translate('common.next')}
             inputContainerStyle={styles.describeNewRulePromptInput}
             placeholder={translate('workspace.rules.newRule.describeRulePlaceholder')}
+            canSkipDescription
             style={[styles.flexGrow1, styles.mh5]}
             addBottomSafeAreaPadding
             shouldUseScrollView

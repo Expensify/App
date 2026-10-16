@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
+import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptEmptyError, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,12 @@ type DescribeRuleFormProps = {
     shouldUseScrollView?: boolean;
 
     submitFlexEnabled?: boolean;
+
+    /**
+     * Whether the admin can leave the description empty, because the screen offers another way to make a rule. The input
+     * then shows no error for an empty description. Submit shows the error above the submit button instead.
+     */
+    canSkipDescription?: boolean;
 
     /** An example description. The input shows it in place of its label, because the input hides a placeholder behind a label until it gets focus. */
     placeholder?: string;
@@ -111,6 +117,7 @@ function DescribeRuleForm({
     addBottomSafeAreaPadding = false,
     shouldUseScrollView = false,
     submitFlexEnabled = false,
+    canSkipDescription = false,
     placeholder,
     children,
     onRuleGenerated,
@@ -207,14 +214,18 @@ function DescribeRuleForm({
 
     const validate = (values: FormOnyxValues<NewRulePromptFormID>): FormInputErrors<NewRulePromptFormID> => {
         const errors: FormInputErrors<NewRulePromptFormID> = {};
-        if (!values[INPUT_IDS.PROMPT]?.trim()) {
+        if (!canSkipDescription && !values[INPUT_IDS.PROMPT]?.trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        const prompt = values[INPUT_IDS.PROMPT].trim();
+        const prompt = values[INPUT_IDS.PROMPT]?.trim() ?? '';
+        if (!prompt) {
+            setNewRulePromptEmptyError();
+            return;
+        }
         pendingGenerationRef.current = {generationID: generateRule(policyID, prompt, ruleType), prompt};
     };
 
@@ -230,6 +241,8 @@ function DescribeRuleForm({
             shouldUseScrollView={shouldUseScrollView}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
+            // An empty description sends no request, so nothing would stop a loading state that starts on the press.
+            shouldShowLoadingImmediatelyOnPress={!canSkipDescription}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
             {children}

@@ -9100,6 +9100,7 @@ const translations = {
                 createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeItBelow: 'Or just describe it below',
                 describeRulePlaceholder: 'Block all spend above $2,000',
+                selectTemplateOrDescribe: 'Select a template or describe a rule to continue',
                 describe: 'Describe',
                 describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
                 describeRuleInputLabel: 'Describe the rule',
