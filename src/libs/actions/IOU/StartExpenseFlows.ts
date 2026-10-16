@@ -183,17 +183,22 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         },
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
-    if (isCategorizing) {
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
-        );
-    } else {
+    // The participants/reportID merges above land a microtask later, but a navigation dispatched from a press handler
+    // renders the next screen synchronously, so it would first read the draft without participants (and e.g. flash the
+    // participant picker on the confirmation page). Defer navigation until the merges have been applied.
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        if (isCategorizing) {
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
+            );
+            return;
+        }
         // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
         // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
         // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
         const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
-    }
+    });
 }
 
 type CreateDraftTransactionParams = {

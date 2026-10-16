@@ -39,7 +39,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
-    setNavigationActionToMicrotaskQueue: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
