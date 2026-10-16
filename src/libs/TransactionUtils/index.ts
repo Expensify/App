@@ -1841,6 +1841,7 @@ export {
     getAmount,
     getAttendees,
     getTaxAmount,
+    normalizeTaxAmountSign,
     getTaxCode,
     getCurrency,
     shouldClearConvertedAmount,

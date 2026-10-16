@@ -375,6 +375,38 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the tax amount of a negative expense is changed', () => {
+            it('keeps the sign of the previous tax amount', () => {
+                // Given a tax amount change where the previous tax amount was negative, like on a negative expense.
+                // The tax amounts are stored with the inverted expense report sign, as the server sends them.
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        taxAmount: -100,
+                        oldTaxAmount: 95,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                // When the message is built for the action
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                // Then the previous tax amount is shown as negative, matching the tax amount on the expense details page
+                expect(result).toEqual('changed the tax amount to $1.00 (previously -$0.95)');
+            });
+        });
+
         describe('when the amount is changed from zero', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
