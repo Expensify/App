@@ -133,3 +133,4 @@ function Provider({
 }
 
 export default Provider;
+export type {ProviderProps};

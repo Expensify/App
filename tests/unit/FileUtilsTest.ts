@@ -3,18 +3,24 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
+    appendExtensionFromMimeType,
     appendTimeToFileName,
     canvasFallback,
+    createFile,
     getConvertedJpegFileName,
     getExportFileName,
+    getExtensionFromMimeType,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
+    resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
+import getImageManipulator from '@libs/fileDownload/getImageManipulator';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
@@ -25,6 +31,8 @@ import createMock from '../utils/createMock';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
+jest.mock('@libs/fileDownload/getImageManipulator', () => jest.fn());
+jest.mock('@libs/getPlatform', () => jest.fn());
 
 const createFileNameFromLength = ({length, extension}: {length: number; extension?: string | undefined}): string => `${'a'.repeat(length)}${extension ? `.${extension}` : ''}`;
 
@@ -521,6 +529,61 @@ describe('FileUtils', () => {
         /* eslint-enable no-bitwise */
     });
 
+    describe('createFile', () => {
+        afterEach(() => {
+            jest.mocked(getPlatform).mockReset();
+        });
+
+        it('should keep the uri when cloning a File on web', () => {
+            // Given a web File that carries a blob uri for previewing
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
+            const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
+            file.uri = 'blob:http://localhost/image';
+
+            const clonedFile = createFile(file);
+
+            // Then the clone keeps the uri, because attachment previews read it to display the image
+            expect(clonedFile).toBeInstanceOf(File);
+            expect(clonedFile).not.toBe(file);
+            expect(clonedFile.uri).toBe('blob:http://localhost/image');
+            expect(clonedFile.name).toBe('image.jpeg');
+            expect(clonedFile.type).toBe('image/jpeg');
+        });
+
+        it('should keep the uri when cloning a file on native', () => {
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
+            file.uri = 'file://image.jpeg';
+
+            const clonedFile = createFile(file);
+
+            expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg'});
+        });
+    });
+
+    describe('resizeImageIfNeeded', () => {
+        afterEach(() => {
+            jest.mocked(getPlatform).mockReset();
+            jest.mocked(getImageManipulator).mockReset();
+        });
+
+        it('should return a resized File with a uri on web when the image is larger than the max size', async () => {
+            // Given an image on web that is larger than the max attachment size, and an image manipulator that returns a File with a blob uri
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 6000, height: 4000});
+            const resizedFile = new File(['resized'], 'large.jpeg', {type: 'image/jpeg'});
+            resizedFile.uri = 'blob:http://localhost/resized';
+            jest.mocked(getImageManipulator).mockResolvedValue(resizedFile);
+            const file = {uri: 'file://large.jpg', name: 'large.jpg', type: 'image/jpeg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1};
+
+            const result = await resizeImageIfNeeded(file);
+
+            // Then the result keeps the resized blob uri, so the attachment preview can load it instead of spinning forever
+            expect(result).toBeInstanceOf(File);
+            expect(result.uri).toBe('blob:http://localhost/resized');
+        });
+    });
+
     describe('isHighResolutionImage', () => {
         it('should return false when resolution is null', () => {
             expect(isHighResolutionImage(null)).toBe(false);
@@ -640,6 +703,73 @@ describe('FileUtils', () => {
             // When the JPEG's name is derived
             // Then the name of the file the converter saved is used, since there is no picked name to keep
             expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe('ABCD.jpg');
+        });
+    });
+
+    describe('getExtensionFromMimeType', () => {
+        it('should return the primary extension registered for a known MIME type', () => {
+            // Given a MIME type mime-db knows
+            // When the extension is looked up
+            // Then the first registered extension is returned
+            expect(getExtensionFromMimeType('video/mp4')).toBe('mp4');
+            expect(getExtensionFromMimeType('image/jpeg')).toBe('jpeg');
+            expect(getExtensionFromMimeType('application/pdf')).toBe('pdf');
+        });
+
+        it('should return mov for a QuickTime video', () => {
+            // Given the QuickTime MIME type, which mime-db lists as `qt` first
+            // When the extension is looked up
+            // Then `mov` is returned, because `Str.isVideo` doesn't recognize `qt` and the file would render as a generic file
+            expect(getExtensionFromMimeType('video/quicktime')).toBe('mov');
+        });
+
+        it('should return undefined for an unknown or missing MIME type', () => {
+            // Given a MIME type that is unregistered, empty or undefined
+            // When the extension is looked up
+            // Then nothing is returned, so callers can decide their own fallback rather than guess wrong
+            expect(getExtensionFromMimeType('application/not-a-real-type')).toBeUndefined();
+            expect(getExtensionFromMimeType('')).toBeUndefined();
+            expect(getExtensionFromMimeType(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('appendExtensionFromMimeType', () => {
+        it('should add the extension when the name has none', () => {
+            // Given a name with no extension, as an Android content:// URI or a null picker name produces
+            // When the MIME type is known
+            // Then the extension is recovered so the downloaded file is not a generic document
+            expect(appendExtensionFromMimeType('1000000042', 'video/mp4')).toBe('1000000042.mp4');
+            expect(appendExtensionFromMimeType(CONST.DEFAULT_ATTACHMENT_FILENAME, 'video/mp4')).toBe(`${CONST.DEFAULT_ATTACHMENT_FILENAME}.mp4`);
+        });
+
+        it('should leave a name that already has an extension alone', () => {
+            // Given a name that already carries an extension
+            // When the MIME type disagrees with it
+            // Then the original name wins, because the picker's name is more trustworthy than the MIME type
+            expect(appendExtensionFromMimeType('recording.mov', 'video/mp4')).toBe('recording.mov');
+        });
+
+        it('should leave the name alone when the MIME type cannot be resolved', () => {
+            // Given a name with no extension
+            // When the MIME type is unknown, empty or undefined
+            // Then no extension is invented, because a wrong extension is worse than none
+            expect(appendExtensionFromMimeType('1000000042', 'application/not-a-real-type')).toBe('1000000042');
+            expect(appendExtensionFromMimeType('1000000042', '')).toBe('1000000042');
+            expect(appendExtensionFromMimeType('1000000042', undefined)).toBe('1000000042');
+        });
+
+        it('should leave the name alone for application/octet-stream instead of adding .bin', () => {
+            // Given a name with no extension whose MIME type is the generic one the Android document picker reports
+            // When the extension is recovered
+            // Then no meaningless .bin extension is added
+            expect(appendExtensionFromMimeType('1000000042', 'application/octet-stream')).toBe('1000000042');
+        });
+
+        it('should return an empty name unchanged', () => {
+            // Given no name at all
+            // When an extension is requested
+            // Then nothing is produced, since a bare ".mp4" is not a usable file name
+            expect(appendExtensionFromMimeType('', 'video/mp4')).toBe('');
         });
     });
 });

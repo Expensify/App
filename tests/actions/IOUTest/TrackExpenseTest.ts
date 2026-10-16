@@ -88,6 +88,10 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -955,10 +959,6 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
-                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
-            });
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -1054,6 +1054,10 @@ describe('actions/IOU/TrackExpense', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 rules: undefined,
+                personalDetailsByLogins: {
+                    [existingMemberA]: {accountID: existingMemberAID, login: existingMemberA},
+                    [existingMemberB]: {accountID: existingMemberBID, login: existingMemberB},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -1383,6 +1387,92 @@ describe('actions/IOU/TrackExpense', () => {
 
             const actionableWhisper = Object.values(reportActions ?? {}).find((action) => isActionableTrackExpense(action));
             expect(actionableWhisper).toBeTruthy();
+        });
+
+        it('reuses the failed IOU action and thread on a receipt retry, and clears the thread creation error', async () => {
+            // Given a self-DM and the thread a failed track left behind, still carrying its creation error
+            mockFetch?.pause?.();
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry',
+            };
+            const failedIOUActionID = '1111111111111111';
+            const failedThreadReportID = '2222222222222222';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+                errorFields: {createChat: {error: 'report.genericCreateReportFailureMessage'}},
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '3333333333333333',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM holds one IOU action under the failed ID, linked to the same thread, so no second expense or thread appears
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const iouActions = Object.values(reportActions ?? {}).filter((action) => isMoneyRequestAction(action));
+            expect(iouActions).toHaveLength(1);
+            expect(iouActions.at(0)?.reportActionID).toBe(failedIOUActionID);
+            expect(iouActions.at(0)?.childReportID).toBe(failedThreadReportID);
+
+            // And the thread no longer shows the creation error from the failed attempt
+            const threadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`);
+            expect(threadReport?.errorFields?.createChat).toBeFalsy();
+        });
+
+        it('rebuilds the failed thread CREATED action on a receipt retry, so the success clears its pending state and errors', async () => {
+            // Given a self-DM, and the thread and CREATED action a failed track left behind, still pending and carrying an error
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-created',
+            };
+            const failedIOUActionID = '4444444444444444';
+            const failedThreadReportID = '5555555555555555';
+            const failedThreadCreatedActionID = '6666666666666666';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`, {
+                [failedThreadCreatedActionID]: {
+                    reportActionID: failedThreadCreatedActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2026-10-01 00:00:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    errors: {genericCreateFailure: 'iou.error.genericCreateFailureMessage'},
+                } as ReportAction,
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '7777777777777777',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                existingTransactionThreadCreatedReportActionID: failedThreadCreatedActionID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the backend gets the same CREATED action ID, so it doesn't add a second one to the thread
+            const requestBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.TRACK_EXPENSE).at(0)?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+            expect(requestParams).toEqual(expect.objectContaining({createdReportActionIDForThread: failedThreadCreatedActionID}));
+
+            // And the failed CREATED action loses its pending state and error, so the expense no longer looks unsaved
+            const threadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`);
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.pendingAction).toBeFalsy();
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.errors).toBeFalsy();
         });
 
         it('should set correct tax fields when tax parameters are provided', async () => {
@@ -2547,6 +2637,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: passedThreadReportActions,
+                transactionThread: thread,
             });
             await waitForBatchedUpdates();
 
@@ -2619,6 +2710,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: undefined,
+                transactionThread: undefined,
                 isMovingTransactionFromTrackExpense: true,
             });
             await waitForBatchedUpdates();

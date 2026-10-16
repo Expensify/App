@@ -65,9 +65,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
         [value, dateFnsLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
-    const isCustomDayOnly = allowedCustomDateModifiers.length === 1 && allowedCustomDateModifiers.at(0) === CONST.SEARCH.DATE_MODIFIERS.ON;
-    const selectedDateModifierTitle =
-        isCustomDayOnly && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON ? translate('search.filters.date.customDay') : getDateModifierTitle(selectedDateModifier, '', translate);
+    const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
