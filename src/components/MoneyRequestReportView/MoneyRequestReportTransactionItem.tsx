@@ -23,8 +23,10 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {
     EMPTY_VIOLATIONS,
+    getReportRowCards,
     getReportRowPolicy,
     getReportRowPolicyCategories,
+    getReportRowReport,
     getTransactionRejectErrorKey,
     getVisibleReportRowViolations,
     isSelectableReportTransaction,
@@ -57,8 +59,11 @@ type MoneyRequestReportTransactionItemProps = {
     /** Login of the report owner, used to filter the violations the current user can see */
     reportOwnerLogin: string | undefined;
 
-    /** Report to which the transaction belongs */
-    report: Report;
+    /** ID of the report to which the transaction belongs */
+    reportID: string;
+
+    /** ID of the report's policy */
+    policyID: string | undefined;
 
     /** Tag lists for the policy to which the transaction belongs */
     policyTagLists?: PolicyTagLists;
@@ -88,7 +93,6 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    nonPersonalAndWorkspaceCards: CardList;
     isLastItem?: boolean;
     shouldScrollHorizontally?: boolean;
 
@@ -99,17 +103,23 @@ type MoneyRequestReportTransactionItemProps = {
 
 // `shouldBeHighlighted` is omitted: the highlight animation is computed by the outer component (so its timeline
 // survives the narrow↔wide swap) and reaches the body as `animatedHighlightStyle`.
-type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'shouldBeHighlighted'> & {
+type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'reportID' | 'policyID' | 'shouldBeHighlighted'> & {
     transaction: TransactionWithOptionalHighlight;
 
     /** Violations of this transaction the current user can see */
     violations: TransactionViolations;
+
+    /** Report to which the transaction belongs, without the fields rows never read */
+    report: OnyxEntry<Report>;
 
     /** Policy to which the transaction belongs, without the fields rows never read */
     policy: OnyxEntry<Policy>;
 
     /** The transaction's category from the policy categories */
     policyCategories?: PolicyCategories;
+
+    /** The transaction's card from the card list */
+    nonPersonalAndWorkspaceCards: CardList;
 
     /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
     inlineEdit?: InlineEditValues;
@@ -377,7 +387,8 @@ function MoneyRequestReportTransactionItem({
     transactionID,
     reportOwnerLogin,
     shouldBeHighlighted,
-    report,
+    reportID,
+    policyID,
     policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -390,7 +401,6 @@ function MoneyRequestReportTransactionItem({
     taxAmountColumnSize,
     columns,
     onArrowRightPress,
-    nonPersonalAndWorkspaceCards,
     isLastItem,
     shouldScrollHorizontally,
     transactionThreadReportID,
@@ -401,23 +411,27 @@ function MoneyRequestReportTransactionItem({
     const cardList = useCardList();
     const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
     const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` as const;
-    const policyCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}` as const;
-    // Violation visibility needs the whole policy, while the row shows only a few of its fields and one category.
-    // Deriving all three here means a policy write the row doesn't show leaves the output, and the row, unchanged.
-    const {violations, policy, policyCategories} = useOnyxState(
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policyCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;
+    // Violation visibility needs the whole report and policy, while the row shows only some of their fields, one category and one card.
+    // Deriving them here means a write the row doesn't show leaves the output, and the row, unchanged.
+    const {violations, report, policy, policyCategories, cards} = useOnyxState(
         (state) => {
             const stateTransaction = state[transactionKey];
+            const stateReport = state[reportKey];
             const statePolicy = state[policyKey];
             return {
                 violations: stateTransaction
-                    ? getVisibleReportRowViolations(stateTransaction, state[violationsKey], email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, statePolicy)
+                    ? getVisibleReportRowViolations(stateTransaction, state[violationsKey], email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, stateReport, reportOwnerLogin, statePolicy)
                     : EMPTY_VIOLATIONS,
+                report: getReportRowReport(stateReport),
                 policy: getReportRowPolicy(statePolicy),
                 policyCategories: getReportRowPolicyCategories(state[policyCategoriesKey], stateTransaction?.category),
+                cards: getReportRowCards(state[ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST], stateTransaction?.cardID),
             };
         },
-        {dependencies: [transactionKey, violationsKey, policyKey, policyCategoriesKey]},
+        {dependencies: [transactionKey, violationsKey, reportKey, policyKey, policyCategoriesKey, ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]},
     );
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -462,7 +476,7 @@ function MoneyRequestReportTransactionItem({
             taxAmountColumnSize={taxAmountColumnSize}
             columns={columns}
             onArrowRightPress={onArrowRightPress}
-            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            nonPersonalAndWorkspaceCards={cards}
             isLastItem={isLastItem}
             shouldScrollHorizontally={shouldScrollHorizontally}
             transactionThreadReportID={transactionThreadReportID}

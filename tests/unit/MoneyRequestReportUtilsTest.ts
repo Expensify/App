@@ -3,8 +3,10 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import {
     EMPTY_VIOLATIONS,
     getReportIDForTransaction,
+    getReportRowCards,
     getReportRowPolicy,
     getReportRowPolicyCategories,
+    getReportRowReport,
     getVisibleReportRowViolations,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
@@ -13,7 +15,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -374,6 +376,62 @@ describe('MoneyRequestReportUtils', () => {
             // Then both get undefined, the same value whatever other categories the policy has
             expect(getReportRowPolicyCategories(policyCategories, undefined)).toBeUndefined();
             expect(getReportRowPolicyCategories(policyCategories, 'Missing')).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowReport', () => {
+        it('should drop the totals and last-activity fields and keep the rest', () => {
+            // Given a report with totals, last-activity fields and the fields a row reads
+            const fullReport = createMock<Report>({
+                reportID: '1',
+                policyID: 'P1',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+                nonReimbursableTotal: 100,
+                unheldTotal: 900,
+                unheldNonReimbursableTotal: 50,
+                lastReadTime: '2026-01-01',
+                lastVisibleActionCreated: '2026-01-01',
+                lastMessageText: 'Hi',
+                lastActorAccountID: 2,
+            });
+
+            // When the row builds its report
+            const rowReport = getReportRowReport(fullReport);
+
+            // Then a new total or a new message can't change what the row receives, while the fields it reads stay
+            expect(rowReport).toEqual({reportID: '1', policyID: 'P1', currency: CONST.CURRENCY.USD});
+        });
+
+        it('should return undefined when the report is not loaded', () => {
+            // Given a report that is not in Onyx
+            // When the row builds its report
+            // Then it gets undefined, like the full report read would
+            expect(getReportRowReport(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowCards', () => {
+        const cardID = 1;
+        const otherCardID = 2;
+        const card = createMock<Card>({cardID, bank: 'Bank'});
+        const cards = createMock<CardList>({[cardID]: card, [otherCardID]: createMock<Card>({cardID: otherCardID, bank: 'Other'})});
+
+        it('should keep only the card of the transaction', () => {
+            // Given a card list with several cards
+            // When a row paid with card 1 builds its cards
+            const rowCards = getReportRowCards(cards, cardID);
+
+            // Then it keeps only card 1, so a write to another card leaves the row's value unchanged
+            expect(rowCards).toEqual({[cardID]: card});
+        });
+
+        it('should return the same empty object when the transaction has no card or the card is missing', () => {
+            // Given a cash row and a row whose card is not in the list
+            // When they build their cards
+            // Then both get one shared empty object, so their value never changes with the card list
+            expect(getReportRowCards(cards, undefined)).toBe(getReportRowCards(cards, 99));
+            expect(getReportRowCards(cards, undefined)).toEqual({});
         });
     });
 });
