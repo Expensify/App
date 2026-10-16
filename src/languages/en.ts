@@ -356,6 +356,8 @@ const translations = {
         assignee: 'Assignee',
         with: 'with',
         shareCode: 'Share code',
+        shareReport: 'Share report',
+        reportShared: 'Report shared',
         share: 'Share',
         per: 'per',
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
@@ -4118,6 +4120,11 @@ const translations = {
                 `<strong>${delegate}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
             youAreAMemberOf: 'You are a member of these workspaces:',
             youAreAnAdminOf: 'You are an admin of these workspaces:',
+            chooseDelegate: 'Choose delegate',
+            clearAfterRecommended: 'Clear after (recommended)',
+            willClearOn: (date: string) => `Vacation delegate will clear on ${date}`,
+            until: (date: string) => `Until ${date}`,
+            removeDelegate: 'Remove vacation delegate',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4210,6 +4217,10 @@ const translations = {
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Edit ${name}`,
+        removeItem: ({name}: {name: string}) => `Remove ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4221,7 +4232,13 @@ const translations = {
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
             invalidOption: 'Choose one of the available options',
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `Add ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
+        removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -5283,7 +5300,10 @@ const translations = {
             },
             requestEmptyList: {
                 title: 'No per diem rates yet',
-                subtitle: "This workspace doesn't have any per diem rates, ask your Admin to add some.",
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} doesn't have any per diem rates. Ask an admin to add some.`
+                        : "This workspace doesn't have any per diem rates. Ask an admin to add some.",
                 adminSubtitle: 'Add per diem rates to organize your spend.',
             },
             importPerDiemRates: 'Import per diem rates',
@@ -6984,6 +7004,8 @@ const translations = {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+                commuterExclusionsOnTitle: 'Commute exclusions are on',
+                disableLockedByCommuterExclusionsPrompt: 'To turn off Distance rates, first set Exclude commutes to “Do not exclude commutes.”',
             },
             perDiem: {
                 title: 'Per diem',
@@ -8165,7 +8187,7 @@ const translations = {
             },
             filters: {
                 description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
-                enableJobStagesOrTags: 'Enable Job stages or Tags to continue',
+                enableJobStagesOrTags: 'Select at least one Job stage or Tag to continue',
                 stages: {
                     title: 'Job stage',
                     toggleTitle: 'Job stages',
@@ -8405,6 +8427,21 @@ const translations = {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
             policy: 'Expense policy',
+        },
+        officeLocations: {
+            title: 'Office locations',
+            subtitle: 'Add office locations to assign to members for things like distance tracking.',
+            addOfficeLocation: 'Add office location',
+            editOfficeLocation: 'Edit office location',
+            locationName: 'Location name',
+            locationNameHint: 'Choose a location nickname if you are adding multiple office locations',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Office location ${officeNumber}`,
+            setAsPrimary: 'Set as primary',
+            primary: 'Primary',
+            deleteOfficeLocation: 'Delete office location?',
+            deleteOfficeLocationConfirmation: 'Do you really want to delete this office location? Members will be reassigned to the primary office.',
+            existingOfficeLocationError: 'An office location with this name already exists',
+            setCompanyAddressAsPrimaryConfirmation: 'Set the company address as primary office?',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
@@ -9856,6 +9893,15 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `added the office location "${name}" (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `renamed the office location "${oldName}" to "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `changed the address of the office location "${name}" to "${newAddress}" (previously "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
+            setCompanyAddressAsPrimary: 'set the company address as primary',
+            removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10191,6 +10237,8 @@ const translations = {
         fallbackTitle: 'Support ticket',
         resolved: 'This support ticket is resolved.',
         surveyPrompt: 'How was your support experience?',
+        great: 'Great',
+        poor: 'Poor',
         reopenTicket: 'Reopen ticket',
     },
     statementPage: {
@@ -10389,6 +10437,11 @@ const translations = {
                     return 'Between';
                 },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
+            },
+            merchant: {
+                matchType: 'Match type',
+                contains: (merchant?: string) => (merchant ? `Contains "${merchant}"` : 'Contains'),
+                equalTo: (merchant?: string) => (merchant ? `Equal to "${merchant}"` : 'Equal to'),
             },
             card: {
                 expensify: 'Expensify',
@@ -11452,6 +11505,7 @@ const translations = {
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',
+        mergedExpenseDeleted: 'merged expenses and moved one to Deleted',
     },
     subscription: {
         authenticatePaymentCard: 'Authenticate payment card',
@@ -11698,6 +11752,9 @@ const translations = {
                 refundedOn: ({date}: PaymentDetailsBadgeDateParams) => `Refunded on ${date}`,
                 refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
             },
+            billedTo: 'Billed to',
+            viewReceipt: 'View receipt',
+            viewInvoice: 'View invoice',
         },
         subscriptionSettings: {
             title: 'Subscription settings',

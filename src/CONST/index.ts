@@ -970,6 +970,19 @@ const CONST = {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
     },
+    DYNAMIC_FORM: {
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
+        LARGE_SELECT_MIN_OPTIONS: 10,
+
+        /** Most questions sharing a page when pages are built from a flat list of fields */
+        MAX_FIELDS_PER_PAGE: 4,
+
+        /** Pages from which the flow shows a step indicator on its own */
+        STEP_INDICATOR_MIN_PAGES: 3,
+
+        /** Route segment of the confirmation page, which no page may take */
+        CONFIRMATION_PAGE_KEY: 'confirm',
+    },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
@@ -1194,6 +1207,7 @@ const CONST = {
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
     },
@@ -1690,6 +1704,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             DOWNLOAD_RECEIPTS: 'downloadReceipts',
+            SHARE: 'share',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1853,6 +1868,7 @@ const CONST = {
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
+                MERGED_EXPENSE_DELETED: 'MERGEDEXPENSEDELETED',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
@@ -1918,6 +1934,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
+                    UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
+                    DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -4683,6 +4702,7 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
             WORKFLOWS: 'workflows',
@@ -4945,6 +4965,11 @@ const CONST = {
             METHOD: 'method',
             FIXED_DISTANCE: 'fixedDistance',
             DISABLED: 'disabled',
+        },
+        OFFICE_LOCATION_FIELD: {
+            NAME: 'name',
+            ADDRESS: 'address',
+            IS_DEFAULT: 'isDefault',
         },
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
@@ -6034,7 +6059,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
@@ -6773,6 +6797,9 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    COPYABLE_TEXT_ELEMENT: 'copyable-text',
+    COPYABLE_ROW_ELEMENT: 'copyable-row',
+    COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
@@ -9444,6 +9471,7 @@ const CONST = {
         TYPE_TRANSFER_TO: 'transfer_to',
         TYPE_TRANSFER_FAILED: 'transfer_failed',
         TYPE_TRANSFER_OLD: 'transfer_old',
+        TYPE_INVOICING: 'invoicing2018',
     },
     PAYMENT_HISTORY: {
         STATE: {
@@ -9554,11 +9582,14 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Width of the invisible drag strip centred on a column's edge. */
-            HANDLE_HIT_WIDTH: 12,
-
-            /** Width of the line shown while a column's edge is dragged. */
+            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
+
+            /** Share of the heading's height the grip spans, centred vertically. */
+            GRIP_HEIGHT_RATIO: 0.8,
+
+            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            INDICATOR_MORPH_DURATION: 150,
         },
     },
 
@@ -9851,6 +9882,11 @@ const CONST = {
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
             DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
+            SHARE: 'MoreMenu-Share',
+            SHARE_REPORT: 'MoreMenu-ShareReport',
+            SHARE_CODE: 'MoreMenu-ShareCode',
+            REFER_FRIEND: 'MoreMenu-ReferFriend',
+            COPY_URL: 'MoreMenu-CopyURL',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -9899,6 +9935,7 @@ const CONST = {
             HOURS_FIELD: 'RequestConfirmationList-HoursField',
             TIME_RATE_FIELD: 'RequestConfirmationList-TimeRateField',
             CATEGORY_FIELD: 'RequestConfirmationList-CategoryField',
+            ADD_CATEGORY_BUTTON: 'RequestConfirmationList-AddCategoryButton',
             DATE_FIELD: 'RequestConfirmationList-DateField',
             TAG_FIELD: 'RequestConfirmationList-TagField',
             TAX_RATE_FIELD: 'RequestConfirmationList-TaxRateField',
@@ -9976,6 +10013,9 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+        },
+        CATEGORY_PICKER_MODAL: {
+            BACK_BUTTON: 'CategoryPickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -10118,6 +10158,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
@@ -10147,6 +10188,10 @@ const CONST = {
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
                 ADDRESS: 'WorkspaceOverview-Address',
+                OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
+                COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
+                ADD_OFFICE_LOCATION: 'WorkspaceOverview-AddOfficeLocation',
+                DELETE_OFFICE_LOCATION: 'WorkspaceOverview-DeleteOfficeLocation',
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
                 CUSTOM_RULES: 'WorkspaceOverview-CustomRules',
@@ -10362,6 +10407,9 @@ const CONST = {
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
         },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
+        },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         },
@@ -10406,6 +10454,7 @@ const CONST = {
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
             CONTACT_METHODS: 'SettingsProfile-ContactMethods',
             STATUS: 'SettingsProfile-Status',
+            VACATION_DELEGATE: 'SettingsProfile-VacationDelegate',
             PRONOUNS: 'SettingsProfile-Pronouns',
             TIMEZONE: 'SettingsProfile-Timezone',
             SHARE_CODE: 'SettingsProfile-ShareCode',
@@ -10455,6 +10504,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
@@ -10541,6 +10591,11 @@ const CONST = {
     },
 
     AGENTS: {
+        OWNER_TYPE: {
+            PERSON: 'person',
+            WORKSPACE: 'workspace',
+            DOMAIN: 'domain',
+        },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
         },
