@@ -148,6 +148,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
+                    currentUserPersonalDetails,
                     newReport: optimisticReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     policyCategories: undefined,
