@@ -31,9 +31,13 @@ function DelegateAccessHandler() {
     useIsLoadingAppRecovery();
 
     // Disconnect delegate when the delegate is no longer in the delegates list
-    const isDelegateInDelegatesList = account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate);
+    const delegate = account?.delegatedAccess?.delegate;
+    const isDelegateInDelegatesList = account?.delegatedAccess?.delegates?.some((d) => d.email === delegate);
     const wasDelegateInDelegatesList = usePrevious(isDelegateInDelegatesList);
     useEffect(() => {
+        if (!delegate) {
+            return;
+        }
         if (isDelegateInDelegatesList) {
             return;
         }
@@ -43,7 +47,7 @@ function DelegateAccessHandler() {
             return;
         }
         disconnect({stashedCredentials, stashedSession});
-    }, [isDelegateInDelegatesList, wasDelegateInDelegatesList, stashedCredentials, stashedSession]);
+    }, [delegate, isDelegateInDelegatesList, wasDelegateInDelegatesList, stashedCredentials, stashedSession]);
 
     // Finish a self-removal from a delegator's copilots that a kill interrupted
     useEffect(() => {
@@ -60,7 +64,7 @@ function DelegateAccessHandler() {
         }
         const delegators = account?.delegatedAccess?.delegators ?? [];
         const hasDelegatorMatch = !!sessionEmail && delegators.some((delegator) => delegator.email === sessionEmail);
-        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !account?.delegatedAccess?.delegate;
+        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !delegate;
         if (!shouldLogMismatch) {
             return;
         }
@@ -70,7 +74,7 @@ function DelegateAccessHandler() {
             delegatorsCount: delegators.length,
             hasPrimaryLogin: !!account?.primaryLogin,
         });
-    }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, sessionAccountID, sessionEmail]);
+    }, [delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, sessionAccountID, sessionEmail]);
 
     return null;
 }
