@@ -134,6 +134,16 @@ describe('CategoryPickerModal', () => {
         expect(mockPopoverProps?.outerStyle).toEqual({width: '100%'});
     });
 
+    it('keeps the landscape sheet from wrapping its content in a scroll view', () => {
+        // Given a bottom sheet with its header buttons, which the modal would wrap in a ScrollView in landscape. That
+        // ScrollView makes the first tap with the keyboard open only dismiss it, so "+" would need a second tap
+        renderSheet({onAddCategory: jest.fn()});
+
+        // When the picker opens
+        // Then it opts out of the wrapper, since the sheet is already sized to fit and its list scrolls itself
+        expect(mockPopoverProps?.shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode).toBe(false);
+    });
+
     it('hands the native sheet its keyboard handling and a height that fits the window', () => {
         // Given a phone whose keyboard is closed and whose top safe area inset is zero, as the test harness reports it,
         // with no categories loaded, so the list has no search input, and a caller that does not fit the list to its content

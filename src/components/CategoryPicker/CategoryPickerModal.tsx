@@ -157,6 +157,7 @@ function CategoryPickerModal({
             enableEdgeToEdgeBottomSafeAreaPadding
             avoidKeyboard={isSmallScreenWidth}
             outerStyle={outerStyle}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 {!!onAddCategory && (
