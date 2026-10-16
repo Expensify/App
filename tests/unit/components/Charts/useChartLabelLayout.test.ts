@@ -5,6 +5,7 @@ import useChartLabelMeasurements from '@components/Charts/hooks/useChartLabelMea
 import type {ChartDataPoint} from '@components/Charts/types';
 import type * as ChartUtils from '@components/Charts/utils';
 import {SIN_45} from '@components/Charts/VictoryTheme';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
@@ -34,7 +35,7 @@ const mockFontMgr = createMock<SkTypefaceFontProvider>({});
 const FONT_SIZE = 12;
 
 function makeData(...labels: string[]): ChartDataPoint[] {
-    return labels.map((label, i) => ({label, total: (i + 1) * 100}));
+    return labels.map((label, i) => ({label, values: {[CHART_SERIES_KEY.PRIMARY]: (i + 1) * 100}}));
 }
 
 type LayoutConfig = Omit<Parameters<typeof useChartLabelLayout>[0], 'measurements'>;
