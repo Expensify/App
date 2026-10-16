@@ -112,7 +112,6 @@ function usePopoverEditStateImpl({
         });
     }, [canEdit, isEditing]);
 
-    // When opening above, pin the popover's bottom edge above the anchor so it never covers it.
     const anchorAlignment: AnchorAlignment = {
         horizontal: anchorEdge,
         vertical: shouldOpenAbove ? CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM : CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
