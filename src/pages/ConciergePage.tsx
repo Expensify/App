@@ -63,6 +63,7 @@ function ConciergePage() {
         isSupportalSessionSelector(session) ||
         !!isActingAsDelegate ||
         (CONFIG.IS_HYBRID_APP && !!isSingleNewDotEntry);
+
     // Onboarding opens on top of this page for a new account, and the redirect below dismisses the top modal, so it
     // would close onboarding before it is finished. The link is opened once onboarding completes instead.
     const isWaitingForOnboarding = !CONFIG.SKIP_ONBOARDING && hasCompletedGuidedSetupFlow === false;
