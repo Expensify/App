@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'De grafiek kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
         apiKey: 'API-sleutel',
         exportsTo: 'Exporteert naar',
+        shareReport: 'Rapport delen',
+        reportShared: 'Rapport gedeeld',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -11163,6 +11165,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'heeft een bonnetje aan deze transactie gekoppeld',
+        mergedExpenseDeleted: 'heeft uitgaven samengevoegd en er één naar Verwijderd verplaatst',
     },
     subscription: {
         authenticatePaymentCard: 'Betalingskaart verifiëren',

@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Impossibile caricare il grafico. Aggiorna la pagina e riprova.',
         apiKey: 'Chiave API',
         exportsTo: 'Esporta in',
+        shareReport: 'Condividi report',
+        reportShared: 'Report condiviso',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -11200,6 +11202,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'ha associato una ricevuta a questa transazione',
+        mergedExpenseDeleted: 'ha unito delle spese e ne ha spostata una in Eliminate',
     },
     subscription: {
         authenticatePaymentCard: 'Autentica carta di pagamento',

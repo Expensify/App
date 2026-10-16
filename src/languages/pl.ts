@@ -534,6 +534,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
+        shareReport: 'Udostępnij raport',
+        reportShared: 'Udostępniono raport',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -11177,6 +11179,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'dopasowano paragon do tej transakcji',
+        mergedExpenseDeleted: 'scalono wydatki i przeniesiono jeden do Usuniętych',
     },
     subscription: {
         authenticatePaymentCard: 'Uwierzytelnij kartę płatniczą',

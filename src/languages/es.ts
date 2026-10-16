@@ -519,6 +519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'viajero diario',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
         exportsTo: 'Exporta a',
+        shareReport: 'Compartir informe',
+        reportShared: 'Informe compartido',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -11441,6 +11443,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+        mergedExpenseDeleted: 'combinó gastos y movió uno a Eliminados',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',

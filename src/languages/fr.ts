@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
+        shareReport: 'Partager la note de frais',
+        reportShared: 'Note de frais partagée',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -11273,6 +11275,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
+        mergedExpenseDeleted: 'a fusionné des dépenses et en a déplacé une vers Supprimées',
     },
     subscription: {
         authenticatePaymentCard: 'Authentifier la carte de paiement',

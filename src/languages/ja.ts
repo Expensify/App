@@ -530,6 +530,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
+        shareReport: 'レポートを共有',
+        reportShared: 'レポートを共有しました',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -11037,6 +11039,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'この取引にレシートを照合しました',
+        mergedExpenseDeleted: '経費を統合し、1件を削除済みに移動しました',
     },
     subscription: {
         authenticatePaymentCard: '支払カードを認証',
