@@ -7,7 +7,7 @@ import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, CompanyAddress} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -862,6 +862,36 @@ type OriginalMessageAgentRuleChangeLog = {
     prompt?: string;
 };
 
+/** Model of a workspace office location change log action (add, update, or delete) */
+type OriginalMessageOfficeLocationChangeLog = {
+    /** ID of the office that changed */
+    officeID?: string;
+
+    /** Nickname of the office */
+    name?: string;
+
+    /** Address of the added office */
+    address?: CompanyAddress;
+
+    /** Whether the added office is the workspace default */
+    isDefault?: boolean;
+
+    /** Field of the office that was updated */
+    updatedField?: ValueOf<typeof CONST.POLICY.OFFICE_LOCATION_FIELD>;
+
+    /** Name or default flag of the office after the change */
+    newValue?: string | boolean;
+
+    /** Name or default flag of the office before the change */
+    oldValue?: string | boolean;
+
+    /** Address of the office after an address change */
+    newAddress?: CompanyAddress;
+
+    /** Address of the office before an address change */
+    oldAddress?: CompanyAddress;
+};
+
 /** Model of a policy copy change log action */
 type OriginalMessagePolicyChangeCopyLog = {
     /** The ID of the source policy from which the user copied settings */
@@ -983,8 +1013,14 @@ type OriginalMessageModifiedExpense = {
     /** The Concierge reasoning for the action */
     reasoning?: string;
 
+    /** The transaction that was modified */
+    transactionID?: string;
+
     /** Whether a receipt was added to the expense */
     receiptAdded?: boolean;
+
+    /** Whether a receipt was removed. A replacement writes this, then an added-receipt action. */
+    receiptRemoved?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
@@ -1776,6 +1812,9 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;

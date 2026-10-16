@@ -7,7 +7,14 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
-import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {
+    CompanyCardBalanceParams,
+    ExportAgainModalDescriptionParams,
+    ExportIntegrationSelectedParams,
+    PaymentDetailsBadgeDateParams,
+    PaymentDetailsBadgeEmailParams,
+    PaymentDetailsPartialRefundParams,
+} from './params';
 import type {
     AllConnectionName,
     ConnectionName,
@@ -137,7 +144,9 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        submitAnyway: 'Submit anyway',
         markAsDone: 'Mark as done',
+        markAsDoneAnyway: 'Mark as done anyway',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
         // @context Status label meaning an item has been marked as done (track-intent users). Not the action “to mark as done.”
@@ -528,6 +537,7 @@ const translations = {
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
         reimbursable: 'Reimbursable',
+        nonReimbursable: 'Non-reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
         sharedIn: 'Shared in',
@@ -652,6 +662,10 @@ const translations = {
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
         errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
+        retake: 'Retake',
+        usePhoto: 'Use photo',
+        capturedPhotoPreview: 'Photo preview',
+        photoTakenAnnouncement: 'Photo taken. Choose Retake or Use photo.',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
@@ -703,14 +717,6 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
-        notValid: 'Invalid link.',
-        sessionMismatch: "The link you clicked isn't valid for your current session.",
-        switchAccount: {
-            title: 'Switch accounts?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
-            confirm: 'Switch accounts',
-            staySignedIn: "Don't switch accounts",
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -943,7 +949,7 @@ const translations = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Are you sure you want to delete this ${type}?`;
+            return `Are you sure you want to delete this ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' All expenses in this report will become unreported.' : ''}`;
         },
         onlyVisible: 'Only visible to',
         explain: 'Explain',
@@ -1453,7 +1459,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
-        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1558,8 +1564,15 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
-        pendingMatchSubmitTitle: 'Submit report',
-        pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
+        confirmSubmitReportViolations: {
+            title: 'Submit report?',
+            description: 'This report has policy violations. Are you sure you want to submit it without making changes?',
+            titleMarkAsDone: 'Mark as done?',
+            descriptionMarkAsDone: 'This report has policy violations. Are you sure you want to mark it as done without making changes?',
+            rejectedExpense: 'Rejected expense not marked as resolved',
+            reportRejected: 'Report previously rejected',
+            pendingCardMatch: 'Expense awaiting a potential match with a card transaction',
+        },
         routePending: 'Route pending...',
         automaticallyEnterExpenseDetails: 'Concierge will fill in the details for you.',
         receiptScanning: () => ({
@@ -1621,6 +1634,7 @@ const translations = {
             one: 'Are you sure that you want to delete this report?',
             other: 'Are you sure that you want to delete these reports?',
         }),
+        deleteExpenseReportConfirmation: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.',
         settledExpensify: 'Paid',
         paidStatusMarkedAsPaid: 'Marked as paid',
         paidStatusWithdrawing: 'Withdrawing',
@@ -1736,6 +1750,7 @@ const translations = {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
         addedReceipt: 'added a receipt',
+        removedReceipt: 'removed a receipt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `the ${valueName} to ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `set the ${translatedChangedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
@@ -1792,6 +1807,7 @@ const translations = {
             saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
+            genericSplitFailureMessage: 'Unexpected error splitting this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
@@ -2451,6 +2467,7 @@ const translations = {
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
+        isShownOnMemberProfile: "The display name will appear on the member's profile. Once saved, only the member can edit it.",
     },
     timezonePage: {
         timezone: 'Timezone',
@@ -2497,7 +2514,6 @@ const translations = {
             useProfiling: 'Use profiling',
             profileTrace: 'Profile trace',
             results: 'Results',
-            releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             server: 'Server',
             servers: {
@@ -3636,7 +3652,7 @@ const translations = {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `We couldn’t add ${workEmail}. To merge these accounts, please login as ${workEmail} and go to Account > Security > Merge Accounts to complete the process.`,
+                `We couldn’t add ${workEmail}. To merge these accounts, please log in as ${workEmail} and go to Account > Security > Merge Accounts to complete the process.`,
             workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is a domain controlled login for an existing Expensify account.`,
         },
@@ -4206,6 +4222,19 @@ const translations = {
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 file',
+            other: `${count} files`,
+        }),
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
+            invalidOption: 'Choose one of the available options',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
         countrySelectionStepHeader: "Where's your bank account located?",
@@ -4686,7 +4715,7 @@ const translations = {
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
+            `added a ${currency} bank account ending in ${bankAccountLastFour}. Enter your signer information as the director so this bank account can be used to pay employees.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
         },
@@ -5015,6 +5044,7 @@ const translations = {
             recruiting: 'Recruiting',
             mcp: 'MCP',
             receiptPartners: 'Receipt partners',
+            connections: 'Connections',
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
@@ -5189,6 +5219,31 @@ const translations = {
                 subtitle: 'by OpenAI',
             },
         },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'All',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Accounting',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR & People',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Recruiting',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Receipts',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI & MCP',
+            },
+            findConnections: 'Find connections',
+            configure: 'Configure',
+            fix: 'Fix',
+            active: 'Active',
+            broken: 'Broken',
+            brokenConnection: 'Cannot sync due to broken connection',
+            replaceConnectionTitle: 'Replace connection?',
+            offer: 'Offer',
+            replaceConnectionPrompt: (connectionName: string) => `This will remove your current ${connectionName} connection.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",
+            noResultsPrompt: '<muted-text><centered-text>Please adjust your search or <a href="#">suggest an integration</a>.</centered-text></muted-text>',
+            allConnectedTitle: "You're all connected",
+            allConnectedPrompt: '<muted-text><centered-text>Everything here is already connected. You can also <a href="#">suggest an integration</a>.</centered-text></muted-text>',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.'),
@@ -5240,7 +5295,10 @@ const translations = {
             },
             requestEmptyList: {
                 title: 'No per diem rates yet',
-                subtitle: "This workspace doesn't have any per diem rates, ask your Admin to add some.",
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} doesn't have any per diem rates. Ask an admin to add some.`
+                        : "This workspace doesn't have any per diem rates. Ask an admin to add some.",
                 adminSubtitle: 'Add per diem rates to organize your spend.',
             },
             importPerDiemRates: 'Import per diem rates',
@@ -6154,10 +6212,10 @@ const translations = {
             enterCredentials: 'Enter your Rillet API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to [organization name] -> Organization settings -> API access</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
-            noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            entity: 'Entity',
+            entitySelectDescription: "Choose the entity in Rillet that you'd like to import data from.",
+            noEntitiesFound: 'No entities found',
+            noEntitiesFoundDescription: 'Please add an entity in Rillet and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
             noAccountsFound: 'No accounts found',
@@ -6280,8 +6338,8 @@ const translations = {
             enterCredentials: 'Enter your DualEntry API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
+            company: 'Company',
+            companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
             noVendorsFound: 'No vendors found',
@@ -6384,6 +6442,10 @@ const translations = {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in DualEntry.",
             },
+            fxExpenseAccount: {
+                label: 'DualEntry currency conversion fee account',
+                description: "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in DualEntry as a journal entry.",
+            },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {
                 label: 'Expensify Card settlement account',
@@ -6403,10 +6465,10 @@ const translations = {
             enterCredentials: 'Enter your Campfire API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to Campfire</li><li>Navigate to Settings -> API Keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
-            noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            entity: 'Entity',
+            entitySelectDescription: "Choose the entity in Campfire that you'd like to import data from.",
+            noEntitiesFound: 'No entities found',
+            noEntitiesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
@@ -6596,6 +6658,15 @@ const translations = {
             submit: 'Submit',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Current balance',
+                remainingLimit: 'Remaining limit',
+                notAvailable: 'Not available',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
+                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+            },
             addCards: 'Add cards',
             selectCards: 'Select cards',
             fromOtherWorkspaces: 'From other workspaces',
@@ -7296,11 +7367,6 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
-            enableVendor: 'Enable vendor',
-            enableVendors: 'Enable vendors',
-            disableVendor: 'Disable vendor',
-            disableVendors: 'Disable vendors',
-            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -8070,6 +8136,12 @@ const translations = {
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
+                    staleSelectionError: (providerName: string) => `Some of the groups you selected no longer exist in ${providerName}, so their employees have stopped syncing.`,
+                    updateSelectionLink: 'Update your groups.',
+                    noGroupsFound: 'No groups found',
+                    noGroupsFoundDescription:
+                        'There are no groups to select right now. Save with no groups selected to sync all employees, or sync the connection again once new groups exist.',
+                    unnamedGroup: (groupID: string) => `Unnamed group (${groupID})`,
                 },
             },
         },
@@ -8348,6 +8420,21 @@ const translations = {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
             policy: 'Expense policy',
+        },
+        officeLocations: {
+            title: 'Office locations',
+            subtitle: 'Add office locations to assign to members for things like distance tracking.',
+            addOfficeLocation: 'Add office location',
+            editOfficeLocation: 'Edit office location',
+            locationName: 'Location name',
+            locationNameHint: 'Choose a location nickname if you are adding multiple office locations',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Office location ${officeNumber}`,
+            setAsPrimary: 'Set as primary',
+            primary: 'Primary',
+            deleteOfficeLocation: 'Delete office location?',
+            deleteOfficeLocationConfirmation: 'Do you really want to delete this office location? Members will be reassigned to the primary office.',
+            existingOfficeLocationError: 'An office location with this name already exists',
+            setCompanyAddressAsPrimaryConfirmation: 'Set the company address as primary office?',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
@@ -8954,6 +9041,8 @@ const translations = {
                 applyUpdates: 'Apply these updates:',
                 saveRule: 'Save rule',
                 previewMatches: 'Preview matches',
+                previewMatchesDescription: 'See how this rule applies to your expenses',
+                preview: 'Preview',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
@@ -9012,6 +9101,14 @@ const translations = {
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Describe agent rule',
                 createAgentRuleDescription: 'Create flexible rules that run when you need.',
+                describe: 'Describe',
+                describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
+                describeRuleInputLabel: 'Describe the rule',
+                promptErrors: {
+                    unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
+                    unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
+                    multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -9789,6 +9886,15 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `added the office location "${name}" (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `renamed the office location "${oldName}" to "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `changed the address of the office location "${name}" to "${newAddress}" (previously "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
+            setCompanyAddressAsPrimary: 'set the company address as primary',
+            removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10027,6 +10133,8 @@ const translations = {
         setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `updated your display name to ${newName} (Previously "${oldName}"). <a href="${editProfileURL}">Edit in your profile</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10321,6 +10429,11 @@ const translations = {
                 },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
+            merchant: {
+                matchType: 'Match type',
+                contains: (merchant?: string) => (merchant ? `Contains "${merchant}"` : 'Contains'),
+                equalTo: (merchant?: string) => (merchant ? `Equal to "${merchant}"` : 'Equal to'),
+            },
             card: {
                 expensify: 'Expensify',
                 travelInvoicing: 'Consolidated Travel Billing',
@@ -10480,6 +10593,10 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            listPage: {
+                noEligibleReportsFound: 'No eligible reports found',
+                noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
+            },
         },
     },
     genericErrorPage: {
@@ -10512,6 +10629,7 @@ const translations = {
             cleared: 'Cleared',
             failed: 'Failed',
             never: 'Never',
+            cashBack: 'Cash back',
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
@@ -11612,6 +11730,16 @@ const translations = {
                 disputed: 'Disputed',
                 balanceTransfer: 'Balance transfer',
             },
+            details: 'Payment details',
+            badge: {
+                balanceTransferTo: ({email}: PaymentDetailsBadgeEmailParams) => `Balance transfer to ${email}`,
+                balanceTransferFrom: ({email}: PaymentDetailsBadgeEmailParams) => `Balance transfer from ${email}`,
+                disputedPending: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Pending)`,
+                disputedRefunded: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Refunded)`,
+                disputedClosed: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Closed)`,
+                refundedOn: ({date}: PaymentDetailsBadgeDateParams) => `Refunded on ${date}`,
+                refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Subscription settings',
@@ -11870,6 +11998,7 @@ const translations = {
         markAllAsRead: '<tooltip>Right-click to <strong>mark all as read</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
+        connectionsMoved: 'All your connections in one place',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
