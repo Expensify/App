@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
+import useFailedExportsToRetry from '@hooks/useFailedExportsToRetry';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import FailedExportsRetryRow from './FailedExportsRetryRow';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
 type RouteParams = {
@@ -97,6 +99,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
     const shouldShowSynchronizationError = !!synchronizationError;
+    const {integrationName: failedExportsIntegrationName, reports: failedExportsToRetry, hasFailedExportsToRetry} = useFailedExportsToRetry(policy);
+    const shouldShowFailedExportsRetryRow = !!policyID && !!connectionDetails && !!failedExportsIntegrationName && hasFailedExportsToRetry && canWriteAccounting;
 
     // `startIntegrationFlow` changes identity whenever `policy` does, which re-runs this effect. The
     // Navigation.setParams below clears newConnectionName through a navigation state update that lands in a later
@@ -350,18 +354,27 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             childrenStyles={styles.pt5}
                         >
                             {!hasUnsupportedNDIntegration &&
-                                connectionsMenuItems.map((menuItem) => (
-                                    <OfflineWithFeedback
-                                        pendingAction={menuItem.pendingAction}
-                                        key={menuItem.title}
-                                        shouldDisableStrikeThrough
-                                    >
-                                        <MenuItem
-                                            brickRoadIndicator={menuItem.brickRoadIndicator}
-                                            key={menuItem.title}
-                                            {...menuItem}
-                                        />
-                                    </OfflineWithFeedback>
+                                connectionsMenuItems.map((menuItem, index) => (
+                                    <React.Fragment key={menuItem.title}>
+                                        <OfflineWithFeedback
+                                            pendingAction={menuItem.pendingAction}
+                                            shouldDisableStrikeThrough
+                                        >
+                                            <MenuItem
+                                                brickRoadIndicator={menuItem.brickRoadIndicator}
+                                                key={menuItem.title}
+                                                {...menuItem}
+                                            />
+                                        </OfflineWithFeedback>
+                                        {index === 0 && shouldShowFailedExportsRetryRow && (
+                                            <FailedExportsRetryRow
+                                                policyID={policyID}
+                                                count={failedExportsToRetry.length}
+                                                integrationName={failedExportsIntegrationName}
+                                                style={styles.pv3}
+                                            />
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             {hasUnsupportedNDIntegration && hasSyncError && !!policyID && (
                                 <FormHelpMessage

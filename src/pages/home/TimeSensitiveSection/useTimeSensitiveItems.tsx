@@ -15,6 +15,7 @@ import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccou
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveFailedExports from './hooks/useTimeSensitiveFailedExports';
 import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
@@ -35,6 +36,7 @@ import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import FixPolicyConnection from './items/FixPolicyConnection';
 import PayOverdueInvoice from './items/PayOverdueInvoice';
 import RenewSubscription from './items/RenewSubscription';
+import RetryFailedExports from './items/RetryFailedExports';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 
@@ -83,6 +85,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const failedExportsToRetry = useTimeSensitiveFailedExports();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -112,14 +115,15 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 7. Broken bank connections (personal cards)
     // 8. Locked bank accounts (workspace VBAs and personal)
     // 9. Broken policy connections (accounting + HR)
-    // 10. Add home address (commuter exclusions, homeAndOffice method)
-    // 11. Add payment card (trial ended, no payment card)
-    // 12. Add bank account for a queued reimbursement
-    // 13. Enter signer info for global bank accounts
-    // 14. Expensify card shipping
-    // 15. Expensify card activation
-    // 16. Virtual Expensify card needs personal details
-    // 17. Digital wallet addition needs confirming
+    // 10. Export failed reports again after the accounting connection works
+    // 11. Add home address (commuter exclusions, homeAndOffice method)
+    // 12. Add payment card (trial ended, no payment card)
+    // 13. Add bank account for a queued reimbursement
+    // 14. Enter signer info for global bank accounts
+    // 15. Expensify card shipping
+    // 16. Expensify card activation
+    // 17. Virtual Expensify card needs personal details
+    // 18. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -213,19 +217,31 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 10: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 10: Failed exports to offer again after the accounting connection works
+    for (const failedExports of failedExportsToRetry) {
+        items.push(
+            <RetryFailedExports
+                key={`retry-failed-exports-${failedExports.policyID}`}
+                policyID={failedExports.policyID}
+                policyName={failedExports.policyName}
+                count={failedExports.count}
+                integrationName={failedExports.integrationName}
+            />,
+        );
+    }
+    // Priority 11: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 11: Add payment card (trial ended, no payment card)
+    // Priority 12: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 12: Add bank account for a queued reimbursement
+    // Priority 13: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
     }
-    // Priority 13: Enter signer info for global bank accounts
+    // Priority 14: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -236,7 +252,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 14: Expensify card shipping
+    // Priority 15: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -247,7 +263,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 15: Expensify card activation
+    // Priority 16: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -258,7 +274,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 16: Virtual Expensify card needs personal details before reveal
+    // Priority 17: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -269,7 +285,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Confirm a digital wallet addition
+    // Priority 18: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

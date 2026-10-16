@@ -1071,6 +1071,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         integration: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RETRY_FAILED_EXPORTS]: {policyID: string};
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC]: {
         policyID: string;
     };
