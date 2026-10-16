@@ -5098,6 +5098,7 @@ ${amount} voor ${merchant} - ${date}`,
             editPerDiemRates: 'Dagvergoedingen bewerken',
             editDestinationSubtitle: (destination: string) => `Als je deze bestemming bijwerkt, wordt deze gewijzigd voor alle per diem-deeltarieven van ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Als u deze valuta bijwerkt, wordt deze gewijzigd voor alle ${destination} daggeldsubtarieven.`,
+            missingPerDiemUnit: 'Per diem is niet goed ingesteld in deze workspace. Neem contact op met Concierge voor hulp.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Stel in hoe contante uitgaven worden geëxporteerd naar QuickBooks Desktop.',

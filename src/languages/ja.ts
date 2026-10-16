@@ -5061,6 +5061,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             editPerDiemRates: '日当レートを編集',
             editDestinationSubtitle: (destination: string) => `この行き先を更新すると、すべての ${destination} 日当サブレートに適用されます。`,
             editCurrencySubtitle: (destination: string) => `この通貨を更新すると、すべての${destination}の日当サブレートの通貨が変更されます。`,
+            missingPerDiemUnit: 'このワークスペースでは日当が正しく設定されていません。ヘルプが必要な場合は Concierge までお問い合わせください。',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '自己負担経費を QuickBooks Desktop にエクスポートする方法を設定します。',

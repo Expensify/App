@@ -5130,6 +5130,7 @@ ${amount} dla ${merchant} - ${date}`,
             editPerDiemRates: 'Edytuj stawki diet',
             editDestinationSubtitle: (destination: string) => `Zaktualizowanie tego miejsca docelowego zmieni je dla wszystkich podstawek diet ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Zaktualizowanie tej waluty spowoduje jej zmianę dla wszystkich podrzędnych stawek diet w ${destination}.`,
+            missingPerDiemUnit: 'Dieta nie jest poprawnie skonfigurowana w tym workspace. Skontaktuj się z Concierge, żeby uzyskać pomoc.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ustaw sposób eksportu wydatków z własnej kieszeni do QuickBooks Desktop.',

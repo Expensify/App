@@ -5136,6 +5136,7 @@ ${amount} pour ${merchant} - ${date}`,
             editPerDiemRates: 'Modifier les taux de per diem',
             editDestinationSubtitle: (destination: string) => `La mise à jour de cette destination la modifiera pour tous les sous-taux de per diem ${destination}.`,
             editCurrencySubtitle: (destination: string) => `La mise à jour de cette devise la modifiera pour tous les sous-taux de per diem de ${destination}.`,
+            missingPerDiemUnit: 'Le per diem n’est pas configuré correctement sur cet espace de travail. Veuillez contacter Concierge pour obtenir de l’aide.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Définissez comment les dépenses hors poche sont exportées vers QuickBooks Desktop.',

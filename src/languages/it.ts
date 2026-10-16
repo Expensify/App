@@ -5098,6 +5098,7 @@ ${amount} per ${merchant} - ${date}`,
             editPerDiemRates: 'Modifica le tariffe di diaria',
             editDestinationSubtitle: (destination: string) => `L’aggiornamento di questa destinazione la modificherà per tutte le sottotariffe di diaria ${destination}.`,
             editCurrencySubtitle: (destination: string) => `L’aggiornamento di questa valuta la modificherà per tutte le sottotariffe di diaria ${destination}.`,
+            missingPerDiemUnit: 'Il per diem non è configurato correttamente in questo workspace. Contatta Concierge per ricevere aiuto.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Imposta come esportare le spese anticipate in QuickBooks Desktop.',

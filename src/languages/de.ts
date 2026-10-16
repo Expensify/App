@@ -5130,6 +5130,7 @@ ${amount} für ${merchant} – ${date}`,
             editPerDiemRates: 'Pauschalvergütungssätze bearbeiten',
             editDestinationSubtitle: (destination: string) => `Wenn Sie dieses Ziel aktualisieren, wird es für alle ${destination}-Tagespauschalen-Teilbeträge geändert.`,
             editCurrencySubtitle: (destination: string) => `Wenn Sie diese Währung aktualisieren, wird sie für alle ${destination}-Tagesgeld-Teilbeträge geändert.`,
+            missingPerDiemUnit: 'Per Diem ist in diesem Workspace nicht korrekt eingerichtet. Bitte wenden Sie sich für Hilfe an Concierge.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Legen Sie fest, wie aus eigener Tasche bezahlte Ausgaben nach QuickBooks Desktop exportiert werden.',
