@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Λήψη αποδείξεων',
         }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
+        shareReport: 'Κοινοποιήστε την αναφορά',
+        reportShared: 'Η αναφορά κοινοποιήθηκε',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -4001,6 +4003,11 @@ ${amount} για ${merchant} - ${date}`,
                 `Ο/Η <strong>${delegate}</strong> δεν είναι μέλος των παρακάτω χώρων εργασίας. Θα ζητηθεί από τους διαχειριστές των χώρων εργασίας που δεν διαχειρίζεστε να τον/την προσθέσουν. Θέλετε να τον/την προσκαλέσετε τώρα σε αυτούς που διαχειρίζεστε ως διαχειριστής;`,
             youAreAMemberOf: 'Είστε μέλος αυτών των χώρων εργασίας:',
             youAreAnAdminOf: 'Είστε διαχειριστής αυτών των χώρων εργασίας:',
+            chooseDelegate: 'Επιλέξτε εκπρόσωπο',
+            clearAfterRecommended: 'Εκκαθάριση μετά από (συνιστάται)',
+            willClearOn: (date: string) => `Ο εκπρόσωπος διακοπών θα καταργηθεί στις ${date}`,
+            until: (date: string) => `Έως ${date}`,
+            removeDelegate: 'Κατάργηση εκπροσώπου διακοπών',
         },
     },
     stepCounter: (step, total, text) => {
@@ -4094,6 +4101,10 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Επεξεργασία ${name}`,
+        removeItem: ({name}: {name: string}) => `Αφαίρεση ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4105,7 +4116,13 @@ ${amount} για ${merchant} - ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
             invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
+        removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -5178,7 +5195,10 @@ ${amount} για ${merchant} - ${date}`,
             editCurrencySubtitle: (destination: string) => `Η ενημέρωση αυτού του νομίσματος θα το αλλάξει για όλες τις υποτιμές ημερήσιας αποζημίωσης ${destination}.`,
             requestEmptyList: {
                 title: 'Δεν υπάρχουν ακόμη ημερήσια επιδόματα',
-                subtitle: 'Αυτός ο χώρος εργασίας δεν έχει ημερήσια επιδόματα· ζητήστε από τον διαχειριστή σας να προσθέσει κάποια.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `Το ${workspaceName} δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.`
+                        : 'Αυτός ο χώρος εργασίας δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.',
                 adminSubtitle: 'Προσθέστε ημερήσια επιδόματα για να οργανώσετε τις δαπάνες σας.',
             },
         },
@@ -6760,6 +6780,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             distanceRates: {
                 title: 'Τιμές χιλιομετρικής αποζημίωσης',
                 subtitle: 'Προσθέστε, ενημερώστε και εφαρμόστε τιμές.',
+                commuterExclusionsOnTitle: 'Οι εξαιρέσεις μετακίνησης είναι ενεργές',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Για να απενεργοποιήσετε τις χρεώσεις απόστασης, πρώτα ορίστε την επιλογή «Εξαίρεση μετακινήσεων από και προς την εργασία» σε «Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία».',
             },
             perDiem: {
                 title: 'Ημερήσια αποζημίωση',
@@ -7943,7 +7966,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     toggleTitle: 'Γραφεία',
                     allSelected: 'Όλα τα γραφεία',
                 },
-                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+                enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
@@ -8189,6 +8212,21 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             addressContext:
                 'Απαιτείται μια διεύθυνση χώρου εργασίας για να ενεργοποιήσετε το Expensify Travel. Παρακαλούμε εισαγάγετε μια διεύθυνση που να σχετίζεται με την επιχείρησή σας.',
             policy: 'Πολιτική εξόδων',
+        },
+        officeLocations: {
+            title: 'Τοποθεσίες γραφείων',
+            subtitle: 'Προσθέστε τοποθεσίες γραφείων για να τις αντιστοιχίσετε στα μέλη για λειτουργίες όπως η παρακολούθηση αποστάσεων.',
+            addOfficeLocation: 'Προσθήκη τοποθεσίας γραφείου',
+            editOfficeLocation: 'Επεξεργασία τοποθεσίας γραφείου',
+            locationName: 'Όνομα τοποθεσίας',
+            locationNameHint: 'Επιλέξτε ένα ψευδώνυμο τοποθεσίας αν προσθέτετε πολλές τοποθεσίες γραφείου',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Τοποθεσία γραφείου ${officeNumber}`,
+            setAsPrimary: 'Ορισμός ως κύριο',
+            primary: 'Κύριο',
+            deleteOfficeLocation: 'Να διαγραφεί η τοποθεσία γραφείου;',
+            deleteOfficeLocationConfirmation: 'Θέλετε σίγουρα να διαγράψετε αυτήν την τοποθεσία γραφείου; Τα μέλη θα επαναχωριστούν στο κύριο γραφείο.',
+            existingOfficeLocationError: 'Υπάρχει ήδη τοποθεσία γραφείου με αυτό το όνομα',
+            setCompanyAddressAsPrimaryConfirmation: 'Να οριστεί η διεύθυνση της εταιρείας ως κύριο γραφείο;',
         },
         bankAccount: {
             continueWithSetup: 'Συνεχίστε τη ρύθμιση',
@@ -9839,6 +9877,15 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `πρόσθεσε την τοποθεσία γραφείου «${name}» (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `μετονομάστηκε η τοποθεσία γραφείου «${oldName}» σε «${newName}»`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `άλλαξε τη διεύθυνση της τοποθεσίας γραφείου «${name}» σε «${newAddress}» (προηγουμένως «${oldAddress}»)`,
+            setAsPrimary: ({name}: {name: string}) => `ορίστε την τοποθεσία γραφείου «${name}» ως κύρια`,
+            setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
+            removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10175,6 +10222,8 @@ ${reportName}`,
         fallbackTitle: 'Αίτημα υποστήριξης',
         resolved: 'Αυτό το αίτημα υποστήριξης επιλύθηκε.',
         surveyPrompt: 'Πώς ήταν η εμπειρία σας με την υποστήριξη;',
+        great: 'Εξαιρετική',
+        poor: 'Κακή',
         reopenTicket: 'Επανέναρξη αιτήματος',
     },
     statementPage: {
@@ -10421,6 +10470,11 @@ ${reportName}`,
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
+            },
+            merchant: {
+                matchType: 'Τύπος αντιστοίχισης',
+                contains: (merchant?: string) => (merchant ? `Περιέχει "${merchant}"` : 'Περιέχει'),
+                equalTo: (merchant?: string) => (merchant ? `Ίσο με "${merchant}"` : 'Ίσο με'),
             },
             created: 'Δημιουργήθηκε',
             createdDate: 'Ημερομηνία δημιουργίας',
@@ -11409,6 +11463,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'έγινε αντιστοίχιση μιας απόδειξης με αυτή τη συναλλαγή',
+        mergedExpenseDeleted: 'συγχώνευσε έξοδα και μετέφερε ένα στα Διαγραμμένα',
     },
     subscription: {
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',

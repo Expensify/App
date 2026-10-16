@@ -63,6 +63,8 @@ jobs:
 
   buildApps:
     needs: [prep, resolveRefs]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     uses: ./.github/workflows/buildAdHoc.yml
     with:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).

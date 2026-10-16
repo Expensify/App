@@ -707,8 +707,8 @@ const DYNAMIC_ROUTES = {
         path: 'avatar-crop',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.AVATAR,
-            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
-            SCREENS.SETTINGS.AGENTS.ADD_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR,
             SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
             SCREENS.WORKSPACE.PROFILE,
             SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
@@ -1016,6 +1016,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -1032,6 +1034,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -1635,6 +1639,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
+        getRoute: (shouldShowQRCodeOnly?: boolean) => getUrlWithParams('share-code', {shouldShowQRCodeOnly: shouldShowQRCodeOnly ? 'true' : undefined}),
+        queryParams: ['shouldShowQRCodeOnly'],
     },
     REFERRAL_DETAILS: {
         path: 'referral/:contentType',
@@ -1645,6 +1651,10 @@ const DYNAMIC_ROUTES = {
         path: 'details/export/:connectionName',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
         getRoute: (connectionName: ConnectionName) => `details/export/${connectionName as string}` as const,
+    },
+    REPORT_DETAILS_SHARE_REPORT: {
+        path: 'share-report',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
     REPORT_CHANGE_WORKSPACE: {
         path: 'change-workspace',
@@ -2107,7 +2117,9 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_CATEGORY_CREATE: {
         path: 'add-category',
-        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY],
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY, SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE, SCREENS.SHARE.SUBMIT_DETAILS],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined}) => getUrlWithParams('add-category', params),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
     },
     MONEY_REQUEST_ATTENDEE: {
         path: 'attendees',
@@ -2150,6 +2162,55 @@ const DYNAMIC_ROUTES = {
             });
         },
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
+    },
+    AGENT_NEW: {
+        path: 'new-agent',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `new-agent${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_ADD: {
+        path: 'custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `custom${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW],
+    },
+    AGENT_ADD_AVATAR: {
+        path: 'custom-avatar',
+        getRoute: () => `custom-avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD],
+    },
+    AGENT_EDIT: {
+        path: ':accountID/edit',
+        getRoute: (accountID: number) => `${accountID}/edit` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_NAME: {
+        path: 'name',
+        getRoute: () => `name` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+    },
+    AGENT_EDIT_PROMPT: {
+        path: 'prompt',
+        getRoute: () => `prompt` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, SCREENS.DYNAMIC_PROFILE],
+    },
+    AGENT_EDIT_AVATAR: {
+        path: 'avatar',
+        getRoute: () => `avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
     },
 } as const satisfies DynamicRoutes;
 
@@ -2671,45 +2732,6 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
-    SETTINGS_AGENTS_NEW: {
-        route: 'settings/agents/new',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD: {
-        route: 'settings/agents/new/custom',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new/custom${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
-    SETTINGS_AGENTS_EDIT: {
-        route: 'settings/agents/:accountID/edit',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
-    },
-    SETTINGS_AGENTS_EDIT_NAME: {
-        route: 'settings/agents/:accountID/edit/name',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
-    },
-    SETTINGS_AGENTS_EDIT_PROMPT: {
-        route: 'settings/agents/:accountID/edit/prompt',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
-    },
-    SETTINGS_AGENTS_EDIT_AVATAR: {
-        route: 'settings/agents/:accountID/edit/avatar',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
-    },
     AGENT_REPORT: {
         route: 'settings/agents/r/:reportID',
         getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
@@ -2768,8 +2790,9 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
-    SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
-    SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/status/vacation-delegate/missing-workspaces',
+    SETTINGS_VACATION_DELEGATE: 'settings/profile/vacation-delegate',
+    SETTINGS_VACATION_DELEGATE_SELECT: 'settings/profile/vacation-delegate/select',
+    SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/vacation-delegate/missing-workspaces',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
@@ -3372,6 +3395,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/overview/share',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/share` as const,
     },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD: {
+        route: 'workspaces/:policyID/overview/office-locations/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/office-locations/new` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT: {
+        route: 'workspaces/:policyID/overview/office-locations/:officeID',
+        getRoute: (policyID: string, officeID: string) => `workspaces/${policyID}/overview/office-locations/${officeID}` as const,
+    },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
         getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
@@ -3520,6 +3551,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_MEMBERS route');
             }
             return `workspaces/${policyID}/members` as const;
+        },
+    },
+    WORKSPACE_AGENTS: {
+        route: 'workspaces/:policyID/agents',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_AGENTS route');
+            }
+            return `workspaces/${policyID}/agents` as const;
         },
     },
     WORKSPACE_ROOMS: {
@@ -5653,6 +5693,11 @@ const ROUTES = {
     DOMAIN_VACATION_DELEGATE: {
         route: 'domain/:domainAccountID/members/:accountID/vacation-delegate',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/vacation-delegate` as const,
+    },
+
+    DOMAIN_VACATION_DELEGATE_SELECT: {
+        route: 'domain/:domainAccountID/members/:accountID/vacation-delegate/select',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/vacation-delegate/select` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION: {

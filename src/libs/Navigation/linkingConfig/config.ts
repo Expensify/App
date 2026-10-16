@@ -379,37 +379,37 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.NEW]: {
-                            path: ROUTES.SETTINGS_AGENTS_NEW.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
+                            path: DYNAMIC_ROUTES.AGENT_NEW.path,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD.path,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD_AVATAR,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD_AVATAR.path,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_NAME.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_NAME.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path,
                             parse: {
                                 accountID: Number,
                             },
@@ -539,6 +539,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: {
@@ -1322,6 +1326,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -1618,6 +1624,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VACATION_DELEGATE]: {
                             path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
                         },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.route,
+                        },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,
                         },
@@ -1707,6 +1716,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_DETAILS.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path,
+                        [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_REPORT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {
@@ -2513,6 +2523,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.MEMBERS]: {
                                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                                },
+                                [SCREENS.WORKSPACE.AGENTS]: {
+                                    path: ROUTES.WORKSPACE_AGENTS.route,
                                 },
                                 [SCREENS.WORKSPACE.ROOMS]: {
                                     path: ROUTES.WORKSPACE_ROOMS.route,
