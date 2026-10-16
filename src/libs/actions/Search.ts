@@ -2069,7 +2069,7 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, groupsOnly}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2107,6 +2107,7 @@ function exportSearchItemsToCSV(
         isBasicExport,
         exportColumnLabels,
         isGroupExport,
+        groupsOnly,
     }) as Params;
 
     const formData = new FormData();
@@ -2140,6 +2141,7 @@ function queueExportSearchItemsToCSV({
     isBasicExport,
     exportColumnLabels,
     exportName,
+    groupsOnly,
 }: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
@@ -2174,6 +2176,7 @@ function queueExportSearchItemsToCSV({
         exportColumnLabels,
         exportName,
         exportID,
+        groupsOnly,
     }) as QueueExportSearchItemsToCSVParams;
 
     markExportInitiatedLocally(exportID);

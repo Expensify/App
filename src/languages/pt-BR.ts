@@ -11695,6 +11695,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
         currentView: 'Visualização atual',
+        currentViewGroupsOnly: 'Visualização atual (somente grupos)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

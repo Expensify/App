@@ -349,7 +349,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
     });
 
-    it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
+    it('exports excluded unloaded groups in a groups-only export as query filters', async () => {
         const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
@@ -378,6 +378,18 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportPayload?.jsonQuery).toContain('Excluded merchant');
         expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO}"`);
         expect(exportPayload?.jsonQuery).not.toContain('group_123');
+
+        // When the same exclusions are exported as summaries only.
+        await act(async () => {
+            getExportMenuItems(result.current.headerButtonsOptions)
+                .find((item) => item.text === 'export.currentViewGroupsOnly')
+                ?.onSelected?.();
+        });
+
+        // Then both the summary-only flag and exclusions reach the queued export.
+        expect(mockQueueExportSearchItemsToCSV).toHaveBeenLastCalledWith(
+            expect.objectContaining({groupsOnly: true, excludedTransactionIDList: ['tx2'], jsonQuery: exportPayload?.jsonQuery}),
+        );
     });
 
     it('exports a selected merchant group with an exact merchant match', async () => {
