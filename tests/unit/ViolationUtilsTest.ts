@@ -3262,8 +3262,32 @@ describe('getViolationsOnyxData', () => {
                 policyCategories,
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
+                policyVendors: {
+                    ['v-active']: {
+                        externalID: 'v-active',
+                        name: 'Acme Co',
+                        enabled: true,
+                    },
+                },
             });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('preserves an existing violation when policyVendors is not provided even if the vendor is in the raw integration list', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+            expect(result.value).toContainEqual(inactiveVendorViolation);
         });
 
         it('adds the violation when the vendor remains in the raw integration list but is disabled in policyVendors', () => {
@@ -3696,6 +3720,13 @@ describe('getViolationsOnyxData', () => {
                     policyCategories,
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
+                    policyVendors: {
+                        xcActive: {
+                            externalID: 'xcActive',
+                            name: 'Acme Xero',
+                            enabled: true,
+                        },
+                    },
                 });
                 expect(result.value).not.toContainEqual(inactiveVendorViolation);
             });

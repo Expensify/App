@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -69,6 +70,15 @@ function IOURequestStepVendor({
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
 
     // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
+    const fetchVendorsIfMissing = () => {
+        if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
+            return;
+        }
+        openPolicyVendorsPage(policy.id);
+    };
+
+    useNetwork({onReconnect: fetchVendorsIfMissing});
+
     useEffect(() => {
         if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
             return;

@@ -150,6 +150,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     useEffect(() => {
         fetchVendors();
+        // Run only on mount because reconnect refetches are handled by useNetwork above.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

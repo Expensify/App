@@ -816,6 +816,7 @@ const ViolationsUtils = {
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
                 const isVendorInactive = !matchedVendor || isVendorDisabled;
+                const canConfirmVendorEnabled = policyVendorsParam !== undefined && !isVendorDisabled;
 
                 // Stamp Xero-specific copy on the violation so the render site can use the
                 // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
@@ -828,9 +829,9 @@ const ViolationsUtils = {
                         showInReview: true,
                         ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
                     });
-                } else if (!isVendorInactive && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && canConfirmVendorEnabled && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-                } else if (isVendorInactive && hasInactiveVendorViolation) {
+                } else if (hasInactiveVendorViolation) {
                     // Reconcile data.isSupplierViolation with the current active matching source.
                     // Backfills the flag when Xero is now active (server-fired violation, or
                     // persisted from before this code path existed). Strips a stale flag when the
