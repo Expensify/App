@@ -117,6 +117,9 @@ type UseConfirmationValidationParams = {
     /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
+    /** Whether the expense goes to a workspace chat, the only destination where a manually entered Scan needs a merchant */
+    isPolicyExpenseChat: boolean;
+
     /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
     partiallyManuallyFilledScanID?: string;
 
@@ -173,6 +176,7 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     partiallyManuallyFilledScanID,
     isReadOnly,
     shouldShowDate,
@@ -202,11 +206,11 @@ function useConfirmationValidation({
         }
         // `isConfirmationAmountMissing` only applies to manually entered amounts. Per diem, distance and time set the
         // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
-        if (isConfirmationAmountMissing(transaction, canEnterScanFieldsManually)) {
+        if (isConfirmationAmountMissing(transaction, canEnterScanFieldsManually, isPolicyExpenseChat)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         // The three fields are all-or-nothing, so a partially filled set is blocked and each blank field flags inline.
-        if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+        if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, isPolicyExpenseChat)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         // On a multi-scan the same rule has to hold for the receipts that are not on screen, since Create submits
@@ -226,7 +230,7 @@ function useConfirmationValidation({
         }
         // The date is an inline, clearable required field for every type that shows it (manual, distance, time,
         // invoice, ...). Block confirmation when the user cleared it.
-        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually)) {
+        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually, isPolicyExpenseChat)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
