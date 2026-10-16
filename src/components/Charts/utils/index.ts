@@ -11,7 +11,6 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
-import getHighestPointPositions from './getHighestPointPositions';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -549,7 +548,6 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
-    getHighestPointPositions,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,

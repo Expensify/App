@@ -12,9 +12,10 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getBarLayout, getCartesianPlotBounds, getHighestPointPositions, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,7 +26,6 @@ import variables from '@styles/variables';
 
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -130,23 +130,14 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
             yZero,
         });
 
-    const scales = useRef<{xScale: Scale; yScale: Scale} | null>(null);
+    const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
-        scales.current = {xScale, yScale};
         barHitHalfWidth.set(barLayout.barWidth > 0 ? barLayout.barWidth / 2 + barLayout.gap * BAR_HIT_GAP_RATIO : 0);
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
-        setPointPositions(...getHighestPointPositions(data, series, xScale, yScale));
+        syncPointPositions(xScale, yScale);
     };
-
-    // Victory reports the scales only when they change, and new values often keep the same rounded axes
-    useEffect(() => {
-        if (!scales.current) {
-            return;
-        }
-        setPointPositions(...getHighestPointPositions(data, series, scales.current.xScale, scales.current.yScale));
-    }, [data, series, setPointPositions]);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
