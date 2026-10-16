@@ -1,3 +1,4 @@
+import formatAmountWithPercentage from '@components/Charts/utils/formatAmountWithPercentage';
 import type {TooltipChange, TooltipRow} from '@components/Charts/utils/formatTooltipComparison';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -31,7 +32,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     return (
         <>
             {rows.map((row) => {
-                const amountContent = row.percentage ? `${row.amount} (${row.percentage})` : row.amount;
+                const amountContent = formatAmountWithPercentage(row.amount, row.percentage);
                 return (
                     <View
                         key={row.key}
@@ -50,7 +51,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{change.percentage ? `${change.amount} (${change.percentage})` : change.amount}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatAmountWithPercentage(change.amount, change.percentage)}</Text>
                 </View>
             )}
         </>
