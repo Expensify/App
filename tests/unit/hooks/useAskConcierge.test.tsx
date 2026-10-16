@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
@@ -86,10 +86,19 @@ describe('useAskConcierge', () => {
             await seedReports();
 
             // When the hook resolves its target
-            const {result} = renderAskConcierge();
+            const {result, rerender} = renderAskConcierge();
 
             // Then it targets that report, not Concierge
             expect(result.current.conciergeTargetReportID).toBe(ADMINS_ROOM_REPORT_ID);
+
+            // When the side panel shows the thread of an earlier Concierge question
+            const conciergeThread = {reportID: '300', parentReportID: CONCIERGE_REPORT_ID} as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeThread.reportID}`, conciergeThread);
+            mockSidePanelReportID = conciergeThread.reportID;
+            rerender({});
+
+            // Then it targets Concierge, so the next question opens a new thread
+            await waitFor(() => expect(result.current.conciergeTargetReportID).toBe(CONCIERGE_REPORT_ID));
         });
 
         it('targets Concierge when forced, even though the side panel maps elsewhere', async () => {
