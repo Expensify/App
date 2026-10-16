@@ -84,7 +84,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 }
             }
 
-            if (key === 'file' && initiatedOffline) {
+            if ((key === 'file' || key.startsWith('file_')) && initiatedOffline) {
                 const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
