@@ -41,7 +41,9 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: GrowlType, duration?: number, action?: GrowlAction, position?: GrowlPosition) {
+function show(bodyText: string, type: GrowlType, durationOrOptions?: number | GrowlOptions, legacyAction?: GrowlAction, legacyPosition?: GrowlPosition) {
+    const {duration, action, position} = typeof durationOrOptions === 'object' ? durationOrOptions : {duration: durationOrOptions, action: legacyAction, position: legacyPosition};
+
     // Default to a longer duration when there's an action button so users have time to tap it.
     const resolvedDuration = duration ?? (action ? CONST.GROWL.DURATION_WITH_ACTION : CONST.GROWL.DURATION);
     isReadyPromise.then(() => {
@@ -52,27 +54,18 @@ function show(bodyText: string, type: GrowlType, duration?: number, action?: Gro
     });
 }
 
-function showWithOptions(bodyText: string, type: GrowlType, durationOrOptions?: number | GrowlOptions, legacyAction?: GrowlAction) {
-    if (typeof durationOrOptions === 'number' || durationOrOptions === undefined) {
-        show(bodyText, type, durationOrOptions, legacyAction);
-        return;
-    }
-
-    show(bodyText, type, durationOrOptions.duration, durationOrOptions.action, durationOrOptions.position);
-}
-
 /**
  * Show error growl
  */
 function error(bodyText: string, durationOrOptions?: number | GrowlOptions, action?: GrowlAction) {
-    showWithOptions(bodyText, CONST.GROWL.ERROR, durationOrOptions, action);
+    show(bodyText, CONST.GROWL.ERROR, durationOrOptions, action);
 }
 
 /**
  * Show success growl
  */
 function success(bodyText: string, durationOrOptions?: number | GrowlOptions, action?: GrowlAction) {
-    showWithOptions(bodyText, CONST.GROWL.SUCCESS, durationOrOptions, action);
+    show(bodyText, CONST.GROWL.SUCCESS, durationOrOptions, action);
 }
 
 export default {

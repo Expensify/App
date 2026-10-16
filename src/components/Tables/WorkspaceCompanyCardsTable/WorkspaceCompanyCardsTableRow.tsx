@@ -222,12 +222,6 @@ function WorkspaceCompanyCardTableRow({
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        {hasErrors && (
-                            <Icon
-                                src={Expensicons.DotIndicator}
-                                fill={theme.danger}
-                            />
-                        )}
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
