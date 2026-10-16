@@ -104,14 +104,16 @@ describe('searchRouterQuerySpans', () => {
         expect(getSearchRouterQueryChangedAt(Date.now(), 1000)).toBe(1000);
     });
 
-    it('falls back to now when the input event timestamp is too old', () => {
-        // Given a timestamp older than the max age, which is not this edit's event
-        const now = 10_000;
-        const tooOld = now - CONST.TELEMETRY.SEARCH_ROUTER_INPUT_EVENT_MAX_AGE_MS - 1;
+    it('falls back to now when the input event timestamp is older than the query max duration', () => {
+        // Given a timestamp older than the query max duration, which cannot be part of a valid query span
+        const now = 20_000;
+        const tooOld = now - CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - 1;
+
         // When the change time is resolved
-        // Then it falls back to the current time because stale event timestamps do not reflect this edit, while a timestamp at the max age boundary is accepted
+        // Then it falls back to the current time because stale event timestamps do not reflect this edit, while a timestamp at the max duration boundary is accepted
         expect(getSearchRouterQueryChangedAt(tooOld, now)).toBe(now);
         expect(getSearchRouterQueryChangedAt(tooOld + 1, now)).toBe(tooOld + 1);
+        expect(getSearchRouterQueryChangedAt(-1, now)).toBe(now);
     });
 
     it('buckets the free-text length in size order', () => {

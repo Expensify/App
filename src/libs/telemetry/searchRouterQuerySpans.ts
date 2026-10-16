@@ -106,10 +106,16 @@ function getAutocompleteKey(key: string | undefined): string {
 /**
  * Returns when the query changed. The input event's timestamp is captured before the event waits for the JS thread, so it
  * includes that wait, unlike `now`. It shares `performance.now()`'s clock, but RN falls back to `Date.now()` when the
- * event has no timestamp, so a value in the future or older than the max age is not a usable `performance.now()` reading.
+ * event has no timestamp, so a value in the future or older than the query max duration is not a usable `performance.now()` reading.
  */
 function getSearchRouterQueryChangedAt(eventTimeStamp: number | undefined, now: number): number {
-    if (eventTimeStamp === undefined || !Number.isFinite(eventTimeStamp) || eventTimeStamp > now || now - eventTimeStamp > CONST.TELEMETRY.SEARCH_ROUTER_INPUT_EVENT_MAX_AGE_MS) {
+    if (
+        eventTimeStamp === undefined ||
+        !Number.isFinite(eventTimeStamp) ||
+        eventTimeStamp < 0 ||
+        eventTimeStamp > now ||
+        now - eventTimeStamp > CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS
+    ) {
         return now;
     }
     return eventTimeStamp;
