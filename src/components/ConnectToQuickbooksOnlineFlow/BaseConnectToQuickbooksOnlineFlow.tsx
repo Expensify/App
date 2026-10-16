@@ -101,6 +101,7 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
             anchorPosition={connectionOptionsPopoverPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={connectionButtonRef}
+            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }
