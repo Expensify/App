@@ -9,7 +9,7 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -34,6 +34,12 @@ type UseSearchAutoRefetch = {
     /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
 
+    /** Current policies collection */
+    policies: OnyxCollection<Policy>;
+
+    /** Previous policies collection, compared against `policies` to detect member custom field edits */
+    previousPolicies: OnyxCollection<Policy>;
+
     /** Parsed search query the refetch is issued for */
     queryJSON: SearchQueryJSON;
 
@@ -57,6 +63,8 @@ function useSearchAutoRefetch({
     previousTransactions,
     reportActions,
     previousReportActions,
+    policies,
+    previousPolicies,
     queryJSON,
     searchKey,
     offset,
@@ -84,7 +92,7 @@ function useSearchAutoRefetch({
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && !hasPendingSearchRef.current) {
+        if (transactions === previousTransactions && reportActions === previousReportActions && policies === previousPolicies && !hasPendingSearchRef.current) {
             return;
         }
 
@@ -112,9 +120,10 @@ function useSearchAutoRefetch({
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomFieldInSearchResults(policies, previousPolicies, searchResultsData);
 
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction) || hasPendingSearchRef.current) {
+        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -152,7 +161,7 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
@@ -180,6 +189,8 @@ function useSearchAutoRefetch({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        policies,
+        previousPolicies,
         isChat,
         searchResultsData,
         isOffline,
@@ -294,6 +305,37 @@ function hasChangedTransactionInSearchResults(
 
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
+}
+
+// Compares custom field values rather than employee identity, so clearing `pendingFields` after the save does not refetch a second time.
+function hasChangedMemberCustomFieldInSearchResults(
+    policies: OnyxCollection<Policy>,
+    previousPolicies: OnyxCollection<Policy>,
+    searchResultsData: Partial<SearchResults['data']> | undefined,
+): boolean {
+    if (!searchResultsData || !policies || !previousPolicies) {
+        return false;
+    }
+
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+    for (const key of Object.keys(searchResultsData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
+            continue;
+        }
+        const policy = policies[key];
+        const previousPolicy = previousPolicies[key];
+        if (!policy || !previousPolicy || policy === previousPolicy) {
+            continue;
+        }
+        for (const [login, employee] of Object.entries(policy.employeeList ?? {})) {
+            const previousEmployee = previousPolicy.employeeList?.[login];
+            if (previousEmployee && customFieldKeys.some((customFieldKey) => employee[customFieldKey] !== previousEmployee[customFieldKey])) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 export default useSearchAutoRefetch;

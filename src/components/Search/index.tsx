@@ -252,6 +252,8 @@ function Search({
     const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const previousPolicies = usePrevious(policies);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
@@ -293,6 +295,8 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        policies,
+        previousPolicies,
     });
 
     const {
