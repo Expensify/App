@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
@@ -64,10 +64,9 @@ function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackBu
                 testID="BaseDomainRequireTwoFactorAuthPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onBackButtonPress={onBackButtonPress}
-                    shouldDisplayHelpButton={false}
                 />
 
                 <FullPageOfflineBlockingView>
