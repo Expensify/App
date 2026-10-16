@@ -34,7 +34,7 @@ const mockRNFS: {
 } = jest.requireMock('react-native-fs');
 
 // Jest resolves the module to its iOS implementation, so the no-op used on other platforms is loaded by its full file name
-const removeStaleExportStagingDirShim = jest.requireActual<{default: () => Promise<void>}>('@libs/migrations/MoveFilesOutOfDocuments/removeStaleExportStagingDir.ts').default;
+const removeStaleExportStagingDirShim = jest.requireActual<{default: () => Promise<void>}>('@libs/migrations/MoveFilesOutOfDocuments/removeStaleExportStagingDir/index.ts').default;
 
 const OLD_ATTACHMENT_DIR = '/mock/documents/attachments';
 const NEW_ATTACHMENT_DIR = '/mock/caches/attachments';
