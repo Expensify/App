@@ -99,7 +99,7 @@ function AgentsPage() {
 
     const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
 
-    const onBackButtonPress = () => {
+    const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
             turnOffMobileSelectionMode();
@@ -119,7 +119,7 @@ function AgentsPage() {
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
-                    onBackButtonPress={onBackButtonPress}
+                    onBackButtonPress={goBackOrClearSelection}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplaySearchRouter
