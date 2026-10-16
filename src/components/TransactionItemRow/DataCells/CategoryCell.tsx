@@ -1,9 +1,9 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +52,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             text={categoryForDisplay}
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
+            isSelectable
         />
     );
 

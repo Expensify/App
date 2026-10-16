@@ -1,4 +1,7 @@
-import {getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {formatDate, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -13,13 +16,17 @@ function createPurchase(purchaseID: number, created: string, message: Purchase['
     };
 }
 
+function toPurchases(purchaseList: Purchase[]): Record<string, Purchase> {
+    return Object.fromEntries(purchaseList.map((purchase) => [String(purchase.purchaseID), purchase]));
+}
+
 describe('getPaymentHistoryRows', () => {
     it('lists one row per bill, newest first', () => {
         // Given bills from three different months, listed oldest first
         const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01'), createPurchase(3, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR})];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then each bill is kept and the newest month is first
         expect(rows.map((row) => row.purchaseID)).toEqual([2, 3, 1]);
@@ -39,7 +46,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the modifier purchases are not their own rows, and the bill carries that state
         expect(rows.map((row) => row.purchaseID)).toEqual([12, 11, 10]);
@@ -54,7 +61,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the clear is not its own row, and the original bill shows as cleared for the amount that was due
         expect(rows).toHaveLength(1);
@@ -72,7 +79,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the refund replaces the dispute, because it happened later
         expect(rows).toHaveLength(1);
@@ -88,7 +95,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the failed bill uses the amount that was due, and tax is hidden for the exempt account
         const failed = rows.find((row) => row.purchaseID === 1);
@@ -113,9 +120,161 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the repeated person is counted once
         expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+});
+
+describe('getPaymentHistoryRow', () => {
+    it('returns the single row for a bill', () => {
+        // Given two bills in Onyx
+        const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-03-01')];
+
+        // When one bill's row is requested
+        const row = getPaymentHistoryRow(toPurchases(purchaseList), 2);
+
+        // Then that bill's row is returned
+        expect(row?.purchaseID).toBe(2);
+    });
+
+    it('returns undefined for an unknown purchase', () => {
+        // Given a bill in Onyx
+        const purchaseList = [createPurchase(1, '2026-02-01')];
+
+        // When a purchase that is not in Onyx is requested
+        const row = getPaymentHistoryRow(toPurchases(purchaseList), 999);
+
+        // Then nothing is returned
+        expect(row).toBeUndefined();
+    });
+});
+
+describe('getPaymentDetailsBadge', () => {
+    it('reads the transferred-to email from a folded balance transfer', () => {
+        // Given a bill whose balance was transferred to another user
+        const purchaseList = [
+            createPurchase(10, '2026-02-01'),
+            createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_TRANSFER_TO, fromPurchaseID: 10, transferTo: 'to@example.com'}),
+        ];
+
+        // When the bill's details badge is built
+        const badge = getPaymentDetailsBadge(toPurchases(purchaseList), 10);
+
+        // Then the badge carries the transferred-to email
+        expect(badge).toEqual({variant: 'balanceTransferTo', email: 'to@example.com'});
+    });
+
+    it('reads the transferred-from email from a standalone balance transfer', () => {
+        // Given a balance transfer whose source bill is not in Onyx, so it is its own row
+        const purchaseList = [createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_TRANSFER, fromPurchaseID: 999, takenOverFrom: 'from@example.com'})];
+
+        // When the row's details badge is built
+        const badge = getPaymentDetailsBadge(toPurchases(purchaseList), 20);
+
+        // Then the badge carries the transferred-from email
+        expect(badge).toEqual({variant: 'balanceTransferFrom', email: 'from@example.com'});
+    });
+
+    it('classifies a closed-and-refunded dispute', () => {
+        // Given a disputed bill whose dispute was lost
+        const purchaseList = [createPurchase(10, '2026-02-01'), createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_DISPUTE, disputePurchaseID: 10, disputeStatus: 'lost'})];
+
+        // When the bill's details badge is built
+        const badge = getPaymentDetailsBadge(toPurchases(purchaseList), 10);
+
+        // Then the badge is a refunded dispute dated to the dispute purchase
+        expect(badge).toEqual({variant: 'disputed', created: '2026-03-01', status: 'refunded'});
+    });
+
+    it('classifies a won dispute as closed and an open dispute as pending', () => {
+        // Given one won dispute and one with no status yet
+        const purchaseList = [
+            createPurchase(10, '2026-02-01'),
+            createPurchase(11, '2026-02-02'),
+            createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_DISPUTE, disputePurchaseID: 10, disputeStatus: 'won'}),
+            createPurchase(21, '2026-03-02', {billingType: CONST.BILLING.TYPE_DISPUTE, disputePurchaseID: 11}),
+        ];
+        const purchases = toPurchases(purchaseList);
+
+        // When each bill's details badge is built
+        // Then a won dispute is closed and a status-less dispute is pending
+        expect(getPaymentDetailsBadge(purchases, 10)).toEqual({variant: 'disputed', created: '2026-03-01', status: 'closed'});
+        expect(getPaymentDetailsBadge(purchases, 11)).toEqual({variant: 'disputed', created: '2026-03-02', status: 'pending'});
+    });
+
+    it('carries the amount for a partial refund and nothing extra for a full refund', () => {
+        // Given one bill refunded in part and one refunded in full
+        const purchaseList = [
+            createPurchase(10, '2026-02-01'),
+            createPurchase(11, '2026-02-02'),
+            createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_REFUND, refundPurchaseID: 10, isPartialRefund: true}, -500),
+            createPurchase(21, '2026-03-02', {billingType: CONST.BILLING.TYPE_REFUND, refundPurchaseID: 11}, -1000),
+        ];
+        const purchases = toPurchases(purchaseList);
+
+        // When each bill's details badge is built
+        // Then the partial refund carries its positive amount and currency, and the full refund does not
+        expect(getPaymentDetailsBadge(purchases, 10)).toEqual({variant: 'refundedPartial', created: '2026-03-01', amount: 500, currency: CONST.CURRENCY.USD});
+        expect(getPaymentDetailsBadge(purchases, 11)).toEqual({variant: 'refunded', created: '2026-03-02'});
+    });
+
+    it('returns the default variant for a plain paid bill', () => {
+        // Given a bill with no modifier
+        const purchaseList = [createPurchase(10, '2026-02-01')];
+
+        // When the bill's details badge is built
+        const badge = getPaymentDetailsBadge(toPurchases(purchaseList), 10);
+
+        // Then it falls back to the default badge
+        expect(badge).toEqual({variant: 'default'});
+    });
+});
+
+describe('getBadgeText', () => {
+    // Returns the translation key plus any values the label interpolates, so the test can assert the key without a real locale.
+    const translate: LocaleContextProps['translate'] = (key, ...parameters) => {
+        const params = parameters.at(0);
+        return JSON.stringify({key, ...(params && typeof params === 'object' ? params : {})});
+    };
+
+    it('falls back to the plain state label when the badge has no extra detail', () => {
+        // Given a bill whose badge carries nothing beyond its paid state
+        const badge = {variant: 'default' as const};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.PAID, translate, undefined);
+
+        // Then the label is the plain paid state, with no extra detail
+        expect(text).toBe(JSON.stringify({key: 'subscription.paymentHistory.state.paid'}));
+    });
+
+    it('includes the account email on a balance transfer', () => {
+        // Given a balance that moved to another account
+        const badge = {variant: 'balanceTransferTo' as const, email: 'owner@example.com'};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER, translate, undefined);
+
+        // Then the label names the account that received the balance
+        expect(text).toBe(JSON.stringify({key: 'subscription.paymentHistory.badge.balanceTransferTo', email: 'owner@example.com'}));
+    });
+
+    it('includes the formatted date and amount on a partial refund', () => {
+        // Given a partial refund of $5.00 on March 1, 2026
+        const badge = {variant: 'refundedPartial' as const, created: '2026-03-01', amount: 500, currency: CONST.CURRENCY.USD};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.REFUNDED, translate, undefined);
+
+        // Then the label carries the displayed amount and the same date format as the details page
+        expect(text).toBe(
+            JSON.stringify({
+                key: 'subscription.paymentHistory.badge.refundedAmountOn',
+                amount: convertAmountToDisplayString(500, CONST.CURRENCY.USD),
+                date: formatDate('2026-03-01', undefined),
+            }),
+        );
     });
 });

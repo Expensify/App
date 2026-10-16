@@ -103,15 +103,16 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 text: getReportActionDebugText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
                 keyForList: reportAction.reportActionID,
+                titleStyles: styles.fontWeightNormal,
             }));
-    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
+    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime, styles.fontWeightNormal]);
 
     const textInputOptions = useMemo(
         () => ({
             value: searchValue,
             label: translate('common.search'),
             onChangeText: setSearchValue,
-            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+            headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
         }),
         [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
     );
@@ -128,7 +129,6 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             </Button>
             <SelectionList
                 data={searchedReportActions}
-                style={{listItemTitleStyles: styles.fontWeightNormal}}
                 textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={SingleSelectListItem}

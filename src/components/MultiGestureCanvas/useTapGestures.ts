@@ -1,4 +1,4 @@
-import type {TapGesture} from 'react-native-gesture-handler';
+import type {LegacyTapGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
@@ -45,7 +45,7 @@ const useTapGestures = ({
     isTransformGestureActive,
     onScaleChanged,
     onTap,
-}: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
+}: UseTapGesturesProps): {singleTapGesture: LegacyTapGesture; doubleTapGesture: LegacyTapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);

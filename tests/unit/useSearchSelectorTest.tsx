@@ -55,6 +55,8 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 jest.mock('@components/OnyxListItemProvider', () => ({
     ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
     usePersonalDetails: () => ({}),
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({

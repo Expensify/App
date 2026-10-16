@@ -9,7 +9,7 @@ import ControlSelection from '@libs/ControlSelection';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ComponentRef} from 'react';
-import type {PanGesture} from 'react-native-gesture-handler';
+import type {LegacyPanGesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React from 'react';
@@ -40,7 +40,7 @@ type ImageCropViewProps = {
     scale: SharedValue<number>;
 
     /** Configuration object for pan gesture for handling image panning */
-    panGesture?: PanGesture;
+    panGesture?: LegacyPanGesture;
 
     /** Image crop vector mask */
     maskImage?: IconAsset;

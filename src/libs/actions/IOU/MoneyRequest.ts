@@ -323,6 +323,8 @@ function getMoneyRequestParticipantOptions({
                       convertToDisplayString,
                   },
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 }

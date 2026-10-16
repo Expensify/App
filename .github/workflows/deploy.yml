@@ -201,6 +201,8 @@ jobs:
   androidBuild:
     name: Build Android HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
@@ -429,6 +431,8 @@ jobs:
   iosBuild:
     name: Build iOS HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
     with:
@@ -703,6 +707,8 @@ jobs:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]
     if: ${{ always() && needs.webBuild.result == 'success' }}
+    # Preserve the default token scopes while adding OIDC access
+    permissions: write-all
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -735,8 +741,8 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-${{ env.DEPLOY_ENV }}-web-deploy-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
           aws-region: us-east-1
 
       - name: Deploy to S3
@@ -769,6 +775,54 @@ jobs:
           ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
         env:
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+
+  webDeployTestStaging:
+    name: Deploy Web to test-staging.new.expensify.com
+    needs: [prep, webBuild]
+    if: ${{ needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
+    # Trial hosting for the web build, so a failure here must not fail the staging deploy.
+    continue-on-error: true
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+
+      - name: Setup Node
+        # v6.1.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: web/cloudflare-worker/package-lock.json
+
+      - name: Download web build artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: web-build-tar-gz-artifact
+          path: ./
+
+      - name: Extract web build
+        run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
+
+      - name: Install Cloudflare Worker dependencies
+        working-directory: web/cloudflare-worker
+        run: npm ci
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: web/cloudflare-worker
+        run: npx wrangler deploy --env test-staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: false
+
+      - name: Verify deploy
+        run: |
+          APP_VERSION=$(jq -r .version < package.json)
+          ./.github/scripts/verifyDeploy.sh https://test-staging.new.expensify.com "$APP_VERSION"
 
   buildStorybook:
     name: Build storybook docs
@@ -988,7 +1042,9 @@ jobs:
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          SLACK_RETEST_USER_TOKEN: ${{ secrets.SLACK_RETEST_USER_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404

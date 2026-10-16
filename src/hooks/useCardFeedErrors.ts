@@ -9,6 +9,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldPromptBrokenConnection: false,
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
+    hasFeedConnectionIssue: false,
 };
 
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
