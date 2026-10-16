@@ -305,6 +305,68 @@ describe('New rule describe section', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
+    it('opens the category tax rate editor for a categoryTaxRate answer', async () => {
+        // Given a workspace with a Meals category and a GST rate that a category rule can use, and an admin who describes a tax default
+        mockedUsePolicy.mockReturnValue({
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            taxRates: {name: 'Tax', defaultExternalID: 'VAT', defaultValue: '5%', foreignTaxDefault: 'VAT', taxes: {VAT: {name: 'VAT', value: '5%'}, GST: {name: 'GST', value: '10%'}}},
+        });
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+        });
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, 'Use GST for meals');
+
+        // When Concierge answers with a category tax rate rule
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.RULE,
+            ruleType: CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE,
+            rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
+        });
+
+        // Then the expense defaults editor opens scoped to categories, because it takes its rule type from the draft
+        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({categoriesToMatch: ['Meals'], tax: 'GST', ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
+    });
+
+    it('shows an error when the generated category already has a tax rate rule', async () => {
+        // Given a Meals category that already has a tax rate rule
+        mockedUsePolicy.mockReturnValue({
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            rules: {
+                expenseRules: [
+                    {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- the expense rule stores the tax under the field name that the backend uses
+                        tax: {field_id_TAX: {externalID: 'GST'}},
+                        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Meals'}],
+                    },
+                ],
+            },
+        });
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+        });
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, 'Use GST for meals');
+
+        // When Concierge answers with a tax rate rule for that category
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.RULE,
+            ruleType: CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE,
+            rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
+        });
+
+        // Then New rule shows the error and opens nothing, because a category can have one tax rate rule
+        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.categoryHasRule')]);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.MULTIPLE_RULES])(
         'drafts an agent rule with the exact prompt for an admin when the answer is %s',
         async (state: GeneratedRuleState) => {

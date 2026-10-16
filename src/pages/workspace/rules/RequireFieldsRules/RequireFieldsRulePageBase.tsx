@@ -31,7 +31,9 @@ import {
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsDisplayedSetting,
     getRequireFieldsFieldClearKeys,
+    getRequireFieldsDraftFromGeneratedValues,
     getRequireFieldsFieldSettingUpdate,
+    REQUIRE_FIELDS_SETTING_FIELD_KEYS,
     getRequireFieldsFormFromCategory,
     getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleKey,
@@ -60,11 +62,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-const SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
-
 /** Returns the setting fields that have a value in the given form values */
 function getDefinedSettingFieldKeys(values: Partial<RequireFieldsRuleForm> | undefined) {
-    return SETTING_FIELD_KEYS.filter((fieldKey) => values?.[fieldKey] !== undefined);
+    return REQUIRE_FIELDS_SETTING_FIELD_KEYS.filter((fieldKey) => values?.[fieldKey] !== undefined);
 }
 
 type RequireFieldsRulePageBaseProps = {
@@ -135,7 +135,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
             // Preserve whatever is currently shown (edit often displays category overrides
             // without those fields being in touchedFields yet).
-            for (const fieldKey of SETTING_FIELD_KEYS) {
+            for (const fieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: previousCategory,
@@ -322,7 +322,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 const nextDraft: Partial<RequireFieldsRuleForm> = {
                     [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY],
                 };
-                for (const settingFieldKey of SETTING_FIELD_KEYS) {
+                for (const settingFieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
                     if (keysToClear.includes(settingFieldKey) || form[settingFieldKey] === undefined) {
                         continue;
                     }
@@ -442,9 +442,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     }
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        setDraftRequireFieldsRule(values);
+        const {draft, touchedFieldKeys} = getRequireFieldsDraftFromGeneratedValues(values);
+        setDraftRequireFieldsRule(draft);
         setGeneratedCategoryName(values.category);
-        setTouchedFields(new Set(getDefinedSettingFieldKeys(values)));
+        setTouchedFields(touchedFieldKeys);
     };
 
     const footer = canWriteRules ? (
@@ -467,6 +468,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
                         onRuleGenerated={applyGeneratedRule}
+                        isCategoryEligible={(generatedCategory) => !categoryHasAnyRequireFieldsRule(generatedCategory)}
                     />
                 )
             }

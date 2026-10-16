@@ -29,7 +29,13 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleDraftFromGeneratedValues, getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary, hasSpendRuleMerchantRestrictions} from '@libs/SpendRulesUtils';
+import {
+    getEligibleSpendRuleCards,
+    getSpendRuleDraftFromGeneratedValues,
+    getSpendRuleFormValuesFromCardRule,
+    getTruncatedSpendRuleSummary,
+    hasSpendRuleMerchantRestrictions,
+} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -104,7 +110,8 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        const draft = getSpendRuleDraftFromGeneratedValues(values);
+        const eligibleCardIDs = expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : undefined;
+        const draft = getSpendRuleDraftFromGeneratedValues(values, eligibleCardIDs, spendRuleForm?.cardIDs);
         setDraftSpendRule(draft);
         setIsRestrictMerchantsOff(!hasSpendRuleMerchantRestrictions(draft));
     };
