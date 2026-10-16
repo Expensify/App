@@ -1007,7 +1007,7 @@ const CONST = {
             EXPENSIFY: 'EXPENSIFY',
             WISE: 'WISE',
         },
-        // Wise's KYC requirement types the App has a page for. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
+        // Wise's KYC requirement types
         KYC_REQUIREMENT: {
             BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
             BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
@@ -1051,7 +1051,7 @@ const CONST = {
             DIRECTOR: 'DIRECTOR',
             OTHER: 'OTHER',
         },
-        // Wise's industryCategories values. Submit the key only, never a group name. docs.wise.com/guides/product/account-setup/customer-onboarding/business-categories
+        // Wise's industryCategories values
         INDUSTRY_CATEGORIES: [
             'GROWING_OF_CROPS_AGRICULTURE',
             'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',

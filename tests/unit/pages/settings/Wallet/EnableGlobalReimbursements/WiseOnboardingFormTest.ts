@@ -29,7 +29,7 @@ describe('WiseOnboardingForm', () => {
     });
 
     it('adds a page for each requirement the server asks us to pre-collect, in order', () => {
-        // Given a US business the server flagged as high risk, so it lists the two source-of-wealth requirements for pre-collection
+        // Given a US business the server asked for enhanced due diligence, so it lists the two source-of-wealth requirements
         const preCollected = [
             {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', state: 'NOT_PROVIDED', hostedOnly: false, requestedBy: 'EXPENSIFY'},
             {key: 'BUSINESS_SOURCE_OF_WEALTH_PROOF', state: 'NOT_PROVIDED', hostedOnly: false, requestedBy: 'EXPENSIFY'},

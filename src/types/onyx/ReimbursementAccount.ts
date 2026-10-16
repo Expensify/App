@@ -290,7 +290,6 @@ type WiseBusinessOnboarding = {
 
     /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The intake collects the ones below before Submit so Wise does not ask for them after; Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
     requirements?: {
-        /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
             businessSourceOfWealthInfo: string;
         };
