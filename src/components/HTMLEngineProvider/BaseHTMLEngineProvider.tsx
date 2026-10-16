@@ -90,6 +90,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             },
             contentModel: HTMLContentModel.block,
         }),
+        gbr: HTMLElementModel.fromCustomModel({
+            tagName: 'gbr',
+            getMixedUAStyles: (tnode) => {
+                if (tnode.attributes.issmall === undefined) {
+                    return {...styles.formError, ...styles.mb0, ...styles.badgeSuccessText};
+                }
+                return {...styles.formError, ...styles.mb0, ...styles.textMicro, ...styles.badgeSuccessText};
+            },
+            contentModel: HTMLContentModel.block,
+        }),
         'muted-link': HTMLElementModel.fromCustomModel({
             tagName: 'muted-link',
             mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},

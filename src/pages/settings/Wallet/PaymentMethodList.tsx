@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -66,6 +66,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
+import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
@@ -219,6 +220,7 @@ function PaymentMethodList({
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
     });
+    const [cardOnWaitlistPolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST, {selector: cardOnWaitlistPolicyIDsSelector});
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
@@ -232,9 +234,11 @@ function PaymentMethodList({
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         isPendingDelete = false,
+        onPlaidPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
+        statusBadgeTone: status.badgeTone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
@@ -243,6 +247,10 @@ function PaymentMethodList({
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
+                return;
+            }
+            if (onPlaidPress) {
+                onPlaidPress();
                 return;
             }
             onActionPress(undefined);
@@ -601,11 +609,12 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const canBankAccountLinkPlaid = canLinkPlaid(paymentMethod, cardOnWaitlistPolicyIDs);
             // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
             const bankConnectionStatus =
-                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
+                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData, bankAccountCurrency, canBankAccountLinkPlaid) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
@@ -618,6 +627,11 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
+            const methodID = paymentMethod.methodID;
+            const onPlaidPress =
+                bankConnectionStatus?.requiresPlaidHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
+                    : undefined;
 
             return {
                 ...paymentMethod,
@@ -637,6 +651,7 @@ function PaymentMethodList({
                           paymentMethodPress,
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          onPlaidPress,
                       )
                     : undefined,
             };
