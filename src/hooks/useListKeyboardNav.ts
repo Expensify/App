@@ -7,12 +7,6 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
 
-type FocusableContainer = {
-    addEventListener: HTMLElement['addEventListener'];
-    removeEventListener: HTMLElement['removeEventListener'];
-    contains: HTMLElement['contains'];
-};
-
 type UseListKeyboardNavConfig<T extends ComponentRef<typeof View> | HTMLElement> = {
     isActive: boolean;
     itemKeys: string[];
@@ -50,15 +44,15 @@ function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({
         if (!isActive) {
             return;
         }
-        const container = containerRef.current as FocusableContainer | null;
-        if (!container?.addEventListener) {
+        const container = containerRef.current;
+        if (!container || !('addEventListener' in container)) {
             return;
         }
         const handleFocusIn = (event: FocusEvent) => {
             setHasBeenFocused(true);
             setHasFocus(true);
-            const target = event.target as HTMLElement | null;
-            if (target?.id) {
+            const target = event.target;
+            if (target instanceof Element && target.id) {
                 const index = itemKeysRef.current.indexOf(target.id);
                 if (index >= 0) {
                     setFocusedIndex(index);
