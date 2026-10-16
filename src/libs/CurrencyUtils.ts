@@ -96,6 +96,22 @@ function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: st
 }
 
 /**
+ * Whether the localized currency format inserts a space between the symbol and the amount
+ * (for example "CZK 100.00"). Inline editors render the symbol separately, so they pad it
+ * to match the preview and the value does not jump when edit mode opens.
+ * See https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
+ */
+function hasSpaceBetweenSymbolAndAmount(locale: Locale | undefined, currencyCode: string): boolean {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    return formatToParts(locale, 0, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
+        maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
+    }).some((part) => part.type === 'literal' && part.value.trim() === '');
+}
+
+/**
  * Takes an amount as a floating point number and converts it to an integer equivalent to the amount in "cents".
  * This is because the backend always stores amounts in "cents". The backend works in integer cents to avoid precision errors
  * when doing math operations.
@@ -233,6 +249,7 @@ export {
     resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
     getLocalizedCurrencySymbol,
+    hasSpaceBetweenSymbolAndAmount,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
