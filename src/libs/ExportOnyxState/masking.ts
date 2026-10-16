@@ -166,6 +166,13 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['accountID', 'bank', 'isVirtual', 'cardID'],
         maskList: ['lastFourPAN', 'nameOnCard'],
     },
+    // A parked edit holds the comment the author typed and the message it replaces. maskFragileData only blanks
+    // `text` and `html` under a reportActions key, so without a rule both would be exported verbatim, and a rule
+    // also covers the export taken with fragile-data masking turned off.
+    [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
+        allowList: ['reportID', 'currentUserAccountID', 'isOriginalReportArchived'],
+        maskList: ['textForNewComment', 'currentUserLogin', 'html', 'text'],
+    },
 };
 
 // ============================================================
