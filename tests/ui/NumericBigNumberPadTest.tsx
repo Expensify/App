@@ -634,6 +634,37 @@ describe('NumericInput number pad', () => {
         focusSpy.mockRestore();
     });
 
+    it('does not re-focus the input when the number pad gap area is clicked while input is already focused', async () => {
+        // Given an already focused input with a selection, above the number pad
+        const inputRef = React.createRef<BaseTextInputRef>();
+        renderInputWithPad({value: '1234'}, inputRef);
+        await waitForBatchedUpdatesWithAct();
+
+        const input = screen.getByTestId(INPUT_TEST_ID);
+        fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
+        await waitForBatchedUpdatesWithAct();
+
+        const inputElement = inputRef.current;
+        if (!inputElement) {
+            throw new Error('Numeric input ref was not assigned');
+        }
+        const isFocusedSpy = jest.spyOn(inputElement, 'isFocused').mockReturnValue(true);
+        const focusSpy = jest.spyOn(inputElement, 'focus');
+
+        // When clicking the empty area between the keys while the input is already focused
+        const preventDefault = jest.fn();
+        fireEvent(screen.getByTestId(PAD_TEST_ID), 'mouseDown', {nativeEvent: {target: document.createElement('div')}, preventDefault, isDefaultPrevented: () => false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then focus is not called again, though selection is still collapsed
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+        expect(input.props.selection).toEqual({start: 2, end: 2});
+        expect(focusSpy).not.toHaveBeenCalled();
+
+        isFocusedSpy.mockRestore();
+        focusSpy.mockRestore();
+    });
+
     it('ignores mousedown events from keypad buttons to preserve selection on web', async () => {
         // Given an input with a selection, above the number pad
         renderInputWithPad({value: '1234'});
