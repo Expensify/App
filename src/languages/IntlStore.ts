@@ -43,6 +43,11 @@ class IntlStore {
     private static currentLocale: Locale | undefined = undefined;
 
     /**
+     * Listeners notified whenever `currentLocale` changes
+     */
+    private static listeners = new Set<() => void>();
+
+    /**
      * Cache for translations
      */
     private static cache = new Map<Locale, FlatTranslationsObject>();
@@ -220,6 +225,16 @@ class IntlStore {
     }
 
     /**
+     * Subscribes to `currentLocale` changes. Returns an unsubscribe function, so it can be passed to `useSyncExternalStore`.
+     */
+    public static subscribe(listener: () => void) {
+        IntlStore.listeners.add(listener);
+        return () => {
+            IntlStore.listeners.delete(listener);
+        };
+    }
+
+    /**
      * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
      *
      * Callers pass the locale they are rendering with so that a formatted date re-renders when the user switches
@@ -256,6 +271,9 @@ class IntlStore {
                 const dateUtilsLocale = this.dateUtilsCache.get(locale);
                 if (dateUtilsLocale) {
                     setDefaultOptions({locale: dateUtilsLocale});
+                }
+                for (const listener of this.listeners) {
+                    listener();
                 }
                 setAreTranslationsLoading(false);
 
