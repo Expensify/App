@@ -3252,9 +3252,13 @@ describe('ReportActionsUtils', () => {
                 message: [],
             });
 
+            // When checking whether the action is deleted and whether it is visible
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true);
+
             // Then it is not treated as deleted and is shown in the report
-            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
-            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
         });
 
         it('should return false if the action is a hold or unhold action', () => {
