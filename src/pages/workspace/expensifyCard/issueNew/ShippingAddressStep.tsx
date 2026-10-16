@@ -158,7 +158,12 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                 inputID={INPUT_IDS.SHIPPING_ADDRESS_OPTION}
                                 label={translate('workspace.card.issueNewCard.enterShippingAddress')}
                                 defaultValue={defaultOption}
-                                onValueChange={(value) => setSelectedOption(String(value))}
+                                onValueChange={(value) => {
+                                    if (typeof value !== 'string') {
+                                        return;
+                                    }
+                                    setSelectedOption(value);
+                                }}
                                 items={[
                                     {
                                         value: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER,
