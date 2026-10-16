@@ -1456,6 +1456,7 @@ function updateMoneyRequestDescription({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    policyVendors,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
@@ -1469,6 +1470,7 @@ function updateMoneyRequestDescription({
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -1511,6 +1513,7 @@ function updateMoneyRequestDescription({
             policyTagList,
             reportPolicyTags,
             policyCategories,
+            policyVendors,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
@@ -1830,6 +1833,7 @@ type GetUpdateMoneyRequestParamsType = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1883,6 +1887,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         getCurrencySymbol,
         rules,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2407,6 +2412,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isFromExpenseReport,
             distanceOriginalPolicy,
             isVendorMatchingBetaEnabled,
+            policyVendors: policyVendorsParam,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
