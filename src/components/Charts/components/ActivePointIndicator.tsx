@@ -84,19 +84,22 @@ function ActivePointIndicator({x, activeIndex, dots, isActive, top, bottom, dotR
                 strokeWidth={GUIDELINE_WIDTH}
                 strokeCap="round"
             />
-            {dots.map(({color, yPositions}, index) => (
-                <SeriesDot
-                    // eslint-disable-next-line react/no-array-index-key -- a dot's index is the series it belongs to
-                    key={index}
-                    x={x}
-                    activeIndex={activeIndex}
-                    yPositions={yPositions}
-                    color={color}
-                    dotRadius={dotRadius}
-                    isHollow={index === 0 ? isHollow : undefined}
-                    hollowColor={hollowColor}
-                />
-            ))}
+            {/* Drawn last, the first series' dot sits on top of the others, like its line */}
+            {dots
+                .map(({color, yPositions}, index) => (
+                    <SeriesDot
+                        // eslint-disable-next-line react/no-array-index-key -- a dot's index is the series it belongs to
+                        key={index}
+                        x={x}
+                        activeIndex={activeIndex}
+                        yPositions={yPositions}
+                        color={color}
+                        dotRadius={dotRadius}
+                        isHollow={index === 0 ? isHollow : undefined}
+                        hollowColor={hollowColor}
+                    />
+                ))
+                .reverse()}
         </Group>
     );
 }

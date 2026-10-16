@@ -264,7 +264,8 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     baselineY={chartBoundsBottom}
                     color={primarySeriesColor}
                 />
-                {series.map((seriesItem) => {
+                {/* Drawn last, the primary line sits on top of the compared one */}
+                {[...series].reverse().map((seriesItem) => {
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
                     return (
                         <React.Fragment key={seriesItem.key}>
