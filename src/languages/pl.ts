@@ -9198,6 +9198,35 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 label: 'Konto karty firmowej',
                 description: 'Wybierz, dokąd eksportować transakcje kartą firmową.',
             },
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program z niestandardowym kontem`;
+                    }
+                    return `${customAccountsCount} programy z niestandardowymi kontami`;
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} karta z niestandardowym kontem`;
+                    }
+                    return `${customAccountsCount} karty z niestandardowymi kontami`;
+                },
+            },
             paymentMethod: {
                 label: 'Metoda płatności',
                 description: 'Wybierz metodę płatności dla faktur zakupu, aby Dynamics 365 Business Central mógł uzgodnić je z Twoim bankiem.',

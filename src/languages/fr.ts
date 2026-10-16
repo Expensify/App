@@ -9288,6 +9288,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 label: 'Compte de carte d’entreprise',
                 description: 'Choisissez où exporter les transactions de carte d’entreprise.',
             },
+            exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte du programme de carte',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec un compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
+            },
             paymentMethod: {
                 label: 'Mode de règlement',
                 description: 'Choisissez un mode de règlement pour les factures d’achat afin que Dynamics 365 Business Central puisse les rapprocher de votre banque.',

@@ -4176,6 +4176,8 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {
@@ -5750,6 +5752,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -5812,6 +5819,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
