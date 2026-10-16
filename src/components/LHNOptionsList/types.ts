@@ -1,7 +1,6 @@
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
-import type {ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
@@ -37,9 +36,6 @@ type OptionRowLHNDataProps = {
 
     fullReport: OnyxEntry<Report>;
     reportID: string;
-
-    /** Names of all reports, for the alternate text of rows whose last action points at another report */
-    reportNames: ReportNamesDerivedValue | undefined;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;

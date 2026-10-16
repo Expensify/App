@@ -2,7 +2,6 @@ import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/us
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,14 +11,12 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 
 import {useRoute} from '@react-navigation/native';
-import {reportNamesSelector} from '@selectors/ReportAttributes';
 import {FlashList} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -39,8 +36,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
-    const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportNamesSelector});
-
     const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -72,7 +67,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={item.reportID}
                     fullReport={item}
-                    reportNames={reportNames}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
@@ -81,7 +75,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 />
             );
         },
-        [reportNames, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
+        [optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
     );
 
     const extraData = useMemo(() => [data.length, optionMode, isOffline], [data.length, optionMode, isOffline]);

@@ -19,16 +19,16 @@ const reportNameSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>,
 
 const reportIsEmptySelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.isEmpty : undefined);
 
-const reportNamesSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>): ReportNamesDerivedValue | undefined => {
-    if (!attributes?.reports) {
-        return undefined;
-    }
+const reportNamesByIDsSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportIDs: Array<string | undefined>): ReportNamesDerivedValue => {
     const reportNames: ReportNamesDerivedValue = {};
-    for (const [reportID, reportAttributes] of Object.entries(attributes.reports)) {
-        reportNames[reportID] = {reportName: reportAttributes.reportName};
+    for (const reportID of reportIDs) {
+        const reportName = reportNameSelector(attributes, reportID);
+        if (reportID && reportName !== undefined) {
+            reportNames[reportID] = {reportName};
+        }
     }
     return reportNames;
 };
 
-export {reportNameSelector, reportIsEmptySelector, reportNamesSelector};
+export {reportNameSelector, reportIsEmptySelector, reportNamesByIDsSelector};
 export default reportByIDsSelector;

@@ -1,5 +1,4 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -8,29 +7,39 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import {useReportAttributesByID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    getIOUReportIDFromReportActionPreview,
+    getLastVisibleActionIncludingTransactionThread,
+    getOriginalMessage,
+    isActionableTrackExpense,
+    isInviteOrRemovedAction,
+} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTransactionReportIDs, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {PersonalDetailsList, Report, ReportActions as ReportActionsType} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {reportNamesByIDsSelector} from '@selectors/ReportAttributes';
 import React, {useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import OptionRowLHN from './OptionRowLHN';
+
+const EMPTY_PERSONAL_DETAILS: PersonalDetailsList = {};
 
 /*
  * This component gets the data from onyx for the actual
@@ -42,14 +51,13 @@ function invoiceReceiverPolicyIDSelector(report: OnyxEntry<Report>): string | un
     return report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
 }
 
-function OptionRowLHNData({isOptionFocused = false, fullReport, reportNames, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
+function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
 
     const reportAttributes = useReportAttributesByID(reportID);
     const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
@@ -133,6 +141,22 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, reportNames, vie
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+    const {fromReportID: movedFromReportID, displayReportID: movedDisplayReportID} = lastAction
+        ? parseMovedTransactionReportIDs(lastAction)
+        : {fromReportID: undefined, displayReportID: undefined};
+    const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, movedFromReportID, movedDisplayReportID, getIOUReportIDFromReportActionPreview(lastAction)];
+    const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNamesByIDsSelector(attributes, reportNameIDs),
+    });
+
+    const [personalDetails] = usePersonalDetailsByIDs([
+        ...Object.keys(fullReport?.participants ?? {}).map(Number),
+        fullReport?.ownerAccountID,
+        fullReport?.managerID,
+        fullReport?.lastActorAccountID,
+        lastAction?.actorAccountID,
+        currentUserAccountID,
+    ]);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -157,7 +181,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, reportNames, vie
         reportAttributes,
         oneTransactionThreadReport,
         reportNameValuePairs,
-        personalDetails: personalDetails ?? {},
+        personalDetails: personalDetails ?? EMPTY_PERSONAL_DETAILS,
         policy,
         parentReportAction,
         conciergeReportID,
