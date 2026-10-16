@@ -1,7 +1,7 @@
 ---
 title: How to Use Insights in Expensify
 description: Learn how to use Insights to analyze spending trends and make data-driven financial decisions in New Expensify.
-keywords: [New Expensify, Insights, spending analysis, expense reports, analytics, Top Spenders, Top Categories, Top Merchants, Spend over time, financial insights, budget analysis, expense trends]
+keywords: [New Expensify, Insights, spending analysis, expense reports, analytics, Top Spenders, Top Categories, Top Merchants, Spend over time, Violations by submitter, Violations by approver, financial insights, budget analysis, expense trends]
 internalScope: Audience is all workspace members. Covers how Insights reports work, how to access them, available report types, grouping logic, view modes, exporting data, and customization. Does not cover troubleshooting individual reports.
 ---
 
@@ -103,6 +103,20 @@ You can use Violations by submitter to:
 
 ---
 
+## How to use Violations by approver
+
+Violations by approver shows which approvers approved the most expenses that still had violations in the previous calendar month. It’s available to Workspace Admins and Auditors on Control workspaces that have Rules and Approvals enabled.
+
+You can use Violations by approver to:
+
+- See which approvers are letting rule violations through
+- Check whether violations are being caught during approval
+- Prioritize guidance or tighter oversight for specific approvers
+
+[Learn more about the Violations by approver report](https://help.expensify.com/articles/new-expensify/insights/View-the-Violations-by-approver-report)
+
+---
+
 ## How Insights work
 
 Each Insight is powered by Expensify's search query engine using grouping filters and operators to: 
@@ -185,6 +199,7 @@ This is helpful for external reporting or sharing detailed data with finance tea
 Insights use grouping operators to summarize expenses. These include:
 
 - **group-by:from** - Group by employee (who submitted)
+- **group-by:violation-approver** - Group expenses with approved violations by the approver who approved them
 - **group-by:category** - Group by expense category
 - **group-by:merchant** - Group by merchant or vendor
 - **group-by:tag** - Group by expense tags
