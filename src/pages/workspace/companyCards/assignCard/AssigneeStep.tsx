@@ -134,7 +134,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
                 // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
-                // chosen date. In a fresh flow `useAssignCard` seeds FROM_BEGINNING for CSV feeds; for other feeds
+                // chosen date. In a fresh flow `useAssignCard` seeds FROM_BEGINNING for CSV feeds. For other feeds
                 // `startDate`/`dateOption` are undefined, so both helpers fall back to today/CUSTOM.
                 cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
                 cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
