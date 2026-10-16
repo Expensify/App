@@ -4,7 +4,7 @@ import useTransactionSelector from '@components/MoneyRequestConfirmationList/sec
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
-import {getCompanyCardFeed} from '@libs/CardUtils';
+import {getFeedSettingsFromCardFeeds} from '@libs/CardFeedUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
@@ -84,7 +84,7 @@ function useFooterDerivedFlags({
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
     const [cardFeedsForTransactionCard] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${getNonEmptyStringOnyxID(transactionCard?.fundID)}`);
-    const transactionCardFeedSettings = transactionCard ? cardFeedsForTransactionCard?.settings?.companyCards?.[getCompanyCardFeed(transactionCard.bank)] : undefined;
+    const transactionCardFeedSettings = getFeedSettingsFromCardFeeds(cardFeedsForTransactionCard, transactionCard);
 
     // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
