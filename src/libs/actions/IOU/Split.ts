@@ -2368,10 +2368,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 waypoints: validWaypoints,
                 distance: effectiveDistance,
                 routeDistanceMeters: selectedRouteDistance,
-                inserted: DateUtils.getDBTime(),
+                inserted: created ?? DateUtils.getDBTime(),
             },
             reusableDistanceRoutes ?? [],
-            getAllTransactions(),
         );
         onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
         onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);

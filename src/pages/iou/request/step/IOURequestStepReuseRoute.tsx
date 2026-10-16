@@ -23,7 +23,7 @@ import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getAvailableReusableDistanceRoutes, getRouteEndpoints, getRouteKey} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getAvailableReusableDistanceRoutes, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -179,7 +179,7 @@ function IOURequestStepReuseRoute({
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,
         text: getRouteEndpoints(route).start,
-        keyForList: getRouteKey(route) || route.transactionID,
+        keyForList: route.transactionID,
         shouldHideSelectionButton: true,
     }));
 

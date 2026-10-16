@@ -2,8 +2,7 @@ import type {ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {WaypointCollection} from '../../src/types/onyx/Transaction';
 
 import CONST from '../../src/CONST';
-import {getLocallyCreatedRouteOnyxData} from '../../src/libs/actions/ReusableDistanceRoutes';
-import {filterRoutes, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteKey, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
@@ -71,61 +70,6 @@ describe('ReusableDistanceRoutesUtils', () => {
         });
     });
 
-    describe('getRouteKey', () => {
-        it('generates a stable key based on rounded coordinates', () => {
-            // Given two routes with identical waypoints but different transaction IDs
-            const route1 = createRoute('1', ['A', 'B']);
-            const route2 = createRoute('2', ['A', 'B']);
-
-            // When getting the route key for both routes
-            const key1 = getRouteKey(route1);
-            const key2 = getRouteKey(route2);
-
-            // Then both keys should match despite differing transaction IDs
-            expect(key1).toBe(key2);
-        });
-
-        it('matches keys when coordinates are strings versus numbers', () => {
-            // Given a route with numeric coordinates and another with string coordinates
-            const routeNumeric = createRoute('1', ['A', 'B']);
-            const routeString = {
-                ...routeNumeric,
-                transactionID: '2',
-                waypoints: {
-                    waypoint0: {...routeNumeric.waypoints.waypoint0, lat: '37.7', lng: '-122.4'},
-                    waypoint1: {...routeNumeric.waypoints.waypoint1, lat: '38.7', lng: '-123.4'},
-                },
-            };
-
-            // When getting route keys for both
-            const numericKey = getRouteKey(routeNumeric);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture verifies string coordinate runtime handling
-            const stringKey = getRouteKey(routeString as unknown as ReusableDistanceRoute);
-
-            // Then both keys match
-            expect(stringKey).toBe(numericKey);
-        });
-
-        it('falls back to address when coordinates are missing', () => {
-            // Given a route whose waypoints lack lat/lng coordinates
-            const route: ReusableDistanceRoute = {
-                transactionID: '1',
-                distance: 5,
-                inserted: '2026-09-01 12:00:00',
-                waypoints: {
-                    waypoint0: {address: 'Start Address'},
-                    waypoint1: {address: 'End Address'},
-                },
-            };
-
-            // When generating the route key
-            const key = getRouteKey(route);
-
-            // Then the key uses the waypoint addresses
-            expect(key).toBe('Start Address;End Address');
-        });
-    });
-
     describe('getRouteThumbnailSource', () => {
         it('appends 1024.jpg suffix for image receipts', () => {
             // Given an image receipt URL
@@ -149,30 +93,30 @@ describe('ReusableDistanceRoutesUtils', () => {
             reportID: '1',
         };
 
-        it('excludes routes whose source transaction is pending creation without a receipt when online', () => {
-            // Given a newly created route whose transaction is still pending creation without a server receipt
+        it('excludes routes whose source transaction has pending distance receipt regeneration when online', () => {
+            // Given a newly created route whose transaction has pending waypoints while online
             const route = createRoute('tx-1', ['A', 'B']);
             const transactions: Record<string, Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
                     ...baseTransaction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
             };
 
             // When resolving available routes while online
             const available = getAvailableReusableDistanceRoutes([route], transactions, false);
 
-            // Then the pending route is excluded until creation completes
+            // Then the pending route is excluded until the server generates the map image
             expect(available).toEqual([]);
         });
 
-        it('includes routes whose source transaction is pending creation when offline', () => {
+        it('includes routes whose source transaction has pending distance receipt regeneration when offline', () => {
             // Given a newly created route while offline
             const route = createRoute('tx-1', ['A', 'B']);
             const transactions: Record<string, Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
                     ...baseTransaction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
             };
 
@@ -183,72 +127,18 @@ describe('ReusableDistanceRoutesUtils', () => {
             expect(available).toEqual([route]);
         });
 
-        it('populates receiptSource from the created transaction when missing on the route', () => {
-            // Given a locally created route whose transaction has completed creation and received its receipt URL
+        it('includes routes whose source transaction has completed distance receipt generation when online', () => {
+            // Given a route whose transaction has no pending distance receipt regeneration
             const route = createRoute('tx-1', ['A', 'B']);
-            const receiptUrl = 'https://expensify.com/receipts/w_created.pdf';
             const transactions: Record<string, Transaction> = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
-                    ...baseTransaction,
-                    receipt: {source: receiptUrl},
-                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: baseTransaction,
             };
 
-            // When resolving available routes
+            // When resolving available routes while online
             const available = getAvailableReusableDistanceRoutes([route], transactions, false);
 
-            // Then the route receives the transaction receiptSource
-            expect(available).toEqual([{...route, receiptSource: receiptUrl}]);
-        });
-    });
-
-    describe('getLocallyCreatedRouteOnyxData', () => {
-        it('deduplicates routes by route key and preserves existing receiptSource', () => {
-            // Given an existing route with a receiptSource and a newly reused route with the same waypoints
-            const existingRoute: ReusableDistanceRoute = {
-                ...createRoute('tx-old', ['A', 'B']),
-                receiptSource: 'https://expensify.com/receipts/w_old.pdf',
-            };
-            const newRoute = createRoute('tx-new', ['A', 'B']);
-
-            // When building optimistic Onyx data for the locally created route
-            const {optimisticData} = getLocallyCreatedRouteOnyxData(newRoute, [existingRoute]);
-
-            // Then the list is deduplicated and preserves the existing receiptSource
-            expect(optimisticData.at(0)?.value).toEqual([
-                {
-                    ...newRoute,
-                    receiptSource: 'https://expensify.com/receipts/w_old.pdf',
-                },
-            ]);
-        });
-
-        it('falls back to the existing transaction receipt source when missing on the existing route entry', () => {
-            // Given an existing locally created route whose receiptSource is stored on its transaction in Onyx
-            const existingRoute = createRoute('tx-old', ['A', 'B']);
-            const newRoute = createRoute('tx-new', ['A', 'B']);
-            const transactions: Record<string, Transaction> = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-old`]: {
-                    transactionID: 'tx-old',
-                    amount: 100,
-                    created: '2026-09-01',
-                    currency: CONST.CURRENCY.USD,
-                    merchant: 'Test Merchant',
-                    reportID: '1',
-                    receipt: {source: 'https://expensify.com/receipts/w_from_tx.pdf'},
-                },
-            };
-
-            // When building optimistic Onyx data for the newly reused route
-            const {optimisticData} = getLocallyCreatedRouteOnyxData(newRoute, [existingRoute], transactions);
-
-            // Then the new route preserves the receiptSource from the previous transaction
-            expect(optimisticData.at(0)?.value).toEqual([
-                {
-                    ...newRoute,
-                    receiptSource: 'https://expensify.com/receipts/w_from_tx.pdf',
-                },
-            ]);
+            // Then the route is included
+            expect(available).toEqual([route]);
         });
     });
 });

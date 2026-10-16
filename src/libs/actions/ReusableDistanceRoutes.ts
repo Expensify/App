@@ -2,15 +2,15 @@ import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getRouteKey, normalizeRouteWaypoints} from '@libs/ReusableDistanceRoutesUtils';
+import {normalizeRouteWaypoints} from '@libs/ReusableDistanceRoutesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
+import type {ReusableDistanceRoute} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -23,17 +23,11 @@ import {updateWaypoints} from './Transaction';
 function getLocallyCreatedRouteOnyxData(
     route: ReusableDistanceRoute,
     currentRoutes: ReusableDistanceRoute[],
-    transactions?: OnyxCollection<Transaction>,
 ): {
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
 } {
-    const routeKey = getRouteKey(route);
-    const existingRoute = currentRoutes.find((item) => item.transactionID === route.transactionID || (!!routeKey && getRouteKey(item) === routeKey));
-    const existingTransactionReceipt = existingRoute ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingRoute.transactionID}`]?.receipt?.source : undefined;
-    const existingReceiptSource = existingRoute?.receiptSource ?? (typeof existingTransactionReceipt === 'string' ? existingTransactionReceipt : undefined);
-    const nextRoute: ReusableDistanceRoute = existingReceiptSource && !route.receiptSource ? {...route, receiptSource: existingReceiptSource} : route;
-    const updatedRoutes = [nextRoute, ...currentRoutes.filter((item) => item.transactionID !== route.transactionID && (!routeKey || getRouteKey(item) !== routeKey))];
+    const updatedRoutes = [route, ...currentRoutes.filter((item) => item.transactionID !== route.transactionID)];
     return {
         optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: updatedRoutes}],
         failureData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: currentRoutes}],

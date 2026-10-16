@@ -7,7 +7,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getWaypointIndex} from './TransactionUtils';
+import {getWaypointIndex, hasPendingDistanceReceiptRegeneration} from './TransactionUtils';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 
 /**
@@ -61,46 +61,15 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
- * Generates a stable key for a route based on its ordered waypoint coordinates or addresses.
- */
-function getRouteKey(route: ReusableDistanceRoute): string {
-    const orderedWaypoints = getOrderedWaypoints(route);
-    return orderedWaypoints
-        .map((waypoint) => {
-            const lat = typeof waypoint.lat === 'number' ? waypoint.lat : Number(waypoint.lat);
-            const lng = typeof waypoint.lng === 'number' ? waypoint.lng : Number(waypoint.lng);
-            if (waypoint.lat != null && waypoint.lng != null && Number.isFinite(lat) && Number.isFinite(lng)) {
-                return `${Math.round(lat * 1e5)},${Math.round(lng * 1e5)}`;
-            }
-            return waypoint.address ?? '';
-        })
-        .join(';');
-}
-
-/**
- * Resolves the available reusable routes. When online, excludes routes whose source transaction is
- * still pending creation without a generated map receipt image.
+ * Resolves the reusable routes that can be shown. While online, routes whose source expense still has a pending map
+ * receipt (just created, or its waypoints/distance edited) are left out until the server generates the new map image,
+ * the same check the report preview uses before loading a distance receipt.
  */
 function getAvailableReusableDistanceRoutes(routes: ReusableDistanceRoute[] | undefined, transactions: OnyxCollection<Transaction> | undefined, isOffline: boolean): ReusableDistanceRoute[] {
-    if (!routes?.length) {
-        return [];
+    if (!routes?.length || isOffline) {
+        return routes ?? [];
     }
-
-    const availableRoutes: ReusableDistanceRoute[] = [];
-    for (const route of routes) {
-        const sourceTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`];
-        const transactionReceiptSource = typeof sourceTransaction?.receipt?.source === 'string' ? sourceTransaction.receipt.source : undefined;
-        const receiptSource = route.receiptSource ?? transactionReceiptSource;
-        const isPendingCreation = sourceTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
-        if (!isOffline && isPendingCreation && !receiptSource) {
-            continue;
-        }
-
-        availableRoutes.push(receiptSource && !route.receiptSource ? {...route, receiptSource} : route);
-    }
-
-    return availableRoutes;
+    return routes.filter((route) => !hasPendingDistanceReceiptRegeneration(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`]));
 }
 
 /**
@@ -117,4 +86,4 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, normalizeRouteWaypoints};
+export {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource, normalizeRouteWaypoints};
