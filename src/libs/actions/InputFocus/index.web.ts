@@ -1,3 +1,5 @@
+import type {ComposerRef} from '@components/Composer/types';
+
 import * as Browser from '@libs/Browser';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -11,10 +13,14 @@ function inputFocusChange(focus: boolean) {
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
 }
 
-let refSave: HTMLElement | undefined;
-function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
+let refSave: Pick<ComposerRef, 'focus'> | null | undefined;
+function composerFocusKeepFocusOn(ref: Pick<ComposerRef, 'focus'> | null, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
+        // Preserve the failed focus invocation after Onyx records focus.
+        if (ref === null) {
+            throw new TypeError("Cannot read properties of null (reading 'focus')");
+        }
         ref.focus();
     }
     if (isFocused) {

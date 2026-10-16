@@ -55,7 +55,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {Ref, RefObject} from 'react';
-import type {BlurEvent, HostInstance, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
@@ -82,7 +82,11 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsRef = ComposerRef & {
+type ComposerWithSuggestionsRef = Pick<ComposerRef, 'clear' | 'blur' | 'isFocused'> & {
+    readonly setSelection: ComposerRef['setSelection'];
+    readonly setNativeProps: ComposerRef['setNativeProps'];
+    readonly preventFocusOnFirstResponderOnce: ComposerRef['preventFocusOnFirstResponderOnce'];
+    readonly scrollTop: number | undefined;
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
     replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
@@ -109,7 +113,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         onValueChange: (value: string) => void;
 
         /** Callback when the composer got cleared on the UI thread */
-        onClear?: (text: string) => void;
+        onClear?: (text: string | undefined) => void;
 
         isComposerFullSize: boolean;
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
@@ -384,7 +388,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<HostInstance>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
     /**
      * Set the TextInput Ref
      */
@@ -953,37 +957,73 @@ function ComposerWithSuggestions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useImperativeHandle(
-        ref,
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: (_target, prop) => {
-                        if (prop === 'focus') {
-                            return focus;
-                        }
-                        if (prop === 'replaceSelectionWithText') {
-                            return replaceSelectionWithText;
-                        }
-                        if (prop === 'getCurrentText') {
-                            return getCurrentText;
-                        }
-                        if (prop === 'clearWorklet') {
-                            return clearWorklet;
-                        }
-                        if (prop === 'resetHeight') {
-                            return resetHeight;
-                        }
-
-                        return composerRef.current?.[prop as keyof ComposerRef];
-                    },
+    useImperativeHandle(ref, (): ComposerWithSuggestionsRef => {
+        const handle: ComposerWithSuggestionsRef = {
+            focus,
+            replaceSelectionWithText,
+            getCurrentText,
+            clearWorklet,
+            resetHeight,
+            clear: () => {
+                if (!composerRef.current) {
+                    throw new TypeError('Composer ref is not available');
+                }
+                composerRef.current.clear();
+            },
+            blur: () => {
+                if (!composerRef.current) {
+                    throw new TypeError('Composer ref is not available');
+                }
+                composerRef.current.blur();
+            },
+            isFocused: () => {
+                if (!composerRef.current) {
+                    throw new TypeError('Composer ref is not available');
+                }
+                return composerRef.current.isFocused();
+            },
+            setSelection: undefined,
+            setNativeProps: undefined,
+            preventFocusOnFirstResponderOnce: undefined,
+            scrollTop: undefined,
+        };
+        // Property descriptors support both compilers while getters read the current inner ref.
+        Object.defineProperties(handle, {
+            setSelection: {
+                enumerable: true,
+                configurable: true,
+                get: (): ComposerWithSuggestionsRef['setSelection'] => {
+                    return composerRef.current?.setSelection;
                 },
-            ) as ComposerWithSuggestionsRef,
-    );
+            },
+            setNativeProps: {
+                enumerable: true,
+                configurable: true,
+                get: (): ComposerWithSuggestionsRef['setNativeProps'] => {
+                    return composerRef.current?.setNativeProps;
+                },
+            },
+            preventFocusOnFirstResponderOnce: {
+                enumerable: true,
+                configurable: true,
+                get: (): ComposerWithSuggestionsRef['preventFocusOnFirstResponderOnce'] => {
+                    return composerRef.current?.preventFocusOnFirstResponderOnce;
+                },
+            },
+            scrollTop: {
+                enumerable: true,
+                configurable: true,
+                get: (): ComposerWithSuggestionsRef['scrollTop'] => {
+                    const input = composerRef.current;
+                    return input && 'scrollTop' in input ? input.scrollTop : undefined;
+                },
+            },
+        });
+        return handle;
+    });
 
     const onClear = useCallback(
-        (textOnClear: string) => {
+        (textOnClear: string | undefined) => {
             resetScrollPosition();
             // Note: use the value when the clear happened, not the current value which might have changed already
             onClearProp(textOnClear);

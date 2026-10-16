@@ -55,13 +55,17 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const paste = useCallback(
         (text: string) => {
             try {
-                const textInputHTMLElement = textInputRef.current as HTMLElement;
-                if (textInputHTMLElement?.hasAttribute('contenteditable')) {
+                const textInputHTMLElement = textInputRef.current;
+                if (!(textInputHTMLElement instanceof HTMLElement)) {
+                    return;
+                }
+                if (textInputHTMLElement.hasAttribute('contenteditable')) {
                     insertAtCaret(textInputHTMLElement, text, maxLength);
+                } else if (textInputHTMLElement instanceof HTMLInputElement || textInputHTMLElement instanceof HTMLTextAreaElement) {
+                    const availableLength = maxLength - (textInputHTMLElement.value?.length ?? 0);
+                    textInputHTMLElement.setRangeText(text.slice(0, availableLength));
                 } else {
-                    const htmlInput = textInputRef.current as unknown as HTMLInputElement;
-                    const availableLength = maxLength - (htmlInput.value?.length ?? 0);
-                    htmlInput.setRangeText(text.slice(0, availableLength));
+                    return;
                 }
 
                 requestAnimationFrame(() => {
