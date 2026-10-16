@@ -85,6 +85,21 @@ describe('SplitListItem', () => {
         expect(screen.queryAllByLabelText('Edit')).toHaveLength(expectedCount);
     });
 
+    it('keeps the edit button when only the amount is locked', async () => {
+        render(
+            <LocaleContextProvider>
+                <SplitListItem
+                    item={{...createSplitItem('Travel'), isAmountEditable: false}}
+                    showTooltip={false}
+                    onSelectRow={jest.fn()}
+                />
+            </LocaleContextProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(screen.queryAllByLabelText('Edit')).toHaveLength(1);
+    });
+
     it('selects the row when the edit button is pressed', async () => {
         const onSelectRow = jest.fn();
         const item = createSplitItem('Travel');

@@ -27,6 +27,9 @@ type SplitSaveErrorParams = {
     isCard: boolean;
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+
+    /** The distance splits calculated with a $0 rate, which are always $0 */
+    zeroRateSplitTransactionIDs?: Set<string>;
 };
 
 /**
@@ -84,7 +87,17 @@ function computeSplitWarningMessage({splitExpenses, transactionDetailsAmount, cu
  *
  * Returns an empty string when there is no amount-based error.
  */
-function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, currency, isDistance, isPerDiem, isCard, translate, convertToDisplayString}: SplitSaveErrorParams): string {
+function computeSplitSaveErrorMessage({
+    splitExpenses,
+    transactionDetailsAmount,
+    currency,
+    isDistance,
+    isPerDiem,
+    isCard,
+    translate,
+    convertToDisplayString,
+    zeroRateSplitTransactionIDs,
+}: SplitSaveErrorParams): string {
     if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
         return translate('iou.error.manySplitsProvided');
     }
@@ -119,7 +132,9 @@ function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, 
         return translate(errorKey, convertToDisplayString(Math.abs(lessThanDifference), currency));
     }
 
-    if (splitExpenses.find((item) => item.amount === 0)) {
+    // A distance split on a $0 rate is always $0, so it's only invalid when it has no distance either
+    const isValidZeroRateSplit = (item: SplitExpense) => isDistance && !!item.customUnit?.quantity && !!zeroRateSplitTransactionIDs?.has(item.transactionID);
+    if (splitExpenses.find((item) => item.amount === 0 && !isValidZeroRateSplit(item))) {
         return translate('iou.splitExpenseZeroAmount');
     }
 

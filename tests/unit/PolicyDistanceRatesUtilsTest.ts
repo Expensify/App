@@ -8,6 +8,7 @@ import {
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    validateRateValue,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -19,6 +20,29 @@ import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
+    describe('validateRateValue', () => {
+        const toLocaleDigit = (digit: string) => digit;
+        const validate = (rate: string) => validateRateValue({rate, startDate: '', endDate: ''}, toLocaleDigit, translateLocal).rate;
+
+        it('should allow a rate of 0', () => {
+            expect(validate('0')).toBeUndefined();
+            expect(validate('0.00')).toBeUndefined();
+        });
+
+        it('should allow a positive rate', () => {
+            expect(validate('0.725')).toBeUndefined();
+        });
+
+        it('should reject a negative rate', () => {
+            expect(validate('-1')).toBe(translateLocal('common.error.lowRateError'));
+        });
+
+        it('should reject a value that is not a number', () => {
+            expect(validate('.')).toBe(translateLocal('common.error.invalidRateError'));
+            expect(validate('abc')).toBe(translateLocal('common.error.invalidRateError'));
+        });
+    });
+
     describe('validateTaxClaimableValue', () => {
         it('should return an error when taxClaimableValue is equal to tax rate', () => {
             // Given a tax claimable value inserted for a distance rate
@@ -304,8 +328,12 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
         });
 
-        it('should return tooLow when the rate is zero or negative', () => {
-            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+        it('should accept a rate of 0', () => {
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.00', toLocaleDigit)).toBeUndefined();
+        });
+
+        it('should return tooLow when the rate is negative', () => {
             expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
         });
 
