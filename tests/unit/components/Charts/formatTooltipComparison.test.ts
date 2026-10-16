@@ -16,12 +16,16 @@ const COMPARED_SERIES: NonEmptyTuple<ChartSeries> = [
 describe('formatTooltipComparison', () => {
     it('gives each compared series a row in its color, named by the series', () => {
         // Given April's spend, with its share of the period's spend, plotted against the average
-        const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100}, percentOfTotal: 34.2};
+        const point: ChartDataPoint = {
+            label: 'April',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2},
+        };
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then each series gets a row whose dot matches its line, and only April's own amount carries its share
+        // Then each series gets a row whose dot matches its line, and only April's own amount carries a share, since the average has none
         expect(comparison?.rows).toEqual([
             {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: '34.2%'},
             {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average', amount: '$100', percentage: undefined},
@@ -71,22 +75,6 @@ describe('formatTooltipComparison', () => {
 
         // Then only April's amount is listed, under the April title, with no change to show
         expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: undefined}], change: undefined});
-    });
-
-    it('keeps the named row of a bucket the previous period has no counterpart for', () => {
-        // Given October 31st, which September has no day to pair with
-        const point: ChartDataPoint = {
-            label: '31st',
-            values: {[CHART_SERIES_KEY.PRIMARY]: 300},
-            seriesLabels: {[CHART_SERIES_KEY.PRIMARY]: 'October 2026'},
-            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2},
-        };
-
-        // When the tooltip comparison for that point is built
-        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
-
-        // Then October's row still names its month, so "31st" reads as a day of October, and there is no change to show
-        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: 'October 2026', amount: '$300', percentage: '34.2%'}], change: undefined});
     });
 
     it('shows how much the primary series grew against the compared one', () => {

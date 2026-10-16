@@ -14,7 +14,7 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
-    /** Names the series, like "Average", or the dates its amount covers, like "2025" */
+    /** Names the series, like "Average", or the dates its amount covers */
     label?: string;
 
     amount: string;
@@ -41,7 +41,7 @@ type TooltipComparison = {
     change?: TooltipChange;
 };
 
-/** Formats how much the primary value rose or fell relative to the compared one, like "12%", or "∞%" for a value that is new against nothing. */
+/** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
 function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
     const difference = primaryValue - comparedValue;
     return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
@@ -80,17 +80,13 @@ function formatTooltipComparison(
         if (value === undefined) {
             return [];
         }
-        // Periods compared bucket by bucket each carry their own share. Otherwise only the primary amount has one.
-        let share = key === primarySeriesKey ? dataPoint.percentOfTotal : undefined;
-        if (dataPoint.seriesPercentOfTotal) {
-            share = dataPoint.seriesPercentOfTotal[key];
-        }
+        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color,
             label: dataPoint.seriesLabels?.[key] ?? label,
             amount: formatAmount(value),
-            percentage: share === undefined ? undefined : formatPercentOfTotal(share, value, locale),
+            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
         };
     });
 

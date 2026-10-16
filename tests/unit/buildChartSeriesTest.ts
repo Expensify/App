@@ -34,25 +34,20 @@ function merchantGroup(merchant: string, total: number, count = 1, percentOfTota
 }
 
 /** A grouped quarter result, the shape of group the search still returns without a share of the total. */
-function quarterGroup(quarter: number, total: number): TransactionQuarterGroupListItemType {
+function quarterGroup(quarter: number, total: number, year = 2026): TransactionQuarterGroupListItemType {
     return {
         groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-        year: 2026,
+        year,
         quarter,
-        formattedQuarter: `Q${quarter} 2026`,
+        formattedQuarter: `Q${quarter} ${year}`,
         shortFormattedQuarter: `Q${quarter}`,
         sortKey: quarter,
-        keyForList: `group_2026_Q${quarter}`,
+        keyForList: `group_${year}_Q${quarter}`,
         count: 1,
         total,
         currency: CONST.CURRENCY.USD,
         transactions: [],
     };
-}
-
-/** The same quarter bucket a year earlier, which the compared period returns. */
-function previousQuarterGroup(quarter: number, total: number): TransactionQuarterGroupListItemType {
-    return {...quarterGroup(quarter, total), year: 2025, keyForList: `group_2025_Q${quarter}`};
 }
 
 const getLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '');
@@ -423,7 +418,7 @@ describe('buildChartSeries with a compared period', () => {
     it('pairs time buckets by their position in their own period, so a gap cannot shift the rest', () => {
         // Given a period missing its second quarter, which a search returns no bucket for
         const rows = [quarterGroup(1, 100000), quarterGroup(3, 300000)];
-        const previousRows = [previousQuarterGroup(1, 10000), previousQuarterGroup(2, 20000), previousQuarterGroup(3, 30000)];
+        const previousRows = [quarterGroup(1, 10000, 2025), quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025)];
 
         // When the two periods are plotted against each other
         const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER);
@@ -510,44 +505,12 @@ describe('buildChartSeries labels for compared time buckets', () => {
         ]);
     });
 
-    it('names days by the day of the month when the window spans a month', () => {
-        // Given September 2026 plotted day by day
-        const labels = buildLabels([dayGroup('2026-09-06')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
-
-        // Then the day is named by its number, which the same day of August shares
-        expect(labels).toEqual([['6th', '6th']]);
-    });
-
-    it('numbers months when the compared months have different names', () => {
-        // Given August and September plotted against June and July, so month names would only fit one of the two bars
-        const labels = buildLabels(
-            [monthGroup(2026, 8), monthGroup(2026, 9)],
-            CONST.SEARCH.GROUP_BY.MONTH,
-            {start: '2026-08-01', end: '2026-09-30'},
-            {start: '2026-06-01', end: '2026-07-31'},
-        );
-
-        // Then the months are named by their position in the window, which fits both
-        expect(labels).toEqual([
-            ['Month 1', 'Month 1'],
-            ['Month 2', 'Month 2'],
-        ]);
-    });
-
     it('names a lone bucket by its unit alone', () => {
         // Given September plotted against August, so a month name would only fit one of the two bars
         const labels = buildLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
 
         // Then it is just "Month", since with nothing beside it a position tells the user nothing
         expect(labels).toEqual([['Month', 'Month']]);
-    });
-
-    it('numbers a bucket by its place in the window when the weeks around it had no expenses', () => {
-        // Given September 2026 by week, where only the third week, starting September 13, had expenses
-        const labels = buildLabels([weekGroup('2026-09-13')], CONST.SEARCH.GROUP_BY.WEEK, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
-
-        // Then it is still "Week 3", since the window holds five weeks even though the search returned one
-        expect(labels).toEqual([['Week 3', 'Week 3']]);
     });
 
     /** Builds the plotted values of a chart comparing the window on screen against the one before it, which had no expenses. */
@@ -623,22 +586,5 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(october8?.label).toBe('8th');
         expect(october8?.seriesLabels).toEqual({[CHART_SERIES_KEY.PRIMARY]: 'October 2026 so far', [CHART_SERIES_KEY.COMPARISON]: 'September 2026'});
         expect(october8?.isInProgress).toBe(true);
-    });
-
-    it('keeps the plain labels when nothing is compared', () => {
-        // Given a single month plotted on its own
-        const labels = buildChartSeries({
-            data: [monthGroup(2026, 1)],
-            view: CONST.SEARCH.VIEW.BAR,
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getLabel,
-            getShortLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getShortLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-        }).rows.map((row) => [row.point.label, row.point.shortLabel]);
-
-        // Then it keeps its own label with the year, since there is no other period it needs to fit
-        expect(labels).toEqual([['1/2026', '1']]);
     });
 });

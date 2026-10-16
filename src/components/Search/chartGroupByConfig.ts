@@ -50,8 +50,8 @@ type ChartGroupByConfig = {
     getBucketRange?: (item: GroupedItem) => ChartBucketRange;
 };
 
-/** Config of a group-by that buckets time, which drills into a group by narrowing the dates to its bucket */
-function timeBucketConfig(
+/** Builds the config shared by group-bys that bucket time, which drill into a group by narrowing the dates to its bucket */
+function buildTimeBucketConfig(
     bucketUnit: ChartBucketUnit,
     getBucketRange: (item: GroupedItem) => ChartBucketRange,
 ): Pick<ChartGroupByConfig, 'bucketUnit' | 'getBucketRange' | 'getFilterQuery'> {
@@ -107,14 +107,14 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
         axisLabelSteps: [1, 2, 7, 14],
-        ...timeBucketConfig('day', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : EMPTY_BUCKET_RANGE)),
+        ...buildTimeBucketConfig('day', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : EMPTY_BUCKET_RANGE)),
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         axisLabelSteps: [1, 2, 3, 6],
-        ...timeBucketConfig('month', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : EMPTY_BUCKET_RANGE)),
+        ...buildTimeBucketConfig('month', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : EMPTY_BUCKET_RANGE)),
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
@@ -122,20 +122,20 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.lineChartFormattedWeek : undefined),
         axisLabelSteps: [1, 2, 4],
-        ...timeBucketConfig('week', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : EMPTY_BUCKET_RANGE)),
+        ...buildTimeBucketConfig('week', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : EMPTY_BUCKET_RANGE)),
     },
     [CONST.SEARCH.GROUP_BY.YEAR]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
         axisLabelSteps: [1, 2, 5],
-        ...timeBucketConfig('year', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : EMPTY_BUCKET_RANGE)),
+        ...buildTimeBucketConfig('year', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : EMPTY_BUCKET_RANGE)),
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         axisLabelSteps: [1, 2, 4],
-        ...timeBucketConfig('quarter', (item: GroupedItem) =>
+        ...buildTimeBucketConfig('quarter', (item: GroupedItem) =>
             item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : EMPTY_BUCKET_RANGE,
         ),
     },

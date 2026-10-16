@@ -22,13 +22,13 @@ type ChartDataPoint = {
     /** Compact label for the x-axis (e.g., "Nov ’25"). Defaults to `label`. */
     shortLabel?: string;
 
-    /** One amount per series (pre-formatted, e.g., dollars not cents), keyed by that series' key. A series that has no such bucket, like September 31, has no entry. */
+    /** One amount per series (pre-formatted, e.g., dollars not cents), keyed by that series' key */
     values: Partial<Record<string, number>>;
 
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
-    /** Each series' name for the dates its amount covers, like "2025", which the tooltip names its rows with */
+    /** Each series' name for the dates its amount covers, which the tooltip names its rows with */
     seriesLabels?: Partial<Record<string, string>>;
 
     /** Each series' share of its own period's total spend, in percentage points, set when several series are compared */
