@@ -841,8 +841,12 @@ describe('autocomplete parser', () => {
 
 describe('autocomplete parser - name field continuation detection', () => {
     test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
+        // Given a partially typed search query, possibly using a user-friendly alias or an empty filter value
+
+        // When the autocomplete parser processes it
         const result: unknown = parse(query);
 
+        // Then the active filter key/value and highlighted ranges are identified so the right suggestions can be shown
         expect(result).toEqual(expected);
     });
 });

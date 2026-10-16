@@ -1927,7 +1927,13 @@ function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknow
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
+        // Given a raw search query string typed by the user (including filter aliases such as any-approval)
+
+        // When the query is parsed into its structured representation
+        const result = parseSearchQueryWithoutRawFilters(query);
+
+        // Then the parsed type, sort, view and filter tree match what the search API expects for that query
+        expect(result).toEqual(expected);
     });
 });
 
