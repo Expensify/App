@@ -24,6 +24,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - Targeting functions that are frequently used throughout the app.
 - `measureFunction` benchmarks only produce durations, so CI does not run them. Put new ones in `tests/perf-local/*.perf-local.ts`.
 - Run them with `npm run perf-local -- --baseline` on the base and `npm run perf-local` on your branch, on the same machine, and put the numbers in the PR description.
+- `perf-local` and `perf-test` share `.reassure/baseline.perf` and `current.perf`, so don't mix them. Pair `perf-local -- --baseline` with `perf-local`, and `perf-test -- --baseline` with `perf-test`, or every entry shows up as added or removed.
 
 ## Running tests locally
 
