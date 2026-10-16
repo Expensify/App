@@ -1,8 +1,16 @@
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasOnceLoadedReportActionsSelector, isActionLoadingSelector, pendingChatMembersSelector, reportActionsListLoadingStateSelector} from '@selectors/ReportMetaData';
+import {
+    hasOnceLoadedReportActionsSelector,
+    isActionLoadingSelector,
+    pendingChatMembersSelector,
+    pendingDeleteMemberAccountIDsByReportIDSelector,
+    reportActionsListLoadingStateSelector,
+} from '@selectors/ReportMetaData';
 
 describe('isActionLoadingSelector', () => {
     it('returns true when isActionLoading is true', () => {
@@ -75,5 +83,36 @@ describe('pendingChatMembersSelector', () => {
 
     it('returns undefined when reportMetadata is undefined', () => {
         expect(pendingChatMembersSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
+    it('returns the same reference for every call when no member is pending deletion', () => {
+        // Given two report metadata collections without pending member deletions, as two separate subscribers see them
+        const first: OnyxCollection<ReportMetadata> = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]: {pendingChatMembers: []}};
+        const second: OnyxCollection<ReportMetadata> = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}2`]: {}};
+
+        // When the selector runs for each of them
+        // Then both get one shared object, so reference-keyed caches downstream (the Search Router option list) keep hitting
+        const shared = pendingDeleteMemberAccountIDsByReportIDSelector(first);
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(second)).toBe(shared);
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(undefined)).toBe(shared);
+        expect(shared).toEqual({});
+    });
+
+    it('maps reports with members pending deletion to their account IDs', () => {
+        // Given a report with one member pending deletion
+        const REPORT_ID = '1';
+        const metadata: OnyxCollection<ReportMetadata> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}`]: {pendingChatMembers: [{accountID: '5', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]},
+        };
+
+        // When the selector runs
+        // Then the report is keyed by its ID with the pending account
+        const result = pendingDeleteMemberAccountIDsByReportIDSelector(metadata);
+        expect(result).toEqual({[REPORT_ID]: ['5']});
+
+        // And it is a new object rather than the shared empty one, so the option list cache sees the change
+        expect(result).not.toBe(pendingDeleteMemberAccountIDsByReportIDSelector(undefined));
     });
 });

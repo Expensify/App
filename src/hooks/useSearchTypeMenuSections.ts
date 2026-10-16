@@ -57,7 +57,13 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
  */
-const useSearchTypeMenuSections = (isScreenFocused = true) => {
+const NO_TYPE_MENU_SECTIONS: ReturnType<typeof createTypeMenuSections> = [];
+
+/**
+ * @param shouldBuildSections - false skips building the sections (canned queries are parsed per item) and returns an
+ * empty list, for consumers that only show them conditionally
+ */
+const useSearchTypeMenuSections = (isScreenFocused = true, shouldBuildSections = true) => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
@@ -108,22 +114,25 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
 
     const typeMenuSections = useMemo(
         () =>
-            createTypeMenuSections({
-                currentUserEmail: currentUserLoginAndAccountID?.email,
-                currentUserAccountID: currentUserLoginAndAccountID?.accountID,
-                cardFeedsByPolicy,
-                defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
-                policies: allPolicies,
-                savedSearches,
-                isOffline,
-                defaultExpensifyCard,
-                activeExpensifyCardFeedID,
-                draftTransactionIDs,
-                isTrackIntentUser: isTrackIntentUser ?? false,
-                hasReportAwaitingApproval,
-                policyCategories: allPolicyCategories,
-            }),
+            !shouldBuildSections
+                ? NO_TYPE_MENU_SECTIONS
+                : createTypeMenuSections({
+                      currentUserEmail: currentUserLoginAndAccountID?.email,
+                      currentUserAccountID: currentUserLoginAndAccountID?.accountID,
+                      cardFeedsByPolicy,
+                      defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+                      policies: allPolicies,
+                      savedSearches,
+                      isOffline,
+                      defaultExpensifyCard,
+                      activeExpensifyCardFeedID,
+                      draftTransactionIDs,
+                      isTrackIntentUser: isTrackIntentUser ?? false,
+                      hasReportAwaitingApproval,
+                      policyCategories: allPolicyCategories,
+                  }),
         [
+            shouldBuildSections,
             currentUserLoginAndAccountID?.email,
             currentUserLoginAndAccountID?.accountID,
             cardFeedsByPolicy,
@@ -143,8 +152,8 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     return typeMenuSections;
 };
 
-const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
-    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true, shouldBuildSections = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused, shouldBuildSections);
     const {isBetaEnabled} = usePermissions();
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
