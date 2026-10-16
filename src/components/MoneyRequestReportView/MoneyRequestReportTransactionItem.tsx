@@ -21,7 +21,14 @@ import {getCardDescription} from '@libs/CardUtils';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getTransactionRejectErrorKey, getVisibleReportRowViolations, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
+import {
+    EMPTY_VIOLATIONS,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getTransactionRejectErrorKey,
+    getVisibleReportRowViolations,
+    isSelectableReportTransaction,
+} from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
@@ -39,6 +46,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {useOnyxState} from 'react-native-onyx';
 
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
@@ -51,12 +59,6 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Report to which the transaction belongs */
     report: Report;
-
-    /** Policy to which the transaction belongs */
-    policy: OnyxEntry<Policy>;
-
-    /** Categories for the policy to which the transaction belongs */
-    policyCategories?: PolicyCategories;
 
     /** Tag lists for the policy to which the transaction belongs */
     policyTagLists?: PolicyTagLists;
@@ -102,6 +104,12 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
 
     /** Violations of this transaction the current user can see */
     violations: TransactionViolations;
+
+    /** Policy to which the transaction belongs, without the fields rows never read */
+    policy: OnyxEntry<Policy>;
+
+    /** The transaction's category from the policy categories */
+    policyCategories?: PolicyCategories;
 
     /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
     inlineEdit?: InlineEditValues;
@@ -370,8 +378,6 @@ function MoneyRequestReportTransactionItem({
     reportOwnerLogin,
     shouldBeHighlighted,
     report,
-    policy,
-    policyCategories,
     policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -393,7 +399,26 @@ function MoneyRequestReportTransactionItem({
     const {email, accountID} = useCurrentUserPersonalDetails();
     const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const cardList = useCardList();
-    const [rawViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` as const;
+    const policyCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}` as const;
+    // Violation visibility needs the whole policy, while the row shows only a few of its fields and one category.
+    // Deriving all three here means a policy write the row doesn't show leaves the output, and the row, unchanged.
+    const {violations, policy, policyCategories} = useOnyxState(
+        (state) => {
+            const stateTransaction = state[transactionKey];
+            const statePolicy = state[policyKey];
+            return {
+                violations: stateTransaction
+                    ? getVisibleReportRowViolations(stateTransaction, state[violationsKey], email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, statePolicy)
+                    : EMPTY_VIOLATIONS,
+                policy: getReportRowPolicy(statePolicy),
+                policyCategories: getReportRowPolicyCategories(state[policyCategoriesKey], stateTransaction?.category),
+            };
+        },
+        {dependencies: [transactionKey, violationsKey, policyKey, policyCategoriesKey]},
+    );
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
@@ -415,7 +440,6 @@ function MoneyRequestReportTransactionItem({
     const card = rawTransaction.cardID ? cardList?.[rawTransaction.cardID] : undefined;
     const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
     const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
-    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, policy);
 
     // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
     const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;

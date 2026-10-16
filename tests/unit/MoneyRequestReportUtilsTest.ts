@@ -3,6 +3,8 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import {
     EMPTY_VIOLATIONS,
     getReportIDForTransaction,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
     getVisibleReportRowViolations,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
@@ -11,7 +13,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -315,6 +317,63 @@ describe('MoneyRequestReportUtils', () => {
 
             // Then it still gets the shared empty array
             expect(violations).toBe(EMPTY_VIOLATIONS);
+        });
+    });
+
+    describe('getReportRowPolicy', () => {
+        const memberEmail = 'a@test.com';
+
+        it('should drop the fields rows never read and keep the rest', () => {
+            // Given a policy with members, offline feedback and the fields a row shows
+            const policy = createMock<Policy>({
+                id: 'P1',
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                employeeList: {[memberEmail]: {email: memberEmail}},
+                lastModified: '2026-01-01',
+                pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errors: {error: 'error'},
+                errorFields: {name: {error: 'error'}},
+                isLoading: true,
+            });
+
+            // When the row builds its policy
+            const rowPolicy = getReportRowPolicy(policy);
+
+            // Then a member or offline feedback write can't change what the row receives, while the fields it shows stay
+            expect(rowPolicy).toEqual({id: 'P1', name: 'Workspace', outputCurrency: CONST.CURRENCY.USD});
+        });
+
+        it('should return undefined when the policy is not loaded', () => {
+            // Given a report whose policy is not in Onyx
+            // When the row builds its policy
+            // Then it gets undefined, like the full policy read would
+            expect(getReportRowPolicy(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowPolicyCategories', () => {
+        const glCode = 'GL Code';
+        const policyCategories = createMock<PolicyCategories>({
+            Food: {name: 'Food', enabled: true, [glCode]: '100'},
+            Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+        });
+
+        it('should keep only the category of the transaction', () => {
+            // Given policy categories with several entries
+            // When a row with the Food category builds its categories
+            const rowCategories = getReportRowPolicyCategories(policyCategories, 'Food');
+
+            // Then it keeps only Food, so a write to another category leaves the row's value unchanged
+            expect(rowCategories).toEqual({Food: {name: 'Food', enabled: true, [glCode]: '100'}});
+        });
+
+        it('should return undefined when the transaction has no category or the category is missing', () => {
+            // Given a row without a category and a row whose category is not in the policy
+            // When they build their categories
+            // Then both get undefined, the same value whatever other categories the policy has
+            expect(getReportRowPolicyCategories(policyCategories, undefined)).toBeUndefined();
+            expect(getReportRowPolicyCategories(policyCategories, 'Missing')).toBeUndefined();
         });
     });
 });

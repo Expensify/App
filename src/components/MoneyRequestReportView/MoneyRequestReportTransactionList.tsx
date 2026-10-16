@@ -358,8 +358,6 @@ function MoneyRequestReportTransactionList({
                         shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
                         report={report}
-                        policy={policy}
-                        policyCategories={policyCategories}
                         policyTagLists={policyTagLists}
                         isSelectionModeEnabled={isMobileSelectionModeEnabled}
                         toggleTransaction={toggleRowTransaction}

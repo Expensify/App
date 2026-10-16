@@ -3,7 +3,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -267,8 +267,31 @@ function getVisibleReportRowViolations(
     return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
 }
 
+/**
+ * Returns the policy without the fields a report row never reads, such as the member list and the offline feedback
+ * fields. Most policy writes only touch those fields, so after this a row's policy keeps its value through them.
+ * The member list matters to rows only through violation visibility, which is computed from the full policy.
+ */
+function getReportRowPolicy(policy: OnyxEntry<Policy>): OnyxEntry<Policy> {
+    if (!policy) {
+        return policy;
+    }
+    const {employeeList, lastModified, pendingFields, errors, errorFields, isLoading, ...rowPolicy} = policy;
+    return rowPolicy;
+}
+
+/**
+ * Returns only the category of the row's transaction, the one entry a report row reads from the policy categories.
+ */
+function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategories>, category: string | undefined): PolicyCategories | undefined {
+    const rowCategory = category ? policyCategories?.[category] : undefined;
+    return rowCategory && category ? {[category]: rowCategory} : undefined;
+}
+
 export {
     EMPTY_VIOLATIONS,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,

@@ -103,7 +103,6 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                             transactionID={transaction.transactionID}
                             reportOwnerLogin={undefined}
                             report={report}
-                            policy={undefined}
                             isSelectionModeEnabled={false}
                             toggleTransaction={jest.fn()}
                             handleOnPress={handleOnPress}
