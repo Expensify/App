@@ -1904,7 +1904,8 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  * Whether the current user can invite new members to the report from its members page.
  *
  * Any member of a group chat can invite. On an expense report an invited member gains visibility of every expense on it,
- * so inviting is limited to the submitter and policy admins, and only while the report is still open.
+ * so, matching Classic's Share, inviting is limited to the submitter, the approver, policy admins and auditors, and only once
+ * the report has been submitted (not while it is still an open draft).
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
     if (isReportArchived || isSupportTicket(report)) {
@@ -1913,10 +1914,29 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
     if (isGroupChat(report)) {
         return true;
     }
-    if (!isOpenExpenseReport(report)) {
+    if (!isExpenseReport(report) || isOpenReport(report)) {
         return false;
     }
-    return isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdminPolicyUtils(policy);
+    const isSubmitterOrApprover = currentUserAccountID !== undefined && (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID);
+    return isSubmitterOrApprover || isPolicyAdminPolicyUtils(policy) || isPolicyAuditor(policy);
+}
+
+/**
+ * Whether the current user can invite new members to a room or thread from its members page.
+ *
+ * Inviting to an expense's thread shares that expense, so the thread follows the rule of the expense report it belongs to.
+ */
+function canInviteMembersToRoom(
+    parentReport: OnyxEntry<Report>,
+    parentReportAction: OnyxEntry<ReportAction>,
+    policy: OnyxEntry<Policy>,
+    isParentReportArchived: boolean,
+    currentUserAccountID?: number,
+): boolean {
+    if (isExpenseReport(parentReport) && isTransactionThread(parentReportAction)) {
+        return canInviteMembersToReport(parentReport, policy, isParentReportArchived, currentUserAccountID);
+    }
+    return true;
 }
 
 /**
@@ -15283,6 +15303,7 @@ export {
     canDeleteReportAction,
     canHoldUnholdReportAction,
     canInviteMembersToReport,
+    canInviteMembersToRoom,
     canEditReportPolicy,
     canCurrentUserEditExpense,
     canEditFieldOfMoneyRequest,

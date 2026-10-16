@@ -40,6 +40,7 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
+    canInviteMembersToRoom,
     getReportForHeader,
     getReportPersonalDetailsParticipants,
     isChatThread,
@@ -90,6 +91,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canInvite = canInviteMembersToRoom(parentReport, reportAction, policy, isParentReportArchived, session?.accountID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
@@ -309,9 +312,10 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [icons.RemoveMembers, translate, selectedMembers.length, showRemoveMembersModal]);
 
     const headerButtons = useMemo(() => {
+        const isSelecting = isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0;
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                {isSelecting && (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         shouldAlwaysShowDropdownMenu
@@ -324,7 +328,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                         isDisabled={!selectedMembers.length}
                     />
-                ) : (
+                )}
+                {!isSelecting && canInvite && (
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={inviteUser}
@@ -337,7 +342,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus, canInvite]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
     const tableHeaderComponent = <View style={pageGutter}>{headerButtons}</View>;

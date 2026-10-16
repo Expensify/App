@@ -77,6 +77,7 @@ import {
     canFlagReportAction,
     canHoldUnholdReportAction,
     canInviteMembersToReport,
+    canInviteMembersToRoom,
     canJoinChat,
     canLeaveChat,
     canMergeReports,
@@ -14279,13 +14280,21 @@ describe('ReportUtils', () => {
     describe('canInviteMembersToReport', () => {
         const submitterAccountID = 80001;
         const otherAccountID = 80002;
+        const approverAccountID = 80003;
         const adminPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.ADMIN};
+        const auditorPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.AUDITOR};
         const memberPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.USER};
         const openExpenseReport: Report = {
             ...createExpenseReport(80200),
             ownerAccountID: submitterAccountID,
+            managerID: approverAccountID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const processingExpenseReport: Report = {
+            ...openExpenseReport,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
         it('lets any participant of a group chat invite', () => {
@@ -14296,52 +14305,55 @@ describe('ReportUtils', () => {
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
         });
 
-        it('lets the submitter invite on an open expense report', () => {
-            // Given an open expense report owned by the current user on a workspace where they are only a member
-            // Then the submitter can invite
-            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, submitterAccountID)).toBe(true);
+        it('blocks everyone on an open (draft) expense report', () => {
+            // Given an expense report that has not been submitted yet
+            // Then nobody can invite, matching Classic where Share is hidden while the report is still open
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, approverAccountID)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, otherAccountID)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, auditorPolicy, false, otherAccountID)).toBe(false);
         });
 
-        it('lets a policy admin invite on an open expense report they did not submit', () => {
-            // Given an open expense report submitted by somebody else
-            // Then a policy admin can still invite
-            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, otherAccountID)).toBe(true);
+        it('lets the submitter, approver, policy admins and auditors invite once the report is processing', () => {
+            // Given an expense report that has been submitted for approval
+            // Then everyone Classic shows Share to can invite: submitter, approver, admin and auditor
+            expect(canInviteMembersToReport(processingExpenseReport, memberPolicy, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(processingExpenseReport, memberPolicy, false, approverAccountID)).toBe(true);
+            expect(canInviteMembersToReport(processingExpenseReport, adminPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(processingExpenseReport, auditorPolicy, false, otherAccountID)).toBe(true);
         });
 
-        it('blocks a workspace member who is neither the submitter nor a policy admin', () => {
-            // Given an open expense report submitted by somebody else
-            // Then a plain workspace member cannot invite, because invitees gain visibility of every expense on the report
-            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, otherAccountID)).toBe(false);
+        it('keeps inviting available after the report is approved or paid', () => {
+            // Given the same expense report once it has been approved, and once it has been reimbursed
+            const approvedExpenseReport: Report = {...openExpenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            const paidExpenseReport: Report = {...openExpenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+
+            // Then inviting is still offered, since Classic shows Share from processing onwards
+            expect(canInviteMembersToReport(approvedExpenseReport, memberPolicy, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(paidExpenseReport, adminPolicy, false, otherAccountID)).toBe(true);
         });
 
-        it('blocks the submitter once the expense report is no longer open', () => {
-            // Given an expense report the current user submitted that has already been submitted for approval
-            const submittedExpenseReport: Report = {
-                ...openExpenseReport,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-
-            // Then neither the submitter nor a policy admin can invite
-            expect(canInviteMembersToReport(submittedExpenseReport, memberPolicy, false, submitterAccountID)).toBe(false);
-            expect(canInviteMembersToReport(submittedExpenseReport, adminPolicy, false, otherAccountID)).toBe(false);
+        it('blocks a workspace member who is not the submitter, approver, an admin or an auditor', () => {
+            // Given a processing expense report the current user has no role on
+            // Then they cannot invite, because invitees gain visibility of every expense on the report
+            expect(canInviteMembersToReport(processingExpenseReport, memberPolicy, false, otherAccountID)).toBe(false);
         });
 
         it('blocks inviting on an archived report', () => {
-            // Given an archived group chat and an archived open expense report
+            // Given an archived group chat and an archived processing expense report
             const groupChat = createGroupChat(80202, [submitterAccountID, otherAccountID]);
 
             // Then nobody can invite, regardless of report type or role
             expect(canInviteMembersToReport(groupChat, undefined, true, otherAccountID)).toBe(false);
-            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, true, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(processingExpenseReport, adminPolicy, true, submitterAccountID)).toBe(false);
         });
 
         it('blocks inviting on an IOU report', () => {
-            // Given an open IOU report, i.e. a 1:1 expense that is not owned by a workspace
+            // Given a processing IOU report, i.e. a 1:1 expense that is not owned by a workspace
             const iouReport: Report = {
                 ...createIOUReport(80203, submitterAccountID, otherAccountID),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
             // Then the submitter cannot invite, because there is no workspace to widen visibility to
@@ -14358,11 +14370,78 @@ describe('ReportUtils', () => {
             expect(canInviteMembersToReport(selfDM, undefined, false, submitterAccountID)).toBe(false);
         });
 
-        it('blocks the submitter while the session account ID has not loaded yet', () => {
-            // Given an open expense report but no resolved current user account ID
-            // Then the submitter check cannot pass, though an admin is still recognized from the policy alone
-            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, undefined)).toBe(false);
-            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, undefined)).toBe(true);
+        it('blocks the submitter and approver while the session account ID has not loaded yet', () => {
+            // Given a processing expense report but no resolved current user account ID
+            const reportWithoutManager: Report = {...processingExpenseReport, managerID: undefined};
+
+            // Then the submitter/approver check cannot pass (even when managerID is also missing), though admins and auditors are still recognized from the policy alone
+            expect(canInviteMembersToReport(processingExpenseReport, memberPolicy, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(reportWithoutManager, memberPolicy, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(processingExpenseReport, adminPolicy, false, undefined)).toBe(true);
+            expect(canInviteMembersToReport(processingExpenseReport, auditorPolicy, false, undefined)).toBe(true);
+        });
+    });
+
+    describe('canInviteMembersToRoom', () => {
+        const submitterAccountID = 81001;
+        const otherAccountID = 81002;
+        const approverAccountID = 81003;
+        const adminPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.ADMIN};
+        const auditorPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy: Policy = {...createRandomPolicy(81100), role: CONST.POLICY.ROLE.USER};
+        const draftExpenseReport: Report = {
+            ...createExpenseReport(81200),
+            ownerAccountID: submitterAccountID,
+            managerID: approverAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const processingExpenseReport: Report = {
+            ...draftExpenseReport,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        // The report action an expense's thread hangs off: the IOU "create" action on the expense report
+        const expenseCreatedAction = {
+            ...createRandomReportAction(81300),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: draftExpenseReport.reportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 4400, currency: CONST.CURRENCY.USD},
+        } as ReportAction;
+
+        it('blocks inviting to an expense on a draft expense report', () => {
+            // Given the thread of a single expense on an expense report that has not been submitted yet
+            // Then nobody can invite to it, the same as the report itself, since that would share the expense
+            expect(canInviteMembersToRoom(draftExpenseReport, expenseCreatedAction, memberPolicy, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToRoom(draftExpenseReport, expenseCreatedAction, adminPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('follows the report roles for an expense once the report is processing', () => {
+            // Given the thread of a single expense on a submitted expense report
+            // Then the submitter, approver, admins and auditors can invite, but other members cannot
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, approverAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, adminPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, auditorPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, memberPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks inviting to an expense whose report is archived', () => {
+            // Given the thread of an expense on an archived expense report
+            // Then nobody can invite to it
+            expect(canInviteMembersToRoom(processingExpenseReport, expenseCreatedAction, adminPolicy, true, submitterAccountID)).toBe(false);
+        });
+
+        it('keeps inviting available in rooms and threads that are not expenses on an expense report', () => {
+            // Given a thread on a plain chat message, and an expense in a 1:1 IOU report
+            const chatReport = createRegularChat(81201, [submitterAccountID, otherAccountID]);
+            const commentAction: ReportAction = {...createRandomReportAction(81301), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const iouReport: Report = createIOUReport(81202, submitterAccountID, otherAccountID);
+
+            // Then inviting is unchanged and stays available to the thread's members
+            expect(canInviteMembersToRoom(chatReport, commentAction, memberPolicy, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(iouReport, expenseCreatedAction, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToRoom(undefined, undefined, memberPolicy, false, otherAccountID)).toBe(true);
         });
     });
 
