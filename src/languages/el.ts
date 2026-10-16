@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Λήψη αποδείξεων',
         }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
+        shareReport: 'Κοινοποιήστε την αναφορά',
+        reportShared: 'Η αναφορά κοινοποιήθηκε',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -1025,6 +1027,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addBankAccount: {
                 title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
+            },
+            addDepositAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λαμβάνετε πληρωμές',
             },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
@@ -11462,6 +11467,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'έγινε αντιστοίχιση μιας απόδειξης με αυτή τη συναλλαγή',
+        mergedExpenseDeleted: 'συγχώνευσε έξοδα και μετέφερε ένα στα Διαγραμμένα',
     },
     subscription: {
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',
@@ -11705,6 +11711,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
+            billedTo: 'Χρέωση σε',
+            viewReceipt: 'Προβολή απόδειξης',
+            viewInvoice: 'Προβολή τιμολογίου',
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',

@@ -519,6 +519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'viajero diario',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
         exportsTo: 'Exporta a',
+        shareReport: 'Compartir informe',
+        reportShared: 'Informe compartido',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -982,6 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Añadir',
             },
             addBankAccount: {title: 'Añade una cuenta bancaria para recibir el reembolso'},
+            addDepositAccount: {title: 'Añade una cuenta bancaria para recibir pagos'},
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
@@ -11442,6 +11445,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+        mergedExpenseDeleted: 'combinó gastos y movió uno a Eliminados',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
@@ -11678,6 +11682,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
             },
+            billedTo: 'Facturado a',
+            viewReceipt: 'Ver recibo',
+            viewInvoice: 'Ver factura',
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
