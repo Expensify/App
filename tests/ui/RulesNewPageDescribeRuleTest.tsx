@@ -240,6 +240,20 @@ describe('New rule describe section', () => {
         expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
     });
 
+    it('asks for a template or a description when Next is pressed with an empty box', async () => {
+        // Given an admin on New rule who neither picks a template nor types a description
+        await renderRulesNewPage();
+        mockPrompt = '';
+
+        // When the admin presses Next
+        fireEvent.press(screen.getByLabelText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error above Next explains both ways forward, and nothing is sent, because the box is optional on New rule
+        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.selectTemplateOrDescribe')]);
+        expect(writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)).toHaveLength(0);
+    });
+
     it('hides the describe section when New rule opens for a category', async () => {
         // Given an admin with the describeRule beta who opens New rule for a category, which the describe section cannot scope a rule to
         await renderRulesNewPage('Meals');
