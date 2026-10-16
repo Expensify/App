@@ -129,7 +129,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Export** | Approved or Paid reports not yet exported | Workspace Admin | Sends report data to an accounting system |
 | **Review** | When issues are detected | All roles | Prompts required fixes before continuing |
 
-**Note:** If your workspace does not use approvals, **Submit** and **Approve** may appear as **Mark as done**.
+**Note:** If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding and no one else approves your reports, **Submit** appears as **Mark as done**.
 
 ---
 

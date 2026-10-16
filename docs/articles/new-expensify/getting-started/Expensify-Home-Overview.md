@@ -121,6 +121,8 @@ Select the insight title (with the chevron next to it) to open the insight picke
 - **Top merchants**
 - **Top spenders**
 
+**Top spenders** only appears if at least one of your workspaces has 2 or more members. If you're the only member of your workspace, it won't be listed.
+
 Your selection is saved, so the chart shows the same insight the next time you return to Home, even after you sign out and back in.
 
 To open the selected insight in full, select the three dots **(⋮)**, then select **View**. This takes you to that insight on the **Spend** page.
