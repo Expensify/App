@@ -18,7 +18,8 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/MenuItem/presets/MenuItemFieldHTML', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({value}: {value?: string}) => <Text>{value}</Text>;
+    // The row is only pressable when the report is editable, so a missing onPress reads as a disabled row.
+    return ({value, onPress}: {value?: string; onPress?: () => void}) => <Text aria-disabled={!onPress}>{value}</Text>;
 });
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)}));
@@ -145,6 +146,9 @@ describe('ReportField', () => {
             expect(screen.getByText('iou.newReport')).toBeOnTheScreen();
         });
         expect(screen.queryByText('Submitted report')).toBeNull();
+
+        // And the row stays editable, so the user can still pick the submitted report by hand
+        expect(screen.getByText('iou.newReport')).toBeEnabled();
     });
 
     it('shows the newest open report rather than a newer report awaiting approval', async () => {
@@ -179,6 +183,9 @@ describe('ReportField', () => {
             expect(screen.getByText('iou.newReport')).toBeOnTheScreen();
         });
         expect(screen.queryByText('Open report')).toBeNull();
+
+        // And the row stays editable, so the user can still pick the open report instead
+        expect(screen.getByText('iou.newReport')).toBeEnabled();
     });
 
     it('shows the open report the chat points at for a manual expense', async () => {
@@ -194,5 +201,8 @@ describe('ReportField', () => {
         await waitFor(() => {
             expect(screen.getByText('Open report')).toBeOnTheScreen();
         });
+
+        // And the row is not editable, because that report is the only one the user could pick
+        expect(screen.getByText('Open report')).toBeDisabled();
     });
 });

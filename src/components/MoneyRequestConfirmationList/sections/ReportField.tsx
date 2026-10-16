@@ -98,9 +98,12 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const defaultReportID = shouldCreateNewReport ? undefined : defaultReport?.reportID;
 
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
+    const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
+
+    // The field shows "New report" when saving would create a report, so any outstanding report is an alternative the user can pick.
+    const isNewReport = !reportIDToUse;
 
     const [selectedReportID, selectedReport] = (() => {
-        const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
@@ -134,7 +137,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = (isUnreported || isNewReport ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {
