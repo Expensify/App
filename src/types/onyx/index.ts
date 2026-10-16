@@ -250,6 +250,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCRequirement, WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 
 export type {
@@ -470,6 +471,7 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseBankAccountFields,
     WiseKYCRequirement,
     WiseKYCReviewEmbeddedLink,
     CorpayFormField,

@@ -813,6 +813,8 @@ const ONYXKEYS = {
     /** The KYC requirements the business's application needs right now, one item per requirement, ours before Submit and Wise's after */
     WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
 
+    /** The employee bank-account form for one country and currency, as Wise defines it */
+    WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
 
@@ -1967,6 +1969,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirement[];
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
+    [ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
