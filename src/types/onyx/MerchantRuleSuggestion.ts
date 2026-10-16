@@ -8,14 +8,12 @@ type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION
 /**
  * The expense edits that can become a merchant rule, which drive the "Create a rule" callout.
  *
- * RAM-only, so the callout can appear again on the same expense next session.
+ * Everything the user does lives here, and RAM-only, so the callout can appear again on the same expense next
+ * session. What the server says about these edits is held apart, in `MerchantRuleSuggestionConfirmation`.
  */
 type MerchantRuleSuggestion = {
-    /** The most recently edited expense, the one currently offering */
-    transactionID: string;
-
-    /** That expense's transaction thread, where the callout can show */
-    reportID: string;
+    /** Each recorded expense's transaction thread, where its callout can show */
+    reportIDs?: Record<string, string>;
 
     /**
      * Fields edited so far, keyed by expense. Keying by expense lets `Onyx.merge` accumulate them without a read, and
@@ -41,9 +39,51 @@ type MerchantRuleSuggestion = {
      */
     seenInReportID?: string;
 
-    /** Whether the offer was seen and left. Unlike dismissing, editing the expense again offers afresh. */
-    isRetired?: boolean;
+    /**
+     * The expense whose offer the callout showed, which is the one leaving that report retires.
+     *
+     * Recorded alongside the report rather than read back from the confirmation on the way out, because a verdict for
+     * another expense can land while this one's callout is on screen. Retiring whatever is offering by then would end
+     * an offer the user never saw.
+     */
+    seenTransactionID?: string;
+
+    /**
+     * Expenses whose offer was seen and left. Unlike dismissing, editing the expense again offers afresh.
+     *
+     * Keyed by expense rather than held as one flag, so leaving one expense's offer does not silence the next one
+     * before it has been made.
+     */
+    retiredTransactionIDs?: Record<string, boolean>;
+};
+
+/**
+ * The server's verdict on recorded edits, which is the half of the offer the user does not control.
+ *
+ * Kept apart from the edits because the two are written from different places. A queued write is sent by the leader
+ * tab, which on web is the most recently opened one rather than the one the user edited in, so a verdict written to a
+ * RAM-only key would land where the edits it answers are not.
+ */
+type MerchantRuleSuggestionConfirmation = {
+    /**
+     * The expense currently offering, which is the one whose edit the server confirmed most recently.
+     *
+     * Set when a confirmation lands rather than when an edit is recorded. An edit that turns out to be a one-off would
+     * otherwise take the offer away from an expense that had earned one and put nothing in its place.
+     */
+    transactionID?: string;
+
+    /**
+     * Fields the server judged worth a rule, keyed by expense then by field. A field is recorded on the edit and
+     * confirmed later, once the response says the same value has been given to the same merchant often enough. Only a
+     * field present in both halves seeds the rule, so a one-off edit neither offers nor rides along on another field's
+     * offer.
+     *
+     * Surviving the session costs nothing, since a verdict alone shows no callout: the edits it answers are RAM-only
+     * and go with the session that made them.
+     */
+    confirmedFields?: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
 };
 
 export default MerchantRuleSuggestion;
-export type {MerchantRuleSuggestionField};
+export type {MerchantRuleSuggestionConfirmation, MerchantRuleSuggestionField};
