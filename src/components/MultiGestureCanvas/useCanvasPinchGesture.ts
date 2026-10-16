@@ -1,9 +1,7 @@
 import type {PinchGesture, PinchGestureConfig} from 'react-native-gesture-handler';
 
 import {useCallback, useEffect, useState} from 'react';
-// Aliased because this hook has the same name. The worklets Babel plugin only turns the callbacks of a Gesture Handler
-// hook into worklets automatically when the hook is called by its own name, so every callback below is marked with 'worklet'.
-import {GestureStateManager, usePinchGesture as useGestureHandlerPinchGesture} from 'react-native-gesture-handler';
+import {GestureStateManager, usePinchGesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -11,7 +9,7 @@ import type {MultiGestureCanvasVariables} from './types';
 
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 
-type UsePinchGestureProps = Pick<
+type UseCanvasPinchGestureProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'zoomScale'
@@ -30,7 +28,7 @@ type UsePinchGestureProps = Pick<
     simultaneousWith: PinchGestureConfig['simultaneousWith'];
 };
 
-const usePinchGesture = ({
+const useCanvasPinchGesture = ({
     canvasSize,
     zoomScale,
     zoomRange,
@@ -44,7 +42,7 @@ const usePinchGesture = ({
     stopAnimation,
     onScaleChanged,
     simultaneousWith,
-}: UsePinchGestureProps): PinchGesture => {
+}: UseCanvasPinchGestureProps): PinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
 
@@ -119,7 +117,7 @@ const usePinchGesture = ({
         setPinchEnabled(true);
     }, [pinchEnabled]);
 
-    const pinchGesture = useGestureHandlerPinchGesture({
+    const pinchGesture = usePinchGesture({
         enabled: pinchEnabled,
         simultaneousWith,
         onTouchesDown: (evt) => {
@@ -133,8 +131,6 @@ const usePinchGesture = ({
             GestureStateManager.fail(evt.handlerTag);
         },
         onActivate: (evt) => {
-            'worklet';
-
             stopAnimation();
             isPinchSettling.set(false);
             isTransformGestureActive.set(true);
@@ -181,8 +177,6 @@ const usePinchGesture = ({
             }
         },
         onDeactivate: () => {
-            'worklet';
-
             // Add pinch translation to total offset and reset gesture variables
             offsetX.set((value) => value + pinchTranslateX.get());
             offsetY.set((value) => value + pinchTranslateY.get());
@@ -213,8 +207,6 @@ const usePinchGesture = ({
             }
         },
         onFinalize: () => {
-            'worklet';
-
             if (isPinchSettling.get()) {
                 return;
             }
@@ -226,4 +218,4 @@ const usePinchGesture = ({
     return pinchGesture;
 };
 
-export default usePinchGesture;
+export default useCanvasPinchGesture;

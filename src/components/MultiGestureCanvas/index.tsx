@@ -16,9 +16,9 @@ import {scheduleOnUI} from 'react-native-worklets';
 import type {OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
-import usePanGesture from './usePanGesture';
-import usePinchGesture from './usePinchGesture';
-import useTapGestures from './useTapGestures';
+import useCanvasPanGesture from './useCanvasPanGesture';
+import useCanvasPinchGesture from './useCanvasPinchGesture';
+import useCanvasTapGestures from './useCanvasTapGestures';
 import * as MultiGestureCanvasUtils from './utils';
 
 type MultiGestureCanvasProps = ChildrenProps & {
@@ -196,7 +196,7 @@ function MultiGestureCanvas({
     // Gestures from outside of the canvas that the pan gesture has to work simultaneously with
     const panGestureExternalGestures = [pagerGesture, externalGestureHandler].filter((gesture) => gesture !== undefined);
 
-    const panGesture = usePanGesture({
+    const panGesture = useCanvasPanGesture({
         canvasSize,
         contentSize,
         zoomScale,
@@ -215,7 +215,7 @@ function MultiGestureCanvas({
 
     // The tap gestures are created after the pan gesture, because the single tap waits for it to fail.
     // They also declare that they can run simultaneously with the pan gesture, which is symmetric.
-    const {singleTapGesture, doubleTapGesture} = useTapGestures({
+    const {singleTapGesture, doubleTapGesture} = useCanvasTapGestures({
         canvasSize,
         contentSize,
         zoomRange,
@@ -236,7 +236,7 @@ function MultiGestureCanvas({
 
     const pinchSimultaneousGestures = [panGesture, singleTapGesture, doubleTapGesture];
 
-    const pinchGesture = usePinchGesture({
+    const pinchGesture = useCanvasPinchGesture({
         canvasSize,
         zoomScale,
         zoomRange,

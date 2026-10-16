@@ -10,7 +10,7 @@ import type {MultiGestureCanvasVariables} from './types';
 import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import * as MultiGestureCanvasUtils from './utils';
 
-type UseTapGesturesProps = Pick<
+type UseCanvasTapGesturesProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'contentSize'
@@ -32,7 +32,7 @@ type UseTapGesturesProps = Pick<
     panGesture: PanGesture;
 };
 
-const useTapGestures = ({
+const useCanvasTapGestures = ({
     canvasSize,
     contentSize,
     zoomRange,
@@ -49,7 +49,7 @@ const useTapGestures = ({
     onScaleChanged,
     onTap,
     panGesture,
-}: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
+}: UseCanvasTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -199,4 +199,4 @@ const useTapGestures = ({
     return {singleTapGesture, doubleTapGesture};
 };
 
-export default useTapGestures;
+export default useCanvasTapGestures;

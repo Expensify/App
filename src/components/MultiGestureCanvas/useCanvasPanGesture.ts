@@ -4,9 +4,7 @@ import type {PanGesture, PanGestureConfig} from 'react-native-gesture-handler';
 
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
-// Aliased because this hook has the same name. The worklets Babel plugin only turns the callbacks of a Gesture Handler
-// hook into worklets automatically when the hook is called by its own name, so every callback below is marked with 'worklet'.
-import {GestureStateManager, usePanGesture as useGestureHandlerPanGesture} from 'react-native-gesture-handler';
+import {GestureStateManager, usePanGesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -23,7 +21,7 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const SNAP_POINT = SCREEN_HEIGHT / 4;
 const SNAP_POINT_HIDDEN = SCREEN_HEIGHT / 1.2;
 
-type UsePanGestureProps = Pick<
+type UseCanvasPanGestureProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'contentSize'
@@ -43,7 +41,7 @@ type UsePanGestureProps = Pick<
     simultaneousWith: PanGestureConfig['simultaneousWith'];
 };
 
-const usePanGesture = ({
+const useCanvasPanGesture = ({
     canvasSize,
     contentSize,
     zoomScale,
@@ -58,7 +56,7 @@ const usePanGesture = ({
     shouldDisableSwipeDownToClose,
     onSwipeDown,
     simultaneousWith,
-}: UsePanGestureProps): PanGesture => {
+}: UseCanvasPanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.get(), [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.get(), [contentSize.height]);
@@ -187,18 +185,14 @@ const usePanGesture = ({
         panVelocityY.set(0);
     }, [getBounds, isSwipingDownToClose, offsetX, offsetY, onSwipeDown, panTranslateX, panTranslateY, panVelocityX, panVelocityY, shouldDisableSwipeDownToClose, zoomScale]);
 
-    const panGesture = useGestureHandlerPanGesture({
+    const panGesture = usePanGesture({
         manualActivation: true,
         averageTouches: true,
         simultaneousWith,
         onTouchesUp: () => {
-            'worklet';
-
             previousTouch.set(null);
         },
         onTouchesMove: (evt) => {
-            'worklet';
-
             // We only allow panning when the content is zoomed in
             if (zoomScale.get() > 1 && !shouldDisableTransformationGestures.get()) {
                 GestureStateManager.activate(evt.handlerTag);
@@ -228,13 +222,9 @@ const usePanGesture = ({
             }
         },
         onActivate: () => {
-            'worklet';
-
             stopAnimation();
         },
         onUpdate: (evt) => {
-            'worklet';
-
             // Since we're running both pinch and pan gesture handlers simultaneously,
             // we need to make sure that we don't pan when we pinch since we track it as pinch focal gesture.
             if (evt.numberOfPointers > 1) {
@@ -255,8 +245,6 @@ const usePanGesture = ({
             }
         },
         onDeactivate: () => {
-            'worklet';
-
             // Add pan translation to total offset and reset gesture variables
             offsetX.set((value) => value + panTranslateX.get());
             offsetY.set((value) => value + panTranslateY.get());
@@ -278,4 +266,4 @@ const usePanGesture = ({
     return panGesture;
 };
 
-export default usePanGesture;
+export default useCanvasPanGesture;
