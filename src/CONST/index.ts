@@ -923,6 +923,7 @@ const CONST = {
             OPEN: 'OPEN',
             DELETED: 'DELETED',
             LOCKED: 'LOCKED',
+            VALIDATION_FAILED: 'VALIDATION_FAILED',
         },
         MAX_LENGTH: {
             FULL_SSN: 9,
@@ -959,6 +960,10 @@ const CONST = {
                 'resultcode.no.dob.available',
                 'resultcode.ssn.issued.prior.to.dob',
             ],
+        },
+        NOC_CODE: {
+            INSUFFICIENT_FUNDS: ['R01', 'R09'] as string[],
+            DEBIT_BLOCKED: ['R05', 'R06', 'R07', 'R08', 'R10', 'R11', 'R16', 'R23', 'R29'] as string[],
         },
     },
     CORPAY_DOCUMENT: {
@@ -1139,6 +1144,7 @@ const CONST = {
             OPEN: 'OPEN',
             DELETED: 'DELETED',
             LOCKED: 'LOCKED',
+            VALIDATION_FAILED: 'VALIDATION_FAILED',
         },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
@@ -9181,6 +9187,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_VALIDATION_FAILED_BANK_ACCOUNT: 'hasValidationFailedBankAccount',
     },
 
     DEBUG: {
