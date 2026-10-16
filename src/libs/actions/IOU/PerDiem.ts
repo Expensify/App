@@ -27,9 +27,9 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getChatReportFromMoneyRequestReport,
     getNewestOutstandingReportForUser,
     getReimbursableTotal,
-    getReportOrDraftReport,
     getUnheldReimbursableTotal,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -367,7 +367,7 @@ function getPerDiemExpensePolicyID({
     const allReports = getAllReports();
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const parentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const parentChatReportCandidate = parentChatReport?.reportID ? parentChatReport : null;
@@ -1103,7 +1103,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const {
