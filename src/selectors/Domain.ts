@@ -189,6 +189,8 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
 
+const unlockRequestedSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`];
+
 function selectRestrictedPrimaryPolicyID(groupID?: string) {
     return (domain: OnyxEntry<Domain>): string | undefined => {
         const targetGroup = groupsSelector(domain)?.find((g) => g.id === groupID);
@@ -341,6 +343,7 @@ export {
     groupsSelector,
     vacationDelegateSelector,
     accountLockSelector,
+    unlockRequestedSelector,
     isAdminSelector,
     domainAccessSelector,
     hasPendingAdminshipRequestSelector,
