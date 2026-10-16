@@ -24,6 +24,8 @@ import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAct
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+
 import toggleEmojiReaction from '@userActions/EmojiReactions';
 
 import CONST from '@src/CONST';
@@ -970,6 +972,69 @@ describe('actions/Report', () => {
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
+    });
+
+    it.each([
+        [false, false],
+        [true, false],
+        [false, true],
+        [true, true],
+    ])('honors Mark as unread above an informational export (offline: %s, specific message: %s)', async (isOffline, markSpecificMessage) => {
+        const reportID = 'report-level-unread-export';
+        const submitterAccountID = 1;
+        const approverAccountID = 2;
+        const submitted = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'submitted',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            actorAccountID: submitterAccountID,
+            created: '2026-01-01 09:00:00.000',
+            message: [{type: 'COMMENT', text: 'submitted', html: 'submitted'}],
+        });
+        const approved = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'approved',
+            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            actorAccountID: approverAccountID,
+            created: '2026-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', text: 'approved', html: 'approved'}],
+        });
+        const exported = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'exported',
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            actorAccountID: approverAccountID,
+            created: '2026-01-01 11:00:00.000',
+            message: [{type: 'COMMENT', text: 'marked this report as manually exported', html: 'marked this report as manually exported'}],
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2026-01-01 11:00:00.000'},
+        });
+        const reportActions = {[submitted.reportActionID]: submitted, [approved.reportActionID]: approved, [exported.reportActionID]: exported};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: submitterAccountID,
+            lastVisibleActionCreated: approved.created,
+            lastReadTime: '2026-01-01 12:00:00.000',
+        });
+        await waitForBatchedUpdates();
+
+        const expectedAnchor = markSpecificMessage ? approved : exported;
+        Report.markCommentAsUnread(reportID, reportActions, markSpecificMessage ? approved : createMock<OnyxTypes.ReportAction>({}), submitterAccountID, isOffline);
+        await waitForBatchedUpdates();
+
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(report?.manuallyMarkedUnreadReportActionID).toBe(expectedAnchor.reportActionID);
+        expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(approved.created, 1));
+        expect(
+            getUnreadMarkerReportAction({
+                visibleReportActions: [exported, approved, submitted],
+                earliestReceivedOfflineMessageIndex: undefined,
+                currentUserAccountID: submitterAccountID,
+                prevSortedVisibleReportActionsObjects: reportActions,
+                unreadMarkerTime: report?.lastReadTime,
+                isScrolledOverThreshold: false,
+                isOffline,
+                isReversed: false,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+            }),
+        ).toEqual([expectedAnchor.reportActionID, markSpecificMessage ? 1 : 0]);
     });
 
     it('Should properly update comment with links', async () => {

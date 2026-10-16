@@ -3276,9 +3276,11 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             ? reportAction.actorAccountID
             : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
 
+    // Report-level marks use the same fallback action as the API request so explicit user commands can anchor informational activity.
+    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
     const reportValue = {
         lastReadTime,
-        manuallyMarkedUnreadReportActionID: reportAction?.reportActionID ?? null,
+        manuallyMarkedUnreadReportActionID: reportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
@@ -3316,8 +3318,6 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             },
         },
     ];
-
-    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
 
     const parameters: MarkAsUnreadParams = {
         reportID,

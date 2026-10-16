@@ -1,4 +1,4 @@
-import {isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -29,8 +29,6 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Whether the action `prevUnreadMarkerReportActionID` points to is still present (not deleted/hidden) */
     isPrevUnreadMarkerReportActionPresent?: boolean;
 
-    /** The reportActionID the user explicitly marked as unread, if any */
-    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 
@@ -54,18 +52,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isOffline,
     prevUnreadMarkerReportActionID,
     isPrevUnreadMarkerReportActionPresent = false,
-    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
-    // While a manual mark is active, the marked action is the sole anchor: every other action is suppressed.
-    // We anchor by reportActionID rather than timestamp because `created` shifts on the optimistic->confirmed
-    // transition and would wrongly read as already-read. The marked action is the oldest unread by construction
-    // (markCommentAsUnread sets lastReadTime = its created - 1ms), so it stays correct as newer messages arrive.
-    if (manuallyMarkedUnreadReportActionID) {
-        return message.reportActionID === manuallyMarkedUnreadReportActionID && !shouldHideNewMarker(message, isOffline);
-    }
-
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
     // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
@@ -109,7 +98,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
 
     if (isFromCurrentUser) {
         // Only move/keep the marker on a self-authored action when one already exists in this session.
-        // An explicit mark-as-unread bypasses this guard via the early return at the top of the function.
         if (prevUnreadMarkerReportActionID) {
             return !shouldIgnoreUnreadForCurrentUserMessage;
         }
@@ -190,11 +178,17 @@ const getUnreadMarkerReportAction = ({
 
     // Drop the manual anchor once the marked action is deleted, otherwise no action would match it and the
     // marker would vanish instead of relocating via the timestamp scan below.
-    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionID
-        ? visibleReportActions.find((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
-        : undefined;
+    const manuallyMarkedUnreadReportActionIndex = manuallyMarkedUnreadReportActionID
+        ? visibleReportActions.findIndex((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
+        : -1;
+    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionIndex >= 0 ? visibleReportActions.at(manuallyMarkedUnreadReportActionIndex) : undefined;
     const activeManuallyMarkedUnreadReportActionID =
         manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
+
+    if (activeManuallyMarkedUnreadReportActionID) {
+        // Anchor by ID so optimistic-to-confirmed timestamp changes and newer arrivals cannot move an explicit manual mark.
+        return [activeManuallyMarkedUnreadReportActionID, manuallyMarkedUnreadReportActionIndex];
+    }
 
     // Lets the caller tell "the anchor was deleted, so relocate the marker" apart from "the anchor is still
     // around, so another self-authored action must not steal it".
@@ -202,46 +196,44 @@ const getUnreadMarkerReportAction = ({
         ? visibleReportActions.some((action) => action.reportActionID === prevUnreadMarkerReportActionID && !shouldHideNewMarker(action, isOffline))
         : false;
 
-    const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
-    const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
-    const step = isReversed ? -1 : 1;
+    // The synthetic Concierge greeting is skipped in inverted chats; keep the non-inverted list's existing behavior.
+    const isMarkerCandidate = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
+        !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
 
-    for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
-        const reportAction = visibleReportActions.at(index);
-
-        if (!isReversed && reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+    const eligibleIndexes: number[] = [];
+    for (const [index, action] of visibleReportActions.entries()) {
+        if (isMarkerCandidate(action)) {
+            eligibleIndexes.push(index);
+        }
+    }
+    const scanIndexes = isReversed ? eligibleIndexes.toReversed() : eligibleIndexes;
+    for (const [position, index] of scanIndexes.entries()) {
+        if (earliestReceivedOfflineMessageIndex !== undefined && index < earliestReceivedOfflineMessageIndex) {
             continue;
         }
-
-        let nextAction: OnyxTypes.ReportAction | undefined;
-        if (isReversed) {
-            nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
-        } else {
-            nextAction = visibleReportActions.at(index + 1);
-            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                nextAction = visibleReportActions.at(index + 2);
-            }
+        const reportAction = visibleReportActions.at(index);
+        if (!reportAction) {
+            continue;
         }
+        const nextIndex = scanIndexes.at(position + 1);
+        const nextAction = nextIndex === undefined ? undefined : visibleReportActions.at(nextIndex);
 
         const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
-        const shouldShowMarker =
-            reportAction &&
-            shouldDisplayNewMarkerOnReportAction({
-                message: reportAction,
-                nextMessage: nextAction,
-                isEarliestReceivedOfflineMessage,
-                currentUserAccountID,
-                prevSortedVisibleReportActionsObjects,
-                unreadMarkerTime,
-                isScrolledOverThreshold,
-                isOffline,
-                prevUnreadMarkerReportActionID,
-                isPrevUnreadMarkerReportActionPresent,
-                manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
-                hasWindowFocus,
-                newMessageBoundaryTime,
-            });
+        const shouldShowMarker = shouldDisplayNewMarkerOnReportAction({
+            message: reportAction,
+            nextMessage: nextAction,
+            isEarliestReceivedOfflineMessage,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects,
+            unreadMarkerTime,
+            isScrolledOverThreshold,
+            isOffline,
+            prevUnreadMarkerReportActionID,
+            isPrevUnreadMarkerReportActionPresent,
+            hasWindowFocus,
+            newMessageBoundaryTime,
+        });
 
         if (shouldShowMarker) {
             return [reportAction.reportActionID, index];
