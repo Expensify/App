@@ -50,7 +50,11 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const accountIDs = Object.values(policyMemberEmailsToAccountIDs).map((accountID) => Number(accountID));
     const prevAccountIDs = usePrevious(accountIDs);
     useEffect(() => {
-        if (!shouldShowMemberBankAccounts || !prevAccountIDs.length || accountIDs.every((accountID) => prevAccountIDs.includes(accountID))) {
+        if (!shouldShowMemberBankAccounts || !prevAccountIDs.length) {
+            return;
+        }
+        const prevAccountIDSet = new Set(prevAccountIDs);
+        if (accountIDs.every((accountID) => prevAccountIDSet.has(accountID))) {
             return;
         }
         getWorkspaceMembersEvent();
