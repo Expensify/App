@@ -11,7 +11,6 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
-import getHighestPointPositions from './getHighestPointPositions';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -457,6 +456,16 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
 }
 
 /**
+ * Horizontal plot bounds of a cartesian chart whose y axis is `CARTESIAN_Y_AXIS`, mirroring victory-native's layout,
+ * so labels can be laid out from the width before the chart mounts.
+ */
+function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight);
+    return {left, right, width: right - left};
+}
+
+/**
  * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
  * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
  */
@@ -539,7 +548,6 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
-    getHighestPointPositions,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
@@ -554,6 +562,7 @@ export {
     isCursorOverChartLabel,
     getNiceYAxisTicks,
     getYAxisLabelWidth,
+    getCartesianPlotBounds,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,

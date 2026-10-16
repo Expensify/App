@@ -1,29 +1,23 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
-import {applyInsightsFilters} from './insightsQueries';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -41,7 +35,10 @@ type InsightsChartData = {
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
 
 /** Resolves a chart's rows, and the rows it is compared against when the page compares. */
-function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters, queryJSON: Readonly<SearchQueryJSON> | undefined, snapshot: OnyxEntry<SearchResults>): InsightsChartData {
+function useInsightsChartData(
+    {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}: InsightsDashboardChart,
+    filters: InsightsFilters,
+): InsightsChartData {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -53,9 +50,9 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const compare = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && chart.view === CONST.SEARCH.VIEW.LINE ? filters.compare : undefined;
     const periods = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD ? resolveComparisonPeriods(filters.date) : undefined;
     const isComparing = compare === CONST.SEARCH.COMPARE.AVERAGE || !!periods;
-    const comparedQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare)) : undefined;
-    const [comparedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${comparedQueryJSON?.hash}`);
-    const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON);
+    const comparedQueryJSON = periods ? previousPeriodQueryJSON : averageQueryJSON;
+    const comparedSnapshot = periods ? previousPeriodSnapshot : averageSnapshot;
+    const comparedSortedData = useGroupedItems(isComparing ? comparedSnapshot : undefined, queryJSON);
 
     if (!isComparing || current.state !== INSIGHTS_CHART_STATE.READY) {
         return {...current, comparison: undefined};

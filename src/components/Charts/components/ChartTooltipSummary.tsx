@@ -1,3 +1,4 @@
+import formatAmountWithPercentage from '@components/Charts/utils/formatAmountWithPercentage';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +19,7 @@ type ChartTooltipSummaryProps = {
 /** Renders a single amount in the chart tooltip, with its share and expense count */
 function ChartTooltipSummary({amount, percentage, expenseCount}: ChartTooltipSummaryProps) {
     const styles = useThemeStyles();
-    const amountContent = percentage ? `${amount} (${percentage})` : amount;
+    const amountContent = formatAmountWithPercentage(amount, percentage);
 
     return (
         <>
