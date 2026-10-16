@@ -31,6 +31,9 @@ type ChartDataPoint = {
     /** Color of the point's bar or slice. Left out, the chart's default color. */
     color?: string;
 
+    /** Color of each series' bar at the point, keyed by the series' key. Left out, each series' own color. */
+    seriesColors?: Partial<Record<string, string>>;
+
     /** Number of expenses in this point */
     count?: number;
 

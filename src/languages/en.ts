@@ -1311,6 +1311,9 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            typical: 'Typical',
+            increase: (percentage: string) => `Up ${percentage}`,
+            decrease: (percentage: string) => `Down ${percentage}`,
         },
         emptyState: {
             title: 'Nothing to show',
