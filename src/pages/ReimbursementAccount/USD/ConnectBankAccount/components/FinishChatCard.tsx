@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +24,7 @@ import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -51,11 +50,12 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     useResetBankAccountModal({
@@ -70,6 +70,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
@@ -83,11 +84,11 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             <Section
                 title={translate('workspace.bankAccount.letsFinishInChat')}
                 icon={illustrations.ConciergeBubble}
-                containerStyles={[styles.mb8, styles.mh5]}
+                containerStyles={styles.mb8}
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
-                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                <View style={styles.mhn5}>
                     <MenuItemNavigation
                         icon={icons.ChatBubble}
                         title={translate('workspace.bankAccount.finishInChat')}

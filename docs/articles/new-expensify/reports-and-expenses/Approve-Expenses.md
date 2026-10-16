@@ -82,7 +82,7 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
-3. Choose **Selected**, then **Change approver**.
+3. On the selection bar, choose **Change approver**.
 4. Select **Add approver** or **Bypass approvers**.
 5. If you selected **Add approver**, choose the approver and click **Save**.
 
@@ -168,7 +168,7 @@ The outdated row is removed from the report. The expense itself is not deleted �
 # FAQ
 
 ## Why can't I action a pending expense? 
-Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
+Expensify Card expenses, and expenses from cards connected through Plaid, show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
 ## Why can’t I see Bypass approvers?
 Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
@@ -185,6 +185,9 @@ A rejection made while offline is only sent once you reconnect. If the expense w
 
 ## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
+
+## Why can I see a member's Draft report that isn't waiting for my approval?
+Approvers in a member's approval workflow, Workspace Admins, and the member's copilots can view the member's reports in **Spend > Reports**, including Draft (unsubmitted) reports. A Draft report only appears in **Needs approval** after the member submits it.
 
 ## What happens after I approve a report?
 

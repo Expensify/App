@@ -20,10 +20,24 @@ Only **Workspace Admins** can enable Expensify Travel for a workspace.
 3. In the left menu, click **More Features**. 
 4. Toggle on **Travel**.
 
-## What happens after enabling Expensify Travel
+Toggling on **Travel** adds a **Travel** item to the workspace left menu, but it does not finish setting up Expensify Travel. Complete the setup steps below before your members can book travel.
 
-Once Expensify Travel is enabled: 
+## How to set up Expensify Travel 
 
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
+3. In the left menu, click **Travel**.
+4. On the **Get started with Expensify Travel** page, click **Let’s go**.
+5. Complete each step Expensify asks for. Depending on your workspace, this can include your legal name, your workspace address, your admin email domain, and your **Legal entity tax ID**.
+6. Accept the travel terms and conditions.
+
+Only **Workspace Admins** can complete these steps. Members are not asked for their legal name when they book a trip — Expensify collects it during this setup flow instead.
+
+## What happens after setting up Expensify Travel
+
+Once Expensify Travel setup is complete: 
+
+- **Book travel** appears under the **➕ Create** button for members whose default workspace is this workspace
 - Team members can book flights, hotels, cars, and trains
 - Travel bookings follow your workspace’s travel policy
 - Bookings and expenses stay connected from start to finish
@@ -38,6 +52,12 @@ To customize your company’s travel rules — like flight class, hotel limits, 
 [Expensify Travel policy setup hub](https://help.expensify.com/travel/hubs/company-setup/).
 
 # FAQ
+
+## Why don’t my members see Book travel after I turned on the Travel toggle?
+
+**Book travel** only appears once Expensify Travel setup is complete for the workspace. Turning on the **Travel** toggle in **More features** is the first step, not the last one.
+
+**Book travel** under the **➕ Create** button only checks a member’s default workspace. If Expensify Travel is set up on a different workspace, the member can make that workspace their default: go to **Workspaces**, click the **three-dot menu** next to the workspace, and select **Set as default workspace**. Members also need to belong to that workspace. If someone leaves or is removed from it, **Book travel** disappears for them.
 
 ## Why are trip names being added to my expense descriptions?
 
