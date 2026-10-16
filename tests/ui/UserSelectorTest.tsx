@@ -23,6 +23,7 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({pb0: {}})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        formatPhoneNumber: (phoneNumber: string) => phoneNumber,
     })),
 );
 jest.mock('@libs/PolicyUtils', () => ({getExpensifyTeamExclusions: () => ({})}));
@@ -194,5 +195,105 @@ describe('UserSelector', () => {
         // Then the selected user remains visible so they can be deselected
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(expect.objectContaining(publicProfileOption));
+    });
+
+    describe('typed emails', () => {
+        const typedEmail = 'removed.member@example.com';
+        const typedEmailOption: OptionData = {
+            text: typedEmail,
+            login: typedEmail,
+            accountID: 5000,
+            keyForList: '5000',
+            isOptimisticPersonalDetail: true,
+        };
+
+        it('offers a typed email that matches no member when typed emails are allowed', () => {
+            // Given the selector finds no member for a typed email, e.g. someone removed from the workspace
+            mockedUsePersonalDetailSearchSelector.mockImplementation((config) => {
+                const selectorReturn = buildSelectorReturn(config);
+                return {
+                    ...selectorReturn,
+                    totalOptionsCount: 1,
+                    availableOptions: {...selectorReturn.availableOptions, personalDetails: [], userToInvite: config.includeUserToInvite ? typedEmailOption : null},
+                };
+            });
+
+            // When the From selector renders with typed emails allowed
+            render(
+                <UserSelector
+                    value={[]}
+                    policyID={undefined}
+                    shouldAllowTypedEmail
+                    onChange={jest.fn()}
+                />,
+            );
+
+            // Then the typed email is offered and the search input is shown even for a short list, so an email can be typed
+            const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+            expect(selectionListProps?.data.map((item) => item.login)).toEqual([typedEmail]);
+            expect(selectionListProps?.textInputOptions).toBeDefined();
+        });
+
+        it('does not offer a typed email when typed emails are not allowed', () => {
+            // Given a selector used by a filter that only accepts known users, like To
+            mockedUsePersonalDetailSearchSelector.mockImplementation((config) => {
+                const selectorReturn = buildSelectorReturn(config);
+                return {...selectorReturn, availableOptions: {...selectorReturn.availableOptions, personalDetails: [], userToInvite: config.includeUserToInvite ? typedEmailOption : null}};
+            });
+
+            // When it renders without typed emails allowed
+            render(
+                <UserSelector
+                    value={[]}
+                    policyID={undefined}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            // Then no typed email row is shown
+            const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+            expect(selectionListProps?.data).toEqual([]);
+        });
+
+        it('stores a selected typed email as the email instead of its optimistic accountID', () => {
+            // Given the From selector with typed emails allowed
+            const onChange = jest.fn();
+            render(
+                <UserSelector
+                    value={[keyForIndex(1)]}
+                    policyID={undefined}
+                    shouldAllowTypedEmail
+                    onChange={onChange}
+                />,
+            );
+
+            // When the selector reports a selection that includes a typed email next to a known user
+            const config = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0];
+            const knownUserOptions = personalDetailOptions.filter((option) => option.keyForList === keyForIndex(1));
+            config?.onSelectionChange?.([keyForIndex(1), String(typedEmailOption.accountID)], [...knownUserOptions, {...typedEmailOption, isSelected: true}]);
+
+            // Then the known user keeps their accountID and the typed email is stored as the email, which the server can resolve
+            expect(onChange).toHaveBeenCalledWith([keyForIndex(1), typedEmail]);
+        });
+
+        it('keeps a previously typed email selected when the filter reopens', () => {
+            // Given a From value that holds a typed email with no personal details
+            render(
+                <UserSelector
+                    value={[typedEmail]}
+                    policyID={undefined}
+                    shouldAllowTypedEmail
+                    onChange={jest.fn()}
+                />,
+            );
+
+            // When the selector is set up
+            const config = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0];
+
+            // Then the email is passed in as a selected extra option so it shows as selected and can be deselected
+            expect(config?.initialExtraOptions).toEqual([expect.objectContaining({login: typedEmail, isSelected: true, isOptimisticPersonalDetail: true})]);
+            const extraOptionAccountID = String(config?.initialExtraOptions?.at(0)?.accountID);
+            expect(config?.initialSelected?.has(extraOptionAccountID)).toBe(true);
+        });
     });
 });

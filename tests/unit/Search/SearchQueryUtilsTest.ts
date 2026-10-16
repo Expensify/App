@@ -1710,6 +1710,22 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('keeps a typed email in the From filter but drops unknown values from other user filters', () => {
+            // Given a query whose From and To values are an email with no personal details, e.g. a member removed from the workspace
+            const queryJSON = buildSearchQueryJSON('type:expense from:removed.member@example.com,12345 to:removed.member@example.com');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is rebuilt from that query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the From filter keeps the email so it stays selected, while unknown accountIDs and the To value are dropped as before
+            expect(result.from).toEqual(['removed.member@example.com']);
+            expect(result.to).toEqual([]);
+        });
+
         test('conversion amount filters parse from either spelling of the key', () => {
             const queryJSON = buildSearchQueryJSON('type:expense-report amount-debited>1000 amountReimbursed<2000');
 
