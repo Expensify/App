@@ -1028,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Beheren',
             },
             emailDeliveryFailure: {title: 'We kunnen je geen e-mailmeldingen sturen', subtitle: 'Account'},
+            upgradeNetSuiteConnection: {title: 'Upgrade je NetSuite-verbinding'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -7674,6 +7675,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Je QuickBooks Online-verbinding verloopt op ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Je QuickBooks Online-verbinding is op ${date} verlopen.`,
+            netSuiteOAuthMigrationRequired: 'Upgrade je NetSuite-verbinding naar OAuth 2.0 vóór februari 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Je NetSuite-verbinding moet onmiddellijk worden bijgewerkt naar OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Nu upgraden',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',

@@ -1030,6 +1030,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Gérer',
             },
             emailDeliveryFailure: {title: 'Nous ne pouvons pas vous envoyer de notifications par e-mail', subtitle: 'Compte'},
+            upgradeNetSuiteConnection: {title: 'Mettre à niveau votre connexion NetSuite'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -7755,6 +7756,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Votre connexion QuickBooks Online expire le ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Votre connexion à QuickBooks Online a expiré le ${date}.`,
+            netSuiteOAuthMigrationRequired: 'Mettez à niveau votre connexion NetSuite vers OAuth 2.0 d’ici février 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Votre connexion NetSuite nécessite une mise à niveau immédiate vers OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Mettre à niveau maintenant',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',

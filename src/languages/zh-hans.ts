@@ -991,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: '管理',
             },
             emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
+            upgradeNetSuiteConnection: {title: '升级您的 NetSuite 连接'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -7413,6 +7414,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
             qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
+            netSuiteOAuthMigrationRequired: '请在 2027 年 2 月前将您的 NetSuite 连接升级到 OAuth 2.0。',
+            netSuiteOAuthMigrationRequiredUrgent: '您的 NetSuite 连接需要立即升级到 OAuth 2.0。',
+            netSuiteOAuthUpgradeNow: '立即升级',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
