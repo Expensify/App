@@ -74,7 +74,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => {
+        .filter((type): type is PersonalPolicyTypeExcludedProps => {
             if (type === CONST.POLICY.TYPE.PERSONAL) {
                 return false;
             }
@@ -88,8 +88,8 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
             actionElement:
