@@ -55,14 +55,14 @@ async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
 }
 
 /**
- * Outcome of reading the account's HSM-backed credential. `readFailed` stays distinct from `absent`
- * because an unreadable keystore may recover on the next attempt, while a confirmed absence cannot:
- * only the latter means the credential is unusable and may be deleted or re-registered.
+ * Outcome of reading the account's HSM-backed credential. `readFailed` means the keystore stayed
+ * unreadable after one retry, so it is no longer treated as transient. It stays distinct from
+ * `absent`, which is a confirmed absence rather than a failed read.
  */
 type LocalCredentialLookup = {status: 'found'; credentialID: string} | {status: 'absent'} | {status: 'readFailed'; error: MFAError};
 
-/** Reads the account's HSM-backed credential, separating a confirmed absence from an unreadable keystore. */
-async function getLocalCredential(accountID: number): Promise<LocalCredentialLookup> {
+/** Reads the account's HSM-backed credential once, separating a confirmed absence from an unreadable keystore. */
+async function readLocalCredential(accountID: number): Promise<LocalCredentialLookup> {
     try {
         const {keys} = await getAllKeys(getKeyAlias(accountID));
         const entry = keys.at(0);
@@ -72,7 +72,6 @@ async function getLocalCredential(accountID: number): Promise<LocalCredentialLoo
         return {status: 'found', credentialID: Base64URL.base64ToBase64url(entry.publicKey)};
     } catch (error) {
         const readError = decodeLibraryError(error);
-        addMFABreadcrumb('Failed to get local credential ID', readError, 'error');
         // The library rejects with KEY_NOT_FOUND rather than returning an empty key list when the
         // alias does not exist. That is a confirmed absence, so it has to keep routing a first-time
         // device into registration instead of being reported as a read failure.
@@ -81,6 +80,21 @@ async function getLocalCredential(accountID: number): Promise<LocalCredentialLoo
         }
         return {status: 'readFailed', error: readError};
     }
+}
+
+/** Reads the account's HSM-backed credential, retrying a failed read once before reporting it. */
+async function getLocalCredential(accountID: number): Promise<LocalCredentialLookup> {
+    const firstLookup = await readLocalCredential(accountID);
+    if (firstLookup.status !== 'readFailed') {
+        return firstLookup;
+    }
+    addMFABreadcrumb('Retrying local credential read', firstLookup.error, 'warning');
+
+    const retryLookup = await readLocalCredential(accountID);
+    if (retryLookup.status === 'readFailed') {
+        addMFABreadcrumb('Failed to get local credential ID', retryLookup.error, 'error');
+    }
+    return retryLookup;
 }
 
 /**
@@ -92,8 +106,8 @@ async function getLocalCredential(accountID: number): Promise<LocalCredentialLoo
  */
 async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
     const localCredential = await getLocalCredential(accountID);
-    // A read failure still answers "no", which sends the flow to registration. This check returns a
-    // plain boolean, so it has no way to fail the flow instead; the recovery slice owns that.
+    // A read that still fails after its retry answers "no", which sends the flow to registration,
+    // the same place recovery would send it.
     if (localCredential.status !== 'found') {
         return false;
     }
@@ -159,8 +173,8 @@ async function authorize(params: AuthorizeOperationParams): Promise<AuthorizeOpe
     const localCredential = await getLocalCredential(accountID);
     const allowedIDs = challenge.allowCredentials.map((credential) => credential.id);
 
-    // A keystore the device could not read is reported as-is, so the caller does not delete a key
-    // that may well still be usable. Only a confirmed absence or a mismatch marks it unusable.
+    // The read was already retried once, so the error is reported as-is and the caller decides
+    // from its reason whether the key is unusable.
     if (localCredential.status === 'readFailed') {
         return {success: false, error: localCredential.error};
     }
