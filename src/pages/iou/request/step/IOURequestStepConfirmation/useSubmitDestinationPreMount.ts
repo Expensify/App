@@ -10,12 +10,12 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OneOnOneChatReportIDsDerivedValue, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -27,7 +27,7 @@ type UseSubmitDestinationPreMountParams = {
     report: OnyxEntry<Report>;
     reportDrafts: OnyxCollection<Report>;
     participants: Participant[];
-    iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
+    iouType: IOUType;
     backToReport: string | undefined;
     currentUserAccountID: number;
     isPerDiemRequest: boolean;
@@ -165,7 +165,7 @@ function useSubmitDestinationPreMount({
                 return;
             }
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- we need the latest formHasBeenSubmitted value at cleanup time, not the value from mount.
             if (hasSubmitIntent || formHasBeenSubmitted.current) {
                 // The real write's own callback clears the marker once it runs, which may race this cleanup - leave
                 // it alone here, or the row could end up unmarked before that write actually happens.

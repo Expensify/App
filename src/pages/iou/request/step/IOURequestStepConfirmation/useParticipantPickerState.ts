@@ -16,11 +16,11 @@ import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -31,7 +31,7 @@ import type {IOURequestStepConfirmationProps} from './types';
 
 type UseParticipantPickerStateParams = {
     transaction: OnyxEntry<Transaction>;
-    iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
+    iouType: IOUType;
     reportID: string;
     reportDrafts: OnyxCollection<Report>;
     navigation: IOURequestStepConfirmationProps['navigation'];
@@ -273,7 +273,7 @@ function useParticipantPickerState({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, navigation]);
 
     return {
         defaultParticipants,
