@@ -706,7 +706,12 @@ function IOURequestStepConfirmationContent({
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
     const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
-    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    // Picking another workspace in the "To" picker moves the transaction to that workspace chat while the route still points
+    // at the previous one, so `report` resolves to undefined. Fall back to the picked workspace chat
+    // so the destination can still be pre-mounted instead of revealing the Inbox before navigating there.
+    const pickedParticipant = transaction?.participants?.at(0);
+    const pickedWorkspaceChatReportID = !isUnreported && isPolicyExpenseChatUtils(pickedParticipant) ? pickedParticipant?.reportID : undefined;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : (report?.reportID ?? pickedWorkspaceChatReportID);
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
 
     // The user can swap recipients here without a remount, so `report` can still lag behind the current
