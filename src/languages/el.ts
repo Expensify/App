@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Λήψη αποδείξεων',
         }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
+        shareReport: 'Κοινοποιήστε την αναφορά',
+        reportShared: 'Η αναφορά κοινοποιήθηκε',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -4099,6 +4101,10 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Επεξεργασία ${name}`,
+        removeItem: ({name}: {name: string}) => `Αφαίρεση ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4110,7 +4116,13 @@ ${amount} για ${merchant} - ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
             invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
+        removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -7954,7 +7966,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     toggleTitle: 'Γραφεία',
                     allSelected: 'Όλα τα γραφεία',
                 },
-                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+                enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
@@ -11451,6 +11463,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'έγινε αντιστοίχιση μιας απόδειξης με αυτή τη συναλλαγή',
+        mergedExpenseDeleted: 'συγχώνευσε έξοδα και μετέφερε ένα στα Διαγραμμένα',
     },
     subscription: {
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',

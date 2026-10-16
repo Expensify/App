@@ -2182,6 +2182,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastAction: addCommentAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then the mention should fall back to the hidden placeholder
@@ -2563,6 +2564,7 @@ describe('ReportAlternateTextUtils', () => {
 
                     currentUserLogin: '',
                     formatPhoneNumber,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(lastMessage).toContain('UnavailableMarker');
