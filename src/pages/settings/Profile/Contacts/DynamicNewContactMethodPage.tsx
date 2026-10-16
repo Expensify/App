@@ -112,10 +112,6 @@ function DynamicNewContactMethodPage() {
         [translate, countryCode],
     );
 
-    const onBackButtonPress = useCallback(() => {
-        Navigation.goBack(listPath);
-    }, [listPath]);
-
     // Guards against firing twice: once this screen is replaced, useDynamicBackPath (reactive to
     // navigation state) recomputes listPath against the NEW screen, so a second effect run would
     // navigate forward again on top of an already-stale base path.
@@ -142,10 +138,7 @@ function DynamicNewContactMethodPage() {
             testID="DynamicNewContactMethodPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('contacts.newContactMethod')}
-                    onBackButtonPress={onBackButtonPress}
-                />
+                <HeaderWithBackButton title={translate('contacts.newContactMethod')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                     validate={validate}
