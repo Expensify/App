@@ -1,7 +1,7 @@
-import type {LegacyPinchGesture} from 'react-native-gesture-handler';
+import type {PinchGesture, PinchGestureConfig} from 'react-native-gesture-handler';
 
 import {useCallback, useEffect, useState} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {GestureStateManager, usePinchGesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -9,7 +9,7 @@ import type {MultiGestureCanvasVariables} from './types';
 
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 
-type UsePinchGestureProps = Pick<
+type UseCanvasPinchGestureProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'zoomScale'
@@ -23,9 +23,12 @@ type UsePinchGestureProps = Pick<
     | 'isTransformGestureActive'
     | 'stopAnimation'
     | 'onScaleChanged'
->;
+> & {
+    /** Gestures of the canvas that can run simultaneously with the pinch */
+    simultaneousWith: PinchGestureConfig['simultaneousWith'];
+};
 
-const usePinchGesture = ({
+const useCanvasPinchGesture = ({
     canvasSize,
     zoomScale,
     zoomRange,
@@ -38,7 +41,8 @@ const usePinchGesture = ({
     isTransformGestureActive,
     stopAnimation,
     onScaleChanged,
-}: UsePinchGestureProps): LegacyPinchGesture => {
+    simultaneousWith,
+}: UseCanvasPinchGestureProps): PinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
 
@@ -113,13 +117,10 @@ const usePinchGesture = ({
         setPinchEnabled(true);
     }, [pinchEnabled]);
 
-    const pinchGesture = Gesture.Pinch()
-        .enabled(pinchEnabled)
-        // The first argument is not used, but must be defined
-        .onTouchesDown((_evt, state) => {
-            // react-compiler optimization unintentionally make all the callbacks run on the JS thread.
-            // Adding the worklet directive here will make all the callbacks run on UI thread back.
-
+    const pinchGesture = usePinchGesture({
+        enabled: pinchEnabled,
+        simultaneousWith,
+        onTouchesDown: (evt) => {
             'worklet';
 
             // We don't want to activate pinch gesture when we are swiping in the pager
@@ -127,9 +128,9 @@ const usePinchGesture = ({
                 return;
             }
 
-            state.fail();
-        })
-        .onStart((evt) => {
+            GestureStateManager.fail(evt.handlerTag);
+        },
+        onActivate: (evt) => {
             stopAnimation();
             isPinchSettling.set(false);
             isTransformGestureActive.set(true);
@@ -138,8 +139,8 @@ const usePinchGesture = ({
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
             pinchOrigin.x.set(adjustedFocal.x);
             pinchOrigin.y.set(adjustedFocal.y);
-        })
-        .onChange((evt) => {
+        },
+        onUpdate: (evt) => {
             'worklet';
 
             // Disable the pinch gesture if one finger is released,
@@ -174,8 +175,8 @@ const usePinchGesture = ({
                 pinchBounceTranslateX.set(newPinchTranslateX - pinchTranslateX.get());
                 pinchBounceTranslateY.set(newPinchTranslateY - pinchTranslateY.get());
             }
-        })
-        .onEnd(() => {
+        },
+        onDeactivate: () => {
             // Add pinch translation to total offset and reset gesture variables
             offsetX.set((value) => value + pinchTranslateX.get());
             offsetY.set((value) => value + pinchTranslateY.get());
@@ -204,16 +205,17 @@ const usePinchGesture = ({
                 pinchScale.set(zoomScale.get());
                 finishTransformGesture();
             }
-        })
-        .onFinalize(() => {
+        },
+        onFinalize: () => {
             if (isPinchSettling.get()) {
                 return;
             }
 
             isTransformGestureActive.set(false);
-        });
+        },
+    });
 
     return pinchGesture;
 };
 
-export default usePinchGesture;
+export default useCanvasPinchGesture;

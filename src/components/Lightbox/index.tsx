@@ -90,6 +90,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
             onScaleChanged: () => {},
             onSwipeDown: () => {},
             pagerRef: undefined,
+            pagerGesture: undefined,
             externalGestureHandler: undefined,
         };
     } else {
@@ -112,7 +113,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         onTap,
         onScaleChanged: onScaleChangedContext,
         onSwipeDown,
-        pagerRef,
+        pagerGesture,
         isScrollEnabled,
         externalGestureHandler,
     } = carouselContext;
@@ -213,7 +214,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 canvasSize={canvasSize}
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
-                                pagerRef={pagerRef}
+                                pagerGesture={pagerGesture}
                                 isUsedInCarousel={isUsedInCarousel}
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 isPagerScrollEnabled={isScrollEnabled}
