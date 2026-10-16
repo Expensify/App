@@ -1,6 +1,7 @@
-import type {TextStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- type-only; the alias restriction does not distinguish type imports
+import type {FontWeight} from '@styles/utils/FontUtils/fontFamily/types';
 
-type FontWeightStyles = Record<'normal' | 'medium' | 'bold', NonNullable<TextStyle['fontWeight']>>;
+type FontWeightStyles = Record<'normal' | 'medium' | 'bold', FontWeight>;
 
 const fontWeight: FontWeightStyles = {
     normal: '400',
