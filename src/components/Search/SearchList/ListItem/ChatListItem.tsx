@@ -4,6 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -39,6 +40,7 @@ function ChatListItem<TItem extends ListItem>({
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportActionItem?.reportID);
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
@@ -91,6 +93,7 @@ function ChatListItem<TItem extends ListItem>({
                     isFirstVisibleReportAction={false}
                     shouldDisplayContextMenu={false}
                     shouldShowBorder
+                    reportsParentHierarchy={reportsParentHierarchy}
                 />
             </View>
         </ListItemComposed>

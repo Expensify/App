@@ -5,6 +5,7 @@ import WorkspaceMemberRolePickerModal, {useWorkspaceMemberRolePickerPopover} fro
 import useLocalize from '@hooks/useLocalize';
 
 import {getAllowedRolesForMember} from '@libs/PolicyMemberRoleUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import type CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -16,7 +17,7 @@ import React from 'react';
 
 type WorkspaceMemberRoleCellProps = {
     role: ValueOf<typeof CONST.POLICY.ROLE> | undefined;
-    policy: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy>;
     memberLogin: string;
     canEdit?: boolean;
     onSave?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
@@ -24,7 +25,7 @@ type WorkspaceMemberRoleCellProps = {
 
 function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: WorkspaceMemberRoleCellProps) {
     const {translate} = useLocalize();
-    const roleLabel = translate('workspace.common.roleName', role);
+    const roleLabel = role ? translate('workspace.common.roleName', role) : undefined;
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
     const {popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole: role, allowedRoles});
 
@@ -54,7 +55,13 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
                 />
             }
         >
-            <Text numberOfLines={1}>{roleLabel}</Text>
+            <Text
+                numberOfLines={1}
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
+                {roleLabel}
+            </Text>
         </EditableCell>
     );
 }
