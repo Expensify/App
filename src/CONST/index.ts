@@ -1007,7 +1007,7 @@ const CONST = {
             EXPENSIFY: 'EXPENSIFY',
             WISE: 'WISE',
         },
-        // Wise's KYC requirement types the App has a page for. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
+        // Wise's KYC requirement types with a typed answer shape on WiseBusinessOnboarding.requirements. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
         KYC_REQUIREMENT: {
             BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
             BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',

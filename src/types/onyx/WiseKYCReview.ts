@@ -4,21 +4,21 @@ import type {ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
-/** One KYC requirement the business's application needs right now, derived by the server on every read. Never stored. The App draws the page from its own layout for the key. */
+/** One KYC requirement the business's application needs right now, derived by the server on every read. Never stored. */
 type WiseKYCRequirement = {
-    /** Wise's requirement type, such as BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID; also the step the page saves under */
+    /** Wise's requirement type; also the step its answers are saved under */
     key: string;
 
     /** Wise's state for it, NOT_PROVIDED until submitted */
     state: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_STATE>;
 
-    /** True when only Wise's own page can collect it, so the task opens the embedded page instead of a form */
+    /** True when only Wise's embedded page can collect it */
     hostedOnly: boolean;
 
     /** EXPENSIFY while we pre-collect it before Submit so Wise does not have to ask, WISE once it comes from Wise's live review */
     requestedBy: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY>;
 
-    /** What the page needs for this entry, prepared by the server and named after Wise's attribute where one exists, such as requiredUbos as shareholder IDs joined with names for the UBO ID page */
+    /** Wise's attributes for the requirement, passed through unchanged */
     attributes?: Record<string, unknown>;
 };
 

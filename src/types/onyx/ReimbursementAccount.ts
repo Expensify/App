@@ -261,7 +261,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     };
 };
 
-/** The business's Wise onboarding, as the server stores it under additionalData.wise. Pages are keyed by the step of the form file that saved them; later pages are typed as they are added. */
+/** The business's Wise onboarding, as the server stores it under additionalData.wise. Each page's answers sit under the step that saved them. */
 type WiseBusinessOnboarding = {
     /** Wise's review state, passed through unchanged */
     status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
@@ -281,21 +281,21 @@ type WiseBusinessOnboarding = {
 
     /** The representative page's answers the client may hold. The full SSN is stored encrypted on the server and never sent */
     representative?: {
-        /** Last four digits of the SSN, for the confirmation page */
+        /** Last four digits of the SSN, the only part the client receives */
         ssnLast4?: string;
 
         /** The representative has no SSN or ITIN, so Wise's hosted page collects their ID and liveness */
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The intake collects the ones below before Submit so Wise does not ask for them after; Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
+    /** Answers to Wise's KYC requirements, by requirement and then by Wise's field name. The ones named below are collected before Submit so Wise does not ask for them after; Submit shapes each into Wise's payload */
     requirements?: {
         /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
             businessSourceOfWealthInfo: string;
         };
 
-        /** The proof page asks the source again so its document kinds can depend on it. The file is under documents */
+        /** Asks the source again so the proof stands on its own after Submit. The file is under documents */
         BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
             sourceOfWealthType: string;
             documentType: string;
