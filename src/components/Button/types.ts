@@ -1,3 +1,5 @@
+import type {StartWithLoading} from '@hooks/usePressLoading';
+
 import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
@@ -10,7 +12,7 @@ import type {ValueOf} from 'type-fest';
 
 type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => void | Promise<void>;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
@@ -36,6 +38,14 @@ type ButtonEventsProps = {
 type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading?: boolean;
+
+    /**
+     * Shows the loading spinner the moment the button is pressed, before `onPress` runs. Defaults to false. It wraps the whole handler.
+     * To spin on only some branches, leave this off and wrap those branches in the `startWithLoading` argument passed to `onPress`.
+     *
+     * Pass a stable boolean that does turn true, or none at all.
+     */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;

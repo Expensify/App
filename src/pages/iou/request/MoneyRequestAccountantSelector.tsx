@@ -24,8 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Accountant} from '@src/types/onyx/IOU';
 
-import type {GestureResponderEvent} from 'react-native';
-
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 
@@ -121,17 +119,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         [onAccountantSelected, onFinish],
     );
 
-    const handleConfirmSelection = useCallback(
-        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Accountant) => {
-            if (!option) {
-                return;
-            }
-
-            selectAccountant(option);
-        },
-        [selectAccountant],
-    );
-
     const getHeaderMessageText = () => {
         if (sections.length > 0) {
             return '';
@@ -169,7 +156,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={selectAccountant}
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirmFocusedOption: selectAccountant,
             }}
             shouldShowTextInput
             shouldSingleExecuteRowSelect
