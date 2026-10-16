@@ -5,6 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -63,10 +64,20 @@ const getReviewNavigationRoute = (
     policyCategories: OnyxTypes.PolicyCategories | undefined,
     policyTags: OnyxTypes.PolicyTagLists,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
+    transactionCardFeedSettings?: CustomCardFeedData,
 ) => {
     // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    const comparisonResult = compareDuplicateTransactionFields(policyTags, transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(
+        policyTags,
+        transaction,
+        duplicates,
+        transactionReport,
+        transaction?.transactionID,
+        policy,
+        policyCategories,
+        transactionCardFeedSettings,
+    );
     setReviewDuplicatesKey(
         {
             ...comparisonResult.keep,
