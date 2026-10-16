@@ -32,6 +32,7 @@ jest.mock('@sentry/core', () => ({
 }));
 
 jest.mock('@sentry/react-native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@sentry/react-native'),
     startInactiveSpan: (options: {op?: string; parentSpan?: FakeSpan; startTime?: number; attributes?: Record<string, unknown>}): FakeSpan => {
         const span: FakeSpan = {
             op: options.op,
