@@ -75,8 +75,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
 
-        const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
-        const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addAttachmentWithComment({
             report: targetReport,
             notifyReportID: targetReportID,

@@ -1321,8 +1321,9 @@ function addAttachmentWithComment({
         playSound(SOUNDS.DONE);
     };
 
-    // Single attachment
-    if (!Array.isArray(attachments)) {
+    // Single attachment, or several in one message so Concierge answers them in one thread
+    if (!Array.isArray(attachments) || conciergeThreadReportID) {
+        const [file, ...additionalFiles] = Array.isArray(attachments) ? attachments : [attachments];
         addActions({
             report,
             notifyReportID,
@@ -1330,7 +1331,8 @@ function addAttachmentWithComment({
             timezoneParam: timezone,
             currentUserAccountID,
             text,
-            file: attachments,
+            file,
+            additionalFiles,
             isInSidePanel,
             delegateAccountID,
             sidePanelContext,
@@ -1354,10 +1356,6 @@ function addAttachmentWithComment({
         isInSidePanel,
         delegateAccountID,
         conciergeReportID,
-
-        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
-        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
-        shouldNavigateToConciergeThread,
     });
 
     // Remaining: attachment-only actions (no text duplication)
