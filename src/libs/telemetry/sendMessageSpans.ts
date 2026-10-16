@@ -2,6 +2,7 @@
 
 import CONST from '@src/CONST';
 
+import type {StartSpanOptions} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 
 import {cancelSpan, cancelSpansByPrefix, endSpan, getSpan, startSpan} from './activeSpans';
@@ -10,12 +11,23 @@ type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
 const SEND_MESSAGE_VISIBLE_PREFIX = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
 
+// Report each in-flight send renders in, keyed by parent span id. A Concierge respond-in-thread send renders in the new thread, not in the chat it was typed in.
+const visibleReportIDBySpanID = new Map<string, string>();
+
 function getSendMessageVisibleSpanID(reportActionID: string) {
     return `${SEND_MESSAGE_VISIBLE_PREFIX}${reportActionID}`;
 }
 
 function getSendMessageVisibleSpan(reportActionID: string) {
     return getSpan(getSendMessageVisibleSpanID(reportActionID));
+}
+
+function startSendMessageVisibleSpan(reportActionID: string, visibleReportID: string, options: StartSpanOptions) {
+    const spanID = getSendMessageVisibleSpanID(reportActionID);
+    if (!startSpan(spanID, options)) {
+        return;
+    }
+    visibleReportIDBySpanID.set(spanID, visibleReportID);
 }
 
 function getPhaseSpanID(reportActionID: string, phase: SendMessagePhase) {
@@ -79,12 +91,41 @@ function cancelSendMessagePhases(parentSpanID: string | undefined) {
     }
 }
 
+// Call when a report screen goes away. Only sends that render in that report are cancelled, so a send handed off to a Concierge thread survives the switch to the thread.
+function cancelSendMessageSpansForReport(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    for (const [spanID, visibleReportID] of visibleReportIDBySpanID) {
+        if (!getSpan(spanID)) {
+            visibleReportIDBySpanID.delete(spanID);
+            continue;
+        }
+        if (visibleReportID !== reportID) {
+            continue;
+        }
+        cancelSendMessagePhases(spanID);
+        cancelSpan(spanID);
+        visibleReportIDBySpanID.delete(spanID);
+    }
+}
+
 // Call on navigate-away, where the reportActionID is unknown. Phase span ids do not share the parent's prefix, so sweeping only the parent leaks them.
 function cancelAllSendMessageSpans() {
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
         cancelSpansByPrefix(phase);
     }
     cancelSpansByPrefix(SEND_MESSAGE_VISIBLE_PREFIX);
+    visibleReportIDBySpanID.clear();
 }
 
-export {getSendMessageVisibleSpanID, startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases, cancelAllSendMessageSpans};
+export {
+    getSendMessageVisibleSpanID,
+    startSendMessageVisibleSpan,
+    startSendMessagePhase,
+    markSendMessageCommitted,
+    endSendMessagePhases,
+    cancelSendMessagePhases,
+    cancelSendMessageSpansForReport,
+    cancelAllSendMessageSpans,
+};
