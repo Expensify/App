@@ -1,4 +1,5 @@
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
+import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,11 +9,11 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
-import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -41,8 +42,20 @@ type ChartTooltipProps = {
     /** Whether the tooltip should be shown, treated as always shown when omitted */
     isVisible?: DerivedValue<boolean>;
 
+    /** Whether the rendered content belongs to the current target, so the old content is never drawn at the new position */
+    isContentCurrent?: DerivedValue<boolean>;
+
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
+
+    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
+    onDismiss?: () => void;
+
+    /** Identifies the item the content belongs to, so the content is mounted again and laid out on each change of the item */
+    contentKey?: number;
+
+    /** Called once the content is laid out, which is the first moment it is on screen on native */
+    onContentLayout?: () => void;
 };
 
 function getAmountContent(amount: string, percentage?: string): string {
@@ -53,7 +66,20 @@ function getAmountContent(amount: string, percentage?: string): string {
     return `${amount} (${percentage})`;
 }
 
-function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved}: ChartTooltipProps) {
+function ChartTooltip({
+    label,
+    amount,
+    percentage,
+    expenseCount,
+    chartWidth,
+    initialTooltipPosition,
+    isVisible,
+    isContentCurrent,
+    onChartMoved,
+    onDismiss,
+    contentKey,
+    onContentLayout,
+}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
 
@@ -73,27 +99,16 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
     const [isShown, setIsShown] = useState(false);
 
     const amountContent = getAmountContent(amount, percentage);
-    const content = [label, amountContent, expenseCount].join('|');
 
-    const tooltipWrapperRef = useRef<ComponentRef<typeof View>>(null);
-
-    useLayoutEffect(() => {
-        tooltipWrapperRef.current?.measure((x: number, y: number, width: number, height: number) => {
-            if (width <= 0) {
-                return;
-            }
-            tooltipMeasuredWidth.set(width);
-            tooltipMeasuredHeight.set(height);
-        });
-    }, [content, chartWidth, tooltipMeasuredWidth, tooltipMeasuredHeight]);
-
-    const updateMeasuredSize = (event: LayoutChangeEvent) => {
+    // The size is set before the content is reported as laid out, so the tooltip is never revealed with the previous content's size
+    const handleContentLayout = (event: LayoutChangeEvent) => {
         const {width, height} = event.nativeEvent.layout;
         if (width <= 0) {
             return;
         }
         tooltipMeasuredWidth.set(width);
         tooltipMeasuredHeight.set(height);
+        onContentLayout?.();
     };
 
     useAnimatedReaction(
@@ -108,6 +123,22 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             scheduleOnRN(setIsShown, isCurrentlyShown);
         },
     );
+
+    const isFocused = useIsFocused();
+
+    // A pinned tooltip is registered for the screen's touch start to hide it
+    useEffect(() => {
+        if (!isShown || !onDismiss) {
+            return;
+        }
+
+        if (!isFocused) {
+            onDismiss();
+            return;
+        }
+        pinChartTooltip(onDismiss);
+        return () => unpinChartTooltip(onDismiss);
+    }, [isShown, isFocused, onDismiss]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();
@@ -142,7 +173,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
         const topAbove = originY + y - height;
         const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
         const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
-        const isTooltipShown = (isVisible?.get() ?? true) && isOriginMeasured.get() && width > 0;
+        const isTooltipShown = (isVisible?.get() ?? true) && (isContentCurrent?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
             left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),
@@ -161,10 +192,12 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
                 <Animated.View
                     style={[styles.chartTooltipLayer, tooltipStyle]}
                     pointerEvents="none"
-                    ref={tooltipWrapperRef}
-                    onLayout={updateMeasuredSize}
                 >
-                    <View style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}>
+                    <View
+                        key={contentKey}
+                        style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+                        onLayout={handleContentLayout}
+                    >
                         <Text style={styles.chartTooltipTitle}>{label}</Text>
                         {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
                         {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
