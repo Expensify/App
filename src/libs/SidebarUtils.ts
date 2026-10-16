@@ -961,9 +961,12 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
+    const derivedReportName = report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined;
+    const reportName = getReportName(report, derivedReportName);
+    // getReportName returns '' for the placeholder, so check the raw name too
+    const isDefaultReportName = (derivedReportName ?? report.reportName) === CONST.REPORT.DEFAULT_REPORT_NAME;
 
-    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+    if (!isDefaultReportName) {
         loggedChatReportIDs.delete(report.reportID);
     } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
         const derivedEntry = reportAttributesDerived?.[report.reportID];

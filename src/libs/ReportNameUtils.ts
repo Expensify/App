@@ -1417,6 +1417,7 @@ function computeReportName({
  * i.e. `reportAttributes?.[reportID]?.reportName`. Prefer the O(1) selectors (`useDerivedReportNameByReportID`) over
  * subscribing to the whole attributes Record just to read one name.
  * The fallback to `report.reportName` exists only for edge-cases where the derived value is not yet populated.
+ * The `CONST.REPORT.DEFAULT_REPORT_NAME` placeholder falls back to '' so callers can show a loading state.
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  *
  * @param derivedReportName the cached name for this report from `ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`.
@@ -1425,7 +1426,10 @@ function getReportName(report?: Report, derivedReportName?: string): string {
     if (!report?.reportID) {
         return '';
     }
-    return derivedReportName ?? report.reportName ?? '';
+    if (derivedReportName !== undefined) {
+        return derivedReportName;
+    }
+    return report.reportName === CONST.REPORT.DEFAULT_REPORT_NAME ? '' : (report.reportName ?? '');
 }
 
 export {
