@@ -127,8 +127,8 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-adhoc-web-deploy-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
           aws-region: us-east-1
 
       - name: Deploy to S3
