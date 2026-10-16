@@ -107,9 +107,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         const valueToSave = trimmedValue === '' ? '' : draftWithoutLineBreaks;
 
         // Only a text field can be cleared, the same as on OldDot, so any other field goes back to its saved value.
-        const isClearingNotAllowed = trimmedValue === '' && reportField.type !== CONST.REPORT_FIELD_TYPES.TEXT;
+        const canClearField = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
 
-        if (trimmedValue === lastSavedValue.trim() || isClearingNotAllowed) {
+        if (trimmedValue === lastSavedValue.trim() || (trimmedValue === '' && !canClearField)) {
             setValidationError('');
             // Nothing is sent, so the saved value never changes and the resync above that follows it never runs.
             // Without this the field would keep displaying the whitespace the user left behind until it remounted,
