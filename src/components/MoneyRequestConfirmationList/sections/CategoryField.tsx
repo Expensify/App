@@ -116,7 +116,7 @@ function CategoryField({
 
     // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
     // Once the form is focused again with a workspace, open the list in place. Backing out without one leaves nothing to list.
-    const {markDeparting} = useReopenAfterReturn({
+    const {setIsDeparting} = useReopenAfterReturn({
         onReturn: () => dropdownRef.current?.open(),
         shouldCancel: shouldNavigateToUpgradePath || shouldSelectPolicy,
         canReopen: canOpenListInPlace,
@@ -130,9 +130,7 @@ function CategoryField({
             return;
         }
 
-        if ((shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep) {
-            markDeparting();
-        }
+        setIsDeparting((shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep);
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
                 createDynamicRoute(

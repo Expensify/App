@@ -171,10 +171,10 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
 
     // Back on the form from the page opened for landscape. If the phone is in portrait again, that page closed itself, so
     // the list reopens once the page has finished closing. Still in landscape means the user picked or went back.
-    const {markDeparting} = useReopenAfterReturn({onReturn: openInPlace, shouldCancel: isInLandscapeMode || !shouldOpenInDropdown});
+    const {setIsDeparting} = useReopenAfterReturn({onReturn: openInPlace, shouldCancel: isInLandscapeMode || !shouldOpenInDropdown});
 
     const openPageForLandscape = () => {
-        markDeparting();
+        setIsDeparting(true);
         onLandscapePress();
     };
 
@@ -183,6 +183,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
             openPageForLandscape();
             return;
         }
+        setIsDeparting(false);
         openInPlace();
     };
 

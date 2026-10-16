@@ -3,7 +3,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
-/** idle → departing (about to leave) → away (left the screen) → returned (focused again) → idle */
+/** Idle until `setIsDeparting(true)` (departing), away once the screen blurs, returned when it is focused again, then idle once `onReturn` ran or the return was dropped. */
 type ReturnStep = 'idle' | 'departing' | 'away' | 'returned';
 
 type UseReopenAfterReturnParams = {
@@ -18,8 +18,8 @@ type UseReopenAfterReturnParams = {
 };
 
 /**
- * Runs `onReturn` when the user comes back to this screen after leaving it through `markDeparting`. Scoped to that one
- * departure: leaving the screen again after coming back drops it, so a later unrelated focus never triggers it.
+ * Runs `onReturn` when the user comes back to this screen after leaving it through `setIsDeparting(true)`. Scoped to that
+ * one departure: leaving the screen again after coming back drops it, so a later unrelated focus never triggers it.
  */
 function useReopenAfterReturn({onReturn, shouldCancel = false, canReopen = true}: UseReopenAfterReturnParams) {
     const isFocused = useIsFocused();
@@ -61,11 +61,12 @@ function useReopenAfterReturn({onReturn, shouldCancel = false, canReopen = true}
         return () => handle.cancel();
     });
 
-    const markDeparting = () => {
-        stepRef.current = 'departing';
+    const setIsDeparting = (isDeparting: boolean) => {
+        stepRef.current = isDeparting ? 'departing' : 'idle';
     };
 
-    return {markDeparting};
+    return {setIsDeparting};
 }
 
 export default useReopenAfterReturn;
+export type {UseReopenAfterReturnParams};
