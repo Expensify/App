@@ -3263,7 +3263,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
                 policyVendors: {
-                    ['v-active']: {
+                    'v-active': {
                         externalID: 'v-active',
                         name: 'Acme Co',
                         enabled: true,
