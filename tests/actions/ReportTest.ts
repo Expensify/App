@@ -919,7 +919,18 @@ describe('actions/Report', () => {
             .then(() => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(report, {...reportActions[200]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN, false);
+                Report.deleteReportComment({
+                    report,
+                    reportAction: {...reportActions[200]},
+                    originalReportActions: undefined,
+                    reportActions: undefined,
+                    ancestors: ancestors.current,
+                    isReportArchived: undefined,
+                    isOriginalReportArchived: undefined,
+                    currentEmail: USER_1_LOGIN,
+                    isOffline: false,
+                    currentUserAccountID: 1,
+                });
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -938,7 +949,18 @@ describe('actions/Report', () => {
 
                 rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(report, {...reportActions[400]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN, false);
+                Report.deleteReportComment({
+                    report,
+                    reportAction: {...reportActions[400]},
+                    originalReportActions: undefined,
+                    reportActions: undefined,
+                    ancestors: ancestors.current,
+                    isReportArchived: undefined,
+                    isOriginalReportArchived: undefined,
+                    currentEmail: USER_1_LOGIN,
+                    isOffline: false,
+                    currentUserAccountID: 1,
+                });
                 return waitForBatchedUpdates();
             })
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
@@ -1694,7 +1716,18 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: originalReport,
+            reportAction: newReportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1751,7 +1784,18 @@ describe('actions/Report', () => {
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, currentUserEmail, false);
+        Report.deleteReportComment({
+            report: originalReport,
+            reportAction: newReportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: currentUserEmail,
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1821,7 +1865,18 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: originalReport,
+            reportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1880,7 +1935,18 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1956,7 +2022,18 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction: newReportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2110,7 +2187,18 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction: newReportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2327,7 +2415,18 @@ describe('actions/Report', () => {
             }),
         };
 
-        Report.deleteReportComment(REPORT, commentAction, reportActionsForReport, undefined, [], undefined, undefined, '', false, undefined);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction: commentAction,
+            originalReportActions: reportActionsForReport,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2413,7 +2512,18 @@ describe('actions/Report', () => {
         };
 
         // Delete comment B — only whisper B (at commentB + 1) should be marked deleted
-        Report.deleteReportComment(REPORT, commentBAction, reportActionsForReport, undefined, [], undefined, undefined, '', false, undefined);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction: commentBAction,
+            originalReportActions: reportActionsForReport,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2512,7 +2622,18 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction: newReportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2614,7 +2735,18 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -2677,7 +2809,18 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report: REPORT,
+            reportAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -2983,8 +3126,30 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(report));
 
-        Report.deleteReportComment(report, mentionAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
-        Report.deleteReportComment(report, mentionAction2, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+        Report.deleteReportComment({
+            report,
+            reportAction: mentionAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
+        Report.deleteReportComment({
+            report,
+            reportAction: mentionAction2,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: ancestors.current,
+            isReportArchived: undefined,
+            isOriginalReportArchived: undefined,
+            currentEmail: '',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
 
         await waitForBatchedUpdates();
 
@@ -3021,7 +3186,18 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+            Report.deleteReportComment({
+                report: parentReport,
+                reportAction,
+                originalReportActions: undefined,
+                reportActions: undefined,
+                ancestors: ancestors.current,
+                isReportArchived: undefined,
+                isOriginalReportArchived: undefined,
+                currentEmail: '',
+                isOffline: false,
+                currentUserAccountID: 1,
+            });
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -3039,7 +3215,18 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID, reportActionID: 'action-999'});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false);
+            Report.deleteReportComment({
+                report: parentReport,
+                reportAction,
+                originalReportActions: undefined,
+                reportActions: undefined,
+                ancestors: ancestors.current,
+                isReportArchived: undefined,
+                isOriginalReportArchived: undefined,
+                currentEmail: '',
+                isOffline: false,
+                currentUserAccountID: 1,
+            });
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -6211,6 +6398,19 @@ describe('actions/Report', () => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, true);
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS, true);
             onyxSetSpy.mockRestore();
+        });
+    });
+
+    describe('shareReport', () => {
+        it('sends the recipient and the permissions the API expects', () => {
+            // Given a recipient entered as a phone number
+            const phoneNumber = '+15005550006';
+
+            // When the report is shared with them
+            Report.shareReport('1', phoneNumber);
+
+            // Then the request names them by their SMS login and gives read and write access
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SHARE_REPORT, {reportID: '1', shareToEmail: `${phoneNumber}${CONST.SMS.DOMAIN}`, permissions: 'read, write'});
         });
     });
 
@@ -12285,6 +12485,197 @@ describe('actions/Report', () => {
                 redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
                 missingLoginParticipants: [],
             });
+        });
+    });
+
+    describe('optimisticReportLastData', () => {
+        const REPORT_ID = '95001';
+        const WHISPER_TARGET_ACCOUNT_ID = 606;
+        const COMMENT_ACTOR_ACCOUNT_ID = 707;
+
+        const comment: OnyxTypes.ReportAction = {
+            reportActionID: 'lastDataComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
+            created: '2027-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: OnyxTypes.ReportAction = {
+            reportActionID: 'lastDataWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+            created: '2027-01-01 12:00:00.000',
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        // `lastMessageText` is resolved by a separate helper that still reads the signed-in account, so only the
+        // action-derived fields are asserted here.
+        it('should point the last visible action at the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the optimistic last-report data is built for that user
+            const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID, {}, true, false);
+
+            // Then the action fields describe the whisper
+            expect(result.lastVisibleActionCreated).toBe(whisper.created);
+            expect(result.lastActorAccountID).toBe(WHISPER_TARGET_ACCOUNT_ID);
+        });
+
+        it('should skip the whisper and point at the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the optimistic last-report data is built for that account
+            const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID + 1, {}, true, false);
+
+            // Then the whisper is invisible and the action fields describe the older comment
+            expect(result.lastVisibleActionCreated).toBe(comment.created);
+            expect(result.lastActorAccountID).toBe(COMMENT_ACTOR_ACCOUNT_ID);
+        });
+    });
+
+    describe('deleteReportComment last-visible-action resolution', () => {
+        it("should resolve the report's remaining last visible action from the deleting user's own visibility", async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = '96001';
+            const WHISPER_TARGET_ACCOUNT_ID = 808;
+
+            const buildActions = (idBase: number) => ({
+                deletedComment: {
+                    reportActionID: `${idBase + 1}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-02-01 09:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Comment being deleted', text: 'Comment being deleted'}],
+                    originalMessage: {html: 'Comment being deleted'},
+                } as OnyxTypes.ReportAction,
+                olderComment: {
+                    reportActionID: `${idBase + 2}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-02-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                } as OnyxTypes.ReportAction,
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                whisper: {
+                    reportActionID: `${idBase + 3}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-02-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                } as OnyxTypes.ReportAction,
+            });
+
+            const deleteAs = async (currentUserAccountID: number, idBase: number) => {
+                const {deletedComment, olderComment, whisper} = buildActions(idBase);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, lastVisibleActionCreated: ''});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                    [deletedComment.reportActionID]: deletedComment,
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                });
+                await waitForBatchedUpdates();
+
+                Report.deleteReportComment({
+                    report: {reportID: REPORT_ID},
+                    reportAction: deletedComment,
+                    originalReportActions: undefined,
+                    reportActions: undefined,
+                    ancestors: [],
+                    isReportArchived: undefined,
+                    isOriginalReportArchived: undefined,
+                    currentEmail: '',
+                    isOffline: false,
+                    currentUserAccountID,
+                });
+                await waitForBatchedUpdates();
+
+                return (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))?.lastVisibleActionCreated;
+            };
+
+            // Given a report whose newest remaining action is a whisper aimed at the deleting user
+            // Then the report tracks the whisper, which that user can see
+            expect(await deleteAs(WHISPER_TARGET_ACCOUNT_ID, 96010)).toBe('2027-02-01 12:00:00.000');
+
+            // Given the same report deleted by somebody the whisper does not target
+            // Then the whisper is invisible to them and the older comment is tracked instead
+            expect(await deleteAs(WHISPER_TARGET_ACCOUNT_ID + 1, 96020)).toBe('2027-02-01 10:00:00.000');
+        });
+    });
+
+    describe('flagComment last-visible-action resolution', () => {
+        it("should resolve the report's last visible action from the flagging user's own visibility", async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = '97001';
+            const WHISPER_TARGET_ACCOUNT_ID = 707;
+
+            const buildActions = (idBase: number) => ({
+                flaggedComment: {
+                    reportActionID: `${idBase + 1}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-04-01 09:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Comment being flagged', text: 'Comment being flagged'}],
+                    originalMessage: {html: 'Comment being flagged'},
+                } as OnyxTypes.ReportAction,
+                olderComment: {
+                    reportActionID: `${idBase + 2}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-04-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                } as OnyxTypes.ReportAction,
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                whisper: {
+                    reportActionID: `${idBase + 3}`,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    created: '2027-04-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                } as OnyxTypes.ReportAction,
+            });
+
+            const flagAs = async (currentUserAccountID: number, idBase: number) => {
+                const {flaggedComment, olderComment, whisper} = buildActions(idBase);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, lastVisibleActionCreated: ''});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                    [flaggedComment.reportActionID]: flaggedComment,
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                });
+                await waitForBatchedUpdates();
+
+                Report.flagComment(flaggedComment, CONST.MODERATION.FLAG_SEVERITY_HARASSMENT, {reportID: REPORT_ID}, false, currentUserAccountID);
+                await waitForBatchedUpdates();
+
+                return (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))?.lastVisibleActionCreated;
+            };
+
+            // Given a report whose newest action is a whisper aimed at the flagging user
+            // Then the report tracks the whisper, which that user can see
+            expect(await flagAs(WHISPER_TARGET_ACCOUNT_ID, 97010)).toBe('2027-04-01 12:00:00.000');
+
+            // Given the same report flagged by somebody the whisper does not target
+            // Then the whisper is invisible to them and the older comment is tracked instead
+            expect(await flagAs(WHISPER_TARGET_ACCOUNT_ID + 1, 97020)).toBe('2027-04-01 10:00:00.000');
         });
     });
 });
