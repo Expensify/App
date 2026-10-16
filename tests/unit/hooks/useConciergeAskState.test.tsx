@@ -129,7 +129,7 @@ describe('useConciergeAskState', () => {
         expect(result.current.shouldShowWelcome).toBe(true);
 
         // When the message fails to send
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {errors: {error1: 'Something went wrong'}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {errors: {1: 'Failed'}}});
         await waitForBatchedUpdates();
 
         // Then the message counts as activity, so its error stays visible in this chat
