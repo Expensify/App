@@ -111,6 +111,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
 type WriteActionsRender = {
     filteredData: SearchData;
     applySelection: SearchSelectionActionsValue['applySelection'];
+    selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'];
 };
 type WriteActionsProviderProps = Parameters<typeof SearchWriteActionsProviderModule.default>[0];
 
@@ -121,8 +122,8 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
     const {useSearchSelectionActions} = jest.requireActual<typeof SearchContext>('@components/Search/SearchContext');
     const {default: SearchWriteActionsProvider} = jest.requireActual<typeof SearchWriteActionsProviderModule>('@components/Search/SearchWriteActionsProvider');
     function MockSearchWriteActionsProvider(props: WriteActionsProviderProps) {
-        const {applySelection} = useSearchSelectionActions();
-        mockRenderWriteActions({filteredData: props.filteredData, applySelection});
+        const {applySelection, selectAllMatchingItems} = useSearchSelectionActions();
+        mockRenderWriteActions({filteredData: props.filteredData, applySelection, selectAllMatchingItems});
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
@@ -1002,6 +1003,59 @@ describe('SearchPageNarrow', () => {
             });
 
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('asks for its next page without totals', async () => {
+            // Given Drafts showing its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the next page is asked for without totals, since totals sent with a later page would merge onto older pages
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
+        });
+
+        it.each([
+            ['sends no totals request once paged, since the first page already brought the report count', {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10}, false],
+            ['asks for totals once paged when the report count is missing, so the bulk actions get one', {}, true],
+        ])('when every match is selected, %s', async (_description, snapshotFigures, shouldAskForTotals) => {
+            // Given Drafts paged past its first page
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, snapshotFigures);
+            searchWritesLoadingState();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            mockSearch.mockClear();
+
+            // When every matching report is selected
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then totals are asked for only when there's no report count, since totals merged onto older pages would take a report that left off twice
+            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(shouldAskForTotals);
         });
 
         it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
