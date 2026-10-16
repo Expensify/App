@@ -545,9 +545,17 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 function addPersonalBankAccount(
     account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
     personalPolicyID: string | undefined,
-    policyID?: string,
-    source?: string,
-    lastPaymentMethod?: LastPaymentMethodType | string | undefined,
+    {
+        policyID,
+        source,
+        lastPaymentMethod,
+        validateCode,
+    }: {
+        policyID?: string;
+        source?: string;
+        lastPaymentMethod?: LastPaymentMethodType | string | undefined;
+        validateCode?: string;
+    } = {},
 ) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL ? `${account?.legalFirstName} ${account?.legalLastName}` : account.addressName,
@@ -573,6 +581,9 @@ function addPersonalBankAccount(
     }
     if (source) {
         parameters.source = source;
+    }
+    if (validateCode) {
+        parameters.validateCode = validateCode;
     }
 
     const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {

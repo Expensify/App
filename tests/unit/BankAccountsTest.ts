@@ -74,6 +74,19 @@ describe('BankAccounts', () => {
             await Onyx.clear();
         });
 
+        test('sends the magic code so the backend can verify changes to private personal details', () => {
+            // Given a magic code entered because the bank account flow changes the user's private personal details
+            // When the bank account is added with it
+            addPersonalBankAccount({phoneNumber: '+14155550199'}, undefined, {validateCode: '123456'});
+
+            // Then the request carries the magic code alongside the personal details
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT,
+                expect.objectContaining({phoneNumber: '+14155550199', validateCode: '123456'}),
+                expect.anything(),
+            );
+        });
+
         test('keeps the server error message on top of the generic fallback when the device clock is ahead of the server', async () => {
             // Given a VerificationError response that already merged its specific message onto PERSONAL_BANK_ACCOUNT,
             // keyed by the server's own microsecond clock
