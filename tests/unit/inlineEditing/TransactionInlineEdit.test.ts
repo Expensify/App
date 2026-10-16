@@ -858,6 +858,32 @@ describe('TransactionInlineEdit', () => {
             expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
         });
 
+        it('saves a description that only exceeds the limit because of surrounding spaces', () => {
+            // Given a description the description step accepts once FormProvider trims it
+            const description = 'a'.repeat(CONST.DESCRIPTION_LIMIT);
+            const paddedDescription = `  ${description}  `;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), paddedDescription);
+
+            // Then the trimmed description is saved, matching the description step
+            expect(rejection).toBeUndefined();
+            expect(updateMoneyRequestDescription).toHaveBeenCalledWith(expect.objectContaining({comment: description}));
+        });
+
+        it('counts a too-long description after trimming surrounding spaces', () => {
+            // Given text that is still over the limit once the spaces the description step ignores are removed
+            const description = 'a'.repeat(CONST.DESCRIPTION_LIMIT + 1);
+            const paddedDescription = `  ${description}  `;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), paddedDescription);
+
+            // Then the toast uses the trimmed length, the same count the description step shows
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${description.length}|${CONST.DESCRIPTION_LIMIT}`);
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+
         it('rejects a description that contains an HTML tag without saving', () => {
             // Given a description that is also past the length limit, so both failures apply at once
             const taggedDescription = `<b>${'a'.repeat(CONST.DESCRIPTION_LIMIT)}</b>`;

@@ -11,6 +11,7 @@ import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     calculateTaxAmount,
@@ -299,20 +300,22 @@ function editTransactionMerchantInline(translate: LocalizedTranslate, params: Tr
 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
 function editTransactionDescriptionInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newDescription: string): string | undefined {
-    // The description step and FormProvider reject HTML and over-long text. Inline edit skips both, so reject here before any write.
+    // The description step validates and saves the value after FormProvider strips invisible characters and trims it.
+    // The cell passes the raw text, so prepare it the same way. Otherwise trailing spaces past the limit toast a value the step would save.
     // HTML is checked first so a value that fails both shows the invalid character error.
-    if (containsHtmlTag(newDescription)) {
+    const description = StringUtils.removeInvisibleCharacters(newDescription);
+    if (containsHtmlTag(description)) {
         return translate('common.error.invalidCharacter');
     }
-    if (newDescription.length > CONST.DESCRIPTION_LIMIT) {
-        return translate('common.error.characterLimitExceedCounter', newDescription.length, CONST.DESCRIPTION_LIMIT);
+    if (description.length > CONST.DESCRIPTION_LIMIT) {
+        return translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT);
     }
 
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDescription({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
-        comment: newDescription,
+        comment: description,
         hash: params.hash,
         isEditedFromExpenseList: true,
     });
