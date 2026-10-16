@@ -50,6 +50,7 @@ function renderFormWrapper({errors = {}, serverErrorFields, inputRefs}: {errors?
                 registerInput: jest.fn(),
                 getErrorAnnouncementKey: () => 0,
                 getFallbackAnnouncementMessage: () => '',
+                setInputValidationError: () => {},
             }}
         >
             <FormWrapper

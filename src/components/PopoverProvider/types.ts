@@ -13,6 +13,13 @@ type AnchorRef = {
     close: (anchorRef?: RefObject<AnchorType>) => void;
     anchorRef: RefObject<AnchorType>;
     extraAnchorRefs?: Array<RefObject<AnchorType>>;
+
+    /**
+     * Whether scrolling the page dismisses this popover. It is the right default for one that cannot follow its
+     * anchor, but false suits a popover that tracks the anchor itself, or one whose anchor is still being edited.
+     * @default true
+     */
+    shouldCloseOnWheel?: boolean;
 };
 
 export type {PopoverContextProps, AnchorRef};
