@@ -54,6 +54,7 @@ function ConciergePage() {
     const [isMigratedUser] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: isMigratedUserSelector});
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
+
     // The accounts useOnboardingFlow never sends to onboarding, so their flag can stay false for good.
     const isOnboardingSkipped =
         !!hasNonPersonalPolicy ||
