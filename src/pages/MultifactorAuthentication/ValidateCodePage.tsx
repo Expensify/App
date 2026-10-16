@@ -235,7 +235,7 @@ function ValidateCodeForm() {
 function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {requestCancel, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible, hasAttemptedRecovery} = state;
+    const {isCancelConfirmVisible, recoveryAttempts} = state;
 
     return (
         <ScreenWrapper
@@ -258,7 +258,7 @@ function MultifactorAuthenticationValidateCodePage() {
             <FullPageOfflineBlockingView>
                 {/* Recovery can email a new code while this screen is still shown, so the form remounts
                     to drop the old code, its errors and the resend countdown. */}
-                <ValidateCodeForm key={String(hasAttemptedRecovery)} />
+                <ValidateCodeForm key={recoveryAttempts} />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

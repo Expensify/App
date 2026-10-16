@@ -97,6 +97,7 @@ async function runScenario(scenarioName: MultifactorAuthenticationScenario, {sce
         softPromptApproved: false,
         registrationStateAtStart: undefined,
         isCancelConfirmed,
+        recoveryAttempts: 0,
     };
     const {finalizeOutcome} = createActors();
     const actorRef = createActor(finalizeOutcome, {input});

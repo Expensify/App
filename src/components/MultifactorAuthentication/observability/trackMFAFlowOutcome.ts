@@ -38,6 +38,7 @@ type MFAFlowOutcomeContext = {
     isRegistrationComplete: boolean;
     isAuthorizationComplete: boolean;
     softPromptApproved: boolean;
+    recoveryAttempts: number;
     startState: MFARegistrationStateSnapshot;
     endState: MFARegistrationStateSnapshot;
 };
@@ -65,6 +66,7 @@ function trackMFAFlowOutcome(rawContext: MFAFlowOutcomeContext): void {
         if (!context.isSuccessful && context.error?.reason) {
             tags[CONST.TELEMETRY.TAGS.MFA_ERROR_REASON] = context.error.reason;
         }
+        tags[CONST.TELEMETRY.TAGS.MFA_RECOVERY_ATTEMPTS] = String(context.recoveryAttempts);
 
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;
         const level = context.isSuccessful || failureClassification === 'routine' || failureClassification === 'alternative_outcome' ? 'info' : 'error';
@@ -83,6 +85,7 @@ function trackMFAFlowOutcome(rawContext: MFAFlowOutcomeContext): void {
             isRegistrationComplete: context.isRegistrationComplete,
             isAuthorizationComplete: context.isAuthorizationComplete,
             softPromptApproved: context.softPromptApproved,
+            recoveryAttempts: context.recoveryAttempts,
             startState: context.startState,
             endState: context.endState,
         };

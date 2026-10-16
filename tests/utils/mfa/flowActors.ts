@@ -36,7 +36,7 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         isCancelConfirmed: false,
         cancelError: undefined,
         scenarioActionResult: undefined,
-        hasAttemptedRecovery: false,
+        recoveryAttempts: 0,
         ...overrides,
     };
 }

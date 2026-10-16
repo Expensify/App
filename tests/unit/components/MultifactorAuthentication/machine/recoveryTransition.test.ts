@@ -1,6 +1,7 @@
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type * as BreadcrumbsModule from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
+import Log from '@libs/Log';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
@@ -77,6 +78,7 @@ type ActorAtState = ReturnType<typeof createActorAtState>;
 /** The four steps whose failure a fresh key registration can fix, each with the context it needs to be running and the way its result arrives. */
 type RecoverableStep = {
     description: string;
+    name: string;
     flow: StateValue;
     context: Parameters<typeof createActorAtState>[1];
     sendFailure: (actor: ActorAtState, error: MFAError) => void;
@@ -85,6 +87,7 @@ type RecoverableStep = {
 // The authorize actor is where both kinds of recoverable failure meet, so the cross-cutting cases run there.
 const SIGNING_CHALLENGE_STEP: RecoverableStep = {
     description: 'signing the challenge',
+    name: MFA_STATE.SIGNING_CHALLENGE,
     flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}},
     context: {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE, isRegistrationComplete: true, softPromptApproved: true},
     sendFailure: (actor, error) => sendAuthorizeDone(actor, {success: false, error}),
@@ -92,6 +95,7 @@ const SIGNING_CHALLENGE_STEP: RecoverableStep = {
 
 const EXECUTING_SCENARIO_ACTION_STEP: RecoverableStep = {
     description: 'executing the scenario action',
+    name: MFA_STATE.EXECUTING_SCENARIO_ACTION,
     flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}},
     context: {signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD, isRegistrationComplete: true, softPromptApproved: true},
     sendFailure: (actor, error) => sendExecuteScenarioActionDone(actor, {success: false, error}),
@@ -100,12 +104,14 @@ const EXECUTING_SCENARIO_ACTION_STEP: RecoverableStep = {
 const RECOVERABLE_STEPS: RecoverableStep[] = [
     {
         description: 'requesting the registration challenge',
+        name: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
         flow: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE},
         context: {validateCode: '123456'},
         sendFailure: (actor, error) => sendRequestRegistrationChallengeDone(actor, {success: false, error}),
     },
     {
         description: 'registering the key',
+        name: MFA_STATE.REGISTERING_KEY,
         flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.REGISTERING_KEY}},
         context: {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE, registrationKeyInfo: MFA_TEST_KEY_INFO, softPromptApproved: true},
         sendFailure: (actor, error) => sendRegisterCredentialDone(actor, {success: false, error}),
@@ -141,14 +147,20 @@ function startAt(step: RecoverableStep, contextOverrides: Parameters<typeof crea
 
 describe('MFA recovery', () => {
     let runAfterTransitionSpy: jest.SpyInstance;
+    let logInfoSpy: jest.SpiedFunction<typeof Log.info>;
+
+    /** The recovery lines logged so far; each one is a recovery that started. */
+    const recoveryLogCalls = () => logInfoSpy.mock.calls.filter(([message]) => message === '[MFA] Recovery started');
 
     beforeEach(() => {
         jest.clearAllMocks();
         runAfterTransitionSpy = jest.spyOn(Navigation, 'runAfterTransition').mockReturnValue({cancel: () => {}});
+        logInfoSpy = jest.spyOn(Log, 'info');
     });
 
     afterEach(() => {
         runAfterTransitionSpy.mockRestore();
+        logInfoSpy.mockRestore();
     });
 
     describe.each(RECOVERABLE_STEPS)('a recoverable failure while $description', (step) => {
@@ -187,7 +199,7 @@ describe('MFA recovery', () => {
                 signedChallenge: undefined,
                 isRegistrationComplete: false,
                 softPromptApproved: false,
-                hasAttemptedRecovery: true,
+                recoveryAttempts: 1,
             });
             expect(context.accountID).toBe(contextBefore.accountID);
             expect(context.scenarioName).toBe(contextBefore.scenarioName);
@@ -198,8 +210,20 @@ describe('MFA recovery', () => {
             actor.stop();
         });
 
+        it('logs the recovery once, with the step and the reason it recovered from', () => {
+            const actor = startAt(step);
+
+            step.sendFailure(actor, KEY_ACCESS_FAILED_ERROR);
+
+            expect(recoveryLogCalls()).toEqual([
+                ['[MFA] Recovery started', false, {mfa: {scenario: actor.getSnapshot().context.scenarioName, reason: REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, step: step.name}}],
+            ]);
+
+            actor.stop();
+        });
+
         it('lands on the outcome with the second failure’s own error once the flow already recovered', () => {
-            const actor = startAt(step, {hasAttemptedRecovery: true});
+            const actor = startAt(step, {recoveryAttempts: 1});
 
             step.sendFailure(actor, KEY_NOT_FOUND_ERROR);
 
@@ -207,6 +231,7 @@ describe('MFA recovery', () => {
             expect(result.matches(OUTCOME)).toBe(true);
             expect(result.context.error).toBe(KEY_NOT_FOUND_ERROR);
             expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
+            expect(recoveryLogCalls()).toHaveLength(0);
 
             actor.stop();
         });
@@ -224,7 +249,7 @@ describe('MFA recovery', () => {
             actor.stop();
         });
 
-        // The authorize actor already deleted the broken key and left its own breadcrumb.
+        // The authorize actor already deleted the broken key.
         it('is left alone when the local key is the broken part', () => {
             const actor = startAt(SIGNING_CHALLENGE_STEP);
 
@@ -250,7 +275,7 @@ describe('MFA recovery', () => {
             const result = actor.getSnapshot();
             expect(result.matches(OUTCOME)).toBe(true);
             expect(result.context.error).toBe(error);
-            expect(result.context.hasAttemptedRecovery).toBe(false);
+            expect(result.context.recoveryAttempts).toBe(0);
             expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
             expect(clearLocalMFAPublicKeyListMock).not.toHaveBeenCalled();
 
@@ -262,7 +287,7 @@ describe('MFA recovery', () => {
         it('takes the ordinary cancel path during recovery and is reset once the modal closes, so the next flow gets its own attempt', () => {
             const actor = startAt(SIGNING_CHALLENGE_STEP);
             sendAuthorizeDone(actor, {success: false, error: REGISTRATION_REQUIRED_ERROR});
-            expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(true);
+            expect(actor.getSnapshot().context.recoveryAttempts).toBe(1);
 
             actor.send({type: 'REQUEST_CANCEL'});
             actor.send({type: 'CONFIRM_CANCEL'});
@@ -274,10 +299,10 @@ describe('MFA recovery', () => {
             actor.send({type: 'REQUEST_CANCEL'});
             actor.send({type: 'MODAL_CLOSED'});
             expect(actor.getSnapshot().matches(MFA_STATE.CLOSED)).toBe(true);
-            expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(false);
+            expect(actor.getSnapshot().context.recoveryAttempts).toBe(0);
 
             actor.send(createInitEvent());
-            expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(false);
+            expect(actor.getSnapshot().context.recoveryAttempts).toBe(0);
 
             actor.stop();
         });
@@ -336,9 +361,10 @@ describe('MFA recovery', () => {
 
             // Then recovery doesn't start, because the user asked to leave, and the flow keeps waiting for the deny
             expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: cancellingInFlightStep.flow}})).toBe(true);
-            expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(false);
+            expect(actor.getSnapshot().context.recoveryAttempts).toBe(0);
             expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
             expect(clearLocalMFAPublicKeyListMock).not.toHaveBeenCalled();
+            expect(recoveryLogCalls()).toHaveLength(0);
 
             // When the deny comes back
             const denied = createMFAErrorFromApiResponse(200, REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, undefined);

@@ -190,6 +190,7 @@ const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeI
                 isRegistrationComplete: input.isRegistrationComplete,
                 isAuthorizationComplete: input.scenarioResponse !== undefined,
                 softPromptApproved: input.softPromptApproved,
+                recoveryAttempts: input.recoveryAttempts,
                 startState: input.registrationStateAtStart ?? endState,
                 endState,
             }),

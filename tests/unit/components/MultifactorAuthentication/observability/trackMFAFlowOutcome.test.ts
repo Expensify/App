@@ -33,6 +33,7 @@ function buildContext(overrides: Partial<FlowOutcomeContext> = {}): FlowOutcomeC
         isRegistrationComplete: false,
         isAuthorizationComplete: true,
         softPromptApproved: false,
+        recoveryAttempts: 0,
         startState: REGISTRATION_STATE,
         endState: REGISTRATION_STATE,
         ...overrides,
@@ -68,6 +69,24 @@ describe('trackMFAFlowOutcome', () => {
         expect(mockLogWarn).toHaveBeenCalledTimes(1);
         expect(everythingReported()).not.toContain(SECRET_BODY.pin);
         expect(everythingReported()).not.toContain(SECRET_BODY.cvv);
+    });
+
+    it('reports how many recoveries a successful flow needed', () => {
+        trackMFAFlowOutcome(buildContext({recoveryAttempts: 1}));
+
+        expect(mockLogInfo).toHaveBeenCalledWith('[MFA] MFA Flow Success', false, {mfa: expect.objectContaining({recoveryAttempts: 1})});
+    });
+
+    it('tags a failed flow with how many recoveries it went through, so failures after a recovery can be filtered', () => {
+        trackMFAFlowOutcome(buildContext({isSuccessful: false, error: createLocalMFAError(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, 'failed after recovery'), recoveryAttempts: 1}));
+
+        expect(mockCaptureMessage).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                tags: expect.objectContaining({[CONST.TELEMETRY.TAGS.MFA_RECOVERY_ATTEMPTS]: '1'}),
+                extra: expect.objectContaining({recoveryAttempts: 1}),
+            }),
+        );
     });
 
     it('keeps the body out of the fallback log when reporting itself throws', () => {
