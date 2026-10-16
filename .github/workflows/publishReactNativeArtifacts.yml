@@ -41,6 +41,9 @@ on:
       - patches/react-native/@react-native+*.patch
       - Mobile-Expensify
       - scripts/artifacts-utils/compute-patches-hash.sh
+      - .github/workflows/publishReactNativeArtifacts.yml
+      - .github/workflows/publishReactNativeiOSArtifacts.yml
+      - .github/workflows/publishReactNativeAndroidArtifacts.yml
 
 jobs:
   verifyPatches:
@@ -117,6 +120,18 @@ jobs:
             echo "::notice::Detected changes in Standalone NewDot patches (${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }})"
           fi
 
+      - name: Check if artifact publishing workflows changed
+        if: ${{ github.event.after != '' }}
+        id: didWorkflowsChange
+        run: |
+          # Workflow edits (e.g. the Hermes version resolution) change how artifacts are built without touching patches or the RN version.
+          if git diff --quiet '${{ github.event.before }}' '${{ github.event.after }}' -- .github/workflows/publishReactNativeArtifacts.yml .github/workflows/publishReactNativeiOSArtifacts.yml .github/workflows/publishReactNativeAndroidArtifacts.yml; then
+            echo "DID_WORKFLOWS_CHANGE=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "DID_WORKFLOWS_CHANGE=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Detected changes in the artifact publishing workflows"
+          fi
+
       - name: Get artifact build targets
         id: getArtifactBuildTargets
         run: |
@@ -139,8 +154,8 @@ jobs:
           fi
 
           # push path: derive targets from what actually changed between github.event.before and github.event.after.
-          # Version change or standalone patch change forces a full rebuild of both hybrid and standalone.
-          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' ]]; then
+          # Version change, standalone patch change or a change to the publishing workflows forces a full rebuild of both hybrid and standalone.
+          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' || '${{ steps.didWorkflowsChange.outputs.DID_WORKFLOWS_CHANGE }}' == 'true' ]]; then
             echo "BUILD_TARGETS=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
           elif [[ '${{ steps.didPatchesChange.outputs.DID_HYBRID_APP_PATCHES_CHANGE }}' == 'true' ]]; then
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
