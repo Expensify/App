@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -230,7 +230,7 @@ function DynamicTaskAssigneeSelectorModal() {
             testID="DynamicTaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('task.assignee')}
                     onBackButtonPress={handleBackButtonPress}
                 />

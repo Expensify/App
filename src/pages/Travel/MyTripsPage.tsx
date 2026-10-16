@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -55,10 +55,7 @@ function MyTripsPage({route}: MyTripsPageProps) {
                 testID="MyTripsPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    title={translate('travel.header')}
-                    shouldShowBackButton
-                />
+                <HeaderWithBackButtonAndTitle title={translate('travel.header')} />
                 <ManageTrips policyID={policyID} />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
