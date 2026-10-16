@@ -8681,6 +8681,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 createRule: 'Criar regra',
                 fallbackBanner:
                     'Esta não é uma regra padrão, então a criamos como uma regra de agente. As regras de agente entram em ação depois que uma despesa ou um relatório é alterado, por exemplo, ao reter a despesa ou rejeitar o relatório.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então a criamos como uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
@@ -8766,6 +8767,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     unintelligible: 'Tente formular sua regra assim: se a despesa for maior que $100, exija um recibo.',
                     multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear compras no varejo em todos os cartões.',
                     categoryHasRule: 'Essa categoria já tem uma regra. Edite a regra existente ou descreva uma regra para outra categoria.',
+                },
+                impossible: {
+                    noTrigger: 'As regras não podem começar a partir desse evento.',
+                    noCapability: 'As regras não podem fazer isso.',
+                    missingData: 'O Expensify não tem essa informação.',
+                    retroactive: 'As regras se aplicam apenas a novas atividades.',
+                    historyLimit: 'As regras não podem olhar tão para trás.',
+                    tryThisInstead: 'Tente isto em vez disso',
                 },
             },
             expenseDefaultsTable: {

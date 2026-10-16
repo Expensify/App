@@ -8589,6 +8589,7 @@ ${reportName}`,
                 createRule: 'ルールを作成',
                 fallbackBanner:
                     'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -8674,6 +8675,14 @@ ${reportName}`,
                     unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
                     multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
                     categoryHasRule: 'このカテゴリにはすでにルールがあります。既存のルールを編集するか、別のカテゴリのルールを説明してください。',
+                },
+                impossible: {
+                    noTrigger: 'ルールはそのイベントをきっかけに開始できません。',
+                    noCapability: 'ルールではそれを実行できません。',
+                    missingData: 'Expensify にはその情報がありません。',
+                    retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
+                    historyLimit: 'ルールはそこまで過去をさかのぼれません。',
+                    tryThisInstead: '代わりにこちらを試す',
                 },
             },
             expenseDefaultsTable: {

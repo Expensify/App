@@ -114,6 +114,16 @@ jest.mock('@components/MenuItem', () => {
     return ({title, onPress}: {title: string; onPress: () => void}) =>
         ReactModule.createElement(Pressable, {accessibilityLabel: title, accessibilityRole: 'button', onPress}, ReactModule.createElement(Text, null, title));
 });
+jest.mock('@components/Button', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Pressable, Text} = jest.requireActual<{
+        Pressable: React.ComponentType<{onPress?: () => void; children?: React.ReactNode}>;
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+    }>('react-native');
+    const MockButton = ({onPress, children}: {onPress: () => void; children: React.ReactNode}) => ReactModule.createElement(Pressable, {onPress}, children);
+    MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
+    return MockButton;
+});
 jest.mock('@components/Form/InputWrapper', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -404,6 +414,24 @@ describe('New rule describe section', () => {
         },
     );
 
+    it('drafts the instruction of an agent rule answer instead of the description', async () => {
+        // Given an admin asked in the describe section for something that an agent rule can only approximate
+        const prompt = 'Block gift cards';
+        const agentRulePrompt = 'Hold any gift card expense and ask the submitter to justify it';
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, prompt);
+
+        // When Concierge answers with an agent rule that says what the agent will do
+        await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.AGENT_RULE, agentRulePrompt, explanation: 'Agent rules cannot block a card charge.'});
+
+        // Then the draft holds the agent's instruction, because that is the rule the admin reviews and saves
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt: agentRulePrompt});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, generationID));
+
+        // And the answer stays, because the agent rule page reads its explanation by the generationID
+        expect((await getOnyxValue(ONYXKEYS.GENERATED_RULE))?.generationID).toBe(generationID);
+    });
+
     it.each([undefined, 'futureRuleType'])('shows the unsupported error when a rule answer has the rule type %s', async (generatedRuleType) => {
         // Given an admin described a rule in the describe section
         await renderRulesNewPage();
@@ -422,6 +450,27 @@ describe('New rule describe section', () => {
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
         expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('shows why the description cannot be done and stays on New rule', async () => {
+        // Given an admin asked for something that neither a rule nor an agent rule can do
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, 'Text the approver when a report is submitted');
+
+        // When Concierge answers that it is impossible and suggests another description
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt: 'Comment on the report when it is submitted',
+        });
+
+        // Then New rule shows the reason and the suggestion, and nothing opens, because no rule can be drafted
+        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
+        expect(screen.getByText('Comment on the report when it is submitted')).toBeOnTheScreen();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
     });
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {

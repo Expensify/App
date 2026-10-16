@@ -8699,6 +8699,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 createRule: 'Utwórz regułę',
                 fallbackBanner:
                     'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek albo odrzucając raport.',
+                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',
@@ -8784,6 +8785,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
                     categoryHasRule: 'Ta kategoria ma już regułę. Edytuj istniejącą regułę lub opisz regułę dla innej kategorii.',
+                },
+                impossible: {
+                    noTrigger: 'Reguły nie mogą uruchamiać się od tego zdarzenia.',
+                    noCapability: 'Reguły nie mogą tego zrobić.',
+                    missingData: 'Expensify nie ma tych informacji.',
+                    retroactive: 'Reguły dotyczą tylko nowej aktywności.',
+                    historyLimit: 'Reguły nie mogą sięgać tak daleko wstecz.',
+                    tryThisInstead: 'Spróbuj zamiast tego',
                 },
             },
             expenseDefaultsTable: {
