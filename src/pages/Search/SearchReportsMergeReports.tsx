@@ -55,6 +55,7 @@ function SearchMergeReports() {
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -163,7 +164,7 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, reportNameValuePairs, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`]);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
@@ -222,7 +223,7 @@ function SearchMergeReports() {
         isLoadingOnyxData ||
         selectedReportIDs?.some((reportID) => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+            return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
         });
 
     if (!isReportMergeBetaEnabled) {
