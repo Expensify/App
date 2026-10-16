@@ -23,7 +23,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
     SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE: 'SetGlobalReimbursementFXPreference',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
-    SET_WORKSPACE_TIMEZONE: 'SetWorkspaceTimezone',
+    UPDATE_POLICY_TIMEZONE: 'UpdatePolicyTimezone',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     DISABLE_POLICY_APPROVALS: 'DisablePolicyApprovals',
     SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
@@ -1037,7 +1037,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE]: Parameters.SetGlobalReimbursementFXPreferenceParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
-    [WRITE_COMMANDS.SET_WORKSPACE_TIMEZONE]: Parameters.SetWorkspaceTimezoneParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE]: Parameters.UpdatePolicyTimezoneParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.DISABLE_POLICY_APPROVALS]: Parameters.DisablePolicyApprovalsParams;
     [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;

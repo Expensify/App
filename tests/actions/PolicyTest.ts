@@ -6209,19 +6209,24 @@ describe('actions/Policy', () => {
             const policy = {
                 ...createRandomPolicy(0),
                 timeZone: 'America/Los_Angeles',
+                lastModified: '2026-10-01 10:00:00.000',
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             mockFetch.pause();
 
             // When setting the timezone to London
-            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone, policy.lastModified);
 
             // Then the timezone should be set optimistically and sent to the API
             await waitForBatchedUpdates();
             let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.timeZone).toBe('Europe/London');
             expect(updatedPolicy?.pendingFields?.timeZone).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_TIMEZONE, 0, {policyID: policy.id, timeZone: 'Europe/London'});
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, 0, {
+                policyID: policy.id,
+                policyTimezone: 'Europe/London',
+                lastModified: '2026-10-01 10:00:00.000',
+            });
 
             // When the fetch resumes and succeeds
             await mockFetch.resume();
@@ -6241,7 +6246,7 @@ describe('actions/Policy', () => {
 
             // When setting the timezone to London but fail
             mockFetch.fail();
-            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone, policy.lastModified);
             await waitForBatchedUpdates();
 
             // Then the timezone should be reverted with an error

@@ -65,7 +65,7 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetGlobalReimbursementFXPreferenceParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
-    SetWorkspaceTimezoneParams,
+    UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     TogglePolicyReceiptPartnersParams,
@@ -1066,7 +1066,7 @@ function setWorkspaceAutoReportingMonthlyOffset(
     );
 }
 
-function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone']) {
+function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone'], lastModified: Policy['lastModified']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1101,9 +1101,9 @@ function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZon
         },
     ];
 
-    const params: SetWorkspaceTimezoneParams = {policyID, timeZone};
+    const params: UpdatePolicyTimezoneParams = {policyID, policyTimezone: timeZone, lastModified};
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_TIMEZONE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, params, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceApprovalMode(
