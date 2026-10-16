@@ -2,7 +2,14 @@ import type {AuthorizeOperationParams, AuthorizeOperationResult, CreateCredentia
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import {translateLocal} from '@libs/Localize';
-import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {
+    buildSigningData,
+    decodeLibraryError,
+    getKeyAlias,
+    getLibraryErrorCode,
+    mapAuthTypeNumber,
+    mapSignErrorCodeToReason,
+} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createCanceledMFAResult, createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -78,7 +85,11 @@ async function readLocalCredential(accountID: number): Promise<LocalCredentialLo
         if (readError.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND) {
             return {status: 'absent'};
         }
-        return {status: 'readFailed', error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, readError.message)};
+        // Every other rejection becomes KEY_ACCESS_FAILED, so the library's own code goes into the message
+        // to show which read failures recover on the retry.
+        const code = getLibraryErrorCode(error);
+        const message = code ? `${code}: ${readError.message}` : readError.message;
+        return {status: 'readFailed', error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, message)};
     }
 }
 

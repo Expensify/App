@@ -247,9 +247,9 @@ describe('biometrics operations (native)', () => {
             expect(mockDeleteKeys).not.toHaveBeenCalled();
         });
 
-        // A read that fails twice is no longer treated as transient, so its reason reaches the actor,
-        // which deletes the key and lets the machine recover.
-        // The codes the installed library actually rejects getAllKeys with: Android, then iOS.
+        // A read that fails twice is no longer treated as transient. Whatever code the library rejected with
+        // (these are the ones it uses for getAllKeys: Android, then iOS), the operation reports KEY_ACCESS_FAILED
+        // with that code in the message, so the actor deletes the key and the machine recovers.
         it.each(['GET_ALL_KEYS_ERROR', 'KEYCHAIN_QUERY_FAILED', 'UNKNOWN_ERROR'])('reports KEY_ACCESS_FAILED when the keystore read rejects with %s after the retry', async (code) => {
             mockGetAllKeys.mockRejectedValue(Object.assign(new Error('Keystore unavailable'), {code}));
 
@@ -260,6 +260,7 @@ describe('biometrics operations (native)', () => {
                 throw new Error('Expected authorization to fail');
             }
             expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED);
+            expect(result.error.message).toBe(`${code}: Keystore unavailable`);
             expect(mockGetAllKeys).toHaveBeenCalledTimes(2);
             expect(mockSignWithOptions).not.toHaveBeenCalled();
             // Deletion is the actor's decision, so the operation must leave the keystore alone.

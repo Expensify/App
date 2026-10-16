@@ -92,14 +92,20 @@ const LIBRARY_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = 
     [NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED]: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
 };
 
+/** Reads the errorCode string a rejected library promise carries, if any. */
+function getLibraryErrorCode(error: unknown): string | undefined {
+    return error instanceof Error && 'code' in error && typeof error.code === 'string' ? error.code : undefined;
+}
+
 /**
  * Decodes caught exceptions from the library into an MFAError.
  * Falls back to UNRECOGNIZED for errors without a known code — mirrors decodeWebAuthnError.
  */
 function decodeLibraryError(error: unknown): MFAError {
     const message = getErrorMessage(error);
-    if (error instanceof Error && 'code' in error && typeof error.code === 'string') {
-        const reason = LIBRARY_ERROR_CODE_MAP[error.code];
+    const code = getLibraryErrorCode(error);
+    if (code) {
+        const reason = LIBRARY_ERROR_CODE_MAP[code];
         if (reason) {
             return createLocalMFAError(reason, message);
         }
@@ -134,4 +140,4 @@ async function buildSigningData(rpId: string, challenge: string): Promise<{authe
     return {authenticatorData, clientDataJSON, dataToSignB64};
 }
 
-export {getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason, decodeLibraryError, buildSigningData};
+export {getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason, getLibraryErrorCode, decodeLibraryError, buildSigningData};
