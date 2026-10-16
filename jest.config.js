@@ -5,7 +5,7 @@ const testFileExtension = 'ts?(x)';
 // `performance` real for perf runs only: enabling Jest's modern fake timers globally also fakes
 // `performance`, and React's Scheduler captures that (frozen) clock once at module load, which zeroes
 // every React Profiler render duration — and thus every Reassure `[render]` measurement.
-const isPerfTestRun = process.argv.some((arg) => arg.includes('perf-test') || arg.includes('perf-local') || arg.includes('__perf__'));
+const isPerfTestRun = process.argv.some((arg) => /perf-(test|local)|__perf__/.test(arg));
 
 // With `--coverage`, Jest also instruments every file matched by `collectCoverageFrom` that no test loaded, so
 // untested files show up at 0%. Under `--shard=N/M` each shard would repeat that pass over all of `src/**`
