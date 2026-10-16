@@ -15,9 +15,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIOUReportIDFromReportActionPreview,
     getLastVisibleActionIncludingTransactionThread,
+    getLastVisibleAction,
     getOriginalMessage,
+    getReportActionActorAccountID,
+    isActionableJoinRequest,
+    isActionableMentionWhisper,
     isActionableTrackExpense,
     isInviteOrRemovedAction,
+    isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTransactionReportIDs, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -25,7 +30,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportActions as ReportActionsType} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -41,15 +46,42 @@ import OptionRowLHN from './OptionRowLHN';
 
 const EMPTY_PERSONAL_DETAILS: PersonalDetailsList = {};
 
+function invoiceReceiverPolicyIDSelector(report: OnyxEntry<Report>): string | undefined {
+    return report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+}
+
+function invoiceReceiverAccountIDSelector(report: OnyxEntry<Report>): number | undefined {
+    return report?.invoiceReceiver && 'accountID' in report.invoiceReceiver ? report.invoiceReceiver.accountID : undefined;
+}
+
+function getActionAccountIDs(action: OnyxEntry<ReportAction>): Array<number | undefined> {
+    if (!action) {
+        return [];
+    }
+    const accountIDs = [action.actorAccountID, getReportActionActorAccountID(action, undefined, undefined)];
+    if (isActionableJoinRequest(action)) {
+        accountIDs.push(getOriginalMessage(action)?.accountID);
+    }
+    if (isActionableMentionWhisper(action)) {
+        accountIDs.push(...(getOriginalMessage(action)?.inviteeAccountIDs ?? []));
+    }
+    return accountIDs;
+}
+
+function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | undefined> {
+    if (!action) {
+        return [];
+    }
+    const {fromReportID, displayReportID} = parseMovedTransactionReportIDs(action);
+    return [fromReportID, displayReportID, getIOUReportIDFromReportActionPreview(action)];
+}
+
 /*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.
  * OptionRowLHN is auto-memoized by React Compiler, so it will
  * only re-render when the inputs derived from this wrapper change.
  */
-function invoiceReceiverPolicyIDSelector(report: OnyxEntry<Report>): string | undefined {
-    return report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-}
 
 function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
@@ -141,20 +173,36 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-    const {fromReportID: movedFromReportID, displayReportID: movedDisplayReportID} = lastAction
-        ? parseMovedTransactionReportIDs(lastAction)
-        : {fromReportID: undefined, displayReportID: undefined};
-    const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, movedFromReportID, movedDisplayReportID, getIOUReportIDFromReportActionPreview(lastAction)];
+
+    // getLastMessageTextForReport swaps an IOU CREATE/TRACK last action of a one-transaction report for the report's own last action
+    const ownLastAction =
+        oneTransactionThreadReportID && isMoneyRequestAction(lastAction)
+            ? getLastVisibleAction(reportID, canUserPerformWrite, {}, {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined}, visibleReportActionsData)
+            : undefined;
+    const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
     const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNamesByIDsSelector(attributes, reportNameIDs),
     });
+
+    const isInvoice = fullReport?.type === CONST.REPORT.TYPE.INVOICE;
+    const [invoiceChatReceiverAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isInvoice ? fullReport?.chatReportID : undefined)}`, {
+        selector: invoiceReceiverAccountIDSelector,
+    });
+    const parentReportActionActorAccountID = getReportActionActorAccountID(parentReportAction, fullReport, fullReport);
 
     const [personalDetails] = usePersonalDetailsByIDs([
         ...Object.keys(fullReport?.participants ?? {}).map(Number),
         fullReport?.ownerAccountID,
         fullReport?.managerID,
         fullReport?.lastActorAccountID,
-        lastAction?.actorAccountID,
+        parentReportAction?.actorAccountID,
+        parentReportActionActorAccountID,
+        invoiceReceiverAccountIDSelector(fullReport),
+        invoiceChatReceiverAccountID,
+        ...getActionAccountIDs(lastAction),
+        ...getActionAccountIDs(ownLastAction),
+        CONST.ACCOUNT_ID.CONCIERGE,
+        CONST.ACCOUNT_ID.NOTIFICATIONS,
         currentUserAccountID,
     ]);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);

@@ -974,7 +974,6 @@ function getOptionData({
             rawReportName: report.reportName,
             hasDerivedEntry: !!derivedEntry,
             derivedReportName: derivedEntry?.reportName,
-            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
         });
     }
 
