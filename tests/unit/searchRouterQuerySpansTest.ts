@@ -376,7 +376,7 @@ describe('searchRouterQuerySpans', () => {
         const attributes = getRootAttributes();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]).toBe(expectedHasFilter);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(expectedBucket);
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe('none');
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY.NONE);
     });
 
     it('treats a trailing filter key without a value as a filter, not free text', () => {

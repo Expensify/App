@@ -95,7 +95,7 @@ function cancelSearchRouterQuerySpan(reason: SearchRouterQueryCancelReason) {
 
 function getAutocompleteKey(key: string | undefined): string {
     if (!key) {
-        return 'none';
+        return CONST.TELEMETRY.SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY.NONE;
     }
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD;

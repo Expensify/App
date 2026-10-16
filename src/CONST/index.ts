@@ -2479,6 +2479,9 @@ const CONST = {
             LONG: '3-long',
             VERY_LONG: '4-very-long',
         },
+        SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY: {
+            NONE: 'none',
+        },
         SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
