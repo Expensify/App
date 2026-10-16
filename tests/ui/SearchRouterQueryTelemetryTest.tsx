@@ -67,12 +67,13 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 // Mirrors the real hook, which keeps the same option list until a dependency such as isSearching changes.
 const mockOptionLists = {idle: {reports: [], personalDetails: []}, searching: {reports: [], personalDetails: []}};
+let mockIsLoadingOptions = false;
 
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
     default: jest.fn((config: {isSearching?: boolean}) => ({
         options: config.isSearching ? mockOptionLists.searching : mockOptionLists.idle,
-        isLoading: false,
+        isLoading: mockIsLoadingOptions,
         loadMore: jest.fn(),
         loadAll: jest.fn(),
         hasMore: false,
@@ -113,6 +114,7 @@ describe('SearchAutocompleteList query telemetry', () => {
     });
 
     beforeEach(() => {
+        mockIsLoadingOptions = false;
         mockEnded.length = 0;
         beginSearchRouterQuerySession();
     });
@@ -221,5 +223,23 @@ describe('SearchAutocompleteList query telemetry', () => {
         const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBeUndefined();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(0);
+    });
+
+    it('cancels the span as options_not_ready when options are still loading during commit', async () => {
+        // Given a mounted list that has finished its first layout
+        const {rerender} = render(renderList(''));
+        await waitForBatchedUpdatesWithAct();
+
+        // When a debounced query commits while options are still loading
+        mockIsLoadingOptions = true;
+        startSearchRouterQuerySpan('abc');
+        expect(getSpan(ROOT)).toBeDefined();
+        rerender(renderList('abc'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the span is cancelled as options_not_ready instead of ending with 0 results
+        expect(getSpan(ROOT)).toBeUndefined();
+        const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.OPTIONS_NOT_READY);
     });
 });
