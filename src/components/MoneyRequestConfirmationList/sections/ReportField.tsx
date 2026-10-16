@@ -1,10 +1,9 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,7 +44,6 @@ type ReportFieldProps = {
 
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const policyID = selectedParticipants?.at(0)?.policyID;
@@ -141,16 +139,12 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     }
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={shouldReportBeEditable}
-            title={reportName}
-            description={translate('common.report')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openReportPage}
-            interactive={shouldReportBeEditable}
-            shouldRenderAsHTML
+        <MenuItemFieldHTML
+            name={translate('common.report')}
+            value={reportName}
+            onPress={shouldReportBeEditable ? openReportPage : undefined}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+            testID="menu-item-Report"
         />
     );
 }

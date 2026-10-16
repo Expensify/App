@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeATSFilters} from '@libs/actions/connections/merge/ATS';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
-import {getMergeATSFilterValues, getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
+import {getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
 import type {MergeATSFilterType} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -51,6 +51,9 @@ function MergeATSFiltersPage({
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
 
+    // A freshly enabled dimension has no values yet, so a toggle is on when it has values or was switched on by the admin
+    const [switchedOnFilters, setSwitchedOnFilters] = useState<Partial<Record<MergeATSFilterType, boolean>>>({});
+
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
     const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string}> = [
@@ -74,10 +77,8 @@ function MergeATSFiltersPage({
     const hasRequiredFilter = !!filters.tags?.length || !!filters.stages?.length;
 
     const toggleFilter = (filterType: MergeATSFilterType, isEnabled: boolean) => {
-        if (errorKey && isEnabled && filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
-            setErrorKey(undefined);
-        }
-        setFilter(filterType, isEnabled ? getMergeATSFilterValues(filterType, mergeATS?.data) : []);
+        setSwitchedOnFilters((previous) => ({...previous, [filterType]: isEnabled}));
+        setFilter(filterType, []);
     };
 
     const handleSave = () => {
@@ -101,7 +102,7 @@ function MergeATSFiltersPage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSFiltersPage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.importSettings')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.recruiting.importSettings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('workspace.recruiting.filters.description', providerName)}</Text>
                     <OfflineWithFeedback
@@ -114,7 +115,7 @@ function MergeATSFiltersPage({
                                     title={toggleTitle}
                                     switchAccessibilityLabel={toggleTitle}
                                     toggleContainerStyles={[styles.pv3, styles.mh5]}
-                                    isActive={!!filters[filterType]?.length}
+                                    isActive={!!filters[filterType]?.length || !!switchedOnFilters[filterType]}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
                                         <>
@@ -134,7 +135,7 @@ function MergeATSFiltersPage({
                     </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
-                    {!!errorKey && (
+                    {!!errorKey && !hasRequiredFilter && (
                         <FormHelpMessage
                             isError
                             message={translate(errorKey)}

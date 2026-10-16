@@ -165,6 +165,39 @@ describe('search shouldSaveRecentSearch flag', () => {
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
 
+    it('does not re-fire when a flagged request collides with a flagged in-flight request', async () => {
+        // Given the Search component's flagged first-page fetch still waiting for its response, as on a cached revisit
+        const queryJSON = getQueryJSON('merchant:tram');
+        let resolveFirstRequest: () => void = () => {};
+        const firstRequestPromise = new Promise<void>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+
+        // When the page setup hook requests the same query with the flag
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+        resolveFirstRequest();
+        await firstSearch;
+        await Promise.resolve();
+
+        // Then only one request reaches the backend, because the in-flight one already saves the query
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(1);
+    });
+
     it('unions totals and save upgrades when both collide with the same in-flight request', async () => {
         // Given a search without totals or the flag that is still waiting for its response
         const queryJSON = getQueryJSON('type:expense merchant:ferry');
@@ -299,18 +332,29 @@ describe('search shouldSaveRecentSearch flag', () => {
             return collected;
         }
 
-        it('only useSearchPageSetup passes shouldSaveRecentSearch: true', () => {
+        it('only the Search page call sites pass shouldSaveRecentSearch', () => {
             // Given every source file in the app
             const sourceRoot = path.resolve(__dirname, '../../../src');
             // The action file serializes the flag into the payload, so it legitimately contains the literal.
             const definitionSite = path.join(sourceRoot, 'libs/actions/Search.ts');
             // When collecting every file that passes the flag
             const flaggedCallSites = collectSourceFiles(sourceRoot).filter(
-                (filePath) => filePath !== definitionSite && /shouldSaveRecentSearch:\s*true/.test(fs.readFileSync(filePath, 'utf8')),
+                (filePath) => filePath !== definitionSite && /shouldSaveRecentSearch:\s*(?!false\b)/.test(fs.readFileSync(filePath, 'utf8')),
             );
 
-            // Then the Search page setup hook is the only one
-            expect(flaggedCallSites).toEqual([path.join(sourceRoot, 'hooks/useSearchPageSetup.ts')]);
+            // Then only the Search page setup hook and the Search component's first-page fetch pass it
+            expect(flaggedCallSites.sort()).toEqual([path.join(sourceRoot, 'components/Search/index.tsx'), path.join(sourceRoot, 'hooks/useSearchPageSetup.ts')]);
+        });
+
+        it('keeps to-do searches out of the Search component flag', () => {
+            // Given the Search component source, since the page setup hook never fires for to-do (live data) queries
+            const searchComponentSource = fs.readFileSync(path.resolve(__dirname, '../../../src/components/Search/index.tsx'), 'utf8');
+
+            // When reading the flag the first-page fetch passes
+            const flagExpression = /shouldSaveRecentSearch:\s*([^,\n]+)/.exec(searchComponentSource)?.[1];
+
+            // Then it excludes live data, so to-do searches keep sending false and are not saved
+            expect(flagExpression).toContain('!shouldUseLiveData');
         });
     });
 });

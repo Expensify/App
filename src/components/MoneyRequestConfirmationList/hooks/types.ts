@@ -1,4 +1,10 @@
+import type {ConfirmationListLayoutProps} from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
+import type {DistanceRequestControllerProps} from '@components/MoneyRequestConfirmationList/DistanceRequestController';
+import type {FieldAutoSelectorProps} from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
+import type {SplitBillControllerProps} from '@components/MoneyRequestConfirmationList/SplitBillController';
+import type {TaxControllerProps} from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import type {SharedFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -31,6 +37,27 @@ type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
 
     /** Only a distance variant passes this */
     distanceState?: ConfirmationDistanceState;
+};
+
+/** Everything `useConfirmationListData` resolves. */
+type ConfirmationListData = {
+    /** Spread onto `ConfirmationListLayout`. */
+    layoutProps: Omit<ConfirmationListLayoutProps, 'listFooterContent' | 'fieldFlags' | 'isCompactMode' | 'children'>;
+
+    /** Spread onto the variant's footer */
+    footerProps: SharedFooterProps;
+
+    /** Spread onto `TaxController`. The distance variant adds `distanceState`. */
+    taxControllerProps: Omit<TaxControllerProps, 'distanceState'>;
+
+    /** Spread onto `SplitBillController` */
+    splitBillControllerProps: SplitBillControllerProps;
+
+    /** Spread onto `FieldAutoSelector` */
+    fieldAutoSelectProps: FieldAutoSelectorProps;
+
+    /** Spread onto `DistanceRequestController`. The distance variant adds `distanceState`. */
+    distanceControllerProps: Omit<DistanceRequestControllerProps, 'distanceState'>;
 };
 
 type UseConfirmationPolicyDataParams = {
@@ -100,4 +127,4 @@ type UseParticipantSectionParams = {
     onOpenParticipantPicker?: () => void;
 };
 
-export type {ConfirmationDistanceState, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};
+export type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams, UseConfirmationPolicyDataParams, UseParticipantSectionParams};

@@ -4,6 +4,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
@@ -26,6 +27,7 @@ import {defaultPopoverAnchorPosition, SUB_MENU_ANCHOR_ALIGNMENT} from './popover
  */
 function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkActionBarButtonProps<TValueType>) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -91,7 +93,12 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                         anchorRef={anchorRef}
                         anchorPosition={anchorPosition}
                         anchorAlignment={SUB_MENU_ANCHOR_ALIGNMENT}
-                        menuItems={subMenuItems.map((subItem) => ({...subItem, shouldCallAfterModalHide: true}))}
+                        headerText={option.subMenuHeaderText}
+                        headerStyles={styles.lineHeightNormal}
+                        menuItems={subMenuItems.map((subItem) => ({
+                            ...subItem,
+                            shouldCallAfterModalHide: true,
+                        }))}
                         onClose={() => setIsMenuVisible(false)}
                         onItemSelected={(selectedSubItem, index, event) => {
                             onSubItemSelected?.(selectedSubItem, index, event);
