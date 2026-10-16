@@ -8,6 +8,8 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
+const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SEARCH_REPORT.route.indexOf(':'));
+
 /**
  * Generates a URL for a report that respects the current navigation context.
  * When in a search context, includes backTo parameter to preserve search state.
@@ -48,6 +50,10 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
                 // Prefer the backTo param when present; it points to the exact search state we left.
                 backToRoute = normalizeRoute(isAlreadyDecoded ? backTo : decodeURIComponent(backTo));
             }
+        }
+
+        if (backToRoute?.startsWith(SEARCH_REPORT_ROUTE_PREFIX) && activeRoute.startsWith(SEARCH_REPORT_ROUTE_PREFIX)) {
+            backToRoute = activeRoute;
         }
 
         if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
