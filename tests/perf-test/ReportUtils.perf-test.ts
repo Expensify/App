@@ -105,7 +105,7 @@ describe('ReportUtils', () => {
         const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1, undefined));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1, undefined, undefined));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {

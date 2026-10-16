@@ -9,6 +9,7 @@ import type {WriteReadyBarrier} from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
@@ -51,11 +52,13 @@ import {
     getUpdatedTransaction,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -162,6 +165,9 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -948,6 +954,9 @@ function completeSplitBill({
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
+                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+                // so the split details page renders the manual layout while offline instead of waiting for the response.
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
             },
         },
         {
@@ -2075,6 +2084,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2340,6 +2350,32 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         };
     }
 
+    const isMapDistance =
+        (distanceRequestType ? distanceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : isMapDistanceRequest(existingTransaction)) ||
+        (!distanceRequestType && !gpsCoordinates && odometerStart === undefined && odometerEnd === undefined && !isManualDistanceRequest);
+
+    if (isMapDistance && validWaypoints && reusableDistanceRoutes !== undefined) {
+        const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy});
+        const effectiveDistance =
+            modifiedDistance ??
+            distance ??
+            existingTransaction?.comment?.customUnit?.quantity ??
+            (selectedRouteDistance ? Number(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistance, distanceUnit).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0);
+
+        const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+            {
+                transactionID: parameters.transactionID,
+                waypoints: validWaypoints,
+                distance: effectiveDistance,
+                routeDistanceMeters: selectedRouteDistance,
+                inserted: created ?? DateUtils.getDBTime(),
+            },
+            reusableDistanceRoutes ?? [],
+        );
+        onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+        onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
+    }
+
     if (previousOdometerDraft !== undefined && (odometerStart !== undefined || odometerEnd !== undefined)) {
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -2378,7 +2414,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         {onWriteStarted: isMoneyRequestReport ? undefined : () => notifyNewAction(activeReportID, undefined, true)},
     );
 
-    if (isFromGlobalCreate) {
+    if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT) {
         signalExpenseAddedGrowl(parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
