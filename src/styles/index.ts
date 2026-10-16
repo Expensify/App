@@ -438,12 +438,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
-        // The floating (mWeb landscape) tab bar lays the label out beside the icon on a single line,
-        // so it doesn't need the tight line height the two-line stacked label relies on.
-        navigationTabBarFloatingLabel: {
-            lineHeight: variables.lineHeightNormal,
-        },
-
         link: link(theme),
 
         emailLink: emailLink(theme),
@@ -795,23 +789,6 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        /**
-         * The floating tab bar used on mobile web in landscape. It hugs its content instead of spanning the
-         * full width, so it can be pinned to the bottom-left corner and float above the screen content.
-         */
-        navigationTabBarFloatingContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            alignSelf: 'flex-start',
-            height: variables.floatingNavigationTabBarHeight,
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusCircle,
-            borderWidth: 1,
-            borderColor: theme.border,
-            backgroundColor: theme.appBG,
-            boxShadow: theme.shadow,
-        },
-
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
         navigationTabBarSlot: {
             minWidth: 0,
@@ -853,16 +830,6 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarAvatar: {
             marginTop: variables.iconFloatingTabBar - variables.avatarFloatingTabBar - variables.floatingTabBarGlyphBottomInset,
             marginBottom: variables.floatingTabBarGlyphBottomInset,
-        },
-
-        // Intentionally without `flex: 1` — items in the floating bar size to their own label.
-        navigationTabBarFloatingItem: {
-            height: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 10,
-            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         navigationTabBarFABItem: {

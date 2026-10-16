@@ -6,20 +6,13 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type FloatingCameraButtonProps from './types';
-
 import BaseFloatingCameraButton from './BaseFloatingCameraButton';
 
-function FloatingCameraButton({positionStyle}: FloatingCameraButtonProps) {
+function FloatingCameraButton() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ReceiptPlus']);
     const icon = getPlatform(true) === CONST.PLATFORM.MOBILE_WEB ? expensifyIcons.Camera : expensifyIcons.ReceiptPlus;
 
-    return (
-        <BaseFloatingCameraButton
-            icon={icon}
-            positionStyle={positionStyle}
-        />
-    );
+    return <BaseFloatingCameraButton icon={icon} />;
 }
 
 export default FloatingCameraButton;

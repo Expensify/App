@@ -5,7 +5,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
  * that the chrome has to give some of it up. Every treatment below is gated on this single flag and they all switch
  * together with the orientation:
  *
- * - the navigation tab bar becomes a pill floating in the bottom-left corner instead of a full-width bar;
+ * - the floating navigation tab bar hides while the soft keyboard is open;
  * - the navigation tab screens' header (TopBar plus any rows below it) scrolls away with the content instead of
  *   staying pinned;
  * - the report screen's chrome (header and compose row) uses its compact variant, and the header scrolls away;

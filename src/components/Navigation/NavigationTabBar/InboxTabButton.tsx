@@ -41,9 +41,6 @@ function markNavigateToInboxTabWaitedOnOpenReport() {
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
-
-    /** Whether the button is rendered inside the floating (mWeb landscape) tab bar */
-    isFloating?: boolean;
 };
 
 function doesLastReportExistSelector(report: OnyxEntry<Report>) {
@@ -205,7 +202,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     );
 }
 
-function InboxTabButton({selectedTab, isWideLayout, isFloating = false}: InboxTabButtonProps) {
+function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
@@ -246,7 +243,6 @@ function InboxTabButton({selectedTab, isWideLayout, isFloating = false}: InboxTa
                 isSelected={selectedTab === NAVIGATION_TABS.INBOX}
                 statusIndicatorColor={statusIndicatorColor}
                 numberOfLines={1}
-                isFloating={isFloating}
             />
         </PressableWithFeedback>
     );

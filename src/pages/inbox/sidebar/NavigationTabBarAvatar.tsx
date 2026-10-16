@@ -22,12 +22,9 @@ type NavigationTabBarAvatarProps = {
 
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether the avatar is rendered inside the floating (mWeb landscape) tab bar, which lays the label out beside it */
-    isFloating?: boolean;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style, isFloating = false}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -48,22 +45,17 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, isFloating 
         >
             {({hovered}) => (
                 <View
-                    style={
-                        isFloating
-                            ? styles.navigationTabBarFloatingItem
-                            : [
-                                  styles.navigationTabBarItem,
-                                  shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
-                                  shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
-                              ]
-                    }
+                    style={[
+                        styles.navigationTabBarItem,
+                        shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
+                        shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                    ]}
                 >
                     <View style={shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half}>
                         <AccountNavigationAvatar
                             // The floating bar marks the selected tab with a pill behind the whole item, so the
-                            // avatar's own ring would double up on it. The side bar and the mWeb landscape pill have
-                            // no selected pill and keep it.
-                            isSelected={isFloating ? isSelected : !shouldUseNarrowLayout && (isSelected || hovered)}
+                            // avatar's own ring would double up on it. The side bar has no pill and keeps it.
+                            isSelected={!shouldUseNarrowLayout && (isSelected || hovered)}
                             isHovered={hovered}
                             size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.SMALL}
                         />
@@ -72,8 +64,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, isFloating 
                         numberOfLines={shouldUseNarrowLayout ? 1 : 2}
                         style={[
                             styles.textSmall,
+                            styles.textAlignCenter,
                             isSelected ? styles.textBold : styles.textSupporting,
-                            isFloating ? styles.navigationTabBarFloatingLabel : [styles.textAlignCenter, shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half, styles.navigationTabBarLabel],
+                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
+                            styles.navigationTabBarLabel,
                         ]}
                     >
                         {translate('initialSettingsPage.account')}

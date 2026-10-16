@@ -18,12 +18,9 @@ import TabBarItem from './TabBarItem';
 type WorkspacesTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
-
-    /** Whether the button is rendered inside the floating (mWeb landscape) tab bar */
-    isFloating?: boolean;
 };
 
-function WorkspacesTabButton({selectedTab, isWideLayout, isFloating = false}: WorkspacesTabButtonProps) {
+function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
@@ -74,7 +71,6 @@ function WorkspacesTabButton({selectedTab, isWideLayout, isFloating = false}: Wo
                 isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
                 statusIndicatorColor={workspacesStatusIndicatorColor}
                 numberOfLines={1}
-                isFloating={isFloating}
             />
         </PressableWithFeedback>
     );

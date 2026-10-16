@@ -19,9 +19,6 @@ type TabBarItemProps = {
     isHovered?: boolean;
     statusIndicatorColor?: string;
     numberOfLines?: number;
-
-    /** Whether the item is rendered inside the floating (mWeb landscape) tab bar, which lays the label out beside the icon */
-    isFloating?: boolean;
 };
 
 function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
@@ -34,20 +31,14 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
     return theme.icon;
 }
 
-function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2, isFloating = false}: TabBarItemProps) {
+function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <View
-            style={
-                isFloating
-                    ? styles.navigationTabBarFloatingItem
-                    : [styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]
-            }
-        >
+        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
             <View>
                 <Icon
                     src={icon}
@@ -60,11 +51,13 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 )}
             </View>
             <Text
-                numberOfLines={isFloating ? 1 : numberOfLines}
+                numberOfLines={numberOfLines}
                 style={[
                     styles.textSmall,
+                    styles.textAlignCenter,
+                    shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half,
                     isSelected ? styles.textBold : styles.textSupporting,
-                    isFloating ? styles.navigationTabBarFloatingLabel : [styles.textAlignCenter, shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half, styles.navigationTabBarLabel],
+                    styles.navigationTabBarLabel,
                 ]}
             >
                 {label}

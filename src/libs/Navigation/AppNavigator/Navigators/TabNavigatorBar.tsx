@@ -17,7 +17,6 @@ import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {ViewProps} from 'react-native';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -31,9 +30,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
-    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
-    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
-    const isCoveredByKeyboard = useIsFloatingTabBarHiddenForKeyboard(shouldUseFloatingTabBar);
+    const isMobileWebLandscape = useIsMobileWebLandscape();
+    const isCoveredByKeyboard = useIsFloatingTabBarHiddenForKeyboard(isMobileWebLandscape);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
@@ -69,31 +67,16 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
 
     const isHidden = shouldHide || isCoveredByKeyboard || (shouldApplyDelay && animationDoneKey !== stateKey);
 
-    // The floating wrapper spans the full width but is transparent outside the pill, so taps in that gutter have to
-    // reach the screen content underneath.
-    let narrowPointerEvents: ViewProps['pointerEvents'] = 'auto';
-    if (isHidden) {
-        narrowPointerEvents = 'none';
-    } else if (shouldUseFloatingTabBar) {
-        narrowPointerEvents = 'box-none';
-    }
-
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[
-                    shouldUseFloatingTabBar ? StyleUtils.getFloatingTabBarWrapperStyle(safeAreaPaddingBottom) : StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom),
-                    isHidden && styles.opacity0,
-                ]}
-                pointerEvents={narrowPointerEvents}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
+                pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
-                    isFloating={shouldUseFloatingTabBar}
-                    floatingActionButtonStyle={StyleUtils.getFloatingTabBarFABStyle(safeAreaPaddingBottom)}
-                    floatingCameraButtonStyle={StyleUtils.getFloatingTabBarCameraButtonStyle(safeAreaPaddingBottom)}
                 />
             </View>
         );

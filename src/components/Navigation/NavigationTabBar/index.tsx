@@ -24,7 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -40,18 +39,9 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     shouldShowFloatingButtons?: boolean;
-
-    /** Renders the narrow bar as a compact pill floating in the bottom-left corner (mWeb landscape) */
-    isFloating?: boolean;
-
-    /** Position of the FAB when floating. Required so it lands in the opposite corner from the pill. */
-    floatingActionButtonStyle?: StyleProp<ViewStyle>;
-
-    /** Position of the camera button when floating, stacked above the FAB */
-    floatingCameraButtonStyle?: StyleProp<ViewStyle>;
 };
 
-function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloating = false, floatingActionButtonStyle, floatingCameraButtonStyle}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -162,14 +152,9 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
 
     return (
         <>
-            {shouldShowDebugTabView && (
-                <DebugTabView
-                    selectedTab={selectedTab}
-                    isFloating={isFloating}
-                />
-            )}
+            {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={isFloating ? styles.navigationTabBarFloatingContainer : styles.navigationTabBarContainer}
+                style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback
@@ -184,19 +169,16 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
-                        isFloating={isFloating}
                         numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
-                    isFloating={isFloating}
                 />
                 <SearchTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
-                    isFloating={isFloating}
                 />
                 {isInsightsTabVisible && (
                     <InsightsTabButton
@@ -207,25 +189,23 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
                 <WorkspacesTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
-                    isFloating={isFloating}
                 />
                 {!isInsightsTabVisible && (
                     <NavigationTabBarAvatar
                         style={styles.navigationTabBarItem}
                         isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                         onPress={navigateToSettings}
-                        isFloating={isFloating}
                     />
                 )}
             </View>
 
             {shouldShowFloatingButtons && (
                 <>
-                    <View style={[styles.navigationTabBarFABItem, styles.ph0, isFloating ? floatingActionButtonStyle : styles.floatingActionButtonPosition]}>
+                    <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                     <FloatingGPSButton />
-                    <FloatingCameraButton positionStyle={isFloating ? floatingCameraButtonStyle : undefined} />
+                    <FloatingCameraButton />
                 </>
             )}
         </>

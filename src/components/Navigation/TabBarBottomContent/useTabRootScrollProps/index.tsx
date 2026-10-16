@@ -1,5 +1,4 @@
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import variables from '@styles/variables';
@@ -16,15 +15,11 @@ import type {TabRootScrollOptions} from './types';
  */
 function useTabRootScrollProps(style?: StyleProp<ViewStyle>, {hasBottomSafeAreaPadding = false, hasOfflineIndicatorPadding = false}: TabRootScrollOptions = {}): TabRootScrollProps {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
-    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
     const insetStyle = useBottomSafeSafeAreaPaddingStyle({
         style,
         addBottomSafeAreaPadding: !hasBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: !hasOfflineIndicatorPadding,
-        additionalPaddingBottom: shouldUseFloatingTabBar
-            ? variables.floatingNavigationTabBarHeight + variables.floatingNavigationTabBarMargin * 2
-            : variables.floatingTabBarHeight + variables.floatingTabBarBottomInset,
+        additionalPaddingBottom: variables.floatingTabBarHeight + variables.floatingTabBarBottomInset,
     });
 
     return {contentContainerStyle: shouldUseNarrowLayout ? insetStyle : style};

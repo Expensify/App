@@ -31,8 +31,6 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
-    floatingNavigationTabBarHeight: 52,
-    floatingNavigationTabBarMargin: 16,
     floatingTabBarHeight: 60,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.

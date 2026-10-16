@@ -27,12 +27,9 @@ import TabBarItem from './TabBarItem';
 type SearchTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
-
-    /** Whether the button is rendered inside the floating (mWeb landscape) tab bar */
-    isFloating?: boolean;
 };
 
-function SearchTabButton({selectedTab, isWideLayout, isFloating = false}: SearchTabButtonProps) {
+function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
@@ -89,7 +86,6 @@ function SearchTabButton({selectedTab, isWideLayout, isFloating = false}: Search
                 label={translate('common.spend')}
                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                 numberOfLines={1}
-                isFloating={isFloating}
             />
         </PressableWithFeedback>
     );

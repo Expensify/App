@@ -30,7 +30,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
@@ -38,12 +37,9 @@ import {Platform, View} from 'react-native';
 
 type BaseFloatingCameraButtonProps = {
     icon: IconAsset;
-
-    /** Overrides the default position, which is anchored above the full-width bottom tab bar */
-    positionStyle?: StyleProp<ViewStyle>;
 };
 
-function BaseFloatingCameraButton({icon, positionStyle}: BaseFloatingCameraButtonProps) {
+function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -107,7 +103,7 @@ function BaseFloatingCameraButton({icon, positionStyle}: BaseFloatingCameraButto
                 styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
-                positionStyle ?? styles.floatingCameraButton,
+                styles.floatingCameraButton,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
