@@ -27,9 +27,13 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-/** Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash. */
+/**
+ * Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash.
+ * Returns `undefined` when the last tab navigator has no Search state yet, so `usePreviousDefined` keeps the last real query.
+ * Otherwise a still-mounted Search page in an older tab navigator would save and search the default query.
+ */
 function selectSearchQueryParams(state: NavigationState | undefined) {
-    const searchRootParams = getSearchRootParamsFromRootState(state);
+    const searchRootParams = getSearchRootParamsFromRootState(state, false);
     if (!searchRootParams) {
         return undefined;
     }
