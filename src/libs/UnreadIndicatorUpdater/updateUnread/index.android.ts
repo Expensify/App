@@ -7,5 +7,9 @@ const updateUnread: UpdateUnread = () => {};
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setPageTitle(_title: string) {}
 
+// Native badges only update when the ordinary unread count changes.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function setUnreadUpdateCallback(_callback: () => void) {}
+
 export default updateUnread;
-export {setPageTitle};
+export {setPageTitle, setUnreadUpdateCallback};

@@ -3,7 +3,6 @@ import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,7 +11,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -42,10 +40,12 @@ type WorkspaceTagTableRowData = TableData & {
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
-    showRequiredSwitch: boolean;
+    /** Only single-level tags opt in. */
+    canEditName?: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
-    onToggleRequired?: (required: boolean) => void;
+    /** Provided only when `canEditName` is supported. */
+    onRenameName?: (newName: string) => void;
     onClose: () => void;
 };
 
@@ -77,19 +77,21 @@ export default function WorkspaceTagsTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
-    // Required is configured from Rules once the revamp is on, so the rows have no switch to head.
-    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags && !isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
         {
             key: 'name',
             label: translate('common.name'),
-            sortable: true,
+            // Multi-level tag levels keep the order they were imported in, so they can't be re-sorted.
+            sortable: !isMultiLevelTags,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
@@ -114,7 +116,7 @@ export default function WorkspaceTagsTable({
                   {
                       key: 'tagCount' as const,
                       label: translate('common.count'),
-                      sortable: true,
+                      sortable: false,
                       width: variables.workspaceTagsTableCountColumnWidth,
                   },
               ]
@@ -124,19 +126,6 @@ export default function WorkspaceTagsTable({
                   {
                       key: 'enabled' as const,
                       label: translate('common.enabled'),
-                      sortable: true,
-                      width: variables.tableSwitchColumnWidth,
-                      styling: {
-                          containerStyles: [styles.justifyContentEnd],
-                      },
-                  },
-              ]
-            : []),
-        ...(shouldShowRequiredColumn
-            ? [
-                  {
-                      key: 'required' as const,
-                      label: translate('common.required'),
                       sortable: true,
                       width: variables.tableSwitchColumnWidth,
                       styling: {
@@ -212,8 +201,11 @@ export default function WorkspaceTagsTable({
 
     return (
         <Table
+            // useSorting reads initialSortColumn only on mount, so remount the table when switching between single- and multi-level tags.
+            key={isMultiLevelTags ? 'multiLevelTags' : 'singleLevelTags'}
             data={tags}
-            initialSortColumn="name"
+            // Without a sort column, multi-level tags keep their orderWeight (import) order from getTagLists.
+            initialSortColumn={isMultiLevelTags ? undefined : 'name'}
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.tags')}
             columns={tagTableColumns}

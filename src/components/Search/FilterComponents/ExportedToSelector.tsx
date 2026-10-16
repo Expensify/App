@@ -43,6 +43,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'Table',
         'TablePencil',
@@ -52,7 +54,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyID);
 
     const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: deduplicatedExportTemplates} = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
+    const exportTemplates = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
 
     const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
@@ -99,8 +101,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
         const standardAndIntegrationCustomTemplatePickerItems = [];
 
-        for (const template of deduplicatedExportTemplates) {
-            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
+        for (const template of exportTemplates) {
+            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName)) {
                 continue;
             }
 

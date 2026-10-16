@@ -5,6 +5,7 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -15,11 +16,11 @@ import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -34,8 +35,8 @@ function DatePicker({
     errorText,
     inputID,
     label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
     onInputChange,
     onTouched = () => {},
     placeholder,
@@ -48,9 +49,17 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    rightHandSideComponent,
+    onPickerVisibilityChange,
+    shouldHideCalendarIcon = false,
+    icon,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    // The clear button takes the calendar icon's place once a date is picked, so it gets the same horizontal padding as the icon's
+    // container instead of its own margins. Otherwise the X sits in a different spot than the icon it replaces.
+    const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -60,7 +69,7 @@ function DatePicker({
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -101,6 +110,14 @@ function DatePicker({
         [windowHeight],
     );
 
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
     const showDatePickerModal = useCallback(() => {
         cancelAutoFocus();
         // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
@@ -116,7 +133,7 @@ function DatePicker({
         const openPicker = () => {
             if (!shouldDeferShowUntilPositioned) {
                 calculatePopoverPosition();
-                setIsModalVisible(true);
+                setPickerVisibility(true);
                 return;
             }
 
@@ -125,16 +142,16 @@ function DatePicker({
                 if (!openIntentRef.current) {
                     return;
                 }
-                setIsModalVisible(true);
+                setPickerVisibility(true);
             });
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
+    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
-        setIsModalVisible(false);
+        setPickerVisibility(false);
 
         if (!shouldDismissKeyboardBeforeShow) {
             return;
@@ -143,7 +160,7 @@ function DatePicker({
         textInputRef.current?.blur();
         ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow]);
+    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
@@ -204,14 +221,6 @@ function DatePicker({
         [autoFocus],
     );
 
-    const getValidDateForCalendar = useMemo(() => {
-        if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return selectedDate;
-    }, [selectedDate, defaultValue]);
-
     return (
         <>
             <View
@@ -222,7 +231,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    icon={selectedDate || shouldHideCalendarIcon ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -240,9 +249,11 @@ function DatePicker({
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
+                    rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
 
@@ -250,7 +261,8 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={getValidDateForCalendar}
+                value={selectedDate}
+                defaultValue={defaultValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

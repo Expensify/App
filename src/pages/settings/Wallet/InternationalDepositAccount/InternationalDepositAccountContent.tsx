@@ -1,3 +1,5 @@
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -5,12 +7,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubPage from '@hooks/useSubPage';
 
 import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {hasValidAccountDetailsInternationalFields} from '@libs/BankAccountUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,7 +40,6 @@ import BankAccountDetails from './subPages/BankAccountDetails';
 import BankInformation from './subPages/BankInformation';
 import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
-import InternationalBankAccountDetails from './subPages/InternationalBankAccountDetails';
 import Success from './subPages/Success';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
@@ -57,13 +56,23 @@ type InternationalDepositAccountContentProps = {
 const pages = [
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.COUNTRY, component: CountrySelection},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS, component: BankAccountDetails},
-    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS, component: InternationalBankAccountDetails},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE, component: AccountType},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION, component: BankInformation},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS, component: AccountHolderInformation},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, component: Confirmation},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.SUCCESS, component: Success},
 ];
+
+function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean) {
+    const skippedSteps = [];
+    if (skipAccountTypeStep) {
+        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
+    }
+    if (skipAccountHolderInformationStep) {
+        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
+    }
+    return skippedSteps;
+}
 
 function InternationalDepositAccountContent({
     privatePersonalDetails,
@@ -79,31 +88,16 @@ function InternationalDepositAccountContent({
     const fieldsMap = getFieldsMap(corpayFields);
 
     const values = getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap);
-    const bankCountry = values.bankCountry;
-    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(bankCountry);
 
     const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
+
+    const startFrom = getInitialSubstep(values, fieldsMap);
 
     const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]);
 
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
-    // Skip only when collection isn't needed, or when the account details step already captured a real IBAN and a
-    // SWIFT value. Completing `iban`/`swiftCode` on the dedicated step must not omit it from the wizard.
-    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || hasValidAccountDetailsInternationalFields(values.accountNumber, values.swiftBicCode);
-
-    const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
-
-    const skippedPages = [];
-    if (skipInternationalBankAccountDetailsStep) {
-        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
-    }
-    if (skipAccountTypeStep) {
-        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
-    }
-    if (skipAccountHolderInformationStep) {
-        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
-    }
+    const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep);
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
@@ -180,14 +174,16 @@ function InternationalDepositAccountContent({
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             {isRedirecting || isAccountLoading ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator onGoBack={handleBackButtonPress} />
             ) : (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('bankAccount.addBankAccount')}
-                        shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
-                        onBackButtonPress={handleBackButtonPress}
-                    />
+                <CollapsibleHeaderOnKeyboardGroup>
+                    <CollapsibleHeaderOnKeyboardGroupMember>
+                        <HeaderWithBackButton
+                            title={translate('bankAccount.addBankAccount')}
+                            shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
+                            onBackButtonPress={handleBackButtonPress}
+                        />
+                    </CollapsibleHeaderOnKeyboardGroupMember>
                     <CurrentPage
                         isEditing={isEditing}
                         onNext={handleNextScreen}
@@ -195,7 +191,7 @@ function InternationalDepositAccountContent({
                         formValues={values}
                         fieldsMap={fieldsMap}
                     />
-                </>
+                </CollapsibleHeaderOnKeyboardGroup>
             )}
         </ScreenWrapper>
     );

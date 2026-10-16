@@ -1,12 +1,15 @@
-import Button from '@components/ButtonComposed';
 import DistanceMapView from '@components/DistanceMapView';
+import Icon from '@components/Icon';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSelectedRoute} from '@libs/actions/Transaction';
@@ -38,20 +41,22 @@ type DistanceRequestFooterProps = {
     /** The transaction being interacted with */
     transaction: OnyxEntry<Transaction>;
 
-    /** The policy */
     policy: OnyxEntry<Policy>;
-
-    /** Optional style for the map container */
     mapContainerStyle?: StyleProp<ViewStyle>;
 
     /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */
     transactionState: TransactionState;
+
+    /** Function to call when the user wants to pick a previous route. The "Reuse route" button is hidden when omitted. */
+    navigateToReuseRoutePage?: () => void;
 };
 
-function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle, transactionState}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle, transactionState, navigateToReuseRoutePage}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -102,19 +107,49 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         });
     }
 
+    const shouldShowReuseRoute = !!navigateToReuseRoutePage && !!reusableDistanceRoutes?.length;
+    const isAddStopDisabled = numberOfWaypoints === MAX_WAYPOINTS;
+
     return (
         <>
-            {numberOfFilledWaypoints >= 2 && (
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                        innerStyles={[styles.pl10, styles.pr10]}
-                    >
-                        <Button.Icon src={expensifyIcons.Plus} />
-                        <Button.Text>{translate('distance.addStop')}</Button.Text>
-                    </Button>
+            {(numberOfFilledWaypoints >= 2 || shouldShowReuseRoute) && (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.gap2]}>
+                    {numberOfFilledWaypoints >= 2 && (
+                        <PressableWithFeedback
+                            onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+                            disabled={isAddStopDisabled}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('distance.addStop')}
+                            sentryLabel="DistanceRequestFooter-AddStop"
+                            style={[styles.searchFiltersBarButton]}
+                            hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
+                            disabledStyle={styles.buttonOpacityDisabled}
+                        >
+                            <Icon
+                                src={expensifyIcons.Plus}
+                                size={CONST.ICON_SIZE.EXTRA_SMALL}
+                                fill={theme.icon}
+                            />
+                            <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.addStop')}</Text>
+                        </PressableWithFeedback>
+                    )}
+                    {shouldShowReuseRoute && (
+                        <PressableWithFeedback
+                            onPress={navigateToReuseRoutePage}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('distance.reuseRoute')}
+                            sentryLabel="DistanceRequestFooter-ReuseRoute"
+                            style={[styles.searchFiltersBarButton]}
+                            hoverStyle={styles.hoveredComponentBG}
+                        >
+                            <Icon
+                                src={expensifyIcons.History}
+                                size={CONST.ICON_SIZE.EXTRA_SMALL}
+                                fill={theme.icon}
+                            />
+                            <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.reuseRoute')}</Text>
+                        </PressableWithFeedback>
+                    )}
                 </View>
             )}
             <View style={[styles.mapViewContainer, mapContainerStyle]}>

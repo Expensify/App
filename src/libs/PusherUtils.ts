@@ -1,10 +1,10 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 import type {OnyxKey} from 'react-native-onyx';
 
-import type {PingPongEvent} from './Pusher/types';
+import type {EventData, PusherEventName} from './Pusher/types';
 
 import {reconnect} from './actions/Reconnect';
 import Log from './Log';
@@ -37,14 +37,14 @@ function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data:
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent<EventName extends PusherEventName>(eventName: EventName, accountID: string, onEvent: (pushJSON: EventData<EventName>) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
+    function logPusherEvent(pushJSON: EventData<EventName>) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
-    function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
+    function onEventPush(pushJSON: EventData<EventName>) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }

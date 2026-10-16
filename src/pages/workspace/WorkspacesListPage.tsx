@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +41,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
@@ -75,6 +77,7 @@ function WorkspacesListPage() {
         !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
 
     // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
     // when anything else in the personal details list changes.
@@ -85,7 +88,7 @@ function WorkspacesListPage() {
                 .filter((id): id is number => id !== undefined),
         ),
     ];
-    const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)});
+    const [ownerDisplayDetails] = useAllPersonalDetails(createDisplayDetailsByAccountIDsSelector(ownerAccountIDs));
 
     const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
         const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -263,6 +266,7 @@ function WorkspacesListPage() {
                         workspaces={workspaceRows}
                         headerComponent={headerComponent}
                         onDeleteWorkspace={setPolicyIDToDelete}
+                        onArchiveWorkspace={setPolicyIDToArchive}
                         pendingDeletePolicyID={policyIDToDelete}
                     />
                 )}
@@ -271,6 +275,13 @@ function WorkspacesListPage() {
                         key={policyIDToDelete}
                         policyID={policyIDToDelete}
                         onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                {!!policyIDToArchive && (
+                    <ArchiveWorkspaceFlow
+                        key={policyIDToArchive}
+                        policyID={policyIDToArchive}
+                        onDismiss={() => setPolicyIDToArchive(undefined)}
                     />
                 )}
                 <CopyPolicySettingsProgressModal />

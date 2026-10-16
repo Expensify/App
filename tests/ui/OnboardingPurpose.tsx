@@ -32,6 +32,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -166,6 +167,86 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to the workspace list only once when Join Workspace is pressed twice', async () => {
+        const testEmail = 'test@user.com';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: false,
+                hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+        navigate.mockClear();
+
+        const user = userEvent.setup();
+        const joinWorkspaceOption = screen.getByLabelText(translatePurpose(CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE));
+        await user.press(joinWorkspaceOption);
+        await user.press(joinWorkspaceOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledTimes(1);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should clear a stale merge-blocked flag when a public-domain user selects Join Workspace', async () => {
+        // Given a public-domain user whose earlier work email merge was blocked
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When they select Join Workspace
+        const user = userEvent.setup();
+        await user.press(screen.getByLabelText(translatePurpose(CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE)));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flag is cleared so the work email step shows the form instead of the blocked view
+        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+        const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+        expect(onboarding?.isMergingAccountBlocked).toBe(false);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the work email in a domain-controlled error that reaches the purpose page', async () => {
+        // Given a domain-controlled merge error left behind by the work email step, with the email still in the form
+        const workEmail = 'tester@applause.expensifail.com';
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
+        });
+
+        // When the purpose page renders that error
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message names the work email instead of "undefined", because the key interpolates the email
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail))).toBeOnTheScreen();
+        expect(screen.queryByText(/undefined is a domain controlled login/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should navigate to personal details page when user selects EMPLOYER and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -194,7 +275,7 @@ describe('OnboardingPurpose Page', () => {
     });
 
     it('should create a Submit workspace when user selects EMPLOYER and is from private domain with name set', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         const testEmail = 'test@user.com';
@@ -241,7 +322,7 @@ describe('OnboardingPurpose Page', () => {
     });
 
     it('should create a Submit workspace from Purpose when EMPLOYER is selected and personal details already exist', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
@@ -289,7 +370,9 @@ describe('OnboardingPurpose Page', () => {
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
+            expect(navigate).toHaveBeenCalledWith(
+                ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+            );
         });
 
         onyxSetSpy.mockRestore();
@@ -357,7 +440,7 @@ describe('OnboardingPurpose Page', () => {
         const introSelectedValue = {
             choice: CONST.ONBOARDING_CHOICES.EMPLOYER,
             inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
-            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
         };
 
         await act(async () => {

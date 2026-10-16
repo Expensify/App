@@ -26,7 +26,6 @@ type PaymentCardDetailsProps = {
     /** Optional right side content (e.g. action menu) */
     rightComponent?: ReactNode;
 
-    /** Optional wrapper styles */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 

@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -80,14 +80,13 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                 />
                 {!!autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
-                        <MenuItemWithTopDescription
-                            title={
+                        <MenuItemField
+                            value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                     : translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
-                            description={translate('workspace.xero.accountingMethods.label')}
-                            shouldShowRightIcon
+                            name={translate('workspace.xero.accountingMethods.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>

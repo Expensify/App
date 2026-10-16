@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 import type React from 'react';
 import type {View} from 'react-native';
 
@@ -12,7 +13,7 @@ type FocusableContainer = {
     contains: HTMLElement['contains'];
 };
 
-type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
+type UseListKeyboardNavConfig<T extends ComponentRef<typeof View> | HTMLElement> = {
     isActive: boolean;
     itemKeys: string[];
     disabledIndexes: readonly number[];
@@ -25,7 +26,7 @@ type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
  * items, so the browser handles Enter natively and SortableItem forwards it to the
  * inner pressable. Space is reserved for dnd-kit drag initiation.
  */
-function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef}: UseListKeyboardNavConfig<T>) {
+function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef}: UseListKeyboardNavConfig<T>) {
     const isFocused = useIsFocused();
     const [hasFocus, setHasFocus] = useState(false);
     const [hasBeenFocused, setHasBeenFocused] = useState(false);

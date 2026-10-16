@@ -107,7 +107,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
         );
     };
 
-    const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
+    const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBankForTravelBilling')}</Text>;
 
     const getHeaderTitle = () => {
         switch (verificationState) {

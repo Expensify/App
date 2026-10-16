@@ -17,6 +17,8 @@ import {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
 } from '@userActions/IOU/UpdateMoneyRequest';
+import {createTransactionThreadReport} from '@userActions/Report';
+import type * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +37,13 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     updateMoneyRequestAmountAndCurrency: jest.fn(),
     updateMoneyRequestTag: jest.fn(),
 }));
+
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+}));
+
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -90,6 +99,7 @@ describe('TransactionInlineEdit', () => {
             parentReport: baseParentReport,
             policy: basePolicy,
             parentReportActions: undefined,
+            rules: undefined,
         };
 
         const policyCategories: PolicyCategories = {
@@ -304,6 +314,41 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditCategory).toBe(true);
             });
+
+            it('should enable category editing when the category is missing and the policy categories have not loaded yet', () => {
+                // Lazy-loaded accounts have no policyCategories in Onyx on a fresh sign-in. Without this the cell
+                // deadlocks: the edit icon stays hidden, so the picker never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(true);
+            });
+
+            it('should disable category editing when the category is missing and the loaded policy categories are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: {},
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
+
+            it('should disable category editing when categories are not enabled on policy and the policy categories have not loaded yet', () => {
+                const policyWithoutCategories: Policy = {
+                    ...basePolicy,
+                    areCategoriesEnabled: false,
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: policyWithoutCategories,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
         });
 
         describe('tag permissions', () => {
@@ -350,6 +395,38 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditTag).toBe(true);
             });
+
+            it('should enable tag editing when the tag is missing and the policy tags have not loaded yet', () => {
+                // Same deadlock as categories. With the collection absent the edit icon stays hidden, so TagPicker
+                // never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(true);
+            });
+
+            it('should disable tag editing when the tag is missing and the loaded policy tags are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: {},
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
+
+            it('should disable tag editing when tags are not enabled on policy and the policy tags have not loaded yet', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: false},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
         });
 
         describe('unreported expenses', () => {
@@ -374,12 +451,14 @@ describe('TransactionInlineEdit', () => {
                 } satisfies TransactionEditPermissions);
             });
 
+            // An empty collection rather than an absent one is what "no available options" means here. An absent
+            // collection only tells us the lazy-loaded account hasn't fetched it yet, so the cell stays editable.
             it('should disable category and tag editing without available options', () => {
                 const permissions = getTransactionEditPermissions({
                     ...baseUnreportedParams,
                     transaction: unreportedTransaction,
-                    policyCategories: undefined,
-                    policyTags: undefined,
+                    policyCategories: {},
+                    policyTags: {},
                 });
 
                 expect(permissions).toMatchObject({
@@ -614,6 +693,7 @@ describe('TransactionInlineEdit', () => {
 
         function buildParams(): TransactionInlineEditParams {
             return {
+                isVendorMatchingBetaEnabled: false,
                 hash: 123456,
                 isOffline: false,
                 transactionID: TRANSACTION_ID,
@@ -627,6 +707,7 @@ describe('TransactionInlineEdit', () => {
                 reportPolicyTags: undefined,
                 policyRecentlyUsedCategories: undefined,
                 policyRecentlyUsedTags: undefined,
+                conciergeChat: undefined,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: true,
                 personalDetailsList: undefined,
@@ -634,6 +715,13 @@ describe('TransactionInlineEdit', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: () => 2,
                 getCurrencySymbol: () => '$',
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
+                transactionViolations: {},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail: '',
+                rules: undefined,
             };
         }
 
@@ -660,6 +748,48 @@ describe('TransactionInlineEdit', () => {
             editTransactionMerchantInline(buildParams(), '');
 
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
+        });
+
+        describe('transaction thread creation', () => {
+            const CONCIERGE_CHAT: Report = {reportID: 'concierge-inline-edit-1'};
+            const CREATED_THREAD: Report = {reportID: 'inline-edit-thread-1'};
+
+            /** An IOU action with no childReportID, so no transaction thread can be resolved from it. */
+            const iouParentReportAction = {
+                reportActionID: '999',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-08-12',
+            } as ReportAction;
+
+            it('creates the missing transaction thread with the conciergeChat threaded through', () => {
+                mockCreateTransactionThreadReport.mockReturnValue(CREATED_THREAD);
+
+                // A parent IOU action but no transaction thread anywhere: the edit must create the thread first.
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                // The threaded conciergeChat reaches createTransactionThreadReport instead of the deprecated module-level lookup...
+                expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({conciergeChat: CONCIERGE_CHAT, iouReportAction: iouParentReportAction, transaction: snapshotTransaction}),
+                );
+                // ...and the created thread is what the edit call receives.
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: CREATED_THREAD}));
+            });
+
+            it('reuses an existing transaction thread without creating a new one', () => {
+                const existingThread: Report = {reportID: 'existing-thread-1'};
+
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, transactionThreadReport: existingThread}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: existingThread}));
+            });
+
+            it('does not create a thread when there is no parent report action to anchor it', () => {
+                editTransactionMerchantInline({...buildParams(), conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: undefined}));
+            });
         });
     });
 });

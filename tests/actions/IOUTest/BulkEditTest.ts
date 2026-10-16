@@ -2,6 +2,7 @@ import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkE
 
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -87,6 +88,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -102,6 +104,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -162,6 +165,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -177,6 +181,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -226,6 +231,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 changes: {amount: 1000},
@@ -241,6 +247,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -299,6 +306,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -1000},
@@ -314,6 +322,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -376,6 +385,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {billable: true, reimbursable: false},
@@ -391,6 +401,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -443,6 +454,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -458,6 +470,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -509,6 +522,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New merchant'},
@@ -524,6 +538,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -531,6 +546,79 @@ describe('actions/IOU/BulkEdit', () => {
             expect(updates.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
+        });
+
+        it('saves changes for a reported expense with no IOU action on a report the current user submitted', async () => {
+            // Given an expense with no IOU action anywhere, on an open expense report the current user submitted, in a workspace where they aren't an admin
+            const transactionID = 'transaction-actionless';
+            const expenseReportID = 'expense-actionless';
+            const policy: Policy = {...createRandomPolicy(11, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER};
+            const expenseReport: Report = {
+                ...createRandomReport(11, undefined),
+                reportID: expenseReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: 999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(11),
+                transactionID,
+                reportID: expenseReportID,
+                transactionThreadReportID: undefined,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Old merchant',
+                managedCard: false,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // canEditFieldOfMoneyRequest is not mocked, so this goes through the same per-field permission check as the real save
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Clean up in `finally` so a failed assertion doesn't leave the session, report and policy in Onyx for the next test
+            try {
+                // When the merchant is bulk edited
+                updateMultipleMoneyRequests({
+                    isVendorMatchingBetaEnabled: false,
+                    personalDetailsList: undefined,
+                    transactionIDs: [transactionID],
+                    changes: {merchant: 'New merchant'},
+                    policy,
+                    reports,
+                    transactions,
+                    reportActions: {},
+                    policyCategories: undefined,
+                    policyTags: {},
+                    violations: undefined,
+                    hash: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
+                });
+
+                // Then UpdateMoneyRequest is sent with the new merchant, so Edit multiple doesn't silently save nothing for this expense
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, expect.objectContaining({transactionID}), expect.anything());
+                expect(getBulkEditUpdates(writeSpy).merchant).toBe('New merchant');
+            } finally {
+                writeSpy.mockRestore();
+                await Onyx.clear();
+            }
         });
 
         it('does not add violations for unreported expenses during bulk edit', async () => {
@@ -565,6 +653,7 @@ describe('actions/IOU/BulkEdit', () => {
             await waitForBatchedUpdates();
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -596,6 +685,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -640,6 +730,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -655,6 +746,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -702,6 +794,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: ''},
@@ -717,6 +810,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -769,6 +863,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food'},
@@ -786,6 +881,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -837,6 +933,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New Merchant'},
@@ -855,6 +952,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -908,6 +1006,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Pass categories for BOTH policies — "Engineering" only exists in the transaction's policy
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -935,6 +1034,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -983,6 +1083,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -1003,6 +1104,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1066,6 +1168,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -1083,6 +1186,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1091,6 +1195,547 @@ describe('actions/IOU/BulkEdit', () => {
             const violationNames = updatedViolations?.map((v) => v.name) ?? [];
             expect(violationNames).toContain(CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
 
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('merges a bulk parent-tag edit into each transaction, preserving their own untouched child levels (independent tags)', () => {
+            const firstTransactionID = 'transaction-independent-1';
+            const secondTransactionID = 'transaction-independent-2';
+            const iouReportID = 'iou-independent-1';
+            const policy = {
+                ...createRandomPolicy(70, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(70, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // Both expenses share the parent (CostCenterA) but differ on the child levels.
+            const firstTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: firstTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-independent-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const secondTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: secondTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-independent-2',
+                tag: 'CostCenterA:IndicationY:PhaseQ',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: secondTransaction,
+            };
+
+            // Independent multi-level tags: no parentTagsFilter on any tag.
+            const policyTagList = {
+                CostCenter: {
+                    name: 'CostCenter',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {CostCenterA: {name: 'CostCenterA', enabled: true}, CostCenterB: {name: 'CostCenterB', enabled: true}},
+                },
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {IndicationX: {name: 'IndicationX', enabled: true}, IndicationY: {name: 'IndicationY', enabled: true}},
+                },
+                Phase: {name: 'Phase', orderWeight: 2, required: false, tags: {PhaseP: {name: 'PhaseP', enabled: true}, PhaseQ: {name: 'PhaseQ', enabled: true}}},
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [firstTransactionID, secondTransactionID],
+                // The bulk-edit page pre-computes a common-prefix display string (parent only)...
+                changes: {tag: 'CostCenterB'},
+                // ...but apply time uses the resolved per-level edit intent (index 0 maps to CostCenterB) to
+                // merge into each expense's own tag. Build the index-keyed map programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                bulkEditTagChanges: Object.fromEntries([[0, 'CostCenterB']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Each transaction keeps its OWN Indication/Phase. Only the shared parent level changed.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterB:IndicationX:PhaseP');
+            expect(getBulkEditUpdates(writeSpy, 1).tag).toBe('CostCenterB:IndicationY:PhaseQ');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('never writes the tag from the flattened changes.tag when no per-level intent is recorded (single source of truth)', () => {
+            const transactionID = 'transaction-flat-only-1';
+            const iouReportID = 'iou-flat-only-1';
+            const policy = {
+                ...createRandomPolicy(71, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(71, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-flat-only-1',
+                tag: 'CostCenterA:IndicationX',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {name: 'Indication', orderWeight: 1, required: false, tags: {IndicationX: {name: 'IndicationX', enabled: true}}},
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                // Change the category so the request is sent. The tag must not be included.
+                changes: {tag: 'CostCenterA', category: 'Food'},
+                bulkEditTagChanges: undefined,
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            const updates = getBulkEditUpdates(writeSpy);
+            // The flattened changes.tag is display-only; without a per-level intent the tag must not be written.
+            expect(updates.tag).toBeUndefined();
+            expect(updates.category).toBe('Food');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('preserves parent levels and re-resolves dependent child levels below the edited one when bulk-editing a middle level (dependent tags)', () => {
+            const transactionID = 'transaction-dep-1';
+            const iouReportID = 'iou-dep-1';
+            const policy = {
+                ...createRandomPolicy(71, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(71, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-dep-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // Dependent multi-level tags: child tags declare a parentTagsFilter. Phase has 2 enabled
+            // tags overall, but only PhaseR is valid under IndicationZ, so the shared helper
+            // auto-selects it once the stale PhaseP is cleared.
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        IndicationX: {name: 'IndicationX', enabled: true, parentTagsFilter: 'CostCenterA'},
+                        IndicationZ: {name: 'IndicationZ', enabled: true, parentTagsFilter: 'CostCenterA'},
+                    },
+                },
+                Phase: {
+                    name: 'Phase',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {PhaseP: {name: 'PhaseP', enabled: true, parentTagsFilter: 'IndicationX'}, PhaseR: {name: 'PhaseR', enabled: true, parentTagsFilter: 'IndicationZ'}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {tag: 'CostCenterA:IndicationZ'},
+                // Edit only the middle (Indication, index 1) level. Built programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                bulkEditTagChanges: Object.fromEntries([[1, 'IndicationZ']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Parent (CostCenter) is preserved. The edited Indication level is updated. The stale PhaseP is
+            // dropped and re-resolved to PhaseR, the only Phase valid under IndicationZ.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA:IndicationZ:PhaseR');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('clears only the deselected level on each transaction when the recorded tag intent is empty (independent tags)', () => {
+            const firstTransactionID = 'transaction-deselect-1';
+            const secondTransactionID = 'transaction-deselect-2';
+            const iouReportID = 'iou-deselect-1';
+            const policy = {
+                ...createRandomPolicy(72, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(72, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // The two expenses differ on both levels, so a shared string could not express this edit.
+            const firstTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: firstTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-1',
+                tag: 'CostCenterA:IndicationX',
+            };
+            const secondTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: secondTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-2',
+                tag: 'CostCenterB:IndicationY',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: secondTransaction,
+            };
+
+            const policyTagList = {
+                CostCenter: {
+                    name: 'CostCenter',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {CostCenterA: {name: 'CostCenterA', enabled: true}, CostCenterB: {name: 'CostCenterB', enabled: true}},
+                },
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {IndicationX: {name: 'IndicationX', enabled: true}, IndicationY: {name: 'IndicationY', enabled: true}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [firstTransactionID, secondTransactionID],
+                // The picker resolved the tap as a deselect, so it recorded an empty value for the Indication
+                // level. Built programmatically because numeric-string object-literal keys trip the
+                // naming-convention lint rule.
+                changes: {},
+                bulkEditTagChanges: Object.fromEntries([[1, '']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Each expense keeps its OWN CostCenter. Only the deselected Indication level is cleared.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA');
+            expect(getBulkEditUpdates(writeSpy, 1).tag).toBe('CostCenterB');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        describe('expenses holding a value from a removed tag list', () => {
+            const firstTransactionID = 'transaction-stale-tag-1';
+            const secondTransactionID = 'transaction-stale-tag-2';
+            const iouReportID = 'iou-stale-tag-1';
+            const policy = {
+                ...createRandomPolicy(74, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: {
+                    ...createRandomReport(74, undefined),
+                    reportID: iouReportID,
+                    policyID: policy.id,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+            };
+
+            // Both expenses were tagged while the policy had a third tag list, which has since been removed
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: {
+                    ...createRandomTransaction(1),
+                    transactionID: firstTransactionID,
+                    reportID: iouReportID,
+                    transactionThreadReportID: 'thread-stale-tag-1',
+                    tag: 'CostCenterA:IndicationX:RemovedA',
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: {
+                    ...createRandomTransaction(2),
+                    transactionID: secondTransactionID,
+                    reportID: iouReportID,
+                    transactionThreadReportID: 'thread-stale-tag-2',
+                    tag: 'CostCenterB:IndicationY:RemovedB',
+                },
+            };
+            const policyTagList = {
+                CostCenter: {
+                    name: 'CostCenter',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {CostCenterA: {name: 'CostCenterA', enabled: true}, CostCenterB: {name: 'CostCenterB', enabled: true}},
+                },
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {IndicationX: {name: 'IndicationX', enabled: true}, IndicationZ: {name: 'IndicationZ', enabled: true}},
+                },
+            };
+
+            const runBulkTagEdit = (hasOnceLoaded: boolean) => {
+                const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+                updateMultipleMoneyRequests({
+                    isVendorMatchingBetaEnabled: false,
+                    personalDetailsList: undefined,
+                    transactionIDs: [firstTransactionID, secondTransactionID],
+                    changes: {},
+                    // Built programmatically because numeric-string object-literal keys trip the naming-convention lint rule
+                    bulkEditTagChanges: Object.fromEntries([[1, 'IndicationZ']]),
+                    policy,
+                    reports,
+                    transactions,
+                    reportActions: {},
+                    policyCategories: undefined,
+                    policyTags: {
+                        [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                    },
+                    policyTagsLoadingStates: {
+                        [`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policy.id}`]: {isLoading: false, hasOnceLoaded},
+                    },
+                    violations: undefined,
+                    hash: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
+                });
+
+                const updatedTags = [getBulkEditUpdates(writeSpy, 0).tag, getBulkEditUpdates(writeSpy, 1).tag];
+                writeSpy.mockRestore();
+                canEditFieldSpy.mockRestore();
+                return updatedTags;
+            };
+
+            it('drops the removed tag list value from every edited expense once the policy tags have loaded', () => {
+                // Given the policy's tags have fully loaded, so its 2 tag lists are a reliable count
+                // When the Indication level is bulk edited
+                const updatedTags = runBulkTagEdit(true);
+
+                // Then each expense keeps its own CostCenter and loses the stale third value, so "Tag no longer valid" can clear
+                expect(updatedTags).toEqual(['CostCenterA:IndicationZ', 'CostCenterB:IndicationZ']);
+            });
+
+            it('keeps every value while the policy tags have not finished loading', () => {
+                // Given the policy's tags have not finished loading, so the collection may be missing tag lists
+                // When the Indication level is bulk edited
+                const updatedTags = runBulkTagEdit(false);
+
+                // Then no value is dropped, since truncating against a partial collection could discard valid tags
+                expect(updatedTags).toEqual(['CostCenterA:IndicationZ:RemovedA', 'CostCenterB:IndicationZ:RemovedB']);
+            });
+        });
+
+        it('clears the deselected level and its children when the recorded tag intent is empty (dependent tags)', () => {
+            const transactionID = 'transaction-deselect-dep-1';
+            const iouReportID = 'iou-deselect-dep-1';
+            const policy = {
+                ...createRandomPolicy(73, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(73, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-dep-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        IndicationX: {name: 'IndicationX', enabled: true, parentTagsFilter: 'CostCenterA'},
+                        IndicationZ: {name: 'IndicationZ', enabled: true, parentTagsFilter: 'CostCenterA'},
+                    },
+                },
+                Phase: {
+                    name: 'Phase',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {PhaseP: {name: 'PhaseP', enabled: true, parentTagsFilter: 'IndicationX'}, PhaseR: {name: 'PhaseR', enabled: true, parentTagsFilter: 'IndicationZ'}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                // Deselecting the middle (Indication, index 1) level. Built programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                changes: {},
+                bulkEditTagChanges: Object.fromEntries([[1, '']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // The parent is preserved. The deselected level and the now-invalid Phase below it are dropped.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA');
+
+            writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
 
@@ -1129,6 +1774,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', billable: true},
@@ -1144,6 +1790,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1197,6 +1844,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', amount: 5000, currency: CONST.CURRENCY.EUR, taxCode: 'id_TAX_RATE_1'},
@@ -1212,6 +1860,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1287,6 +1936,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category},
@@ -1303,6 +1953,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1383,6 +2034,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing reimbursable with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {reimbursable: false},
@@ -1399,6 +2051,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1457,6 +2110,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -1472,6 +2126,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1530,6 +2185,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -1545,6 +2201,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1596,6 +2253,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -1611,6 +2269,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1656,6 +2315,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Coffee Shop'},
@@ -1671,6 +2331,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1764,6 +2425,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Priority Test'},
@@ -1779,6 +2441,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1857,6 +2520,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txn1ID, txn2ID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -1875,6 +2539,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -1946,6 +2611,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {currency: CONST.CURRENCY.EUR},
                 policy,
@@ -1961,6 +2627,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2044,6 +2711,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Iter 1 (currency) → indeterminate. Iter 2 (same-currency amount) must inherit the sticky flag.
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [currencyTxnID, amountTxnID],
                 changes: {amount: 3000},
                 policy,
@@ -2062,6 +2730,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2129,6 +2798,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // `transactions` carries both (mirrors mergedTransactions in SearchEditMultiplePage).
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [onyxTxnID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -2147,6 +2817,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2210,6 +2881,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -2225,6 +2897,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2290,6 +2963,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Merchant edit leaves totals untouched, so the gate lets the recompute through.
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {merchant: 'New Merchant'},
                 policy,
@@ -2305,6 +2979,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2369,6 +3044,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {attendees: nextAttendees},
@@ -2387,6 +3063,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
@@ -2459,6 +3136,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {attendees: nextAttendees},
@@ -2477,6 +3155,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
@@ -2541,6 +3220,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Meals', attendees: nextAttendees},
@@ -2559,6 +3239,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(2);

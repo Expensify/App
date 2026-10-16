@@ -29,7 +29,6 @@ import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
-    /** ID of the current user */
     accountID?: number;
 };
 

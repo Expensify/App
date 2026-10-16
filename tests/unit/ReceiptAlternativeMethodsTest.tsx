@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 
 import type ReactNative from 'react-native';
 
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
@@ -69,6 +70,14 @@ jest.mock('@hooks/useLocalize', () =>
 const mockUseHasLoggedIntoMobileApp = jest.mocked(useHasLoggedIntoMobileApp);
 const mockUseHasPhoneNumberLogin = jest.mocked(useHasPhoneNumberLogin);
 
+function renderComponent() {
+    return render(
+        <NavigationContainer>
+            <ReceiptAlternativeMethods />
+        </NavigationContainer>,
+    );
+}
+
 describe('ReceiptAlternativeMethods', () => {
     afterEach(() => {
         cleanup();
@@ -79,7 +88,7 @@ describe('ReceiptAlternativeMethods', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
         mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: true});
 
-        render(<ReceiptAlternativeMethods />);
+        renderComponent();
 
         expect(screen.getByText('Other ways to add receipts:')).toBeTruthy();
         expect(screen.getByText('Download the app to scan from your phone')).toBeTruthy();
@@ -92,7 +101,7 @@ describe('ReceiptAlternativeMethods', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
         mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: true});
 
-        render(<ReceiptAlternativeMethods />);
+        renderComponent();
 
         expect(screen.queryByText('Download the app to scan from your phone')).toBeNull();
         expect(screen.getByText(`Add your number to text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER}`)).toBeTruthy();
@@ -103,7 +112,7 @@ describe('ReceiptAlternativeMethods', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
         mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isPhoneNumberLoaded: true});
 
-        render(<ReceiptAlternativeMethods />);
+        renderComponent();
 
         expect(screen.getByText('Download the app to scan from your phone')).toBeTruthy();
         expect(screen.getByText(`Text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER} (US numbers only)`)).toBeTruthy();
@@ -114,7 +123,7 @@ describe('ReceiptAlternativeMethods', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
         mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isPhoneNumberLoaded: true});
 
-        render(<ReceiptAlternativeMethods />);
+        renderComponent();
 
         expect(screen.queryByText('Download the app to scan from your phone')).toBeNull();
         expect(screen.queryByText('Add your number')).toBeNull();
@@ -125,7 +134,7 @@ describe('ReceiptAlternativeMethods', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: false});
         mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: false});
 
-        const {toJSON} = render(<ReceiptAlternativeMethods />);
+        const {toJSON} = renderComponent();
 
         expect(toJSON()).toBeNull();
     });

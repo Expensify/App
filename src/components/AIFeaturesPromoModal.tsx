@@ -1,5 +1,4 @@
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -21,9 +20,6 @@ import Text from './Text';
 function AIFeaturesPromoModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const canUseCustomAgent = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-
     const customAgentPromoTitle = (
         <View style={[styles.dFlex, styles.flexRow]}>
             <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('aiFeaturesPromoModal.customAgents.title')}</Text>
@@ -98,32 +94,28 @@ function AIFeaturesPromoModal() {
                         </FeatureTraining.BodyText>
                         <FeatureTraining.ButtonRow>
                             <FeatureTraining.BackButton style={styles.flex1} />
-                            <FeatureTraining.ConfirmButton style={styles.flex1}>
-                                {canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText')}
-                            </FeatureTraining.ConfirmButton>
+                            <FeatureTraining.ConfirmButton style={styles.flex1}>{translate('common.next')}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.ButtonRow>
                     </FeatureTraining.Body>
                 </FeatureTraining.Page>
-                {canUseCustomAgent && (
-                    <FeatureTraining.Page>
-                        <FeatureTraining.Illustration
-                            animation={LottieAnimations.CustomAgents}
-                            outerContainerStyle={styles.p0}
-                            aspectRatio={illustrationAspectRatio}
-                        />
-                        <FeatureTraining.Body>
-                            <FeatureTraining.BodyText style={styles.mb4}>
-                                <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
-                                <FeatureTraining.Title>{customAgentPromoTitle}</FeatureTraining.Title>
-                                <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
-                            </FeatureTraining.BodyText>
-                            <FeatureTraining.ButtonRow>
-                                <FeatureTraining.BackButton style={styles.flex1} />
-                                <FeatureTraining.ConfirmButton style={styles.flex1}>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
-                            </FeatureTraining.ButtonRow>
-                        </FeatureTraining.Body>
-                    </FeatureTraining.Page>
-                )}
+                <FeatureTraining.Page>
+                    <FeatureTraining.Illustration
+                        animation={LottieAnimations.CustomAgents}
+                        outerContainerStyle={styles.p0}
+                        aspectRatio={illustrationAspectRatio}
+                    />
+                    <FeatureTraining.Body>
+                        <FeatureTraining.BodyText style={styles.mb4}>
+                            <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                            <FeatureTraining.Title>{customAgentPromoTitle}</FeatureTraining.Title>
+                            <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
+                        </FeatureTraining.BodyText>
+                        <FeatureTraining.ButtonRow>
+                            <FeatureTraining.BackButton style={styles.flex1} />
+                            <FeatureTraining.ConfirmButton style={styles.flex1}>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
+                        </FeatureTraining.ButtonRow>
+                    </FeatureTraining.Body>
+                </FeatureTraining.Page>
             </FeatureTraining.Carousel>
         </CenteredModalLayout>
     );

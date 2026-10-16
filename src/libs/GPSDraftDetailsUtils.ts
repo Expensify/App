@@ -1,18 +1,18 @@
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Routes, Waypoint} from '@src/types/onyx/Transaction';
-import geodesicDistance from '@src/utils/geodesicDistance';
 
 import type {SetRequired} from 'type-fest';
 
-import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
+import {hasStartedLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 
 import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from './GPSPointUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 type GPSWaypointCollection = Record<string, SetRequired<Waypoint, 'keyForList' | 'lat' | 'lng' | 'address'>>;
@@ -115,27 +115,6 @@ function getStringifiedGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefin
     return JSON.stringify(updatedGpsPoints.map((points) => points.map(({lat, long}) => ({lng: long, lat}))));
 }
 
-async function addressFromGpsPoint(gpsPoint: {lat: number; long: number}): Promise<string | null> {
-    try {
-        const [location] = await reverseGeocodeAsync({latitude: gpsPoint.lat, longitude: gpsPoint.long});
-
-        if (!location) {
-            return null;
-        }
-
-        const address: string = location?.formattedAddress ?? [location?.name, location?.city, location?.region].filter(Boolean).join(', ');
-
-        return address;
-    } catch (error) {
-        console.error('[GPS distance request] Failed to reverse geocode location to postal address: ', error);
-        return null;
-    }
-}
-
-function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
-    return `${gpsPoint.lat},${gpsPoint.long}`;
-}
-
 function isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment: GPSPoint[]): boolean {
     if (lastSegment.length <= 1) {
         return true;
@@ -161,7 +140,10 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
     }
 
     if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
-        removeLastSegment(gpsPoints);
+        // Dropping the sole segment would leave no points, which reads as a trip that never started
+        if (gpsPoints.length > 1) {
+            removeLastSegment(gpsPoints);
+        }
         return;
     }
 
@@ -208,48 +190,17 @@ function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
 }
 
+function canGpsTripBeTrimmed(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
+    // Trimming cannot shorten a trip below one location interval, so a trip no longer than that has nothing to trim
+    return isTripStopped(gpsDraftDetails) && (gpsDraftDetails?.distanceInMeters ?? 0) > GPS_DISTANCE_INTERVAL_METERS;
+}
+
 function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
     return gpsDraftDetails?.gpsPoints ?? [[]];
 }
 
 function getFirstGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint | undefined {
     return gpsDraftDetails?.gpsPoints?.at(0)?.at(0);
-}
-
-function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters: number): TrimmedGPSPoint | null {
-    let distanceTraveled = 0;
-
-    for (let segmentIndex = 0; segmentIndex < gpsPoints.length; segmentIndex++) {
-        const segment = gpsPoints.at(segmentIndex);
-
-        if (!segment) {
-            continue;
-        }
-
-        for (let pointIndex = 1; pointIndex < segment.length; pointIndex++) {
-            const previousPoint = segment.at(pointIndex - 1);
-            const currentPoint = segment.at(pointIndex);
-
-            if (!previousPoint || !currentPoint) {
-                continue;
-            }
-            const distanceBetweenPoints = geodesicDistance(previousPoint, currentPoint);
-
-            if (distanceTraveled + distanceBetweenPoints >= targetDistanceMeters) {
-                const fractionToInclude = distanceBetweenPoints === 0 ? 0 : (targetDistanceMeters - distanceTraveled) / distanceBetweenPoints;
-                const interpolatedPoint = {
-                    lat: previousPoint.lat + fractionToInclude * (currentPoint.lat - previousPoint.lat),
-                    long: previousPoint.long + fractionToInclude * (currentPoint.long - previousPoint.long),
-                };
-
-                return {...interpolatedPoint, segmentIndex, precedingPointIndex: pointIndex - 1};
-            }
-
-            distanceTraveled += distanceBetweenPoints;
-        }
-    }
-
-    return null;
 }
 
 function getTrimmedGpsTrip(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSPoint[][];
@@ -284,6 +235,7 @@ export {
     getGPSRoutes,
     getGPSWaypoints,
     stopGpsTrip,
+    canGpsTripBeTrimmed,
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearFinancialForceErrorField, updateFinancialForceDefaultVendor} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getCertiniaVendors, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,18 +30,26 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const {config, data} = policy?.connections?.financialforce ?? {};
+    const config = policy?.connections?.financialforce?.config;
     const exportConfig = config?.export;
-    const vendors = data?.vendors ?? [];
+    const vendors = getCertiniaVendors(policy);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const dataOptions: VendorListItem[] = vendors.map((vendor) => ({
+    const vendorOptions: VendorListItem[] = vendors.map((vendor) => ({
         value: vendor.id,
         text: vendor.name,
         keyForList: vendor.id,
         isSelected: exportConfig?.vendorAccount === vendor.id,
     }));
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !exportConfig?.vendorAccount,
+    };
+    const shouldShowClearOption = !!exportConfig?.vendorAccount || vendorOptions.length > 0;
+    const dataOptions: VendorListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
     const listEmptyContent = (
         <BlockingView
             icon={illustrations.Telescope}
@@ -54,7 +62,11 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectVendor = (row: VendorListItem) => {
-        if (row.value !== exportConfig?.vendorAccount && policyID) {
+        const isAlreadySelected = row.value === exportConfig?.vendorAccount || (!row.value && !exportConfig?.vendorAccount);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
         }
         Navigation.goBack(backPath);

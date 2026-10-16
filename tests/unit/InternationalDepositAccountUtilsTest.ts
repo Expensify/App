@@ -1,76 +1,103 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+// cspell:words SBININBB SBININ asdfgh
+import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
-import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 
-import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
+import createMock from '../utils/createMock';
+import {translateLocal} from '../utils/TestHelper';
 
-const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
-    parameters.some(() => false);
-    return path;
-};
+const providerError = 'Beneficiary Bank BIC is invalid. Must be 8 or 11 characters long';
 
-function createCorpayField(id: string, isRequired: boolean, label = id, validationRules: CorpayFormField['validationRules'] = []): CorpayFormField {
-    return {
-        id,
-        isRequired,
-        isRequiredInValueSet: false,
-        label,
-        errorMessage: '',
-        regEx: '',
-        validationRules,
-    };
+function getFieldsMap(fieldName: string = INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, regEx: string = CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX): CorpayFieldsMap {
+    return createMock<CorpayFieldsMap>({
+        [fieldName]: {
+            isRequired: true,
+            validationRules: [{regEx, errorMessage: providerError}],
+        },
+    });
 }
 
-function createFormValues(swiftBicCode: string): Parameters<typeof getValidationErrors>[0] {
-    return {swiftBicCode};
-}
+describe('International deposit account validation', () => {
+    it.each(['12345678', '12345678901', 'SBININBB10'])('explains the strict SWIFT format for %s', (swiftBicCode) => {
+        // Given a bank whose SWIFT rule requires a six-letter prefix and exactly 8 or 11 characters.
+        const fieldsMap = getFieldsMap();
 
-describe('getAccountDetailsFieldsMap', () => {
-    const routingNumber = createCorpayField('routingNumber', true, 'Routing Number');
-    const swiftBicCode = createCorpayField('swiftBicCode', false, 'Swift Code');
-    const accountNumber = createCorpayField('accountNumber', true, 'Account Number');
-    const ibanAccountNumber = createCorpayField('accountNumber', false, 'IBAN Number');
+        // When the entered value fails that rule.
+        const errors = getValidationErrors({swiftBicCode}, fieldsMap, translateLocal);
 
-    it('leaves fields unchanged when international deposit details are not collected', () => {
-        const fields = {routingNumber, swiftBicCode, accountNumber};
-        expect(getAccountDetailsFieldsMap(fields, false)).toBe(fields);
+        // Then the localized message describes both length and character requirements.
+        expect(errors).toEqual({
+            swiftBicCode: translateLocal('addPersonalBankAccount.swiftBicFormatError'),
+        });
     });
 
-    it('leaves fields unchanged when no IBAN or SWIFT labels are present', () => {
-        const fields = {routingNumber, accountNumber};
-        const result = getAccountDetailsFieldsMap(fields, true);
+    it.each(['SBININBB', 'SBININBB101', 'asdfgh12'])('clears the format error after correcting the value to %s', (swiftBicCode) => {
+        // Given a failed validation with the strict rule.
+        const fieldsMap = getFieldsMap();
+        expect(getValidationErrors({swiftBicCode: '12345678'}, fieldsMap, translateLocal)).toHaveProperty(INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE);
 
-        expect(result.routingNumber.isRequired).toBe(true);
-        expect(result.accountNumber.isRequired).toBe(true);
+        // When the user corrects the value to match the provider rule.
+        const errors = getValidationErrors({swiftBicCode}, fieldsMap, translateLocal);
+
+        // Then no error remains to block continuation.
+        expect(errors).toEqual({});
     });
 
-    it('forces IBAN and SWIFT labeled fields to be required when collecting international deposit details', () => {
-        const fields = {routingNumber, swiftBicCode, accountNumber: ibanAccountNumber};
-        const result = getAccountDetailsFieldsMap(fields, true);
+    it.each([
+        [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{0,12}$', '1234567890123'],
+        [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{8}$', '123'],
+        ['routingCode', CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX, '12345678'],
+    ])('preserves the provider message for %s with %s', (fieldName, pattern, value) => {
+        // Given another format or a non-SWIFT field, whose requirements must not be inferred.
+        const fieldsMap = getFieldsMap(fieldName, pattern);
 
-        expect(result.swiftBicCode.isRequired).toBe(true);
-        expect(result.accountNumber.isRequired).toBe(true);
-        expect(result.routingNumber.isRequired).toBe(true);
-        expect(fields.swiftBicCode.isRequired).toBe(false);
-        expect(fields.accountNumber.isRequired).toBe(false);
+        // When its rule fails.
+        const errors = getValidationErrors({[fieldName]: value}, fieldsMap, translateLocal);
+
+        // Then Corpay's own message is retained.
+        expect(errors).toEqual({[fieldName]: providerError});
     });
 
-    it('does not force a generic account number to be required', () => {
-        const optionalAccountNumber = createCorpayField('accountNumber', false, 'Account Number');
-        const fields = {routingNumber, accountNumber: optionalAccountNumber};
-        const result = getAccountDetailsFieldsMap(fields, true);
+    it('accepts numeric codes when the provider only restricts length', () => {
+        // Given the permissive provider rule used in production.
+        const fieldsMap = getFieldsMap(INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, '^.{0,12}$');
 
-        expect(result.accountNumber.isRequired).toBe(false);
+        // When a numeric code satisfies that rule.
+        const errors = getValidationErrors({swiftBicCode: '12345678'}, fieldsMap, translateLocal);
+
+        // Then the stricter format is not imposed by the frontend.
+        expect(errors).toEqual({});
     });
-});
 
-describe('getValidationErrors', () => {
-    it('uses Corpay validation rules for a required SWIFT field', () => {
-        const swiftBicCode = createCorpayField('swiftBicCode', true, 'Swift Code', [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}]);
-        const fields = {swiftBicCode};
+    it('keeps the required-field message for empty input', () => {
+        // Given a required SWIFT field.
+        const fieldsMap = getFieldsMap();
 
-        expect(getValidationErrors(createFormValues(''), fields, translate)).toEqual({swiftBicCode: 'common.error.fieldRequired'});
-        expect(getValidationErrors(createFormValues('1234567890123'), fields, translate)).toEqual({swiftBicCode: 'Swift must be less than 12 characters'});
-        expect(getValidationErrors(createFormValues('ABCD1234'), fields, translate)).toEqual({});
+        // When no value has been provided.
+        const errors = getValidationErrors({swiftBicCode: ''}, fieldsMap, translateLocal);
+
+        // Then the required-field message takes precedence over format guidance.
+        expect(errors).toEqual({
+            swiftBicCode: translateLocal('common.error.fieldRequired'),
+        });
+    });
+
+    it('preserves additional failed rules on the SWIFT field', () => {
+        // Given an additional provider constraint independent of the strict format.
+        const fieldsMap = getFieldsMap();
+        fieldsMap.swiftBicCode.validationRules.push({
+            regEx: '^[^<>]*$',
+            errorMessage: 'Angle brackets are not allowed',
+        });
+
+        // When both rules fail.
+        const errors = getValidationErrors({swiftBicCode: 'SBININ<>'}, fieldsMap, translateLocal);
+
+        // Then the localized format guidance does not hide the other provider error.
+        expect(errors).toEqual({
+            swiftBicCode: `${translateLocal('addPersonalBankAccount.swiftBicFormatError')}\nAngle brackets are not allowed`,
+        });
     });
 });

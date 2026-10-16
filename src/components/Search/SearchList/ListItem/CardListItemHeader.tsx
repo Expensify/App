@@ -26,16 +26,12 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
-    /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -47,7 +43,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -111,6 +106,7 @@ function CardListItemHeaderImpl({
                         text={cardItem.formattedCardName ?? ''}
                         numberOfLines={2}
                         style={[styles.preWrap]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -124,6 +120,7 @@ function CardListItemHeaderImpl({
                     text={cardItem.formattedFeedName ?? ''}
                     numberOfLines={2}
                     style={[styles.lineHeightLarge, styles.preWrap]}
+                    isSelectable
                 />
             </View>
         ),
@@ -174,11 +171,13 @@ function CardListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={cardItem.formattedCardName ?? ''}
                                     numberOfLines={2}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.preWrap]}
+                                    isSelectable
                                 />
                             </View>
                         </View>

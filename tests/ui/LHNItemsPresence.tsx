@@ -614,13 +614,14 @@ describe('SidebarLinksData', () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
                 chatReportID: chatReportR14932.reportID,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: 100,
                 total: 122,
                 currency: 'USD',
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
             });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {

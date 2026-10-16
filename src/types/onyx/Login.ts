@@ -6,7 +6,6 @@ type Login = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Phone/Email associated with user */
         partnerUserID?: string;
 
-        /** Value of partner name */
         partnerName?: string;
 
         /** Date login was validated, used to show info indicator status */

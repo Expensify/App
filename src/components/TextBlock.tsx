@@ -9,7 +9,6 @@ import React, {memo, useMemo} from 'react';
 import Text from './Text';
 
 type TextBlockProps = {
-    /** The color of the text */
     color?: string;
 
     /** Styles to apply to each text word */

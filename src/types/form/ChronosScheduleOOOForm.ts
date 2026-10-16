@@ -8,6 +8,7 @@ const INPUT_IDS = {
     TIME: 'time',
     DURATION_AMOUNT: 'durationAmount',
     DURATION_UNIT: 'durationUnit',
+    LEAVE_TYPE: 'leaveType',
     REASON: 'reason',
     WORKING_PERCENTAGE: 'workingPercentage',
 } as const;
@@ -22,6 +23,7 @@ type ChronosScheduleOOOForm = Form<
         [INPUT_IDS.TIME]: string;
         [INPUT_IDS.DURATION_AMOUNT]: string;
         [INPUT_IDS.DURATION_UNIT]: string;
+        [INPUT_IDS.LEAVE_TYPE]: string;
         [INPUT_IDS.REASON]: string;
         [INPUT_IDS.WORKING_PERCENTAGE]: string;
     }

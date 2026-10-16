@@ -24,7 +24,7 @@ import {View} from 'react-native';
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const existingDelegates =
@@ -140,7 +140,7 @@ function AddDelegatePage() {
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
                         }}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
+                        isLoadingNewOptions={!!isSearchingForUsers}
                         shouldShowTextInput
                     />
                 </View>

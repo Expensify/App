@@ -1,3 +1,4 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,24 +11,29 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import {accountIDSelector} from '@src/selectors/Session';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -46,12 +52,15 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
-    });
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
+    const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, personalDetailsLoginsSelector(participantAccountIDs));
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const policy = usePolicy(report?.policyID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const canInviteMembers = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -129,7 +138,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         acc[login] = accountID;
         return acc;
     }, {} as InvitedEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
@@ -183,26 +192,33 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
             testID="DynamicReportParticipantsInvitePage"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.invite.members')}
-                subtitle={reportName}
+            <FullPageNotFoundView
+                shouldShow={!canInviteMembers}
                 onBackButtonPress={goBack}
-            />
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.invite.members')}
+                    subtitle={reportName}
+                    onBackButtonPress={goBack}
+                />
 
-            <SelectionListWithSections
-                canSelectMultiple
-                sections={sections}
-                onSelectRow={handleToggleSelection}
-                ListItem={InviteMemberListItem}
-                confirmButtonOptions={{
-                    onConfirm: inviteUsers,
-                }}
-                shouldShowTextInput
-                textInputOptions={textInputOptions}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-                footerContent={footerContent}
-            />
+                <SelectionListWithSections
+                    canSelectMultiple
+                    sections={sections}
+                    onSelectRow={handleToggleSelection}
+                    ListItem={InviteMemberListItem}
+                    confirmButtonOptions={{
+                        onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: selectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
+                    }}
+                    shouldShowTextInput
+                    textInputOptions={textInputOptions}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    footerContent={footerContent}
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

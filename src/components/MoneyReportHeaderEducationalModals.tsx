@@ -3,10 +3,11 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus, isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
 
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 
@@ -54,10 +55,12 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useImperativeHandle(ref, () => ({
         openHoldEducational: () => setIsHoldEducationalModalVisible(true),
@@ -71,12 +74,14 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
             changeMoneyRequestHoldStatus(
                 requestParentReportAction,
                 transaction,
+                policy,
                 isOffline,
                 currentUserLogin ?? '',
                 currentUserAccountID,
                 transactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
+                rules,
             );
         }
     };
@@ -88,12 +93,14 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                 changeMoneyRequestHoldStatus(
                     requestParentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
+                    rules,
                 );
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {

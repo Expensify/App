@@ -11,7 +11,6 @@ import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controll
 import {scheduleOnRN} from 'react-native-worklets';
 
 type KeyboardStateContextValue = {
-    /** Whether the keyboard is open */
     isKeyboardShown: boolean;
 
     /** Whether the keyboard is animating or shown */
@@ -23,7 +22,6 @@ type KeyboardStateContextValue = {
     /** Future or present height of the keyboard in pixels. Available together with isKeyboardActive. */
     keyboardActiveHeight: number;
 
-    /** Ref to check if the keyboard is animating */
     isKeyboardAnimatingRef: RefObject<boolean>;
 };
 

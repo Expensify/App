@@ -7,19 +7,15 @@ import {useEffect, useLayoutEffect, useRef} from 'react';
 import usePrevious from './usePrevious';
 
 type UseScrollToEndOnPaginationMergeParams = {
-    /** The ref to the scroll offset. */
     scrollOffsetRef: React.RefObject<number>;
     /** The ID of the last visible report action. */
     lastActionID?: string;
     /** The length of the visible report actions. */
     visibleActionsLength: number;
-    /** The length of the report actions. */
     reportActionsLength?: number;
     /** Whether the newest report action is the last visible report action. */
     hasNewestReportAction: boolean;
-    /** The function to set the floating message counter visible. */
     setIsFloatingMessageCounterVisible: (isVisible: boolean) => void;
-    /** The function to scroll to the end. */
     scrollToEnd: () => void;
     /**
      * Inbox uses `previousLength !== currentLength` to detect pagination merges.

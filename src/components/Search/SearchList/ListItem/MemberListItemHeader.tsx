@@ -23,10 +23,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
-    /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -41,7 +38,6 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -50,7 +46,6 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The visible columns for the header */
     columns?: SearchColumnType[];
 
-    /** Whether the screen is large */
     isLargeScreenWidth?: boolean;
 };
 
@@ -102,10 +97,12 @@ function MemberListItemHeaderImpl({
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                        isSelectable
                     />
                     <TextWithTooltip
                         text={formattedLogin || formattedDisplayName}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -159,10 +156,12 @@ function MemberListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={formattedLogin || formattedDisplayName}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    isSelectable
                                 />
                             </View>
                         </View>

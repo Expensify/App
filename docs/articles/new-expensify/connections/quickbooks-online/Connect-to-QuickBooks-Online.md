@@ -9,7 +9,7 @@ order: 1
 
 To use the QuickBooks Online connection, you must have a **QuickBooks Online account** and an Expensify **Collect** plan.
 
-The QuickBooks Online connection also works with **Intuit Enterprise Suite**.
+**Intuit Enterprise Suite** is a separate connection, listed directly below **QuickBooks Online** on the **Accounting** page, and it requires the **Control** plan. Learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/quickbooks-online/Connect-to-Intuit-Enterprise-Suite).
 
 The **QuickBooks Self-Employed** subscription is not supported.
 
@@ -56,7 +56,7 @@ To connect your workspace:
 3. Click **More features**
 4. Scroll to **Integrate** and enable the **Accounting** toggle
 5. Click **Accounting** in the left-hand menu
-6. Click **Set up** next to **QuickBooks Online**
+6. Click **Connect** next to **QuickBooks Online**
 7. Log in with your Intuit credentials when prompted
 
 This will enable the connection between QuickBooks Online and import your settings into Expensify.

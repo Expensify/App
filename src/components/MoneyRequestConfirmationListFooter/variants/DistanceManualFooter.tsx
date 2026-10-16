@@ -1,0 +1,70 @@
+import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
+import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
+import useAddReceiptLayout from '@components/MoneyRequestConfirmationListFooter/hooks/useAddReceiptLayout';
+import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
+import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
+/** Footer for manually entered distance expenses. */
+function DistanceManualFooter({
+    policy,
+    policyTags,
+    selectedParticipants,
+    distanceData,
+    amountDisplay,
+    requiredFlags,
+    visibilityFlags,
+    errorState,
+    toggleHandlers = {},
+    receiptOptions,
+}: DistanceFooterProps) {
+    const styles = useThemeStyles();
+
+    // The add-receipt button and the spacing around the preview both key off whether the section shows a receipt.
+    const {expenseFormLayout, hasReceipt} = useAddReceiptLayout(policy, receiptOptions);
+
+    return (
+        <ExpenseFormLayoutContext.Provider value={expenseFormLayout}>
+            <View>
+                {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
+
+                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the divider
+                    above and of the first field below it goes here. */}
+                <View style={hasReceipt ? styles.mv2 : undefined}>
+                    <ReceiptSection
+                        policy={policy}
+                        shouldHideEmptyState
+                        {...receiptOptions}
+                    />
+                </View>
+
+                <ConfirmationFieldList
+                    policy={policy}
+                    policyTags={policyTags}
+                    selectedParticipants={selectedParticipants}
+                    amountDisplay={amountDisplay}
+                    requiredFlags={requiredFlags}
+                    visibilityFlags={visibilityFlags}
+                    errorState={errorState}
+                    toggleHandlers={toggleHandlers}
+                >
+                    <DistanceDetailsFields
+                        policy={policy}
+                        amountDisplay={amountDisplay}
+                        distanceData={distanceData}
+                        isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                        descriptionHint={requiredFlags.descriptionHint}
+                        errorState={errorState}
+                    />
+                </ConfirmationFieldList>
+            </View>
+        </ExpenseFormLayoutContext.Provider>
+    );
+}
+
+export default DistanceManualFooter;

@@ -3,12 +3,15 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
+
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -92,23 +95,18 @@ type MoneyRequestReportUnifiedListProps = {
     /** Ref to the underlying list, shared via the ActionList context. */
     listRef: FlatListRefType;
 
-    /** Accessibility label for the list. */
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
-    onLayout: () => void;
+    onLayout: (event: LayoutChangeEvent) => void;
 
-    /** Called on scroll. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    /** Called when the list content size changes. */
-    onContentSizeChange: () => void;
-
-    /** Called when the set of viewable items changes. */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onContentSizeChange: (width: number, height: number) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -116,7 +114,6 @@ type MoneyRequestReportUnifiedListProps = {
     /** Called when the start of the list is reached (newer actions). */
     onStartReached: () => void;
 
-    /** Style applied to the list's content container. */
     contentContainerStyle: StyleProp<ViewStyle>;
 
     /** Whether the app is offline. */
@@ -220,13 +217,13 @@ function MoneyRequestReportUnifiedList({
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setViewportHeight(event.nativeEvent.layout.height);
-        onLayout();
+        onLayout(event);
     };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -235,7 +232,7 @@ function MoneyRequestReportUnifiedList({
         }
         onViewableItemsChanged({
             ...info,
-            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+            viewableItems: info.viewableItems.map((item) => ({...item, index: typeof item.index === 'number' ? item.index - reportActionIndexOffset : item.index})),
         });
     };
 
@@ -276,6 +273,22 @@ function MoneyRequestReportUnifiedList({
         });
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
+
+    // This list owns the report-action-ID-to-data-index mapping, so it resolves the scroll request against its own rows —
+    // same request the inbox `ReportActionsList` handles for the non-money-request view.
+    useScrollToEditingReportAction({
+        visibleReportActions,
+        scrollToIndex: (index) => {
+            const dataIndex = index + reportActionIndexOffset;
+
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+                return;
+            }
+
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        },
+    });
 
     // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
     // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which

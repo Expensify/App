@@ -25,11 +25,9 @@ import {View} from 'react-native';
 type AddressPageProps = {
     /** User's private personal details */
     address?: Address;
-    /** Whether app is loading */
     isLoadingApp: OnyxEntry<boolean>;
     /** Function to call when address form is submitted */
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
-    /** Title of address page */
     title: string;
 
     /**

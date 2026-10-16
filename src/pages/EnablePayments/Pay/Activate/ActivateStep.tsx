@@ -17,7 +17,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useContext} from 'react';
 
 type ActivateStepProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 

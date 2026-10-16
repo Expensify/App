@@ -32,28 +32,16 @@ import {View} from 'react-native';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoPlayerPreviewProps = {
-    /** Url to a video. */
     videoUrl: string;
-
-    /** reportID of the video */
     reportID: string | undefined;
-
-    /** Dimension of a video. */
     videoDimensions: Dimensions;
-
-    /** Duration of a video. */
     videoDuration: number;
 
     /** Url to a thumbnail image. */
     thumbnailUrl?: string;
 
-    /** Name of a video file. */
     fileName: string;
-
-    /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
-
-    /** Whether the video is deleted */
     isDeleted?: boolean;
 };
 
@@ -155,6 +143,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
+                        fileName={fileName}
                         onSourceLoaded={onSourceLoaded}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls

@@ -5,14 +5,14 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getRequestType,
+    isDistanceRequest,
     isFromCreditCardImport,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -45,12 +45,14 @@ type DynamicIOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<
 
 function DynamicIOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam, shouldExcludeWorkspaces: shouldExcludeWorkspacesParam},
     },
     transaction: initialTransaction,
 }: DynamicIOURequestStepParticipantsProps) {
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
+    // Submitting to a person offers recipients only, so the owned workspace chats are left out of the picker.
+    const shouldExcludeWorkspaces = shouldExcludeWorkspacesParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -64,8 +66,6 @@ function DynamicIOURequestStepParticipants({
     const isPerDiem = isPerDiemRequest(initialTransaction);
     const isTime = isTimeRequestUtil(initialTransaction);
     const isTransactionFromCreditCardImport = isFromCreditCardImport(initialTransaction);
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     let headerTitle = translate('iou.chooseRecipient');
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -81,12 +81,11 @@ function DynamicIOURequestStepParticipants({
     }
 
     // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
-    // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
+    // The amount step is skipped, so we include recents for every other case. This step is still reachable with an amount
+    // set (confirmation's back navigation returns here), but negatives are handled by `shouldExcludeP2P` below - only the
+    // zero-quantity distance case of `getIsWorkspacesOnlyForTransaction` is knowingly dropped here.
     // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
-    const isWorkspacesOnly =
-        isWorkspacesOnlyFromRoute ||
-        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
-        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
+    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction));
 
     const {addParticipant, goToNextStep} = useParticipantSubmission({
         reportID,
@@ -99,10 +98,12 @@ function DynamicIOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
         isWorkspacesOnly,
+        shouldExcludeWorkspaces,
     });
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+        isDistanceRequest: isDistanceRequest(initialTransaction),
     });
 
     const hasEndedSpan = useRef(false);
@@ -172,6 +173,7 @@ function DynamicIOURequestStepParticipants({
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
+                shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}

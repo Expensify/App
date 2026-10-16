@@ -2,7 +2,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import type {ForwardedRef} from 'react';
+import CONST from '@src/CONST';
+
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -21,11 +23,10 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
-    /** Default checked value */
     defaultCheckedValue?: string;
 
-    /** Callback to fire when selecting a radio button */
-    onSelect: (value: string) => void;
+    /** Callback to fire when selecting a radio button. Inside a form, FormProvider gets the value through onInputChange instead. */
+    onSelect?: (value: string) => void;
 
     /** Potential error text provided by a form InputWrapper */
     errorText?: string;
@@ -36,11 +37,13 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    /** The question the buttons answer, read out by screen readers as the name of the group */
+    accessibilityLabel?: string;
+
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {
+function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, accessibilityLabel, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
     const [localValue, setLocalValue] = useState(defaultCheckedValue);
     const checkedValue = value !== undefined ? value : localValue;
@@ -50,6 +53,8 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
             <View
                 style={styles.mt6}
                 ref={ref}
+                role={accessibilityLabel ? CONST.ROLE.RADIOGROUP : undefined}
+                accessibilityLabel={accessibilityLabel}
             >
                 {items.map((item) => (
                     <RadioButtonWithLabel
@@ -59,7 +64,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
                         onPress={() => {
                             setLocalValue(item.value);
                             onInputChange(item.value);
-                            return onSelect(item.value);
+                            return onSelect?.(item.value);
                         }}
                         label={item.label}
                         forwardedFSClass={forwardedFSClass}

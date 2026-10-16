@@ -1,14 +1,15 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,11 +38,13 @@ function CopyPolicySettingsConfirmPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -87,11 +90,11 @@ function CopyPolicySettingsConfirmPage() {
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
         // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
         // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
-        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)) {
+        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
         Navigation.dismissModal();
     };
 
@@ -133,19 +136,17 @@ function CopyPolicySettingsConfirmPage() {
                         </View>
                     </View>
                     <View style={[styles.mt4]}>
-                        <MenuItemWithTopDescription
-                            title={translatedParts}
-                            description={translate('common.settings')}
+                        <MenuItemField
+                            name={translate('common.settings')}
+                            value={translatedParts}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
-                        <MenuItemWithTopDescription
-                            title={targetPolicies.map((policy) => policy?.name).join(', ')}
-                            description={translate('common.workspaces')}
+                        <MenuItemField
+                            name={translate('common.workspaces')}
+                            value={targetPolicies.map((policy) => policy?.name).join(', ')}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectWorkspaces}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>

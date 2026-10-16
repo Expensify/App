@@ -1,11 +1,10 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,8 +37,6 @@ function RulesBillableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCollect = isCollectPolicy(policy);
     const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
     const upgradeBackTo = ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID);
@@ -88,7 +85,6 @@ function RulesBillableDefaultPage({
 
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     // Track-billable is controlled on this page (not Tags), so show defaults whenever tracking is on.
-    const shouldShowBillableModeList = !isRevamp || isBillableTrackingEnabled;
 
     const handleBillableModeSelect = (value: boolean) => {
         if (isCollect && value && navigateToBillableUpgrade()) {
@@ -109,25 +105,20 @@ function RulesBillableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesBillableDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.billableExpenses' : 'workspace.rules.individualExpenseRules.billableDefault')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, isRevamp ? styles.mb3 : styles.mb5]}>
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.billableExpenses')} />
+                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb3]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>
                 </Text>
-                {isRevamp && (
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.tags.trackBillable')}
-                        switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={[styles.mh5, styles.mv4]}
-                        isActive={isBillableTrackingEnabled}
-                        pendingAction={getBillableExpensesPendingAction(policy)}
-                        onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
-                    />
-                )}
-                {shouldShowBillableModeList && (
+                <ToggleSettingOptionRow
+                    title={translate('workspace.tags.trackBillable')}
+                    switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.mh5, styles.mv4]}
+                    isActive={isBillableTrackingEnabled}
+                    pendingAction={getBillableExpensesPendingAction(policy)}
+                    onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
+                />
+                {isBillableTrackingEnabled && (
                     <SelectionList
                         data={billableModes}
                         ListItem={SingleSelectListItem}

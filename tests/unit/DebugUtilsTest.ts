@@ -10,7 +10,7 @@ import {getAllReportErrors} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 
@@ -19,10 +19,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0, undefined),
@@ -33,7 +35,12 @@ const MOCK_REPORT_ACTION: ReportAction = {
     originalMessage: undefined,
 };
 
-const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
+const MOCK_TRANSACTION: Transaction = {
+    ...createRandomTransaction(0),
+
+    // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
+    commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 const RORY_EMAIL = 'rory@email.com';
@@ -61,6 +68,67 @@ const TEST_OBJECT_TYPE = {
     e: 'boolean',
     f: 'boolean',
 } satisfies ObjectType<Record<string, unknown>>;
+
+/** Stores an open expense report owned by Rory whose only expense was auto-rejected, and returns its chat and the violations collection */
+async function setUpAutoRejectedOpenReport() {
+    const chatReportID = '500';
+    const iouReportID = '501';
+    const policyID = '502';
+    const policy: Policy = {
+        ...createRandomPolicy(Number(policyID)),
+        id: policyID,
+        type: CONST.POLICY.TYPE.TEAM,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        role: CONST.POLICY.ROLE.USER,
+        harvesting: {enabled: false},
+    };
+    const chatReport: Report = {
+        reportID: chatReportID,
+        reportName: 'Workspace chat',
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        isOwnPolicyExpenseChat: true,
+        hasOutstandingChildRequest: false,
+    };
+    const iouReport: Report = {
+        reportID: iouReportID,
+        chatReportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        ownerAccountID: RORY_ACCOUNT_ID,
+        managerID: RORY_ACCOUNT_ID,
+    };
+    const transaction: Transaction = {
+        ...createRandomTransaction(0),
+        reportID: iouReportID,
+        amount: 100,
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        bank: '',
+        merchant: 'TestMerchant',
+        modifiedMerchant: 'TestMerchant',
+    };
+    const reportPreviewAction = createMock<ReportAction>({
+        reportActionID: iouReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        created: '2024-08-08 19:00:00.000',
+        childReportID: iouReportID,
+        message: [{type: 'TEXT', text: 'Report preview', html: 'Report preview'}],
+    });
+    const transactionViolations = {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}],
+    };
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+    await waitForBatchedUpdates();
+
+    return {chatReport, transactionViolations};
+}
 
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
@@ -390,6 +458,50 @@ describe('DebugUtils', () => {
                         c: 'array',
                     },
                 );
+            }).toThrow();
+        });
+    });
+
+    describe('validateStringRecord', () => {
+        it('does not throw SyntaxError when value is "undefined"', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('undefined');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a string representation of an empty object', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{}');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a valid string representation of a string-to-string record', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":"CostCenterB","1":"IndicationZ"}');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when value is just a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('a');
+            }).toThrow();
+        });
+
+        it('throws SyntaxError when value is a string representation of an array', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('["a"]');
+            }).toThrow();
+        });
+
+        it('does not throw SyntaxError when value is "null" (treated as an empty value)', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('null');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when a value in the record is not a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":1}');
             }).toThrow();
         });
     });
@@ -750,7 +862,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -762,7 +876,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -777,7 +893,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -791,7 +909,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -809,7 +929,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -835,7 +957,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -854,7 +978,9 @@ describe('DebugUtils', () => {
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
                 draftComment: '',
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -868,7 +994,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -879,7 +1007,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -939,7 +1069,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -999,7 +1131,9 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1011,9 +1145,33 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
+        });
+        it('does not return hasGBR when every expense of the open report was auto-rejected', async () => {
+            // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
+
+            // When the debug page asks why the chat is visible in the LHN, passing the violations like the LHN derived value does
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: chatReport,
+                chatReport: undefined,
+                doesReportHaveViolations: false,
+                isReportArchived: false,
+                draftComment: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                conciergeReportID: undefined,
+                hasGuidesEmails: false,
+                derivedIsEmptyReport: undefined,
+                transactionViolations,
+            });
+
+            // Then the reason is not hasGBR, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
+            expect(reason).not.toBe('debug.reasonVisibleInLHN.hasGBR');
         });
     });
     describe('getReasonAndReportActionForGBRInLHNRow', () => {
@@ -1224,6 +1382,16 @@ describe('DebugUtils', () => {
                 ) ?? {};
             expect(reportAction).toBeUndefined();
         });
+        it('returns undefined reason when every expense of the open report was auto-rejected', async () => {
+            // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
+
+            // When the debug page asks why the chat shows a GBR, passing the violations like the LHN derived value does
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(chatReport, RORY_EMAIL, RORY_ACCOUNT_ID, false, transactionViolations) ?? {};
+
+            // Then no GBR reason is reported, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
+            expect(reason).toBeUndefined();
+        });
     });
     describe('getReasonAndReportActionForRBRInLHNRow', () => {
         const sharedTransaction = createRandomTransaction(77777);
@@ -1375,7 +1543,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1457,7 +1625,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1515,7 +1683,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1555,7 +1723,7 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         mockedReport,

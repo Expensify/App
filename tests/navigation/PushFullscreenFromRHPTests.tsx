@@ -54,6 +54,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -93,7 +94,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
@@ -128,6 +129,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -160,7 +162,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
@@ -192,6 +194,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -219,7 +222,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);

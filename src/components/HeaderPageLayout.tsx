@@ -39,18 +39,13 @@ type HeaderPageLayoutProps = ChildrenProps &
         /** Style to apply to the header image container */
         headerContainerStyles?: StyleProp<ViewStyle>;
 
-        /** Style to apply to the ScrollView container */
         scrollViewContainerStyles?: StyleProp<ViewStyle>;
-
-        /** Style to apply to the children container */
         childrenContainerStyles?: StyleProp<ViewStyle>;
 
         /** Style to apply to the whole section container */
         style?: StyleProp<ViewStyle>;
 
-        /** Whether or not to show the offline indicator */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
-
         keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
     };
 function HeaderPageLayout({

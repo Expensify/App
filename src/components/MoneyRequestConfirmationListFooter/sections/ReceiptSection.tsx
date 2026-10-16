@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {isMapBasedDistanceRequest, isScanRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -29,40 +29,46 @@ type ReceiptSectionProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether the receipt can be replaced */
-    isReceiptEditable: boolean;
+    isReceiptEditable?: boolean;
 
-    /** Whether the receipt should be displayed */
     shouldDisplayReceipt: boolean;
 
     /** Whether the receipt is currently being stitched */
-    isLoadingReceipt: boolean;
+    isLoadingReceipt?: boolean;
 
     /** Path of the receipt asset (URL or local) */
-    receiptPath: string | number;
+    receiptPath?: string | number;
 
     /** Filename of the receipt asset */
-    receiptFilename: string;
+    receiptFilename?: string;
 
     /** Whether optional fields are expanded (drives compact-mode dimensions) */
-    showMoreFields: boolean;
+    showMoreFields?: boolean;
 
     /** Callback when the receipt PDF fails to load */
     onPDFLoadError?: () => void;
 
     /** Callback when the receipt PDF requires a password */
     onPDFPassword?: () => void;
+
+    /**
+     * Hides the full-width "Add receipt" empty state, leaving the section to render only an attached receipt. The
+     * manual form offers the same action from a compact button beside the amount field instead.
+     */
+    shouldHideEmptyState?: boolean;
 };
 
 function ReceiptSection({
     policy,
-    isReceiptEditable,
     shouldDisplayReceipt,
-    isLoadingReceipt,
-    receiptPath,
-    receiptFilename,
-    showMoreFields,
+    receiptPath = '',
+    receiptFilename = '',
     onPDFLoadError,
     onPDFPassword,
+    showMoreFields = false,
+    isReceiptEditable = false,
+    isLoadingReceipt = false,
+    shouldHideEmptyState = false,
 }: ReceiptSectionProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -108,8 +114,10 @@ function ReceiptSection({
                 receiptThumbnail={receiptSource.receiptThumbnail}
                 resolvedReceiptImage={receiptSource.resolvedReceiptImage as string | undefined}
                 effectiveReceiptSource={receiptSource.effectiveReceiptSource}
+                receiptPageCount={transaction?.receipt?.pageCount ?? 0}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isDistanceRequest={isDistanceRequest}
+                isMapDistanceRequest={isMapBasedDistanceRequest(transaction)}
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
@@ -120,7 +128,7 @@ function ReceiptSection({
         );
     }
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const showReceiptEmptyState = !shouldHideEmptyState && shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     if (!showReceiptEmptyState) {
         return null;
     }

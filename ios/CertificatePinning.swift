@@ -35,13 +35,45 @@ enum CertificatePinning {
         #if DEBUG
             return
         #else
-            // Each domain pins the leaf SPKI hash (primary) plus its issuing intermediate CA SPKI hash
-            // (durable backup that survives leaf rotation). TrustKit requires at least two pins per domain.
-            let groupAExpensifyCom = ["cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="]
-            let groupBNewExpensify = ["G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="]
-            let groupCIntegrations = ["7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="]
-            let groupDTravel = ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="]
-            let groupECloudfront = ["P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="]
+            // Each domain pins ONLY the ROOT CA SPKI hashes of every CA that can issue its
+            // certificate. Roots are the only durable pin target: leaves are re-keyed on every
+            // renewal and every CA in play issues from a rotating pool of intermediates, both of
+            // which have already broken leaf/intermediate pins in production (2026-07-07
+            // Let's Encrypt -> GTS edge rotation, 2026-07 Amazon M01 -> M04 intermediate rotation).
+            // TrustKit evaluates pins against the full validated chain (including the anchor), so
+            // root pins match even though servers never send the root.
+
+            // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge
+            // cert between Let's Encrypt, Google Trust Services and SSL.com without notice, and its
+            // backup certificates (deployed automatically on a revocation or key compromise) can also
+            // come from Sectigo, so the roots of all four CAs are pinned.
+            let cloudflareExpensify = [
+                // Let's Encrypt
+                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
+                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
+                // Google Trust Services (R2 stays pinned: device trust stores can still anchor at it, see pins.json)
+                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
+                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
+                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
+                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
+                // SSL.com
+                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
+                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
+                // Sectigo (Cloudflare backup certificates) - both of its public TLS hierarchies
+                "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", // USERTrust RSA Certification Authority
+                "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", // USERTrust ECC Certification Authority
+                "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", // Sectigo Public Server Authentication Root R46
+                "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=", // Sectigo Public Server Authentication Root E46
+            ]
+            // Group E: CloudFront CDN. AWS documents the Amazon Trust Services roots as the only
+            // stable pin targets for ACM-issued certificates.
+            let cloudfront = [
+                "++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", // Amazon Root CA 1
+                "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", // Amazon Root CA 2
+                "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", // Amazon Root CA 3
+                "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", // Amazon Root CA 4
+                "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=", // Starfield Services Root CA G2
+            ]
 
             func domain(_ hashes: [String]) -> [String: Any] {
                 return [
@@ -55,17 +87,17 @@ enum CertificatePinning {
                 kTSKSwizzleNetworkDelegates: true,
                 kTSKPinnedDomains: [
                     // Production
-                    "www.expensify.com": domain(groupAExpensifyCom),
-                    "secure.expensify.com": domain(groupAExpensifyCom),
-                    "new.expensify.com": domain(groupBNewExpensify),
-                    "integrations.expensify.com": domain(groupCIntegrations),
-                    "travel.expensify.com": domain(groupDTravel),
-                    "d2k5nsl2zxldvw.cloudfront.net": domain(groupECloudfront),
+                    "www.expensify.com": domain(cloudflareExpensify),
+                    "secure.expensify.com": domain(cloudflareExpensify),
+                    "new.expensify.com": domain(cloudflareExpensify),
+                    "integrations.expensify.com": domain(cloudflareExpensify),
+                    "travel.expensify.com": domain(cloudflareExpensify),
+                    "d2k5nsl2zxldvw.cloudfront.net": domain(cloudfront),
                     // Staging (beta/TestFlight release builds hit staging.* with __DEV__ === false)
-                    "staging.expensify.com": domain(groupAExpensifyCom),
-                    "staging-secure.expensify.com": domain(groupAExpensifyCom),
-                    "staging.new.expensify.com": domain(groupBNewExpensify),
-                    "staging.travel.expensify.com": domain(groupDTravel),
+                    "staging.expensify.com": domain(cloudflareExpensify),
+                    "staging-secure.expensify.com": domain(cloudflareExpensify),
+                    "staging.new.expensify.com": domain(cloudflareExpensify),
+                    "staging.travel.expensify.com": domain(cloudflareExpensify),
                 ],
             ]
 

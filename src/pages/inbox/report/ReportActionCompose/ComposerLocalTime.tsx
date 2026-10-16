@@ -2,6 +2,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 
 import {getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
@@ -11,7 +12,6 @@ import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import {useComposerState} from './ComposerContext';
@@ -24,7 +24,7 @@ function ComposerLocalTime() {
     const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
     const shouldShow = canShowRecipientLocalTime && !isComposerFullSize;
     const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);
-    const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(shouldShow ? reportRecipientAccountID : undefined)});
+    const [reportRecipient] = usePersonalDetail(shouldShow ? reportRecipientAccountID : undefined);
 
     if (!shouldShow || isEmptyObject(reportRecipient) || reportRecipient?.isCustomAgent) {
         return null;

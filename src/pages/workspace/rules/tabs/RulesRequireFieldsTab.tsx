@@ -69,7 +69,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         headerContentStyles: styles.sortingMachineRulesEmptyStateIllustration,
         title: translate('workspace.rules.requireFieldsEmptyState.title'),
         subtitle: translate('workspace.rules.requireFieldsEmptyState.subtitle'),
-        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        subtitleStyles: [styles.textSupporting],
 
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
