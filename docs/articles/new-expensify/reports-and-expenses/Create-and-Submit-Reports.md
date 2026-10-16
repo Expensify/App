@@ -229,9 +229,9 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
 
-## Why can’t I submit a report with pending Expensify Card transactions?
+## Why can’t I submit a report with pending card transactions?
 
-If all transactions on your report are pending Expensify Card transactions, the report can't be submitted yet. The **Submit** button won't appear, and the report isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, the **Submit** button appears again and you can submit the report.
+If all transactions on a report are pending, the report can’t be submitted yet. This applies to Expensify Card transactions and to company or personal cards connected through Plaid. You can submit the report once at least one transaction posts.
 
 ## What happens to held expenses when I submit a report?
 

@@ -526,6 +526,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
+        shareReport: '分享报表',
+        reportShared: '报表已分享',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -8645,7 +8647,7 @@ ${reportName}`,
                 },
                 tags: {title: '标签', description: '选择要与此工作区同步的候选人标签', toggleTitle: '标签', allSelected: '所有标签'},
                 offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
-                enableJobStagesOrTags: '启用职位阶段或标签以继续',
+                enableJobStagesOrTags: '请选择至少一个工作阶段或标签以继续',
             },
             subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {
@@ -10753,6 +10755,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: '已将一张收据匹配到此交易',
+        mergedExpenseDeleted: '已合并报销并将其中一笔移至已删除',
     },
     subscription: {
         authenticatePaymentCard: '验证支付卡',

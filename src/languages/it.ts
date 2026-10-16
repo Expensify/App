@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Impossibile caricare il grafico. Aggiorna la pagina e riprova.',
         apiKey: 'Chiave API',
         exportsTo: 'Esporta in',
+        shareReport: 'Condividi report',
+        reportShared: 'Report condiviso',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -8996,7 +8998,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     toggleTitle: 'Uffici',
                     allSelected: 'Tutti gli uffici',
                 },
-                enableJobStagesOrTags: 'Abilita le fasi di lavoro o i tag per continuare',
+                enableJobStagesOrTags: 'Seleziona almeno una fase del lavoro o un tag per continuare',
             },
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
             syncResults: {
@@ -11202,6 +11204,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'ha associato una ricevuta a questa transazione',
+        mergedExpenseDeleted: 'ha unito delle spese e ne ha spostata una in Eliminate',
     },
     subscription: {
         authenticatePaymentCard: 'Autentica carta di pagamento',

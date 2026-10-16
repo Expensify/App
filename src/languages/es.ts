@@ -519,6 +519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'viajero diario',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
         exportsTo: 'Exporta a',
+        shareReport: 'Compartir informe',
+        reportShared: 'Informe compartido',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -7695,7 +7697,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     toggleTitle: 'Oficinas',
                     allSelected: 'Todas las oficinas',
                 },
-                enableJobStagesOrTags: 'Habilita las etapas de trabajo o las etiquetas para continuar',
+                enableJobStagesOrTags: 'Selecciona al menos una etapa de trabajo o etiqueta para continuar',
             },
             subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
             syncResults: {
@@ -11443,6 +11445,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+        mergedExpenseDeleted: 'combinó gastos y movió uno a Eliminados',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
