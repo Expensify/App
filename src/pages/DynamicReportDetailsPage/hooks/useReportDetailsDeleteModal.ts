@@ -68,7 +68,8 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             const superWideRHPIndex = rhpRoutes.findIndex((rhpRoute) => SUPER_WIDE_RIGHT_MODALS.has(rhpRoute.name));
             const superWideRHPParams = rhpRoutes.at(superWideRHPIndex)?.params;
             const superWideRHPReportID = superWideRHPIndex > -1 && superWideRHPParams && 'reportID' in superWideRHPParams ? superWideRHPParams.reportID : undefined;
-            const isParentReportDeleted = !!iouReport?.reportID && iouReportTransactions?.length === 1;
+            const remainingTransactions = iouReportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const isParentReportDeleted = !!iouReport?.reportID && remainingTransactions?.length === 1;
 
             // If the deleted expense is displayed directly below, close the entire RHP
             const isSuperWideRHPDisplayed = superWideRHPIndex > -1;
