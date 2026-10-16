@@ -1,3 +1,4 @@
+import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type * as BreadcrumbsModule from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -30,6 +31,7 @@ import createInitEvent, {
     MFA_TEST_SIGNED_CHALLENGE,
 } from 'tests/utils/mfa/flowFixtures';
 import {createActorDoneEvent} from 'tests/utils/mfa/flowPaths';
+import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 // Both are side effects this suite only observes: the validate-code email and the Onyx write.
 jest.mock('@userActions/User', () => ({
@@ -65,6 +67,9 @@ const KEY_ACCESS_FAILED_ERROR = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.KEY_
 const WEBAUTHN_NO_MATCHING_ERROR = createLocalMFAError(REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL, 'Recovery spec unknown passkey');
 
 const AWAITING_CODE_INPUT = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}}};
+const CANCEL_CONFIRM_VISIBLE = {[MFA_STATE.OPEN]: {[MFA_STATE.CANCEL_CONFIRM]: MFA_STATE.CANCEL_CONFIRM_VISIBLE}};
+const CANCELLING = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: MFA_STATE.CANCELLING}};
+const CANCEL_PAYLOAD = {transactionID: 'recovery-spec-transaction'};
 const OUTCOME = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: MFA_STATE.OUTCOME}};
 
 type ActorAtState = ReturnType<typeof createActorAtState>;
@@ -85,6 +90,13 @@ const SIGNING_CHALLENGE_STEP: RecoverableStep = {
     sendFailure: (actor, error) => sendAuthorizeDone(actor, {success: false, error}),
 };
 
+const EXECUTING_SCENARIO_ACTION_STEP: RecoverableStep = {
+    description: 'executing the scenario action',
+    flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}},
+    context: {signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD, isRegistrationComplete: true, softPromptApproved: true},
+    sendFailure: (actor, error) => sendExecuteScenarioActionDone(actor, {success: false, error}),
+};
+
 const RECOVERABLE_STEPS: RecoverableStep[] = [
     {
         description: 'requesting the registration challenge',
@@ -99,13 +111,23 @@ const RECOVERABLE_STEPS: RecoverableStep[] = [
         sendFailure: (actor, error) => sendRegisterCredentialDone(actor, {success: false, error}),
     },
     SIGNING_CHALLENGE_STEP,
-    {
-        description: 'executing the scenario action',
-        flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}},
-        context: {signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD, isRegistrationComplete: true, softPromptApproved: true},
-        sendFailure: (actor, error) => sendExecuteScenarioActionDone(actor, {success: false, error}),
-    },
+    EXECUTING_SCENARIO_ACTION_STEP,
 ];
+
+// The ceremony never runs while the dialog is open, so signing the challenge can't fail behind it.
+const STEPS_RUNNING_BEHIND_THE_DIALOG = RECOVERABLE_STEPS.filter((step) => step !== SIGNING_CHALLENGE_STEP);
+
+/**
+ * Starts the step with the cancel dialog open, in a scenario whose `onCancel` is a mock that never
+ * settles, so a test can read what the cancel was told and the flow stays where the test left it.
+ */
+function startWithDialog(step: RecoverableStep, cancelConfirm: StateValue = MFA_STATE.CANCEL_CONFIRM_VISIBLE) {
+    const onCancel = jest.fn(() => new Promise<MFAError>(() => {}));
+    const scenario = {...getScenarioConfig(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION), onCancel};
+    const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: step.flow, [MFA_STATE.CANCEL_CONFIRM]: cancelConfirm}}, {...step.context, scenario, payload: CANCEL_PAYLOAD});
+    actor.start();
+    return {actor, onCancel};
+}
 
 function startAt(step: RecoverableStep, contextOverrides: Parameters<typeof createActorAtState>[1] = {}) {
     const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: step.flow}}, {...step.context, ...contextOverrides});
@@ -256,6 +278,75 @@ describe('MFA recovery', () => {
 
             actor.send(createInitEvent());
             expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(false);
+
+            actor.stop();
+        });
+    });
+    describe('with the cancel dialog', () => {
+        it.each(STEPS_RUNNING_BEHIND_THE_DIALOG)('recovers behind the open dialog while $description, and a confirm still cancels', async (step) => {
+            // Given the cancel dialog is open while the step runs
+            const {actor, onCancel} = startWithDialog(step);
+
+            // When the step fails in a way a fresh registration can fix
+            step.sendFailure(actor, REGISTRATION_REQUIRED_ERROR);
+
+            // Then recovery runs behind the dialog, because opening the dialog never stops the step that is running
+            expect(actor.getSnapshot().matches(AWAITING_CODE_INPUT)).toBe(true);
+            expect(actor.getSnapshot().matches(CANCEL_CONFIRM_VISIBLE)).toBe(true);
+            expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
+
+            // When the user confirms the cancel
+            actor.send({type: 'CONFIRM_CANCEL'});
+            await waitForBatchedUpdates();
+
+            // Then the flow cancels as usual, because recovery left nothing in flight for a deny to race
+            expect(actor.getSnapshot().matches(CANCELLING)).toBe(true);
+            expect(onCancel).toHaveBeenCalledTimes(1);
+            expect(onCancel).toHaveBeenCalledWith(CANCEL_PAYLOAD);
+
+            actor.stop();
+        });
+
+        it('keeps recovering once the dialog is dismissed', () => {
+            // Given recovery started behind the open dialog
+            const {actor, onCancel} = startWithDialog(EXECUTING_SCENARIO_ACTION_STEP);
+            EXECUTING_SCENARIO_ACTION_STEP.sendFailure(actor, REGISTRATION_REQUIRED_ERROR);
+
+            // When the user dismisses the dialog
+            actor.send({type: 'DISMISS_CANCEL'});
+
+            // Then the validate-code screen stays and nothing is cancelled
+            expect(actor.getSnapshot().matches(AWAITING_CODE_INPUT)).toBe(true);
+            expect(actor.getSnapshot().matches(CANCEL_CONFIRM_VISIBLE)).toBe(false);
+            expect(onCancel).not.toHaveBeenCalled();
+
+            actor.stop();
+        });
+
+        it('ignores a recoverable approve failure once the cancel is confirmed, so the deny decides', () => {
+            // Given the user confirmed the cancel while the approve was in flight, so the deny races it
+            const cancellingInFlightStep = {
+                ...EXECUTING_SCENARIO_ACTION_STEP,
+                flow: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: {[MFA_STATE.EXECUTING_SCENARIO_ACTION]: MFA_STATE.CANCELLING_IN_FLIGHT}}},
+            };
+            const {actor} = startWithDialog(cancellingInFlightStep, MFA_STATE.CANCEL_CONFIRM_HIDDEN);
+
+            // When the approve comes back saying the key needs registering again
+            EXECUTING_SCENARIO_ACTION_STEP.sendFailure(actor, REGISTRATION_REQUIRED_ERROR);
+
+            // Then recovery doesn't start, because the user asked to leave, and the flow keeps waiting for the deny
+            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: cancellingInFlightStep.flow}})).toBe(true);
+            expect(actor.getSnapshot().context.hasAttemptedRecovery).toBe(false);
+            expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
+            expect(clearLocalMFAPublicKeyListMock).not.toHaveBeenCalled();
+
+            // When the deny comes back
+            const denied = createMFAErrorFromApiResponse(200, REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, undefined);
+            actor.send(createActorDoneEvent('cancelScenario', denied));
+
+            // Then the deny's result decides the outcome
+            expect(actor.getSnapshot().matches(OUTCOME)).toBe(true);
+            expect(actor.getSnapshot().context.error).toEqual(denied);
 
             actor.stop();
         });
