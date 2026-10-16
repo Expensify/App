@@ -10,7 +10,13 @@ type GeneratedRuleState = ValueOf<typeof CONST.GENERATED_RULE.STATE>;
 type GeneratedRuleType = ValueOf<typeof CONST.GENERATED_RULE.RULE_TYPE>;
 
 /** The generated form values, seeding whichever draft ruleType names */
-type GeneratedRuleValues = Partial<RequireFieldsRuleForm> & Partial<FlagForReviewRuleForm> & Partial<SpendRuleForm> & Partial<MerchantRuleForm>;
+type GeneratedRuleValues = Partial<RequireFieldsRuleForm> &
+    Partial<FlagForReviewRuleForm> &
+    Partial<SpendRuleForm> &
+    Partial<MerchantRuleForm> & {
+        /** Whether a card spend rule covers every card a new rule can cover */
+        isAllCards?: boolean;
+    };
 
 /** Model of a rule generated from an admin's description */
 type GeneratedRule = {

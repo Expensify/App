@@ -447,9 +447,13 @@ function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: str
 
 /** Shows on the prompt form why a description did not become a rule */
 function setNewRulePromptError(state: GeneratedRuleState) {
+    setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
+}
+
+function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         isLoading: false,
-        errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
+        errors: getMicroSecondOnyxErrorWithTranslationKey(translationKey),
     });
 }
 
@@ -728,6 +732,7 @@ export {
     addPolicyAgentRule,
     generateRule,
     setNewRulePromptError,
+    setNewRulePromptErrorMessage,
     clearGeneratedRule,
     clearNewRulePrompt,
     updatePolicyAgentRule,
