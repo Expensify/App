@@ -4,11 +4,11 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {SpendRuleForm} from '@src/types/form';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import type {ExpensifyCardSettings} from '@src/types/onyx';
+import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {convertToBackendAmount} from './CurrencyUtils';
@@ -122,10 +122,14 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
     };
 }
 
-/** Returns the spend rule draft for generated values, without the categories that a spend rule cannot hold */
-function getSpendRuleDraftFromGeneratedValues(values: GeneratedRuleValues): Partial<SpendRuleForm> {
+/**
+ * Returns the spend rule draft for generated values, without the categories that a spend rule cannot hold. A rule for all
+ * cards covers the eligible cards, and any other rule keeps the cards of the current draft.
+ */
+function getSpendRuleDraftFromGeneratedValues({isAllCards, ...values}: GeneratedRuleValues, eligibleCardIDs: string[] | undefined, currentCardIDs?: string[]): Partial<SpendRuleForm> {
     const categories = values.categories?.filter(isSpendRuleCategory);
-    return categories ? {...values, categories} : values;
+    const cardIDs = isAllCards && eligibleCardIDs ? eligibleCardIDs : currentCardIDs;
+    return {...values, cardIDs, categories};
 }
 
 /** Returns whether the spend rule restricts merchants or categories */
@@ -205,6 +209,35 @@ type SpendRuleByCardID = {
     ruleID: string;
     formValues: SpendRuleForm;
 };
+
+function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined, currentRuleID?: string): Set<number> {
+    const cardIDs = new Set<number>();
+    if (!cardRules) {
+        return cardIDs;
+    }
+
+    for (const [ruleID, rule] of Object.entries(cardRules)) {
+        if (ruleID === currentRuleID) {
+            continue;
+        }
+        const formValues = getSpendRuleFormValuesFromCardRule(rule);
+        for (const cardID of formValues?.cardIDs ?? []) {
+            const numericCardID = Number(cardID);
+            if (Number.isFinite(numericCardID)) {
+                cardIDs.add(numericCardID);
+            }
+        }
+    }
+
+    return cardIDs;
+}
+
+/** Returns the cards a spend rule can cover, which are the cards no other spend rule covers */
+function getEligibleSpendRuleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCardSettings: OnyxEntry<ExpensifyCardSettings>, currentRuleID?: string): Card[] {
+    const {cardList, ...cards} = cardsList ?? {};
+    const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules, currentRuleID);
+    return Object.values(cards).filter((card: Card) => !cardIDsWithSpendRules.has(card.cardID));
+}
 
 /** At most one custom spend rule should reference a card; returns rule id + form values, or undefined. */
 function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined, cardID: string): SpendRuleByCardID | undefined {
@@ -370,6 +403,7 @@ function getSpendRuleSummaryText(
 export type {SpendRuleSummaryPart};
 export {
     buildSpendRuleAST,
+    getEligibleSpendRuleCards,
     getSpendRuleByCardID,
     getSpendRuleDraftFromGeneratedValues,
     getSpendRuleFormValuesFromCardRule,

@@ -637,6 +637,7 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             RESTRICT_CARD_SPEND: 'restrictCardSpend',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            CATEGORY_TAX_RATE: 'categoryTaxRate',
         },
     },
 
@@ -10439,6 +10440,7 @@ const CONST = {
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
             CONTACT_METHODS: 'SettingsProfile-ContactMethods',
             STATUS: 'SettingsProfile-Status',
+            VACATION_DELEGATE: 'SettingsProfile-VacationDelegate',
             PRONOUNS: 'SettingsProfile-Pronouns',
             TIMEZONE: 'SettingsProfile-Timezone',
             SHARE_CODE: 'SettingsProfile-ShareCode',

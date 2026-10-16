@@ -16,13 +16,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Log from '@libs/Log';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptEmptyError, setNewRulePromptError, stopNewRulePromptLoading} from '@userActions/Policy/Rules';
+import {
+    clearGeneratedRule,
+    clearNewRulePrompt,
+    generateRule,
+    setNewRulePromptEmptyError,
+    setNewRulePromptError,
+    setNewRulePromptErrorMessage,
+    stopNewRulePromptLoading,
+} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
-import type {PolicyCategories} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleImpossibleReason, GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {ReactNode} from 'react';
@@ -75,6 +83,9 @@ type DescribeRuleFormProps = {
     /** Called with the generated form values and their rule type after Concierge builds the rule */
     onRuleGenerated: (values: GeneratedRuleValues, generatedRuleType: GeneratedRuleType) => void;
 
+    /** Whether a new rule of the generated rule type can use the category, so a generated category that already has this kind of rule shows an error */
+    isCategoryEligible?: (category: PolicyCategory, generatedRuleType: GeneratedRuleType) => boolean;
+
     /** Called in place of the inline error when the description is not one standard rule. `prompt` is the instruction for the agent rule. */
     onAgentRuleFallback?: (prompt: string, generationID: string, state: GeneratedRuleState) => void;
 
@@ -103,14 +114,17 @@ function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
     return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES || state === CONST.GENERATED_RULE.STATE.AGENT_RULE;
 }
 
-/** Replaces the generated category with the workspace's own spelling of it, or drops it when the workspace has no such category */
-function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
-    const {category, ...rest} = values;
-    if (!category) {
-        return values;
-    }
-    const policyCategory = Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(category));
-    return policyCategory ? {...rest, category: policyCategory.name} : rest;
+/** Replaces the generated categories with the workspace's own spelling of them, and drops any the workspace has no enabled category for */
+function withPolicyCategories(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
+    const {category, categoriesToMatch, ...rest} = values;
+    const findPolicyCategoryName = (categoryName: string) =>
+        Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(categoryName))?.name;
+    const policyCategoryName = category ? findPolicyCategoryName(category) : undefined;
+    return {
+        ...rest,
+        ...(policyCategoryName ? {category: policyCategoryName} : {}),
+        ...(categoriesToMatch ? {categoriesToMatch: categoriesToMatch.flatMap((categoryName) => findPolicyCategoryName(categoryName) ?? [])} : {}),
+    };
 }
 
 function DescribeRuleForm({
@@ -128,6 +142,7 @@ function DescribeRuleForm({
     placeholder,
     children,
     onRuleGenerated,
+    isCategoryEligible,
     onAgentRuleFallback,
     onFinish,
 }: DescribeRuleFormProps) {
@@ -188,7 +203,17 @@ function DescribeRuleForm({
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories), generatedRuleType);
+        const values = withPolicyCategories(generatedRuleValues ?? {}, policyCategories);
+        const hasCategoryWithRule = [values.category, ...(values.categoriesToMatch ?? [])].some((categoryName) => {
+            const policyCategory = categoryName ? policyCategories?.[categoryName] : undefined;
+            return !!policyCategory && !!isCategoryEligible && !isCategoryEligible(policyCategory, generatedRuleType);
+        });
+        if (hasCategoryWithRule) {
+            setNewRulePromptErrorMessage('workspace.rules.newRule.promptErrors.categoryHasRule');
+            clearGeneratedRule();
+            return;
+        }
+        onRuleGenerated(values, generatedRuleType);
         finish();
     }, [
         finish,
@@ -198,6 +223,7 @@ function DescribeRuleForm({
         generatedRuleType,
         generatedRuleValues,
         isActive,
+        isCategoryEligible,
         onAgentRuleFallback,
         onRuleGenerated,
         policyCategories,
