@@ -18,8 +18,11 @@ Do not re-check these:
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
-| An inline `eslint-disable` of the rule, or one over a runtime OnyxUtils import | `scripts/checkOnyxLintBypass.ts` |
+| An inline `eslint-disable` of `no-unsafe-onyx-read`, or one over a runtime OnyxUtils import | `scripts/checkOnyxLintBypass.ts` |
+| An `eslint-disable` of `no-onyx-get-snapshot-key` with no reason after `--`, or in block form | `scripts/checkOnyxLintDisableReason.ts` |
 | A missing `await` whose value is then used | `tsc` |
+
+A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script only checks that one exists. Judge its content: it has to say why live data is right for that key, such as a read that replaces a module-level `Onyx.connect()` used only by handlers, which never went through the `useOnyx` snapshot redirection. A reason that does not explain that is a finding.
 
 What's left crosses a file boundary, depends on write ordering, only shows in the diff, or happens after the read.
 

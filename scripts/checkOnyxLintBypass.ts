@@ -95,3 +95,4 @@ if (import.meta.main) {
 }
 
 export default checkOnyxLintBypass;
+export {findCandidateFiles};

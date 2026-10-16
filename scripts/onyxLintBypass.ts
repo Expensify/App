@@ -24,6 +24,8 @@ const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
 
 const BANNED_RULE_NAME = 'no-onyx-connect';
 
+const ONYX_MODULE = 'react-native-onyx';
+
 /**
  * Disables of the ban that already exist on `main`, keyed by repo-relative path with the number of
  * occurrences in each file. Migrating these call sites to useOnyx() is already in progress; any
@@ -41,6 +43,8 @@ type BannedRule = {
     methods: Set<string>;
     /** Bans runtime imports of these modules instead of `objects`/`methods` calls. */
     importSources?: Set<string>;
+    /** The rule reports on nodes inside the call, so a directive on any of the call's lines silences it. */
+    coversInnerLines?: boolean;
     grandfathered: Map<string, number>;
     appliesTo: (file: string) => boolean;
     searchTerms: string[];
@@ -63,9 +67,11 @@ const ONYX_READ_BAN: BannedRule = {
     name: 'no-unsafe-onyx-read',
     objects: new Set(['Onyx']),
     methods: new Set(['get', 'multiGet']),
+    coversInnerLines: true,
     grandfathered: new Map<string, number>([['src/setup/addUtilsToWindow.ts', 1]]),
     appliesTo: (file) => file.startsWith('src/'),
-    searchTerms: ['Onyx', 'eslint-disable'],
+    // The import, not `Onyx`, since an aliased import such as `import O from 'react-native-onyx'` is a read site too
+    searchTerms: [ONYX_MODULE, 'eslint-disable'],
     message:
         'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers or useCallback bodies in components, pages and hooks.',
 };
@@ -167,39 +173,130 @@ function unwrapExpression(node: ASTNode): ASTNode {
     return current;
 }
 
-function isBannedCall(node: ASTNode, ban: BannedRule): boolean {
+/** Names bound to the banned object or to one of its banned methods in a file, including aliases. */
+type BannedNames = {
+    objects: Set<string>;
+    methods: Set<string>;
+};
+
+function identifierName(node: unknown): string | null {
+    return BabelASTUtils.isASTNode(node) && node.type === 'Identifier' && typeof node.name === 'string' ? node.name : null;
+}
+
+/** The static name of a property or pattern key: an identifier when not computed, or a string literal either way, like the rules resolve it. */
+function staticKeyName(node: unknown, computed: boolean): string | null {
+    if (!computed) {
+        const name = identifierName(node);
+        if (name !== null) {
+            return name;
+        }
+    }
+    return BabelASTUtils.isASTNode(node) && node.type === 'StringLiteral' && typeof node.value === 'string' ? node.value : null;
+}
+
+function isBannedMember(node: ASTNode, ban: BannedRule, objects: Set<string>): boolean {
+    if ((node.type !== 'MemberExpression' && node.type !== 'OptionalMemberExpression') || !BabelASTUtils.isASTNode(node.object)) {
+        return false;
+    }
+    const propertyName = staticKeyName(node.property, node.computed === true);
+    const objectName = identifierName(unwrapExpression(node.object));
+    return propertyName !== null && ban.methods.has(propertyName) && objectName !== null && objects.has(objectName);
+}
+
+/**
+ * The lint rules resolve the Onyx import and its aliases (`import O from 'react-native-onyx'`, `const api = Onyx`,
+ * `const {get} = Onyx`, `const read = Onyx.get`), so a blanket directive over an aliased call silences them just as
+ * well. Collect every such name by walking declarations until no new name appears.
+ *
+ * This is a name-based superset of what the rules track on purpose: a `let` alias, a parameter that shadows the
+ * import, or a bare `Onyx` in a file without the import also count. The rules would not report there, but a blanket
+ * directive on such a call is still a bypass worth refusing, and none exists in the repo today.
+ */
+function collectBannedNames(root: ASTNode, ban: BannedRule): BannedNames {
+    const objects = new Set(ban.objects);
+    const methods = new Set<string>();
+    const sizeBefore = () => objects.size + methods.size;
+    const visit = (node: ASTNode) => {
+        if (node.type === 'ImportDeclaration' && BabelASTUtils.isASTNode(node.source) && node.source.value === ONYX_MODULE && Array.isArray(node.specifiers)) {
+            for (const specifier of node.specifiers) {
+                if (BabelASTUtils.isASTNode(specifier) && (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier')) {
+                    const localName = identifierName(specifier.local);
+                    if (localName !== null) {
+                        objects.add(localName);
+                    }
+                }
+            }
+        }
+        if (node.type === 'VariableDeclarator' && BabelASTUtils.isASTNode(node.id) && BabelASTUtils.isASTNode(node.init)) {
+            const init = unwrapExpression(node.init);
+            const initName = identifierName(init);
+            const idName = identifierName(node.id);
+            if (idName !== null && initName !== null && objects.has(initName)) {
+                objects.add(idName);
+            }
+            if (idName !== null && isBannedMember(init, ban, objects)) {
+                methods.add(idName);
+            }
+            if (node.id.type === 'ObjectPattern' && initName !== null && objects.has(initName) && Array.isArray(node.id.properties)) {
+                for (const property of node.id.properties) {
+                    if (!BabelASTUtils.isASTNode(property) || property.type !== 'ObjectProperty') {
+                        continue;
+                    }
+                    const keyName = staticKeyName(property.key, property.computed === true);
+                    const valueName = identifierName(property.value);
+                    if (keyName !== null && ban.methods.has(keyName) && valueName !== null) {
+                        methods.add(valueName);
+                    }
+                }
+            }
+        }
+        for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
+            visit(child);
+        }
+    };
+    let size = -1;
+    while (size !== sizeBefore()) {
+        size = sizeBefore();
+        visit(root);
+    }
+    return {objects, methods};
+}
+
+function isBannedCall(node: ASTNode, ban: BannedRule, names: BannedNames): boolean {
     // Optional chaining anywhere in the call (`Onyx?.connect(...)`, `Onyx.connect?.(...)`) produces
     // `OptionalCallExpression`/`OptionalMemberExpression` nodes instead of their non-optional
     // counterparts, so a blanket disable directive over one would otherwise silently bypass the ban.
     if ((node.type !== 'CallExpression' && node.type !== 'OptionalCallExpression') || !BabelASTUtils.isASTNode(node.callee)) {
         return false;
     }
-    const callee = node.callee;
-    if ((callee.type !== 'MemberExpression' && callee.type !== 'OptionalMemberExpression') || callee.computed === true) {
-        return false;
+    const callee = unwrapExpression(node.callee);
+    const calleeName = identifierName(callee);
+    if (calleeName !== null) {
+        return names.methods.has(calleeName);
     }
-    if (!BabelASTUtils.isASTNode(callee.property) || callee.property.type !== 'Identifier' || typeof callee.property.name !== 'string' || !ban.methods.has(callee.property.name)) {
-        return false;
-    }
-    if (!BabelASTUtils.isASTNode(callee.object)) {
-        return false;
-    }
-    const object = unwrapExpression(callee.object);
-    return object.type === 'Identifier' && typeof object.name === 'string' && ban.objects.has(object.name);
+    return isBannedMember(callee, ban, names.objects);
 }
 
-function collectBannedCallOffsets(root: ASTNode, ban: BannedRule): number[] {
-    const offsets: number[] = [];
+/** Source range of a banned call or import, so a directive on any of its lines can be matched. */
+type BannedRange = {
+    start: number;
+    end: number;
+};
+
+function collectBannedCallRanges(root: ASTNode, ban: BannedRule): BannedRange[] {
+    const names = collectBannedNames(root, ban);
+    const ranges: BannedRange[] = [];
     const visit = (node: ASTNode) => {
-        if (isBannedCall(node, ban)) {
-            offsets.push(node.start);
+        if (isBannedCall(node, ban, names)) {
+            // A rule that reports only on the call is silenced by its first line alone
+            ranges.push({start: node.start, end: ban.coversInnerLines ? node.end : node.start});
         }
         for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
             visit(child);
         }
     };
     visit(root);
-    return offsets;
+    return ranges;
 }
 
 function isTypeOnlyImport(node: ASTNode): boolean {
@@ -225,19 +322,19 @@ function importedSource(node: ASTNode): string | null {
     return null;
 }
 
-function collectBannedImportOffsets(root: ASTNode, sources: Set<string>): number[] {
-    const offsets: number[] = [];
+function collectBannedImportRanges(root: ASTNode, sources: Set<string>): BannedRange[] {
+    const ranges: BannedRange[] = [];
     const visit = (node: ASTNode) => {
         const source = importedSource(node);
         if (source !== null && sources.has(source) && !isTypeOnlyImport(node)) {
-            offsets.push(node.start);
+            ranges.push({start: node.start, end: node.start});
         }
         for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
             visit(child);
         }
     };
     visit(root);
-    return offsets;
+    return ranges;
 }
 
 function normalizedDirectiveArgs(args: string): string {
@@ -247,13 +344,14 @@ function normalizedDirectiveArgs(args: string): string {
         .trim();
 }
 
-function directiveTargetsBan(args: string, ban: BannedRule): boolean {
+function directiveTargetsBan(args: string, ban: Pick<BannedRule, 'id' | 'name'>): boolean {
     const trimmed = normalizedDirectiveArgs(args);
     if (trimmed.length === 0) {
         return false;
     }
     return trimmed.split(',').some((part) => {
-        const rule = part.trim();
+        // ESLint strips one pair of surrounding quotes from each rule name, so `"rulesdir/x"` means `rulesdir/x`
+        const rule = part.trim().replace(/^(['"])(.*)\1$/, '$2');
         return rule === ban.id || rule === ban.name || rule.endsWith(`/${ban.name}`);
     });
 }
@@ -281,25 +379,31 @@ function lineNumberAtOffset(source: string, offset: number): number {
     return line;
 }
 
-function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, callOffsets: number[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
+/**
+ * A directive covers a banned call when it reaches any line of the call, not only its first: a rule may report on an
+ * element inside a multi-line `Onyx.multiGet([...])`, and a line directive on that element silences it just as well.
+ */
+function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, bannedRanges: BannedRange[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index);
     const kind = directiveKind(match);
     const directiveEnd = match.index + match.text.length;
     const directiveEndLine = lineNumberAtOffset(source, Math.max(match.index, directiveEnd - 1));
-    return callOffsets.some((callOffset) => {
-        const callLine = lineNumberAtOffset(source, callOffset);
+    return bannedRanges.some((range) => {
+        const firstLine = lineNumberAtOffset(source, range.start);
+        const lastLine = lineNumberAtOffset(source, Math.max(range.start, range.end - 1));
         if (kind === '-line') {
-            return callLine === directiveLine;
+            return directiveLine >= firstLine && directiveLine <= lastLine;
         }
         if (kind === '-next-line') {
-            return callLine === directiveEndLine + 1;
+            return directiveEndLine + 1 >= firstLine && directiveEndLine + 1 <= lastLine;
         }
-        if (callOffset <= directiveEnd) {
+        if (range.end <= match.index) {
             return false;
         }
+        // Only an enable that lands before the call starts frees all of it; one inside the call still leaves lines covered
         const reenabled = enableMatches.some((enableMatch) => {
             const enableOffset = enableMatch.index;
-            if (enableOffset <= directiveEnd || enableOffset >= callOffset) {
+            if (enableOffset <= directiveEnd || enableOffset >= range.start) {
                 return false;
             }
             const enableArgs = directiveArgs(enableMatch);
@@ -319,13 +423,13 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
         return [];
     }
     const bans: SuppressedBan[] = [];
-    const callOffsets = ban.importSources ? collectBannedImportOffsets(parsed.root, ban.importSources) : collectBannedCallOffsets(parsed.root, ban);
+    const bannedRanges = ban.importSources ? collectBannedImportRanges(parsed.root, ban.importSources) : collectBannedCallRanges(parsed.root, ban);
     const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
     for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
         const args = directiveArgs(match);
         const targetsBan = directiveTargetsBan(args, ban);
         const isBlanket = isBlanketDirective(args);
-        const coversBan = (isBlanket || (!!ban.importSources && targetsBan)) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches, ban);
+        const coversBan = (isBlanket || (!!ban.importSources && targetsBan)) && blanketDirectiveCoversCall(source, match, bannedRanges, enableMatches, ban);
         if ((ban.importSources || !targetsBan) && !coversBan) {
             continue;
         }
@@ -357,5 +461,18 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
     return newBypasses;
 }
 
-export {BANNED_RULE_ID, BANNED_RULE_NAME, BANNED_RULES, GRANDFATHERED_BYPASSES, ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses};
+export {
+    BANNED_RULE_ID,
+    BANNED_RULE_NAME,
+    BANNED_RULES,
+    GRANDFATHERED_BYPASSES,
+    ONYX_CONNECT_BAN,
+    ONYX_READ_BAN,
+    ONYX_UTILS_IMPORT_BAN,
+    collectDirectiveMatches,
+    collectDisableDirectivesFromSource,
+    directiveTargetsBan,
+    findNewBypasses,
+    parseSource,
+};
 export type {BannedRule, SuppressedBan};

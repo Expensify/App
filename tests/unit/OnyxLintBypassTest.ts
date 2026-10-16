@@ -114,6 +114,17 @@ describe('collectDisableDirectivesFromSource', () => {
     });
 });
 
+describe('no-onyx-connect inner lines', () => {
+    it('ignores a blanket disable inside a connect callback', () => {
+        // Given a blanket next-line directive on a line inside the callback body of Onyx.connect
+        const source = [`${ONYX_CONNECT_CALL}({`, '    key: "x",', '    callback: () => {', '        // eslint-disable-next-line', '        doSomething();', '    },', '});'].join('\n');
+
+        // When the connect ban scans it
+        // Then nothing is reported, since the rule reports on the call itself and only a directive on its first line silences that
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([]);
+    });
+});
+
 describe('findNewBypasses', () => {
     it('flags a bypass in a file with no grandfathered allowance', () => {
         expect(findNewBypasses([{file: 'src/libs/CurrencyUtils.ts', line: 5}])).toEqual([{file: 'src/libs/CurrencyUtils.ts', line: 5}]);
@@ -172,6 +183,71 @@ describe('no-unsafe-onyx-read bypasses', () => {
         // When the read ban scans it
         // Then it counts, because the rule checks multiGet the same way it checks get
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags a blanket disable over an aliased read', () => {
+        // Given the Onyx import under another name, a destructured read method and a member alias, each under a blanket disable
+        const aliasedImport = ["import O from 'react-native-onyx';", '// eslint-disable-next-line', `await O${'.get'}(ONYXKEYS.SESSION);`].join('\n');
+        const destructured = ["import Onyx from 'react-native-onyx';", `const {get: read} = Onyx;`, '// eslint-disable-next-line', 'await read(ONYXKEYS.SESSION);'].join('\n');
+        const memberAlias = [
+            "import Onyx from 'react-native-onyx';",
+            `const api = Onyx; const readMany = api${'.multiGet'};`,
+            '// eslint-disable-next-line',
+            'await readMany([ONYXKEYS.SESSION]);',
+        ].join('\n');
+
+        // When the read ban scans each
+        // Then every one counts, since the lint rules resolve these aliases and the directive silences them the same way
+        expect(collectDisableDirectivesFromSource(aliasedImport, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+        expect(collectDisableDirectivesFromSource(destructured, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+        expect(collectDisableDirectivesFromSource(memberAlias, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+    });
+
+    it('flags a blanket disable over a read reached through a string-literal property', () => {
+        // Given the read method reached by `Onyx['get']`, a quoted destructuring key, a computed quoted key, and a quoted member alias
+        const bracket = ["import Onyx from 'react-native-onyx';", '// eslint-disable-next-line', `await Onyx${"['get']"}(ONYXKEYS.SESSION);`].join('\n');
+        const quotedKey = ["import Onyx from 'react-native-onyx';", `const {'get': read} = Onyx;`, '// eslint-disable-next-line', 'await read(ONYXKEYS.SESSION);'].join('\n');
+        const computedKey = ["import Onyx from 'react-native-onyx';", `const {['get']: read} = Onyx;`, '// eslint-disable-next-line', 'await read(ONYXKEYS.SESSION);'].join('\n');
+        const quotedMember = ["import Onyx from 'react-native-onyx';", `const readMany = Onyx${"['multiGet']"};`, '// eslint-disable-next-line', 'await readMany([ONYXKEYS.SESSION]);'].join(
+            '\n',
+        );
+
+        // When the read ban scans each
+        // Then every one counts, since the lint rules resolve a string-literal property the same as an identifier
+        expect(collectDisableDirectivesFromSource(bracket, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+        expect(collectDisableDirectivesFromSource(quotedKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+        expect(collectDisableDirectivesFromSource(computedKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+        expect(collectDisableDirectivesFromSource(quotedMember, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+    });
+
+    it('flags a quoted rule name, which ESLint reads like the bare one', () => {
+        // Given a disable that names the rule in quotes
+        const source = ["// eslint-disable-next-line 'rulesdir/no-unsafe-onyx-read'", onyxReadCall].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, since ESLint strips the quotes and honors the directive
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags a blanket disable on an inner line of a multi-line multiGet', () => {
+        // Given a key list spread over several lines, with a blanket next-line directive on an element line and a block pair around another
+        const source = [
+            `await Onyx${'.multiGet'}([`,
+            '    ONYXKEYS.SESSION,',
+            '    // eslint-disable-next-line',
+            '    ONYXKEYS.COLLECTION.REPORT,',
+            '    /* eslint-disable */',
+            '    ONYXKEYS.PERSONAL_DETAILS_LIST,',
+            '    /* eslint-enable */',
+            ']);',
+        ].join('\n');
+
+        // When the read ban scans it
+        // Then both count, because a rule may report on the element, and a directive on its line silences that report
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([
+            {file: 'src/libs/Foo.ts', line: 3},
+            {file: 'src/libs/Foo.ts', line: 5},
+        ]);
     });
 
     it('ignores a blanket disable that covers no read', () => {
