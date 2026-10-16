@@ -43,7 +43,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {cardPaddingHorizontal} = useLayoutSpacing();
 
@@ -87,7 +87,11 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
                             {!!changePercentage && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}>
+                                <View
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}
+                                    accessible
+                                    accessibilityLabel={translate(isIncrease ? 'insightsPage.compare.increase' : 'insightsPage.compare.decrease', changePercentage)}
+                                >
                                     <Icon
                                         src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
                                         fill={changeColor}
