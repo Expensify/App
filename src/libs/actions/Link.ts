@@ -647,6 +647,7 @@ function openReportFromDeepLink(
                                             return;
                                         }
                                         Onyx.disconnect(loadingConnection);
+
                                         // The concierge route is a URL entry page that redirects itself, and on wide layouts it slides in as a
                                         // panel first, so open the chat the way the rest of the app does instead.
                                         if (findFocusedRoute(getStateFromPath(deeplinkRoute))?.name === SCREENS.CONCIERGE) {
