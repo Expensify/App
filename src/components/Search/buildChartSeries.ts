@@ -65,22 +65,13 @@ const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> 
     year: addYears,
 };
 
-/** Position labels for paired buckets that share no calendar name */
-const BUCKET_POSITION_LABEL = {
-    day: 'insightsPage.compare.dayNumber',
-    week: 'insightsPage.compare.weekNumber',
-    month: 'insightsPage.compare.monthNumber',
-    quarter: 'insightsPage.compare.quarterNumber',
-    year: 'insightsPage.compare.yearNumber',
-} as const satisfies Record<ChartBucketUnit, string>;
-
-/** Labels for a lone bucket, which has no position to tell it apart by */
-const BUCKET_NAME_LABEL = {
-    day: 'insightsPage.compare.day',
-    week: 'common.week',
-    month: 'common.month',
-    quarter: 'common.quarter',
-    year: 'common.year',
+/** Labels for paired buckets that share no calendar name, numbered by position unless the bucket is the only one */
+const BUCKET_LABEL = {
+    day: 'insightsPage.compare.dayLabel',
+    week: 'insightsPage.compare.weekLabel',
+    month: 'insightsPage.compare.monthLabel',
+    quarter: 'insightsPage.compare.quarterLabel',
+    year: 'insightsPage.compare.yearLabel',
 } as const satisfies Record<ChartBucketUnit, string>;
 
 /** A period's first and last day */
@@ -290,7 +281,7 @@ function getComparedBucketLabel(
         };
     }
     const isLoneBucket = BUCKET_OFFSET[bucketUnit](getBucketStart(bucketUnit, primaryEnd, bucketDate), primaryStart) === 0;
-    const positionLabel = isLoneBucket ? translate(BUCKET_NAME_LABEL[bucketUnit]) : translate(BUCKET_POSITION_LABEL[bucketUnit], BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart) + 1);
+    const positionLabel = translate(BUCKET_LABEL[bucketUnit], isLoneBucket ? undefined : BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart) + 1);
     return {label: positionLabel, shortLabel: positionLabel};
 }
 
