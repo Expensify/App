@@ -281,7 +281,7 @@ type WiseBusinessOnboarding = {
 
     /** The representative page's answers the client may hold. The full SSN is stored encrypted on the server and never sent */
     representative?: {
-        /** Last four digits of the SSN, the only part the client receives */
+        /** Last four digits of the SSN */
         ssnLast4?: string;
 
         /** The representative has no SSN or ITIN, so Wise's hosted page collects their ID and liveness */
