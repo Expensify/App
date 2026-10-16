@@ -9424,6 +9424,35 @@ ${reportName}`,
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
             paymentMethod: {
                 label: 'Μέθοδος πληρωμής',
                 description: 'Επιλέξτε μια μέθοδο πληρωμής για τα τιμολόγια αγοράς, ώστε το Dynamics 365 Business Central να μπορεί να τα συμφωνήσει με την τράπεζά σας.',

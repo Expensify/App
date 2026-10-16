@@ -9080,6 +9080,35 @@ ${reportName}`,
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
             },
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目を使用するプログラム：${customAccountsCount} 件`;
+                    }
+                    return `${customAccountsCount} 件のプログラム（カスタムアカウントあり）`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座付きカード ${customAccountsCount} 枚`;
+                    }
+                    return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
+                },
+            },
             paymentMethod: {
                 label: '支払方法',
                 description: 'Dynamics 365 Business Central が銀行と照合できるよう、購入請求書の支払方法を選択してください。',
