@@ -10152,6 +10152,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             posted: 'Publicado',
             withdrawn: 'Retirado',
             billable: 'Faturável',
+            rejected: 'Rejeitado',
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda de compra',
             sortOrder: {
