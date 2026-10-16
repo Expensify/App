@@ -90,3 +90,10 @@
 - Upstream PR/issue: not reported, because dropping the tint for every icon fits only a bar whose icons all arrive pre-colored, as the App's do. The disabled and focused icon colors go with it, which the App does not use.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR introducing patch: [#101339](https://github.com/Expensify/App/pull/101339)
+
+### [react-native-screens+4.28.0+005+hidden-android-tab-bar-touches.patch](react-native-screens+4.28.0+005+hidden-android-tab-bar-touches.patch)
+
+- Reason: On Android, a hidden native tab bar is set to `View.GONE`. `TabsContainer` is a `FrameLayout`, which skips `GONE` children during layout, so the bar keeps the bounds it had while visible. React Native's `TouchTargetHelper` walks native children without checking visibility, so a touch inside those stale bounds targets the hidden bar instead of the React views drawn there. On a chat, that swallowed taps on the composer's emoji and + buttons while the keyboard was closed. The touch target search skips a child whose transform is non-invertible, so the patch scales the hidden bar to zero on the Y axis and back to one when it is shown. Its layout is left alone, so the bar's height and the insets derived from it do not change.
+- Upstream PR/issue: TBD
+- E/App issue: [#104226](https://github.com/Expensify/App/issues/104226)
+- PR introducing patch: [#104238](https://github.com/Expensify/App/pull/104238)

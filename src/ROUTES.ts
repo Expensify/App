@@ -274,10 +274,6 @@ const DYNAMIC_ROUTES = {
         path: 'submit-plan-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
-    AI_FEATURES_PROMO: {
-        path: 'ai-features-promo',
-        entryScreens: ['*'],
-    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -2588,9 +2584,11 @@ const ROUTES = {
     SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
         route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+            if (!subPage) {
+                return 'settings/wallet/collect-deposit-account' as const;
+            }
+
+            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {

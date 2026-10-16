@@ -1050,6 +1050,9 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {
                 title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
             },
+            addDepositAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λαμβάνετε πληρωμές',
+            },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
@@ -8859,6 +8862,8 @@ ${reportName}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Μεταβείτε στις [περισσότερες δυνατότητες](${moreFeaturesLink}) και ενεργοποιήστε το ${featureName} για να ξεκλειδώσετε αυτήν τη λειτουργία.`,
+                preventPayoutNonReimbursableReportsTitle: 'Αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένων',
+                preventPayoutNonReimbursableReportsSubtitle: 'Να μην επιτρέπεται στους διαχειριστές να σημειώνουν μη επιστρέψιμες αναφορές ως πληρωμένες.',
             },
             agentsPromoBanner: {
                 title: 'Δεν βλέπετε τον κανόνα που χρειάζεστε; Προσθέστε έναν εκπρόσωπο',
@@ -10190,6 +10195,8 @@ ${reportName}`,
             `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -10447,6 +10454,7 @@ ${reportName}`,
             past: 'Παρελθόν',
             submitted: 'Υποβλήθηκε',
             approved: 'Εγκρίθηκε',
+            anyApproval: 'Οποιαδήποτε έγκριση',
             firstApprover: 'Πρώτος εγκρίνων',
             firstApproved: 'Πρώτη έγκριση',
             paidBy: 'Πληρώθηκε από',
@@ -10455,6 +10463,7 @@ ${reportName}`,
             posted: 'Καταχωρισμένο',
             withdrawn: 'Ανακλήθηκε',
             billable: 'Χρεώσιμη',
+            rejected: 'Απορρίφθηκε',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
@@ -12278,22 +12287,6 @@ ${reportName}`,
             buildReports: 'Δημιουργήστε αναφορές εξόδων σε δευτερόλεπτα',
             categorize: 'Κατηγοριοποιήστε τα έξοδά σας',
             inviteBoss: 'Προσκαλέστε το/τη διευθυντή/ρια σας όταν είστε έτοιμοι',
-        },
-    },
-    aiFeaturesPromoModal: {
-        subtitle: 'Νέο στο Concierge AI',
-        confirmText: 'Πάμε!',
-        spendAnalysis: {
-            title: 'Διαδραστική ανάλυση δαπανών',
-            description: `<muted-text>Το Concierge εμφανίζει πληροφορίες για τις μηνιαίες δαπάνες και σας επιτρέπει να εξερευνήσετε τις λεπτομέρειες πίσω από κάθε αριθμό. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Γνωρίστε τον νέο σας βοηθό εξόδων',
-            description: `<muted-text>Συνομιλήστε με το Concierge για να δημιουργείτε και να ενημερώνετε δαπάνες, απευθείας στην εφαρμογή ή μέσω email ή μηνύματος κειμένου. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Δημιουργήστε τους δικούς σας πράκτορες',
-            description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
         },
     },
     productMarketingWindow: {

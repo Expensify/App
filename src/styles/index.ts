@@ -7025,6 +7025,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.label,
             color: theme.text,
         },
+        chartTooltipDot: {
+            borderRadius: '50%',
+            width: 8,
+            height: 8,
+        },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },

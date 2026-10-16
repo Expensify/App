@@ -1007,6 +1007,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
+            addDepositAccount: {title: 'Voeg een bankrekening toe om betalingen te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify Kaart',
@@ -8419,6 +8420,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
+                preventPayoutNonReimbursableReportsTitle: 'Voorkom dat niet-declarabele rapporten als betaald worden gemarkeerd',
+                preventPayoutNonReimbursableReportsSubtitle: 'Sta beheerders niet toe om niet-vergoedbare rapporten als betaald te markeren.',
             },
             agentsPromoBanner: {
                 title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
@@ -9930,6 +9933,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10165,6 +10170,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             past: 'Verleden',
             submitted: 'Ingediend',
             approved: 'Goedgekeurd',
+            anyApproval: 'Elke goedkeuring',
             firstApprover: 'Eerste gemachtigde',
             firstApproved: 'Eerst goedgekeurd',
             paidBy: 'Betaald door',
@@ -10173,6 +10179,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             posted: 'Gepost',
             withdrawn: 'Ingetrokken',
             billable: 'Factureerbaar',
+            rejected: 'Afgekeurd',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             sortOrder: {
@@ -11990,22 +11997,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nieuw bij Concierge AI',
-        confirmText: 'Laten we gaan!',
-        spendAnalysis: {
-            title: 'Interactieve uitgavenanalyse',
-            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Maak kennis met je nieuwe declaratie-assistent',
-            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Bouw je eigen agents',
-            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'E-mailprobleem',
         intro: (login: string) => `Onze e-mailprovider is gestopt met verzenden naar <strong>${login}</strong> vanwege afleveringsproblemen. Om dit op te lossen:`,
