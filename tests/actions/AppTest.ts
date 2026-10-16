@@ -6,11 +6,12 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
-import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import CONST from '@src/CONST';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {DismissedProductTraining, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -237,6 +238,74 @@ describe('actions/App', () => {
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
         });
+    });
+
+    test.each<{scenario: string; dismissedTraining: Partial<DismissedProductTraining>}>([
+        {
+            scenario: 'existing product-training dismissals',
+            dismissedTraining: {
+                [CONST.AI_FEATURES_PROMO_MODAL]: {timestamp: '2026-10-01 12:00:00', dismissedMethod: 'x'},
+                [CONST.MIGRATED_USER_WELCOME_MODAL]: {timestamp: '2026-10-01 12:00:00', dismissedMethod: 'click'},
+                [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {timestamp: '2026-10-01 12:00:00', dismissedMethod: 'x'},
+            },
+        },
+        {scenario: 'an empty product-training dismissal record', dismissedTraining: {}},
+    ])('clearOnyxAndResetApp preserves $scenario through repeated cache resets', async ({dismissedTraining}) => {
+        // Given saved training state for the signed-in account and an offline connection that delays OpenApp.
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {accountID: 123, authToken: 'test-token'},
+            [ONYXKEYS.NETWORK]: {shouldForceOffline: true},
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: dismissedTraining,
+        });
+        await waitForBatchedUpdates();
+
+        for (let reset = 0; reset < 2; reset++) {
+            // When the user clears the cache again before the server restores account data.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}123`, 'cached draft');
+            await App.clearOnyxAndResetApp();
+            await waitForBatchedUpdates();
+
+            // Then training state survives immediately, while ordinary cached data is cleared.
+            await expect(getOnyxValue(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING)).resolves.toEqual(dismissedTraining);
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}123`)).resolves.toBeUndefined();
+            await expect(getOnyxValue(ONYXKEYS.IS_LOADING_APP)).resolves.toBe(true);
+
+            // When initial loading finishes before the training data arrives, the saved state still exists.
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdates();
+            await expect(getOnyxValue(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING)).resolves.toEqual(dismissedTraining);
+        }
+    });
+
+    test('clearOnyxAndResetApp discards imported training dismissals when restoring the original account', async () => {
+        // Given an imported account's training state and a different original account to restore.
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        mockFetch.pause();
+        try {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: 456, authToken: 'imported-token'},
+                [ONYXKEYS.PRESERVED_USER_SESSION]: {accountID: 123, authToken: 'original-token'},
+                [ONYXKEYS.IS_USING_IMPORTED_STATE]: true,
+                [ONYXKEYS.NETWORK]: {shouldForceOffline: true},
+                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {
+                    [CONST.AI_FEATURES_PROMO_MODAL]: {timestamp: '2026-10-01 12:00:00', dismissedMethod: 'x'},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When clearing imported state before OpenApp restores the original account's training data.
+            await App.clearOnyxAndResetApp();
+            await waitForBatchedUpdates();
+
+            // Then the original session is restored without inheriting the imported account's dismissals.
+            await expect(getOnyxValue(ONYXKEYS.SESSION)).resolves.toEqual(expect.objectContaining({accountID: 123, authToken: 'original-token'}));
+            await expect(getOnyxValue(ONYXKEYS.IS_USING_IMPORTED_STATE)).resolves.toBe(false);
+            await expect(getOnyxValue(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING)).resolves.toBeUndefined();
+        } finally {
+            await mockFetch.resume();
+        }
     });
 
     describe('getNonOptimisticPolicyIDs', () => {
