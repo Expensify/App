@@ -19,8 +19,6 @@ import CONST from '@src/CONST';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 
-type State = keyof typeof COMMON_CONST.STATES;
-
 type StateSelectorModalProps = {
     isVisible: boolean;
 
@@ -39,14 +37,16 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
-    const initialSelectedValue = useInitialSelection(currentState || undefined, {isVisible});
+    const initialSelectedValue = useInitialSelection(currentState || undefined, {
+        isVisible,
+    });
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = useMemo(
         () =>
-            Object.keys(COMMON_CONST.STATES).map((state) => {
-                const stateName = translate(`allStates.${state as State}.stateName`);
-                const stateISO = translate(`allStates.${state as State}.stateISO`);
+            Object.values(COMMON_CONST.STATES).map(({stateISO: stateKey}) => {
+                const stateName = translate(`allStates.${stateKey}.stateName`);
+                const stateISO = translate(`allStates.${stateKey}.stateISO`);
                 return {
                     value: stateISO,
                     keyForList: stateISO,

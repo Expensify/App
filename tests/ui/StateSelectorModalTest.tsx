@@ -69,8 +69,33 @@ describe('StateSelectorModal', () => {
         mockedSelectionList.mockClear();
     });
 
-    it('pins the saved state to the top on reopen', () => {
+    it('renders every installed state with its translated name and ISO', () => {
+        // Given the production state list and translation-backed modal
         render(
+            <StateSelectorModal
+                isVisible
+                currentState=""
+                onStateSelected={jest.fn()}
+                onClose={jest.fn()}
+                label="State"
+            />,
+        );
+
+        // When the modal builds the unfiltered list
+        const options = mockedSelectionList.mock.lastCall?.[0].data;
+
+        // Then all 52 states appear in source order with translated names and codes
+        expect(options).toHaveLength(52);
+        expect(options?.map(({keyForList, text}) => ({keyForList, text}))).toEqual(
+            Object.values(mockStates).map(({stateISO, stateName}) => ({
+                keyForList: stateISO,
+                text: stateName,
+            })),
+        );
+    });
+
+    it('pins the saved state to the top on reopen', () => {
+        const {rerender} = render(
             <StateSelectorModal
                 isVisible
                 currentState="NY"
@@ -89,6 +114,33 @@ describe('StateSelectorModal', () => {
             }),
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe('NY');
+
+        // Given a newly saved selection while the modal is closed
+        rerender(
+            <StateSelectorModal
+                isVisible={false}
+                currentState="CA"
+                onStateSelected={jest.fn()}
+                onClose={jest.fn()}
+                label="State"
+            />,
+        );
+
+        // When the modal reopens
+        rerender(
+            <StateSelectorModal
+                isVisible
+                currentState="CA"
+                onStateSelected={jest.fn()}
+                onClose={jest.fn()}
+                label="State"
+            />,
+        );
+
+        // Then the changed selection is pinned and focused
+        const reopenedProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(reopenedProps?.data.at(0)).toEqual(expect.objectContaining({keyForList: 'CA', isSelected: true}));
+        expect(reopenedProps?.initiallyFocusedItemKey).toBe('CA');
     });
 
     it('keeps natural filtered ordering while search is active', () => {
