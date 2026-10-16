@@ -636,6 +636,12 @@ To react to this event, include phrases like:
 - When QuickBooks / NetSuite / Xero sync fails
 - When the accounting connection breaks
 
+**A running count of how many of the workspace's reports are currently failing to export. There is one of these per workspace in its #admins room, kept up to date in place as reports start and stop failing, and addressed to the workspace's configured exporter.**
+
+To react to this event, include phrases like:
+- When reports fail to export to accounting
+- How many reports failed to export
+
 **An accounting integration export failed for a specific report. This notification appears on the expense report itself, not in #admins.**
 
 To react to this event, include phrases like:
@@ -920,4 +926,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 126 events AI agents can react to.*
+*This reference covers all 127 events AI agents can react to.*

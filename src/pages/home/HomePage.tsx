@@ -1,14 +1,13 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
-import useTabBarBottomContentStyle from '@components/Navigation/TabBarBottomContent/useTabBarBottomContentStyle';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -47,12 +46,17 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
     // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
-    const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {pageGutter} = useLayoutSpacing();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
+    // When the TopBar scrolls away as part of the content, the gutter moves onto the widget block instead, because the
+    // TopBar carries its own margins and would otherwise be inset twice.
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter], {
+        hasBottomSafeAreaPadding: true,
+        hasOfflineIndicatorPadding: true,
+    });
     const {translate} = useLocalize();
     const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
@@ -163,16 +167,13 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                    bottomContentStyle={tabBarBottomContentStyle}
+                    {...tabRootScreenWrapperProps}
                 >
                     {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
+                        {...tabRootScrollProps}
                         onScroll={triggerScrollEvent}
-                        // When the TopBar scrolls away as part of the content, the gutter moves onto the widget block
-                        // instead, because the TopBar carries its own margins and would otherwise be inset twice.
-                        contentContainerStyle={[styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter, floatingTabBarPaddingStyle]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

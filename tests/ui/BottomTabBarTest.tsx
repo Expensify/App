@@ -349,7 +349,7 @@ describe('NavigationTabBar', () => {
         );
 
         const container = await screen.findByTestId('NavigationTabBar');
-        expect(container.props.style).toEqual(expect.objectContaining({height: variables.bottomTabHeight, flexDirection: 'row'}));
+        expect(container.props.style).toEqual(expect.objectContaining({height: variables.floatingTabBarHeight, display: 'grid'}));
     });
 
     it('renders a bottom left pill that hugs its content when floating', async () => {

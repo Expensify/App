@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -8,7 +9,6 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -169,9 +169,9 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
-    const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
     const searchListContentContainerStyle = useSearchListContentContainerStyle(!!hasFilterBars);
     const styles = useThemeStyles();
+    const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -1452,7 +1452,7 @@ function Search({
             <SearchScopeProvider>
                 <Animated.ScrollView
                     style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
+                    {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
@@ -1545,7 +1545,7 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle, floatingTabBarPaddingStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
         onViewableItemsChanged,

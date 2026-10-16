@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,15 +37,23 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2, isFloating = false}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <>
+        <View
+            style={
+                isFloating
+                    ? styles.navigationTabBarFloatingItem
+                    : [styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]
+            }
+        >
             <View>
                 <Icon
                     src={icon}
                     fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 {!!statusIndicatorColor && (
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
@@ -55,12 +64,12 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 style={[
                     styles.textSmall,
                     isSelected ? styles.textBold : styles.textSupporting,
-                    isFloating ? styles.navigationTabBarFloatingLabel : [styles.textAlignCenter, styles.mt1Half, styles.navigationTabBarLabel],
+                    isFloating ? styles.navigationTabBarFloatingLabel : [styles.textAlignCenter, shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half, styles.navigationTabBarLabel],
                 ]}
             >
                 {label}
             </Text>
-        </>
+        </View>
     );
 }
 

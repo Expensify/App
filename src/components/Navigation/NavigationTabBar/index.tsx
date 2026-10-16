@@ -176,8 +176,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
-                    wrapperStyle={isFloating ? undefined : styles.flex1}
-                    style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
+                    wrapperStyle={styles.navigationTabBarSlot}
+                    style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
                     <TabBarItem
@@ -185,6 +185,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
                         isFloating={isFloating}
+                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton
@@ -210,7 +211,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, isFloa
                 />
                 {!isInsightsTabVisible && (
                     <NavigationTabBarAvatar
-                        style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
+                        style={styles.navigationTabBarItem}
                         isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                         onPress={navigateToSettings}
                         isFloating={isFloating}

@@ -114,7 +114,7 @@ type UseReportActionsScrollResult = {
 
     scrollToActionBadgeTarget: () => void;
 
-    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
+    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout and content size change */
     flushPendingScrollToBottom: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */

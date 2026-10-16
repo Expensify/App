@@ -1,8 +1,8 @@
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
-import {useFloatingNavigationTabBarPadding} from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
@@ -51,7 +51,6 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const floatingTabBarPadding = useFloatingNavigationTabBarPadding();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
@@ -87,12 +86,10 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // getSafeAreaMargins is typed as ViewStyle, so narrow it before adding the floating tab bar's padding to it.
-    const safeAreaMarginBottom = StyleUtils.getSafeAreaMargins(insets).marginBottom;
-    const bottomPadding = (typeof safeAreaMarginBottom === 'number' ? safeAreaMarginBottom : 0) + floatingTabBarPadding;
-    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: bottomPadding}]);
+    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
+    const {contentContainerStyle: emptyLHNStyle} = useTabRootScrollProps([styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper], {fillsVisibleArea: true});
 
     // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
     // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
@@ -106,7 +103,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                 {shouldShowEmptyLHN ? (
                     <>
                         {listHeaderComponent}
-                        <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
+                        <View style={emptyLHNStyle}>
                             <LHNEmptyState />
                         </View>
                     </>

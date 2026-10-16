@@ -1,6 +1,5 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
-import useTabBarBottomContentStyle from '@components/Navigation/TabBarBottomContent/useTabBarBottomContentStyle';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +23,7 @@ import SidebarLinksData from './SidebarLinksData';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
-    const tabBarBottomContentStyle = useTabBarBottomContentStyle();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INBOX);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
@@ -59,8 +58,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID="BaseSidebarScreen"
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INBOX} />}
-            bottomContentStyle={tabBarBottomContentStyle}
+            {...tabRootScreenWrapperProps}
         >
             {({insets}) => (
                 <>

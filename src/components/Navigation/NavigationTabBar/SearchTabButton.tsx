@@ -8,8 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -47,12 +46,7 @@ function SearchTabButton({selectedTab, isWideLayout, isFloating = false}: Search
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                forceTransaction: true,
-            });
-            startNavigateToReportsSpans();
+            startNavigateToReportsTabSpans();
 
             Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
         });
@@ -86,8 +80,8 @@ function SearchTabButton({selectedTab, isWideLayout, isFloating = false}: Search
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
-            wrapperStyle={isFloating ? undefined : styles.flex1}
-            style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
+            wrapperStyle={styles.navigationTabBarSlot}
+            style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
             <TabBarItem

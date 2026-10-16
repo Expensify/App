@@ -10,6 +10,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
@@ -541,5 +542,65 @@ describe('useSidebarOrderedReports', () => {
         // Then the incremental LHN update should recheck report 2 only
         const callForReport2 = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.find((call) => call[0]?.updatedReportsKeys.includes(`${ONYXKEYS.COLLECTION.REPORT}2`));
         expect(callForReport2?.[0]?.updatedReportsKeys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}2`]);
+    });
+
+    describe('reportAttributes changes', () => {
+        const createReportAttributes = (attributes: Partial<ReportAttributes> = {}): ReportAttributes => ({
+            reportName: 'Chat',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            ...attributes,
+        });
+
+        const displayedReportID = '1';
+        const newDMReportID = '2';
+
+        // Renders the LHN with one displayed report and a new DM that is filtered out because its attributes are not ready yet.
+        const renderWithExcludedReport = async () => {
+            const displayedReports = createMockReports({
+                report1: {reportName: 'Chat A'},
+            });
+            // The LHN cache is keyed by the report's Onyx key
+            mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[`${ONYXKEYS.COLLECTION.REPORT}${displayedReportID}`]: displayedReports[displayedReportID]});
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${displayedReportID}`, displayedReports[displayedReportID]);
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[displayedReportID]: createReportAttributes()}, locale: 'en'});
+            });
+
+            renderHook(() => useSidebarOrderedReports(), {
+                wrapper: TestWrapper,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`, {reportID: newDMReportID, type: CONST.REPORT.TYPE.CHAT} as Report);
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const getUpdatedReportsKeys = () => mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.flatMap((call) => call[0]?.updatedReportsKeys ?? []);
+
+        it('should recheck a report that is not displayed when its attributes make it require attention', async () => {
+            // Given the LHN cache is built and a new DM was filtered out before its attributes were calculated
+            await renderWithExcludedReport();
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+            // When the derived attributes later mark the DM as requiring attention, with no change to the report itself
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                    reports: {[displayedReportID]: createReportAttributes(), [newDMReportID]: createReportAttributes({requiresAttention: true})},
+                    locale: 'en',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the DM is rechecked, so it can be added to the LHN without a full rebuild. The displayed report's
+            // attributes did not change, so it is not rechecked
+            expect(getUpdatedReportsKeys()).toEqual([`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`]);
+        });
     });
 });

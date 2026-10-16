@@ -64,8 +64,8 @@ function WorkspacesTabButton({selectedTab, isWideLayout, isFloating = false}: Wo
             role={CONST.ROLE.TAB}
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}
-            wrapperStyle={isFloating ? undefined : styles.flex1}
-            style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
+            wrapperStyle={styles.navigationTabBarSlot}
+            style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
         >
             <TabBarItem
