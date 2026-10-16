@@ -6,6 +6,8 @@ import type {
     SearchAmountFilterKeys,
     SearchCustomColumnIds,
     SearchDateFilterKeys,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchTextFilterKeys,
     SearchPaidStatus,
@@ -150,6 +152,7 @@ const FILTER_KEYS = {
 
     MERCHANT_NOT: 'merchantNot',
     MERCHANT: 'merchant',
+    MERCHANT_OPERATOR: 'merchantOperator',
 
     DESCRIPTION_NOT: 'descriptionNot',
     DESCRIPTION: 'description',
@@ -264,6 +267,10 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
+
+    FOOTER_COUNT: 'footerCount',
+    FOOTER_TOTAL: 'footerTotal',
+    FOOTER_CURRENCY: 'footerCurrency',
     COMPARE: 'compare',
 } as const;
 
@@ -287,6 +294,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TRANSACTION_STATUS_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -392,6 +400,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
         FILTER_KEYS.LIMIT,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
@@ -478,6 +489,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ORDER_DEAL_NUMBERS_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
@@ -492,6 +506,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -590,6 +605,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -720,6 +736,7 @@ type IsFilterValues = IsFilterValue[];
 type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
+type MerchantMatchType = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
 type ReceiptTypeValues = ReceiptTypeValue[];
 type TransactionStatusValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_STATUS>;
@@ -807,6 +824,7 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.MERCHANT_NOT]: string;
+        [FILTER_KEYS.MERCHANT_OPERATOR]: MerchantMatchType;
 
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.DESCRIPTION_NOT]: string;
@@ -919,6 +937,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+
+        [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
+        [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;
+        [FILTER_KEYS.FOOTER_CURRENCY]: string;
         [FILTER_KEYS.COMPARE]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
@@ -934,6 +956,7 @@ export type {
     IsFilterValues,
     ExpenseTypeValue,
     ExpenseTypeValues,
+    MerchantMatchType,
     ReceiptTypeValue,
     TransactionStatusValue,
     SearchNegatableFilterKeys,

@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
+import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,9 @@ type SearchResultsInfo = {
 
     /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
     inputQuery?: string;
+
+    /** Client-only footer breakdown the snapshot's `total` answers. Written once a response lands, as it can replace `snapshot.search` */
+    footerTotal?: SearchFooterTotal;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
