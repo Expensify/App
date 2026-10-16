@@ -4176,6 +4176,15 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_BANK_ACCOUNT_ID: 'reimbursementBankAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        POSTING_MODE: 'postingMode',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {

@@ -9091,6 +9091,50 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Añade cuentas bancarias en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
             noPaymentMethodsFound: 'No se encontraron formas de pago',
             noPaymentMethodsFoundDescription: 'Añade formas de pago en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
+            advanced: {
+                autoSyncDescription: 'Sincroniza Dynamics 365 Business Central y Expensify automáticamente, todos los días. Los informes se sincronizan en tiempo real.',
+                accountingMethods: {
+                    label: 'Método de exportación',
+                    description: 'Elige cuándo exportar los gastos.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando se aprueben de forma definitiva',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                    },
+                },
+                postingMode: {
+                    label: 'Modo de contabilización',
+                    description: 'Elige si los asientos se contabilizan automáticamente o requieren una revisión manual primero.',
+                    note: 'Nota: Expensify contabiliza todos los diarios abiertos de la sección de diario general que elegiste en la página Expensify Setup de Business Central, no solo los que creó. Usa una sección solo para Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Crear y contabilizar',
+                            description: 'Contabiliza los asientos en el libro mayor automáticamente al exportar',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Solo crear',
+                            description: 'Contabiliza los asientos manualmente en Dynamics 365 Business Central después de exportar',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Crear empleados/proveedores automáticamente',
+                exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+                exportToNextOpenPeriodDescription: 'Cuando la fecha de un informe cae en un período cerrado de Dynamics 365 Business Central, se exporta al siguiente período abierto.',
+                syncReimbursedReports: 'Sincronizar informes reembolsados',
+                syncReimbursedReportsDescription: 'Cuando un informe se paga mediante ACH, se generará un pago de factura en esta cuenta.',
+                reimbursementBankAccount: {
+                    label: 'Cuenta de pago de facturas',
+                    description: 'Elige desde dónde pagar las facturas y crearemos el pago en Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+                settlementsBankAccount: {
+                    label: 'Cuenta de liquidación de la Tarjeta Expensify',
+                    description: 'Elige tu cuenta de liquidación y crearemos el pago en Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Tus cuentas de Dynamics 365 Business Central se importarán como categorías.',
             dimensionsImportAsTags: 'Todas las dimensiones de Dynamics 365 Business Central se importan como etiquetas',
             customers: 'Clientes',
