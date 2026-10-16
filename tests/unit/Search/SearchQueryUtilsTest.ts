@@ -1129,6 +1129,53 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        describe('Bank account filter (#99090)', () => {
+            test.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE])(
+                'keeps the bank account filter in the query for %s so the withdrawal section row reaches the backend',
+                (type) => {
+                    // Given a filter form for a type that offers the withdrawal filters, with a bank account picked
+                    const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                        type,
+                        bankAccount: ['42'],
+                    };
+
+                    // When the query string is built
+                    const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                    // Then the bank account filter is not stripped as unsupported for that type
+                    expect(result).toEqual(`type:${type} bankAccount:42`);
+                },
+            );
+
+            test('keeps a negated bank account filter in the query for expense-report', () => {
+                // Given an expense-report filter form excluding a bank account
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    bankAccountNot: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the negated filter survives too
+                expect(result).toEqual('type:expense-report -bankAccount:42');
+            });
+
+            test('still drops the bank account filter for a type that does not support it', () => {
+                // Given a trip filter form carrying a bank account from a previous type
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.TRIP,
+                    bankAccount: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the unsupported filter is stripped as before
+                expect(result).toEqual('type:trip');
+            });
+        });
+
         describe('Spend footer selections', () => {
             test('includes every footer selection in the query string', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
