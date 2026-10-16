@@ -3244,6 +3244,19 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
 
+        it('should keep a merged expense deleted action with an empty message visible', () => {
+            // Given the action the backend adds to the submitter's report when an admin merges their expenses, which has no message fragments
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // Then it is not treated as deleted and is shown in the report
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
                 ...createRandomReportAction(0),
