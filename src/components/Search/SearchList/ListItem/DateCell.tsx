@@ -77,7 +77,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     anchorPosition={popoverPosition}
                     anchorAlignment={anchorAlignment}
                     shouldMeasureContentHeight
-                    // The calendar can't shrink, so keep the same edge gap the shrinking pickers leave.
                     windowMargin={CONST.MODAL.POPOVER_MENU_PADDING}
                     shouldPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}
