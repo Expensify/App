@@ -183,9 +183,6 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         },
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
-    // The participants/reportID merges above land a microtask later, but a navigation dispatched from a press handler
-    // renders the next screen synchronously, so it would first read the draft without participants (and e.g. flash the
-    // participant picker on the confirmation page). Defer navigation until the merges have been applied.
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         if (isCategorizing) {
             Navigation.navigate(
