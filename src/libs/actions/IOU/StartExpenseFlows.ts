@@ -183,6 +183,9 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         },
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
+    // The participants and reportID above are written with Onyx.merge, which lands a microtask after this press handler.
+    // Navigating synchronously would render the confirmation screen before the merge, so it would see no participants and
+    // auto-open the Choose recipient picker. Defer navigation by a microtask plus an animation frame so the merge is applied first.
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         if (isCategorizing) {
             Navigation.navigate(
