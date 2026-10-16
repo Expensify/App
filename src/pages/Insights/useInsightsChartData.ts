@@ -1,29 +1,26 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
-import {applyInsightsFilters} from './insightsQueries';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -38,10 +35,37 @@ type InsightsChartData = {
     comparison: ChartComparison | undefined;
 };
 
+/** What a chart is compared against: the query and snapshot of the compared rows, and what names the compared series */
+type ComparedChart = Pick<ChartComparison, 'label' | 'periods'> & {
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
+    snapshot: OnyxEntry<SearchResults>;
+};
+
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
 
+/** Returns what the chart is compared against for the page's Compare mode, or nothing when it doesn't compare */
+function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilters, translate: LocaleContextProps['translate']): ComparedChart | undefined {
+    const isLineChart = chart.chart.view === CONST.SEARCH.VIEW.LINE;
+    switch (filters.compare) {
+        case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
+            // Only bar charts draw the previous period.
+            const periods = isLineChart ? undefined : resolveComparisonPeriods(filters.date);
+            return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
+        }
+        case CONST.SEARCH.COMPARE.AVERAGE:
+            return {
+                queryJSON: chart.averageQueryJSON,
+                snapshot: chart.averageSnapshot,
+                label: translate(isLineChart ? 'insightsPage.compare.average' : 'insightsPage.compare.typical'),
+            };
+        default:
+            return undefined;
+    }
+}
+
 /** Resolves a chart's rows, and the rows it is compared against when the page compares. */
-function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters, queryJSON: Readonly<SearchQueryJSON> | undefined, snapshot: OnyxEntry<SearchResults>): InsightsChartData {
+function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
+    const {queryJSON, snapshot} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -50,20 +74,15 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
-    const compare = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? filters.compare : undefined;
-    const isLineChart = chart.view === CONST.SEARCH.VIEW.LINE;
-    const periods = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD && !isLineChart ? resolveComparisonPeriods(filters.date) : undefined;
-    const isComparing = compare === CONST.SEARCH.COMPARE.AVERAGE || !!periods;
-    const comparedQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare)) : undefined;
-    const [comparedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${comparedQueryJSON?.hash}`);
+    const comparedChart = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? getComparedChart(dashboardChart, filters, translate) : undefined;
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
-    const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON && {...queryJSON, limit: undefined});
+    const comparedSortedData = useGroupedItems(comparedChart?.snapshot, queryJSON && {...queryJSON, limit: undefined});
 
-    if (!isComparing || current.state !== INSIGHTS_CHART_STATE.READY) {
+    if (!comparedChart || current.state !== INSIGHTS_CHART_STATE.READY) {
         return {...current, comparison: undefined};
     }
 
-    const compared = resolveInsightsChartData({snapshot: comparedSnapshot, queryJSON: comparedQueryJSON, sortedData: comparedSortedData, isOffline});
+    const compared = resolveInsightsChartData({snapshot: comparedChart.snapshot, queryJSON: comparedChart.queryJSON, sortedData: comparedSortedData, isOffline});
     // A compared chart waits for both sets of rows.
     if (BLOCKING_STATES.has(compared.state)) {
         return {data: current.data, state: compared.state, comparison: undefined};
@@ -72,9 +91,7 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
     return {
         ...current,
-        comparison: periods
-            ? {data: compared.data, color, periods}
-            : {data: compared.data, color, label: translate(isLineChart ? 'insightsPage.compare.average' : 'insightsPage.compare.typical')},
+        comparison: {data: compared.data, color, label: comparedChart.label, periods: comparedChart.periods},
     };
 }
 
