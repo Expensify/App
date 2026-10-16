@@ -121,22 +121,15 @@ describe('useConciergeAskState', () => {
         // Then the welcome still stays, so the collapsed chat doesn't switch to a partial list on its own
         expect(result.current.shouldShowWelcome).toBe(true);
 
-        // When the message has no thread, like each of several attachments sent together
+        // When the thread fails to be created, which clears the question's child thread
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: null, childType: ''}});
         await waitForBatchedUpdates();
 
-        // Then the welcome still stays, so `Hide chat history` returns to it
-        expect(result.current.shouldShowWelcome).toBe(true);
-
-        // When the message fails to send
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {errors: {1: 'Failed'}}});
-        await waitForBatchedUpdates();
-
-        // Then the message counts as activity, so its error stays visible in this chat
+        // Then the question counts as activity, so its error stays visible in this chat
         expect(result.current.shouldShowWelcome).toBe(false);
 
         // When the current user creates a task in the Concierge chat
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: '5', childType: CONST.REPORT.TYPE.TASK, errors: null}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: '5', childType: CONST.REPORT.TYPE.TASK}});
         await waitForBatchedUpdates();
 
         // Then the welcome stays, like it does for a question

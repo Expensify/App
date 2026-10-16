@@ -7,7 +7,6 @@ import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -54,11 +53,12 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
                 return true;
             }
 
-            // The user's own messages keep the welcome, so `Hide chat history` always returns to it. A failed one stays on screen to show its error.
-            if (action.actorAccountID === currentUserAccountID) {
-                return !isEmptyObject(action.errors) && (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime);
+            // An action that opens its own report, like a question's thread or a task, keeps the welcome both while sending and once sent.
+            // Otherwise reconnecting would switch this chat to a partial view that `Hide chat history` can't return to.
+            if (action.actorAccountID === currentUserAccountID && !!action.childReportID) {
+                return false;
             }
-            return !isCreatedAction(action) && action.created >= sessionStartTime;
+            return isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime);
         });
     };
     const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
