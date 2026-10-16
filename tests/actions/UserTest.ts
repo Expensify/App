@@ -1,6 +1,7 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -43,6 +44,46 @@ describe('actions/User', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('joinExactOnlineWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('keeps an existing signup timestamp without sending another request', () => {
+            // Given this account already joined the waitlist from another workspace
+            const signupTimestamp = '2026-10-14 10:00:00.000';
+            const getDBTime = jest.spyOn(DateUtils, 'getDBTime');
+
+            // When the account tries to join again
+            UserActions.joinExactOnlineWaitlist(signupTimestamp);
+
+            // Then the original signup is preserved without generating a new timestamp or request
+            expect(getDBTime).not.toHaveBeenCalled();
+            expect(mockAPI.write).not.toHaveBeenCalled();
+        });
+
+        it('queues the signup timestamp with a rollback to the absent value', () => {
+            // Given the account has not joined the waitlist
+            const signupTimestamp = '2026-10-14 10:00:00.000';
+            const getDBTime = jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(signupTimestamp);
+
+            // When the account joins the waitlist
+            UserActions.joinExactOnlineWaitlist(undefined);
+
+            // Then the queued request and optimistic update share one timestamp, with the previous value restored on failure
+            expect(getDBTime).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
+                {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                {
+                    optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}],
+                    failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: null}],
+                },
+            );
+        });
     });
 
     describe('clearContactMethod', () => {

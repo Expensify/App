@@ -7586,6 +7586,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
+            exactOnline: {
+                comingSoon: 'Έρχεται σύντομα',
+                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
+                onWaitlist: 'Είστε σε λίστα αναμονής',
+                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
+            },
             setup: 'Σύνδεση',
             connectToSandbox: 'Σύνδεση στο sandbox',
             lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,

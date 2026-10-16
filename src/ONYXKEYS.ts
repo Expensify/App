@@ -196,6 +196,9 @@ const ONYXKEYS = {
 
     /** NVP keys */
 
+    /** UTC signup timestamp for the account's Exact Online waitlist membership */
+    NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
+
     /** This NVP contains list of at most 5 recent attendees */
     NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
 
@@ -1782,6 +1785,7 @@ type OnyxValuesMapping = {
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
