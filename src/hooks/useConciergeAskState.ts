@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 
+import {isOpenChildTaskAction} from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
@@ -47,6 +48,11 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
             return false;
         }
         return Object.values(actions).some((action) => {
+            // The list pins a still-open task, so it stays on screen in every session.
+            if (isOpenChildTaskAction(action, currentUserAccountID)) {
+                return true;
+            }
+
             // An action that opens its own report, like a question's thread or a task, keeps the welcome both while sending and once sent.
             // Otherwise reconnecting would switch this chat to a partial view that `Hide chat history` can't return to.
             if (action.actorAccountID === currentUserAccountID && !!action.childReportID) {

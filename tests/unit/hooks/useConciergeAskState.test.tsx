@@ -135,22 +135,39 @@ describe('useConciergeAskState', () => {
         // Then the welcome stays, like it does for a question
         expect(result.current.shouldShowWelcome).toBe(true);
 
+        // When that task is assigned to the current user and still open
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
+            [question.reportActionID]: {childManagerAccountID: 100, childStateNum: CONST.REPORT.STATE_NUM.OPEN, childStatusNum: CONST.REPORT.STATUS_NUM.OPEN},
+        });
+        await waitForBatchedUpdates();
+
+        // Then the welcome stands down, so the open task stays pinned on screen
+        expect(result.current.shouldShowWelcome).toBe(false);
+
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
         await waitForBatchedUpdates();
     });
 
     it('shows the earlier conversation when the report opens at a linked action', () => {
+        // Given a route that opens the Concierge chat at a linked message
         mockRouteParams = {reportActionID: '2'};
 
+        // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
+        // Then the earlier conversation shows, because the linked message sits inside it
         expect(result.current.isHistoryExpanded).toBe(true);
         expect(result.current.shouldShowWelcome).toBe(false);
     });
 
     it('stays off outside the Concierge report', () => {
-        const {result} = renderHook(() => useConciergeAskState('999'), {wrapper});
+        // Given a report that isn't the Concierge chat
+        const reportID = '999';
 
+        // When that report renders
+        const {result} = renderHook(() => useConciergeAskState(reportID), {wrapper});
+
+        // Then none of the Ask Concierge screen applies to it
         expect(result.current.isAskConciergeChat).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(false);
     });

@@ -269,3 +269,4 @@ function useConciergeSidePanelReportActions({
 }
 
 export default useConciergeSidePanelReportActions;
+export {isOpenChildTaskAction};
