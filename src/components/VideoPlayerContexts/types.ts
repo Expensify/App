@@ -54,8 +54,9 @@ type VideoPopoverMenuActionsContextType = {
     /**
      * Updates the video source URL inside VideoPopoverMenuContext.
      * @param source The new source URL.
+     * @param fileName The original file name of the source, used to name the downloaded file.
      */
-    updateSource: (source: string) => void;
+    updateSource: (source: string, fileName?: string) => void;
 
     /** Triggers the download flow for the current source. */
     downloadAttachment: () => void;

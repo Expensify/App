@@ -39,6 +39,9 @@ type CreateTrackExpenseParams = {
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -58,6 +61,9 @@ type CreateTrackExpenseParams = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     personalDetailsByLogins?: PersonalDetailsByLogin;
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
