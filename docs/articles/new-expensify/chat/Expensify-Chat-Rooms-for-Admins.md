@@ -45,7 +45,7 @@ The **#admins** room is designed for secure communication between admins and Exp
 **You can use the #admins room to:**
 - Coordinate with your internal admin team.
 - Chat directly with your **Expensify Account Executive**.
-- Communicate with your **Account Manager** (available with subscriptions of 10+ members).
+- Communicate with your **Account Manager** (available with subscriptions of 100+ members).
 - Track changes made to workspace settings by any admin or Expensify representative.
 
 🔐 **Note:** Only Workspace Admins can view or access this room.
