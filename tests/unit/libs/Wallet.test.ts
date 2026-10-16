@@ -1,8 +1,3 @@
-import {render, waitFor} from '@testing-library/react-native';
-
-import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
-import {MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
-
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type * as WalletModule from '@libs/Wallet';
@@ -15,7 +10,6 @@ import type {Card, ProvisioningCardData} from '@src/types/onyx';
 
 /** Exercises the actual platform handoffs with the API and native bridge mocked. */
 import {addCardToAppleWallet, addCardToGoogleWallet, getSecureWalletInfo} from '@expensify/react-native-wallet';
-import React, {useEffect} from 'react';
 
 import pkg from '../../../package.json';
 import createMock from '../../utils/createMock';
@@ -311,37 +305,6 @@ describe('Wallet platform provisioning', () => {
 
         // Then Google receives no card data from the abandoned attempt.
         expect(result).toBe('canceled');
-        expect(mockGoogle).not.toHaveBeenCalled();
-    });
-
-    it('does not launch Google Wallet after the owning provider unmounts during signed provisioning', async () => {
-        // Given the real Android helper awaits its signed API response using the provider-owned signal.
-        let signal: AbortSignal | undefined;
-        function Probe() {
-            const {getActionExecution} = useMultifactorAuthenticationActions();
-            useEffect(() => {
-                signal = getActionExecution().controller.signal;
-            }, [getActionExecution]);
-            return null;
-        }
-        let finishRequest: ((response: APIResponse) => void) | undefined;
-        mockRequest.mockImplementationOnce(
-            () =>
-                new Promise((resolve) => {
-                    finishRequest = resolve;
-                }),
-        );
-        const view = render(React.createElement(MultifactorAuthenticationStateProvider, null, React.createElement(Probe)));
-        const pending = addAndroid(card, 'Jane', 'Card', {authentication, signal});
-        await waitFor(() => expect(mockRequest).toHaveBeenCalledTimes(1));
-
-        // When AuthScreens removes its provider before the response arrives.
-        view.unmount();
-        finishRequest?.(createMock<APIResponse>({jsonCode: 200, ...androidPayload}));
-
-        // Then the late signed response cannot launch native Google tokenization.
-        await expect(pending).resolves.toBe('canceled');
-        expect(signal?.aborted).toBe(true);
         expect(mockGoogle).not.toHaveBeenCalled();
     });
 

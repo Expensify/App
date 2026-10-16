@@ -91,7 +91,6 @@ type MultifactorAuthenticationStateContextType = MultifactorAuthenticationState;
 /** Context value for actions - dispatch to update state */
 type MultifactorAuthenticationActionsContextType = {
     dispatch: (action: Action) => void;
-    getActionExecution: () => {controller: AbortController; started: boolean};
 };
 
 export type {MultifactorAuthenticationState, Action, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType};
