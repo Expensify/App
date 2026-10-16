@@ -191,8 +191,8 @@ const ALTERNATIVE_OUTCOMES = new Set<ReasonValue>([REASON.FLOW_OUTCOMES.TRANSACT
 
 /**
  * Local credential failures that confirm the device credential is unusable, so it should be deleted
- * before recovery. A transient keystore read failure is retried inside the operation, so a
- * `KEY_ACCESS_FAILED` that still reaches the caller is treated as a broken key.
+ * before recovery. A keystore read is retried once inside the operation before it reports
+ * `KEY_ACCESS_FAILED`; one from signing is not retried and, as on main, also marks the key broken.
  */
 const CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
