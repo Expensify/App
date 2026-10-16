@@ -1694,6 +1694,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
     OPEN_HOME_PAGE: 'OpenHomePage',
+    OPEN_PAYMENT_DETAILS_PAGE: 'OpenPaymentDetailsPage',
     OPEN_PAYMENT_HISTORY_PAGE: 'OpenPaymentHistoryPage',
     OPEN_SAVE_THE_WORLD_PAGE: 'OpenSaveTheWorldPage',
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
@@ -1816,6 +1817,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE]: Parameters.OpenPolicyReceiptPartnersPageParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
     [READ_COMMANDS.OPEN_HOME_PAGE]: null;
+    [READ_COMMANDS.OPEN_PAYMENT_DETAILS_PAGE]: Parameters.OpenPaymentDetailsPageParams;
     [READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE]: null;
     [READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;

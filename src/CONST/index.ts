@@ -9459,6 +9459,7 @@ const CONST = {
         TYPE_TRANSFER_TO: 'transfer_to',
         TYPE_TRANSFER_FAILED: 'transfer_failed',
         TYPE_TRANSFER_OLD: 'transfer_old',
+        TYPE_INVOICING: 'invoicing2018',
     },
     PAYMENT_HISTORY: {
         STATE: {
@@ -10491,6 +10492,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
