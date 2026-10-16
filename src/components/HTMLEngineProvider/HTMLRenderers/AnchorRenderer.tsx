@@ -133,6 +133,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     if (isAttachment && !isVideo) {
         return (
             <AnchorForAttachmentsOnly
+                style={styles.mv1}
                 source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
                 isDeleted={isDeleted}
