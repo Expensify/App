@@ -171,6 +171,7 @@ export type {default as OpenAppParams} from './OpenAppParams';
 export type {default as OpenOldDotLinkParams} from './OpenOldDotLinkParams';
 export type {default as OpenPlaidBankAccountSelectorParams} from './OpenPlaidBankAccountSelectorParams';
 export type {default as OpenPlaidBankLoginParams} from './OpenPlaidBankLoginParams';
+export type {default as OpenPaymentDetailsPageParams} from './OpenPaymentDetailsPageParams';
 export type {default as OpenPaymentsPageParams} from './OpenPaymentsPageParams';
 export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePageParams';
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
@@ -489,6 +490,7 @@ export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
 export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApproval';
+export type {default as SetPolicyPreventPayoutNonReimbursableReportsParams} from './SetPolicyPreventPayoutNonReimbursableReportsParams';
 export type {default as SetPolicyAutomaticApprovalLimitParams} from './SetPolicyAutomaticApprovalLimit';
 export type {default as SetPolicyAutomaticApprovalRateParams} from './SetPolicyAutomaticApprovalRate';
 export type {default as SetPolicyPreventMemberCreatedTitleParams} from './SetPolicyPreventMemberCreatedTitleParams';

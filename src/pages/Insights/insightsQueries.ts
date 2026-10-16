@@ -51,6 +51,7 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -61,7 +62,7 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON}: InsightsChartQuery, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry({chart, queryJSON, averageQueryJSON}: InsightsChartQuery, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
@@ -71,7 +72,7 @@ function buildSnapshotHashEntry({chart, queryJSON}: InsightsChartQuery, filters:
     }
 
     const previousPeriodSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD))?.hash;
-    const averageSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
+    const averageSnapshotHash = averageQueryJSON?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -103,7 +104,11 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({chart, queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters))});
+    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
+        chart,
+        queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
+        ...(shouldIncludeComparisons && {averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))}),
+    });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = spec.supportingCharts.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]

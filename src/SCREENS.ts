@@ -22,6 +22,7 @@ const SCREENS = {
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
+    BILLING_RECEIPT: 'BillingReceipt',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -1128,10 +1129,6 @@ const SCREENS = {
 
     SUBMIT_PLAN_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
-    },
-
-    AI_FEATURES_PROMO_MODAL: {
-        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_DEMO: {
