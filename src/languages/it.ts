@@ -6694,6 +6694,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             provisioningError:
                                 'Non siamo riusciti a effettuare il provisioning di alcuni membri del tuo workspace per la Fatturazione Viaggi Consolidata. Riprova più tardi oppure contatta Concierge per assistenza.',
                             sendInvoiceNowCta: 'Invia fattura ora',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Il limite di spesa mensile per membro non può superare l’attuale limite di viaggio di ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configura un nuovo feed di viaggio',
                         feedSelectorIntro:

@@ -6733,6 +6733,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             provisioningError:
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                             sendInvoiceNowCta: 'Rechnung jetzt senden',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Das monatliche Ausgabelimit pro Mitglied darf das aktuelle Reisekreditlimit von ${travelLimit} nicht überschreiten.`,
                         },
                         setUpNewFeed: 'Neuen Reise-Feed einrichten',
                         feedSelectorIntro:
