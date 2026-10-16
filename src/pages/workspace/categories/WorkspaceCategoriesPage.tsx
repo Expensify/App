@@ -44,6 +44,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -300,7 +301,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
-                onRenameName: (newName: string) => renameCategoryInline(policyData, value.name, newName, isVendorMatchingBetaEnabled),
+                onRenameName: (newName: string) => showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled)),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -317,6 +318,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policy,
         policyCategories,
         navigateToCategory,
+        translate,
         handleCategoryToggle,
         policyId,
         employeePersonalDetails,

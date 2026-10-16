@@ -853,6 +853,22 @@ function isInvalidMerchantValue(merchant?: string): boolean {
 type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
 
 /**
+ * Copy for a merchant validation error on the merchant form.
+ */
+function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantValidationError): string {
+    // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+    // eslint-disable-next-line default-case
+    switch (error.type) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'invalidValue':
+            return translate('iou.error.invalidMerchant');
+        case 'tooLong':
+            return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+    }
+}
+
+/**
  * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
  */
 function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
@@ -951,6 +967,7 @@ export {
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
     getMerchantError,
+    getMerchantErrorMessage,
     isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,
