@@ -134,6 +134,7 @@ function useTrackExpenseSubmission({
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     const currentChatReport = getChatReportFromMoneyRequestReport(report, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
 
@@ -270,6 +271,7 @@ function useTrackExpenseSubmission({
                 delegateAccountID,
                 rules,
                 personalDetailsByLogins: employeePersonalDetails,
+                reusableDistanceRoutes,
             });
         }
         performPostBatchCleanup({

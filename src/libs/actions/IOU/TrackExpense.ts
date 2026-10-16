@@ -88,6 +88,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -193,6 +194,9 @@ type GetTrackExpenseInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -427,6 +431,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {createChat: null},
             },
         },
         {
@@ -882,6 +887,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransaction,
         existingTransactionID,
         optimisticTransactionID: providedOptimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -1168,7 +1176,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
-    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, newCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
         getCurrencyDecimals,
         iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -1179,11 +1187,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         participants: [participant],
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: !shouldUseMoneyReport,
-        existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+        existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        reportActionID: currentReportActionID,
         currentUserAccountID: currentUserAccountIDParam,
         delegateAccountIDParam: delegateAccountID,
     });
+
+    const optimisticCreatedActionForTransactionThread =
+        existingTransactionThreadReportID && existingTransactionThreadCreatedReportActionID
+            ? buildOptimisticCreatedReportAction({emailCreatingAction: payeeEmail, optimisticReportActionID: existingTransactionThreadCreatedReportActionID})
+            : newCreatedActionForTransactionThread;
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
@@ -1215,6 +1229,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             threadReport: optimisticTransactionThread ?? {},
         },
         shouldCreateNewMoneyRequestReport,
+        existingTransactionThreadReportID,
         actionableTrackExpenseWhisper,
         retryParams,
         isASAPSubmitBetaEnabled,
@@ -1677,6 +1692,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -1804,6 +1820,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -2406,7 +2423,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins ?? {}, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -2489,6 +2506,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         isASAPSubmitBetaEnabled,
         currentUser,
         introSelected,
@@ -2507,6 +2527,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         writeBarrier,
         rules,
         personalDetailsByLogins,
+        reusableDistanceRoutes,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2626,6 +2647,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
@@ -2950,6 +2974,32 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
+
+            const isMapDistance =
+                (distanceRequestType ? distanceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : isMapDistanceRequest(existingTransaction)) ||
+                (!distanceRequestType && !gpsCoordinates && odometerStart === undefined && odometerEnd === undefined);
+
+            if (isMapDistance && validWaypoints && transaction?.transactionID && reusableDistanceRoutes !== undefined) {
+                const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy});
+                const effectiveDistance =
+                    modifiedDistance ??
+                    distance ??
+                    existingTransaction?.comment?.customUnit?.quantity ??
+                    (selectedRouteDistance ? Number(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistance, distanceUnit).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0);
+
+                const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+                    {
+                        transactionID: transaction.transactionID,
+                        waypoints: validWaypoints,
+                        distance: effectiveDistance,
+                        routeDistanceMeters: selectedRouteDistance,
+                        inserted: created ?? DateUtils.getDBTime(),
+                    },
+                    reusableDistanceRoutes ?? [],
+                );
+                onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+                onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
             }
 
             API.writeWhenReady(

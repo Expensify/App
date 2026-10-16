@@ -35,13 +35,13 @@ import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
@@ -174,6 +174,10 @@ function SubmitDetailsPage({
         },
         [],
     );
+
+    useEffect(() => {
+        snapshotUserLocation();
+    }, []);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -590,18 +594,7 @@ function SubmitDetailsPage({
             });
             return;
         }
-        getCurrentPosition(
-            (successData) => {
-                finishRequestAndNavigate(receipt, {
-                    lat: successData.coords.latitude,
-                    long: successData.coords.longitude,
-                });
-            },
-            (errorData) => {
-                Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                finishRequestAndNavigate(receipt);
-            },
-        );
+        getCurrentPositionWithinCap((gpsCoords) => finishRequestAndNavigate(receipt, gpsCoords));
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).

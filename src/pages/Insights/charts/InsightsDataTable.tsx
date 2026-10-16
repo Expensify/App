@@ -46,14 +46,14 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
 
     return (
         <View style={[styles.chartInlineTable, cardPaddingHorizontal]}>
-            {rows.map(({item, point, color}) => (
+            {rows.map(({item, point}) => (
                 <View
                     key={item.keyForList}
                     style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
                 >
                     <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
                         {isMemberGroup(item) ? (
-                            <View style={[styles.chartInlineTableAvatarBorder, !!color && StyleUtils.getBorderColorStyle(color)]}>
+                            <View style={[styles.chartInlineTableAvatarBorder, !!point.color && StyleUtils.getBorderColorStyle(point.color)]}>
                                 <UserAvatar
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     source={item.avatar}
@@ -61,7 +61,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                                 />
                             </View>
                         ) : (
-                            <View style={[styles.chartInlineTableDot, !!color && StyleUtils.getBackgroundColorStyle(color)]} />
+                            <View style={[styles.chartInlineTableDot, !!point.color && StyleUtils.getBackgroundColorStyle(point.color)]} />
                         )}
                         <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                     </View>

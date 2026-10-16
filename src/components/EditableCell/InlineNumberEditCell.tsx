@@ -5,6 +5,8 @@
  *
  * Callers convert to a frontend numeric string before passing `value`. Invalid values are
  * handled by onSave, which no-ops on rejection. The cell then reverts to the original value.
+ * A promise keeps the typed value on screen until the confirm modal closes. Cancelling that modal
+ * closes the editor. A synchronous false leaves the editor open with the typed value.
  */
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -14,7 +16,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 
@@ -71,7 +73,12 @@ function InlineNumberEditCell({
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const isRightAligned = textAlign === 'right';
 
-    const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, value, onSave, isEqual);
+    const refocusInput = () => {
+        inputRef.current?.focus();
+    };
+
+    const {isEditing, isAwaitingConfirm, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, value, onSave, isEqual, refocusInput);
+    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     const focusOnMount = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
@@ -83,7 +90,8 @@ function InlineNumberEditCell({
         inputRef.current?.blur();
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
+    // The confirm modal handles Escape while it is open. This shortcut would otherwise cancel the edit underneath it.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing && !isAwaitingConfirm});
 
     return (
         <EditableCell
@@ -107,15 +115,18 @@ function InlineNumberEditCell({
                     shouldApplyPaddingToContainer={false}
                     shouldRefocusOnScrollViewClick
                     hideFocusedState
+                    // A left-aligned amount grows into the cell. Measuring that width after paint makes each new digit jump, so the field fills the cell instead.
+                    autoGrow={isRightAligned}
                     onInputChange={setLocalValue}
                     onBlur={save}
                     onSubmitEditing={save}
                     accessibilityLabel={accessibilityLabel}
-                    style={[styles.lh16, styles.optionDisplayName, styles.pr0, isRightAligned && styles.textAlignRight]}
+                    style={[styles.lh16, styles.optionDisplayName, styles.pr0, !isRightAligned && styles.flex1, isRightAligned && styles.textAlignRight]}
                     containerStyle={[styles.editableCellInputStyle]}
+                    outerContainerStyles={!isRightAligned ? [styles.flex1, styles.mnw0] : undefined}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
-                    scrollViewStyle={[styles.flexRow, styles.alignItemsCenter, isRightAligned && styles.justifyContentEnd]}
-                    symbolTextStyle={styles.editableCellSymbolStyle}
+                    scrollViewStyle={[styles.flexRow, styles.alignItemsCenter, !isRightAligned && styles.w100, isRightAligned && styles.justifyContentEnd]}
+                    symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
                 />
             }
         >
