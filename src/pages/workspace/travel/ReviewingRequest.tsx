@@ -5,34 +5,16 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearTravelSignupRequest, getTravelRiskApproval} from '@libs/actions/Travel';
-
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
-type ReviewingRequestProps = {
-    policyID: string;
-};
-
-function ReviewingRequest({policyID}: ReviewingRequestProps) {
+function ReviewingRequest() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
-
-    useFocusEffect(
-        useCallback(() => {
-            getTravelRiskApproval(policyID).then((isTravelRiskApproved) => {
-                if (!isTravelRiskApproved) {
-                    return;
-                }
-                clearTravelSignupRequest();
-            });
-        }, [policyID]),
-    );
 
     return (
         <FeatureList
