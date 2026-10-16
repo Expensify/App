@@ -21,6 +21,7 @@ import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
+import usePolicy from './usePolicy';
 import usePrevious from './usePrevious';
 
 type UseResetIOUTypeParams = {
@@ -96,6 +97,10 @@ function useResetIOUType({
     });
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
+    // From global create there is no report, so `policy` is undefined. Fall back to the workspace of the default
+    // workspace chat so the draft uses that workspace's currency instead of the member's Payment currency.
+    const defaultParticipantPolicy = usePolicy(defaultParticipants?.find((participant) => participant.isPolicyExpenseChat)?.policyID);
+
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
             return;
@@ -116,7 +121,7 @@ function useResetIOUType({
         // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
-            policy,
+            policy: policy ?? defaultParticipantPolicy,
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,

@@ -27,6 +27,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -82,6 +83,7 @@ import {
     getIOURequestPolicyID,
     setCustomUnitRateID,
     setMoneyRequestCategory,
+    setMoneyRequestCurrency,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
@@ -374,6 +376,7 @@ function IOURequestStepConfirmationContent({
         }
         return resolvedDefaultParticipants;
     }, [hasSelectedParticipants, sourceReportID, resolvedDefaultParticipants]);
+    const defaultParticipantPolicy = usePolicy(defaultParticipants.find((participant) => participant.isPolicyExpenseChat)?.policyID);
 
     const shouldAutoOpenParticipantPicker = useMemo(() => {
         if (!transaction?.transactionID) {
@@ -594,7 +597,24 @@ function IOURequestStepConfirmationContent({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
+
+        // The draft was created before the default workspace was known, so it holds the member's Payment currency.
+        // Use the workspace currency instead, unless an amount was already entered. Distance rates set their own currency.
+        const defaultCurrency = defaultParticipantPolicy?.outputCurrency;
+        if (defaultCurrency && !transaction.isAmountSet && !isDistanceRequest && transaction.currency !== defaultCurrency) {
+            setMoneyRequestCurrency(transaction.transactionID, defaultCurrency);
+        }
+    }, [
+        transaction?.transactionID,
+        transaction?.participants,
+        transaction?.isAmountSet,
+        transaction?.currency,
+        defaultParticipants,
+        defaultParticipantPolicy?.outputCurrency,
+        isDistanceRequest,
+        isManualRequest,
+        navigation,
+    ]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
