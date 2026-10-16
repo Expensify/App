@@ -1,6 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
@@ -40,18 +41,22 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The question the buttons answer, read out by screen readers as the name of the group */
     accessibilityLabel?: string;
 
+    /** Style of the group, used instead of its default top margin */
+    containerStyle?: StyleProp<ViewStyle>;
+
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, accessibilityLabel, ref}: RadioButtonsProps) {
+function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, accessibilityLabel, containerStyle, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
     const [localValue, setLocalValue] = useState(defaultCheckedValue);
     const checkedValue = value !== undefined ? value : localValue;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     return (
         <>
             <View
-                style={styles.mt6}
+                style={containerStyle ?? styles.mt6}
                 ref={ref}
                 role={accessibilityLabel ? CONST.ROLE.RADIOGROUP : undefined}
                 accessibilityLabel={accessibilityLabel}
@@ -67,6 +72,8 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
                             return onSelect?.(item.value);
                         }}
                         label={item.label}
+                        // Native drops the group's name, since the group is not one element, so each option carries the question
+                        accessibilityLabel={accessibilityLabel && !isWeb ? `${item.label}, ${accessibilityLabel}` : undefined}
                         forwardedFSClass={forwardedFSClass}
                     />
                 ))}

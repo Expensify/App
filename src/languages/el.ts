@@ -4010,6 +4010,7 @@ ${amount} για ${merchant} - ${date}`,
             removeDelegate: 'Κατάργηση εκπροσώπου διακοπών',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, ολοκληρώθηκε`,
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
         if (total) {
@@ -4118,11 +4119,14 @@ ${amount} για ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
             tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
             tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
         removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',

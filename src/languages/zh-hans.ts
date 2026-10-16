@@ -3821,6 +3821,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             removeDelegate: '移除休假代理',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}，已完成`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `步骤 ${step}`;
         if (total) {
@@ -3924,11 +3925,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
             tooFewItems: ({min}: {min: number}) => `至少添加 ${min} 项`,
             tooManyItems: ({max}: {max: number}) => `最多添加 ${max} 项`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `添加${item}`,
         removeItemTitle: ({item}: {item: string}) => `移除${item}？`,
         removeItemPrompt: ({name}: {name: string}) => `确定要移除${name}吗？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `尾号为 ${ending} 的${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: '此页面上的问题已更改',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
