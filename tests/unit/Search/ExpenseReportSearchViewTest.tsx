@@ -88,17 +88,12 @@ jest.mock('@components/Search/SearchList/ListItem/ExpenseReportListItem', () => 
 });
 
 // Capture SelectionTopBar props so the selection-count math can be asserted directly.
-type CapturedTopBarProps = {selectedItemsLength: number; totalItems: number; isSelectAllChecked: boolean | undefined; hasMoreMatchingItems: boolean};
+type CapturedTopBarProps = {selectedItemsLength: number; totalItems: number; isSelectAllChecked: boolean | undefined};
 const mockTopBar: {current: CapturedTopBarProps | null} = {current: null};
 jest.mock('@components/Search/primitives/SelectionTopBar', () => ({
     __esModule: true,
     default: (props: CapturedTopBarProps) => {
-        mockTopBar.current = {
-            selectedItemsLength: props.selectedItemsLength,
-            totalItems: props.totalItems,
-            isSelectAllChecked: props.isSelectAllChecked,
-            hasMoreMatchingItems: props.hasMoreMatchingItems,
-        };
+        mockTopBar.current = {selectedItemsLength: props.selectedItemsLength, totalItems: props.totalItems, isSelectAllChecked: props.isSelectAllChecked};
         return null;
     },
 }));
@@ -164,7 +159,6 @@ type RenderOverrides = {
     tableHeaderVisible?: boolean;
     isMobileSelectionModeEnabled?: boolean;
     hasLoadedAllTransactions?: boolean;
-    hasMoreMatchingItems?: boolean;
     onSelectRow?: (item: SearchListItem) => void;
     onRenderCount?: () => void;
 };
@@ -192,7 +186,6 @@ function renderView(overrides: RenderOverrides = {}) {
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}
-                hasMoreMatchingItems={overrides.hasMoreMatchingItems ?? false}
                 newTransactions={[]}
                 onSelectRow={onSelectRow}
                 onEndReached={onEndReached}
@@ -285,18 +278,6 @@ describe('ExpenseReportSearchView', () => {
         expect(mockTopBar.current?.selectedItemsLength).toBe(2);
         expect(mockTopBar.current?.totalItems).toBe(2);
         expect(mockTopBar.current?.isSelectAllChecked).toBe(true);
-    });
-
-    it('passes whether more reports match than the page shows on to the select-all bar', async () => {
-        // Given a live to-do page whose row cap holds back more matching reports
-        const data = createMockReportData([{transactionCount: 1}, {transactionCount: 1}]);
-
-        // When the view renders its header bar
-        renderView({data, canSelectMultiple: true, tableHeaderVisible: true, hasMoreMatchingItems: true});
-        await waitForBatchedUpdates();
-
-        // Then the bar learns about the held-back reports, so select-all can offer every match
-        expect(mockTopBar.current?.hasMoreMatchingItems).toBe(true);
     });
 
     it('toggles selection on row tap while in mobile selection mode, instead of navigating', async () => {

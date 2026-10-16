@@ -199,7 +199,6 @@ function renderView(overrides: RenderOverrides = {}) {
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}
-                hasMoreMatchingItems={false}
                 newTransactions={[]}
                 onSelectRow={onSelectRow}
                 onEndReached={onEndReached}

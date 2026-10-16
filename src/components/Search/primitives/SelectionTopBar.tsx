@@ -27,9 +27,6 @@ type SelectionTopBarProps = {
     /** Whether all transactions are loaded (gates the fully-checked state in grouped views). */
     hasLoadedAllTransactions: boolean | undefined;
 
-    /** Whether more items match the search than the rows on this page (offers selecting all of them). */
-    hasMoreMatchingItems: boolean;
-
     /** Whether to render the textual select-all button (no column header present). */
     selectAllButtonVisible: boolean;
 
@@ -54,7 +51,6 @@ function SelectionTopBar({
     selectedItemsLength,
     totalItems,
     hasLoadedAllTransactions,
-    hasMoreMatchingItems,
     selectAllButtonVisible,
     onAllCheckboxPress,
     SearchTableHeader,
@@ -75,7 +71,6 @@ function SelectionTopBar({
                     isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                     selectedItemsLength={selectedItemsLength}
                     totalItems={totalItems}
-                    hasMoreMatchingItems={hasMoreMatchingItems}
                     shouldShowTextButton={selectAllButtonVisible}
                     onAllCheckboxPress={onAllCheckboxPress}
                 />

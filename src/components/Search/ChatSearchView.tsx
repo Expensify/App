@@ -42,7 +42,6 @@ function ChatSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    hasMoreMatchingItems,
     newTransactions,
     onSelectRow,
     ListFooterComponent,
@@ -110,7 +109,6 @@ function ChatSearchView({
                     selectedItemsLength={selectedItemsLength}
                     totalItems={totalItems}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    hasMoreMatchingItems={hasMoreMatchingItems}
                     selectAllButtonVisible={selectAllButtonVisible}
                     onAllCheckboxPress={toggleAll}
                     SearchTableHeader={searchTableHeader}

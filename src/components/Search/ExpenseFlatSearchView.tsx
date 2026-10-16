@@ -51,7 +51,6 @@ function ExpenseFlatSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    hasMoreMatchingItems,
     newTransactions,
     onSelectRow,
     ListFooterComponent,
@@ -159,7 +158,6 @@ function ExpenseFlatSearchView({
                     selectedItemsLength={selectedItemsLength}
                     totalItems={totalItems}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    hasMoreMatchingItems={hasMoreMatchingItems}
                     selectAllButtonVisible={selectAllButtonVisible}
                     onAllCheckboxPress={toggleAll}
                     SearchTableHeader={searchTableHeader}

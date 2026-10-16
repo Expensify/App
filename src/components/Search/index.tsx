@@ -166,7 +166,7 @@ function Search({
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
-    const {lastSearchType, shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
+    const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
@@ -227,9 +227,6 @@ function Search({
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
-    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection && !shouldUseLiveData) || shouldCalculateExpenseTotals;
-    const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
-    const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
     // report count, not the expense `count` (which is always present). Treat a missing reportCount as the missing
     // total so the totals retry below still fires. Otherwise a snapshot that has `count` but no `reportCount`
@@ -237,6 +234,12 @@ function Search({
     // button would stay loading forever.
     const isRequiredAllMatchingTotalMissing =
         isExpenseReportType && areAllMatchingItemsSelected ? typeof searchResults?.search?.reportCount !== 'number' : searchResults?.search?.count === undefined;
+    // Live to-do totals come only with page 1, unless the report count is missing. Merged onto older pages, they'd take a report that left off twice.
+    const shouldCalculateAllMatchingTotals = areAllMatchingItemsSelected && !isExpenseAllMatchingSelection && (!shouldUseLiveData || isRequiredAllMatchingTotalMissing);
+    const shouldCalculateTotals = shouldCalculateAllMatchingTotals || shouldCalculateExpenseTotals;
+    const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;
+    const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
+    const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
 
     useEffect(() => {
         if (searchRequestOffset === offset) {
@@ -304,7 +307,6 @@ function Search({
         hasDeletedTransaction,
         columns: computedColumns,
         hasLoadedAllTransactions,
-        hasRowsPastLimit,
         hasCachedOptimisticItem,
         showPendingExpensePlaceholder,
         shouldDeferHeavySearchWork,
@@ -1018,7 +1020,14 @@ function Search({
             // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
             if (isLivePageAdopted && !isOffline) {
                 setIsLivePageAdopted(false);
-                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+                handleSearch({
+                    queryJSON,
+                    searchKey: currentSearchKey,
+                    offset: nextOffset,
+                    shouldCalculateTotals: shouldCalculateNextPageTotals,
+                    prevReportsLength: filteredDataLength,
+                    isLoading: false,
+                });
             }
             return;
         }
@@ -1041,7 +1050,7 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset: nextOffset,
-            shouldCalculateTotals,
+            shouldCalculateTotals: shouldCalculateNextPageTotals,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
@@ -1068,7 +1077,7 @@ function Search({
         handleSearch,
         queryJSON,
         currentSearchKey,
-        shouldCalculateTotals,
+        shouldCalculateNextPageTotals,
         filteredDataLength,
     ]);
 
@@ -1511,10 +1520,6 @@ function Search({
         isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
     };
 
-    // On live searches the server's `hasMoreResults` stays stale until the next fetch, so the row cap decides. Other
-    // searches read the context, because `searchResults` can still be the previous query's while a refinement loads.
-    const hasMoreMatchingItems = shouldUseLiveData ? hasRowsPastLimit : !!currentSearchResults?.search?.hasMoreResults;
-
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
         data: stableSortedData,
@@ -1533,7 +1538,6 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        hasMoreMatchingItems,
         isActionColumnWide: isTask || hasDeletedTransaction,
         columnSizeOptions,
     };

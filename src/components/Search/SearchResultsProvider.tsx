@@ -53,19 +53,19 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // selections upstream, and this is the one place that would act on one anyway, so it checks for itself.
     const {isBetaEnabled} = usePermissions();
     const {footerTotal} = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) ? getFooterSelectionFromQuery(currentSearchQueryJSON) : {footerTotal: undefined};
-    const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal);
+    const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal, snapshotSearchResults?.search);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
     // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
     let currentSearchResults;
     if (shouldUseLiveData) {
-        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, reportCount: 0, total: 0, currency: undefined}};
+        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}};
         const searchInfo: SearchResultsInfo = {
             ...(snapshotSearchResults?.search ?? defaultSearchInfo),
             count: liveData.metadata.count,
-            reportCount: liveData.metadata.reportCount,
             total: liveData.metadata.total,
             currency: liveData.metadata.currency,
+            reportCount: liveData.metadata.reportCount,
         };
         const hasResults = Object.keys(liveData.data).length > 0;
         // For to-do searches, always return a valid SearchResults object (even with empty data)

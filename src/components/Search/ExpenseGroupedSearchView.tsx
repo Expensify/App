@@ -108,7 +108,6 @@ function ExpenseGroupedSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    hasMoreMatchingItems,
     newTransactions,
     onSelectRow,
     ListFooterComponent,
@@ -349,7 +348,6 @@ function ExpenseGroupedSearchView({
                     selectedItemsLength={selectedItemsLength}
                     totalItems={totalItems}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    hasMoreMatchingItems={hasMoreMatchingItems}
                     selectAllButtonVisible={selectAllButtonVisible}
                     onAllCheckboxPress={toggleAll}
                     SearchTableHeader={searchTableHeader}

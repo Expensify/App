@@ -50,7 +50,6 @@ function ExpenseReportSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    hasMoreMatchingItems,
     newTransactions,
     onSelectRow,
     ListFooterComponent,
@@ -150,7 +149,6 @@ function ExpenseReportSearchView({
                     selectedItemsLength={selectedItemsLength}
                     totalItems={totalItems}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    hasMoreMatchingItems={hasMoreMatchingItems}
                     selectAllButtonVisible={selectAllButtonVisible}
                     onAllCheckboxPress={toggleAll}
                     SearchTableHeader={searchTableHeader}
