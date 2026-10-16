@@ -1,5 +1,5 @@
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
-import {shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, isPolicyAdmin, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -15,6 +15,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
+import usePrevious from './usePrevious';
 
 function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
@@ -40,7 +41,20 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     };
     const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-    useEffect(() => getWorkspaceMembersEvent(), []);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
+    useEffect(() => getWorkspaceMembersEvent(), [shouldShowMemberBankAccounts]);
+
+    // Invited members aren't in the loaded bank accounts, so load the members again once they're added.
+    const accountIDs = Object.values(policyMemberEmailsToAccountIDs).map((accountID) => Number(accountID));
+    const prevAccountIDs = usePrevious(accountIDs);
+    useEffect(() => {
+        if (!shouldShowMemberBankAccounts || !prevAccountIDs.length || accountIDs.every((accountID) => prevAccountIDs.includes(accountID))) {
+            return;
+        }
+        getWorkspaceMembersEvent();
+    }, [accountIDs, prevAccountIDs, shouldShowMemberBankAccounts]);
 
     const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
     for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
