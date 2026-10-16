@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render, screen, userEvent} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -91,7 +91,11 @@ const createWithdrawalItem = (overrides: Partial<SearchWithdrawalIDGroup> = {}):
     keyForList: `group_${overrides.entryID ?? 123}`,
 });
 
-const renderHeader = (item: TransactionWithdrawalIDGroupListItemType, onDownArrowClick?: jest.Mock) =>
+const renderHeader = (
+    item: TransactionWithdrawalIDGroupListItemType,
+    onDownArrowClick?: jest.Mock,
+    props: Partial<Omit<Parameters<typeof WithdrawalIDListItemHeader>[0], 'withdrawalID'>> = {},
+) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <MockSearchContextProvider
@@ -104,6 +108,7 @@ const renderHeader = (item: TransactionWithdrawalIDGroupListItemType, onDownArro
                     onDownArrowClick={onDownArrowClick}
                     isExpanded={false}
                     columns={WIDE_COLUMNS}
+                    {...props}
                 />
             </MockSearchContextProvider>
         </ComposeProviders>,
@@ -138,6 +143,105 @@ describe('WithdrawalIDListItemHeader', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it.each([
+        {isSelectAllChecked: false, isIndeterminate: false, checked: false},
+        {isSelectAllChecked: true, isIndeterminate: false, checked: true},
+        {isSelectAllChecked: false, isIndeterminate: true, checked: 'mixed'},
+    ] as const)('emits the original withdrawal once with checkbox state $checked', async ({isSelectAllChecked, isIndeterminate, checked}) => {
+        // Given settlement selection must retain the complete producer row and parent-owned checkbox state.
+        const item = createWithdrawalItem();
+        const selectItem = jest.fn<void, [TransactionWithdrawalIDGroupListItemType]>();
+        renderHeader(item, undefined, {canSelectMultiple: true, onCheckboxPress: selectItem, isSelectAllChecked, isIndeterminate});
+        await waitForBatchedUpdatesWithAct();
+        // When the real checkbox dispatches a selection event.
+        const checkbox = screen.getByRole('checkbox');
+        if (checked === 'mixed') {
+            expect(checkbox).toBePartiallyChecked();
+        } else if (checked) {
+            expect(checkbox).toBeChecked();
+        } else {
+            expect(checkbox).not.toBeChecked();
+            expect(checkbox).not.toBePartiallyChecked();
+        }
+        await userEvent.setup().press(checkbox);
+        // Then the caller receives exactly the supplied object once.
+        expect(selectItem).toHaveBeenCalledTimes(1);
+        const selectedItem = selectItem.mock.calls.at(0)?.[0];
+        expect(selectedItem).toBeDefined();
+        expect(selectedItem).toBe(item);
+    });
+
+    it.each(['header', 'row'] as const)('blocks selection disabled by the %s', async (disabledBy) => {
+        // Given either the row or its parent can disallow selection.
+        const item = {...createWithdrawalItem(), isDisabledCheckbox: disabledBy === 'row'};
+        const selectItem = jest.fn<void, [TransactionWithdrawalIDGroupListItemType]>();
+        renderHeader(item, undefined, {canSelectMultiple: true, onCheckboxPress: selectItem, isDisabled: disabledBy === 'header'});
+        await waitForBatchedUpdatesWithAct();
+        // When a host press is attempted, userEvent respects the disabled control instead of calling composite handlers.
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toBeDisabled();
+        await userEvent.setup().press(checkbox);
+        // Then disabled settlements remain unselected.
+        expect(selectItem).not.toHaveBeenCalled();
+    });
+
+    it.each([false, undefined])('omits selection when canSelectMultiple is %s', async (canSelectMultiple) => {
+        // Given selection is unavailable in some search modes.
+        const item = createWithdrawalItem();
+        // When the header renders without multiple selection enabled.
+        renderHeader(item, undefined, {canSelectMultiple});
+        await waitForBatchedUpdatesWithAct();
+        // Then it does not offer a checkbox.
+        expect(screen.queryByRole('checkbox')).toBeNull();
+    });
+
+    it('allows selection without a callback', async () => {
+        // Given the checkbox callback is optional.
+        renderHeader(createWithdrawalItem(), undefined, {canSelectMultiple: true});
+        await waitForBatchedUpdatesWithAct();
+        // When selection is pressed before a callback is attached.
+        await userEvent.setup().press(screen.getByRole('checkbox'));
+        // Then the header remains available without throwing.
+        expect(screen.getByRole('checkbox')).toBeOnTheScreen();
+    });
+
+    it('keeps supported column order and duplicates while omitting unsupported columns', async () => {
+        // Given MERCHANT is a valid search column without a withdrawal-header cell.
+        const item = createWithdrawalItem({entryID: 456, total: 12345, count: 7});
+        // When the caller places totals before the withdrawal ID and requests a duplicate total.
+        renderHeader(item, undefined, {
+            columns: [
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            ],
+        });
+        await waitForBatchedUpdatesWithAct();
+        // Then supported cells retain their order and unsupported columns add no fallback.
+        const cells = screen.getAllByText(/^(\$123\.45|456|7)$/);
+        expect(cells).toHaveLength(4);
+        expect(cells.at(0)).toBe(screen.getAllByText('$123.45').at(0));
+        expect(cells.at(1)).toBe(screen.getByText('456'));
+        expect(cells.at(2)).toBe(screen.getByText('7'));
+        expect(cells.at(3)).toBe(screen.getAllByText('$123.45').at(1));
+        expect(screen.queryByText('Merchant')).toBeNull();
+        expect(screen.getAllByText(/.+/)).toHaveLength(4);
+    });
+
+    it.each([undefined, []])('renders no wide cells for columns %s', async (columns) => {
+        // Given wide headers render only the columns the caller requests.
+        const item = createWithdrawalItem({entryID: 456, total: 12345, count: 7});
+        // When no columns are requested.
+        renderHeader(item, undefined, {columns});
+        await waitForBatchedUpdatesWithAct();
+        // Then no identifying, expense, or total cell appears by default.
+        expect(screen.queryByText('456')).toBeNull();
+        expect(screen.queryByText('7')).toBeNull();
+        expect(screen.queryByText('$123.45')).toBeNull();
     });
 
     describe('Cash back row', () => {

@@ -858,7 +858,7 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(cardFeed: string | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
     if (cardFeed === undefined) {
         return illustrations.GenericCompanyCardLarge;
     }
@@ -887,7 +887,8 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         return companyCardIllustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
+    // Raw bank text can match inherited property names, so only owned feed entries can supply an icon.
+    const [, feedIcon] = Object.entries(feedIcons).find(([feed]) => feed === cardFeed) ?? [];
     if (feedIcon) {
         return feedIcon;
     }
