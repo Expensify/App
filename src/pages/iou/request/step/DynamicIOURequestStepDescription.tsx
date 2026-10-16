@@ -242,6 +242,7 @@ function DynamicIOURequestStepDescription({
                         ref={inputCallbackRef}
                         hint={descriptionHint}
                         shouldRenderHintAsHTML={!!descriptionHint}
+                        shouldAllowFocusInLandscapeMode
                     />
                 </View>
             </FormProvider>

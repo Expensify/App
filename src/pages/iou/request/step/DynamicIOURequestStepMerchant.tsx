@@ -224,6 +224,7 @@ function DynamicIOURequestStepMerchant({
                         role={CONST.ROLE.PRESENTATION}
                         editable={!isDiscardModalVisible}
                         ref={inputCallbackRef}
+                        shouldAllowFocusInLandscapeMode
                     />
                 </View>
             </FormProvider>
