@@ -12,6 +12,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCompanyCardNumberSearch, {normalizeCardNumber} from '@hooks/useCompanyCardNumberSearch';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,7 +40,7 @@ import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -54,6 +55,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
+    // getCompanyCardFeed strips the domain suffix so the plain feed id matches the server results.
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, getCompanyCardFeed(feed));
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -134,21 +137,37 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
+    // Feed the typed text into the server search; a 13-19 digit number is matched on the backend.
+    const {setSearchValue: setCompanyCardNumberSearchValue} = companyCardNumberSearch;
+    useEffect(() => {
+        setCompanyCardNumberSearchValue(searchText);
+    }, [searchText, setCompanyCardNumberSearchValue]);
+
     const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, cardListOptions]);
+        const tokenizedOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+
+        // A full card number can't match the masked name, so OR in the cards the server matched by their
+        // encryptedCardNumber (the option value here), but only while the typed number matches the results.
+        const {resultsQuery, matchedEncryptedNumbers} = companyCardNumberSearch;
+        if (!resultsQuery || normalizeCardNumber(searchText) !== resultsQuery) {
+            return tokenizedOptions;
+        }
+        const seenKeys = new Set(tokenizedOptions.map((option) => option.keyForList));
+        const serverMatchedOptions = cardListOptions.filter((option) => matchedEncryptedNumbers.has(option.value) && !seenKeys.has(option.keyForList));
+        return [...tokenizedOptions, ...serverMatchedOptions];
+    }, [searchText, cardListOptions, companyCardNumberSearch]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
     const textInputOptions = useMemo(
         () => ({
-            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+            headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching ? undefined : translate('common.noResultsFound'),
             label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
             value: searchText,
             onChangeText: setSearchText,
             shouldBeInsideList: true,
         }),
-        [cardListOptions.length, searchText, searchedListOptions.length, translate],
+        [cardListOptions.length, searchText, searchedListOptions.length, companyCardNumberSearch.isSearching, translate],
     );
 
     const customListHeader = (

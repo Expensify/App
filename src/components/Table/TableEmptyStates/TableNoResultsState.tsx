@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {GenericEmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
@@ -5,8 +6,10 @@ import {useTableContext} from '@components/Table/TableContext';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
@@ -16,10 +19,14 @@ type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMed
     headerMedia?: IconAsset;
     title?: string;
     subtitle?: string;
+
+    /** Shows a spinner in the empty slot instead of the "no results" state, e.g. while an async search runs */
+    shouldShowLoadingIndicator?: boolean;
 };
 
-export default function TableNoResultsState(emptyStateProps: TableNoResultsStateProps) {
+export default function TableNoResultsState({shouldShowLoadingIndicator = false, ...emptyStateProps}: TableNoResultsStateProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isEmptyResult, tableListMetadata} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
@@ -28,7 +35,14 @@ export default function TableNoResultsState(emptyStateProps: TableNoResultsState
         return null;
     }
 
-    const content = (
+    const content = shouldShowLoadingIndicator ? (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <ActivityIndicator
+                color={theme.spinner}
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+            />
+        </View>
+    ) : (
         <GenericEmptyStateComponent
             headerMedia={illustrations.EmptyShelves}
             headerContentStyles={styles.emptyShelvesIllustration}

@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useCompanyCardNumberSearch, {normalizeCardNumber} from '@hooks/useCompanyCardNumberSearch';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -115,6 +116,10 @@ function WorkspaceCompanyCardsTable({
         isFeedPending,
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
+
+    // Server-side search for a full card number, which the masked card name can never match. bankName is the
+    // plain feed id (e.g. "gl1025"); selectedFeed is the feed object and feedName carries a domain suffix.
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, bankName, domainOrWorkspaceAccountID);
 
     const {cardFeedErrors} = useCardFeedErrors();
     const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
@@ -296,6 +301,9 @@ function WorkspaceCompanyCardsTable({
                       disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
+                      isPartialNumberMatch:
+                          (cardID !== undefined && companyCardNumberSearch.lastFourCardIDs.has(cardID)) ||
+                          (!!encryptedCardNumber && companyCardNumberSearch.lastFourEncryptedNumbers.has(encryptedCardNumber)),
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
@@ -394,8 +402,17 @@ function WorkspaceCompanyCardsTable({
             ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
         ];
 
+        // A full card number can only be matched by the server. Apply those matches only while the typed
+        // number still matches the results in hand, matching by cardID (assigned) or encryptedCardNumber
+        // (unassigned) — never by the masked cardName, whose suffix length differs between code paths.
+        const isServerCardMatch =
+            !!companyCardNumberSearch.resultsQuery &&
+            normalizeCardNumber(searchString) === companyCardNumberSearch.resultsQuery &&
+            ((item.assignedCard?.cardID !== undefined && companyCardNumberSearch.matchedCardIDs.has(item.assignedCard.cardID)) ||
+                (!!item.encryptedCardNumber && companyCardNumberSearch.matchedEncryptedNumbers.has(item.encryptedCardNumber)));
+
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
-        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
+        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch || isServerCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {
@@ -506,6 +523,7 @@ function WorkspaceCompanyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
+            onSearchStringChange={companyCardNumberSearch.setSearchValue}
             shouldUseDynamicColumns
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
@@ -576,7 +594,9 @@ function WorkspaceCompanyCardsTable({
                     {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                 </Table.EmptyState>
             )}
-            {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState />}
+            {/* While a full-number search is in flight, the no-results slot shows a spinner instead of
+            "No results" so the empty state does not flash before the server matches arrive. */}
+            {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState shouldShowLoadingIndicator={companyCardNumberSearch.isSearching} />}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
         </Table>

@@ -41,6 +41,10 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
+// Collection keys (matched by prefix) whose every entry is removed from the export. Used for RAM-only
+// collections that hold a plain value, such as the typed card number in a company-card search.
+const collectionKeysToRemove = new Set<string>([ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]);
+
 // ============================================================
 // 2. KEYS WITH EXPORT RULES - keep some fields, mask the rest
 // ============================================================
@@ -818,6 +822,16 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
 
     for (const key of Object.keys(onyxState)) {
         if (onyxKeysToRemove.has(key as ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXKEYS.DERIVED>)) {
+            continue;
+        }
+        let isCollectionKeyToRemove = false;
+        for (const prefix of collectionKeysToRemove) {
+            if (key.startsWith(prefix)) {
+                isCollectionKeyToRemove = true;
+                break;
+            }
+        }
+        if (isCollectionKeyToRemove) {
             continue;
         }
         newState[key] = onyxState[key];

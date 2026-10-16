@@ -6660,6 +6660,7 @@ ${amount} para ${merchant} - ${date}`,
                 allCards: 'Todas las tarjetas',
                 assignedCards: 'Asignadas',
                 unassignedCards: 'No asignadas',
+                matchesLastFourDigitsOnly: 'Solo coincide con los últimos 4 dígitos',
                 integrationExport: (integration, type) => (integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`),
                 integrationExportTitle: (integration, exportPageLink) =>
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.${exportPageLink ? ` Seleccione una cuenta diferente <a href="${exportPageLink}">opción de exportación</a> para cambiar las cuentas disponibles.` : ''}`,
