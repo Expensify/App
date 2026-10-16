@@ -3,14 +3,18 @@ import {afterEach, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import run from '@github/actions/javascript/validateReassureOutput/validateReassureOutput';
 
+import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
+
 import * as core from '@actions/core';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-type Entry = {meanCount: number; meanDuration: number};
+type Entry = Pick<MeasureEntry, 'meanCount' | 'meanDuration'>;
 
-function buildOutput(countChanged: Array<{name: string; baseline: Entry; current: Entry}> | undefined) {
+type CountChangedEntry = Pick<CompareResult['countChanged'][number], 'name'> & {baseline: Entry; current: Entry};
+
+function buildOutput(countChanged: CountChangedEntry[] | undefined) {
     return JSON.stringify({countChanged});
 }
 
