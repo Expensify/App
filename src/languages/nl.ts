@@ -982,6 +982,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
+            addDepositAccount: {title: 'Voeg een bankrekening toe om betalingen te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify Kaart',
@@ -11402,6 +11403,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 refundedOn: ({date}: {date: string}) => `Terugbetaald op ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
             },
+            billedTo: 'Gefactureerd aan',
+            viewReceipt: 'Bon bekijken',
+            viewInvoice: 'Factuur bekijken',
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',

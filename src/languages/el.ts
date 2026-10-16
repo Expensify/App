@@ -1028,6 +1028,9 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {
                 title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
             },
+            addDepositAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λαμβάνετε πληρωμές',
+            },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
@@ -11707,6 +11710,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
+            billedTo: 'Χρέωση σε',
+            viewReceipt: 'Προβολή απόδειξης',
+            viewInvoice: 'Προβολή τιμολογίου',
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',

@@ -3636,6 +3636,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
         policyID: string;
     };
+    [SCREENS.BILLING_RECEIPT]: AttachmentModalContainerModalProps & {purchaseID: string};
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;
         policyID?: string;
