@@ -4,7 +4,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
+import type {Text, TextInput, View} from 'react-native';
 
 type PopoverWithoutOverlayProps = ChildrenProps &
     Omit<BaseModalProps, 'type' | 'popoverAnchorPosition'> & {
@@ -15,7 +15,7 @@ type PopoverWithoutOverlayProps = ChildrenProps &
             left?: number;
         };
 
-        anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null>;
+        anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null>;
 
         /** Time in milliseconds for the modal entering animation */
         animationInTiming?: number;

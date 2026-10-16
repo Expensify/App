@@ -58,6 +58,12 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+type BreakdownRow = {
+    label: TranslationPaths;
+    value: string;
+    show: boolean;
+};
+
 type MoneyReportViewProps = {
     report: OnyxEntry<Report>;
 
@@ -150,6 +156,7 @@ function MoneyReportView({
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
+    const pendingFieldEntries = Object.entries(report?.pendingFields ?? {});
 
     const renderThreadDivider = useMemo(
         () =>
@@ -184,6 +191,7 @@ function MoneyReportView({
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
+                                const fieldPendingAction = pendingFieldEntries.find(([key]) => key === fieldKey)?.[1];
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
@@ -191,7 +199,7 @@ function MoneyReportView({
                                 return (
                                     <OfflineWithFeedback
                                         // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                                        pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
+                                        pendingAction={pendingAction ? undefined : fieldPendingAction}
                                         errors={report?.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
@@ -257,12 +265,14 @@ function MoneyReportView({
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
-                                ]
+                                {(
+                                    [
+                                        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+                                        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+                                        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+                                        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+                                    ] satisfies BreakdownRow[]
+                                )
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
                                         <View
@@ -274,7 +284,7 @@ function MoneyReportView({
                                                     style={[styles.textLabelSupporting, hasPendingAction && styles.opacitySemiTransparent]}
                                                     numberOfLines={1}
                                                 >
-                                                    {translate(label as TranslationPaths)}
+                                                    {translate(label)}
                                                 </Text>
                                             </View>
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>
