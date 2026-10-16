@@ -376,18 +376,31 @@ describe('getReceiptSource', () => {
 });
 
 describe('isInvoiceBilling', () => {
-    it('returns true for invoicing billing type', () => {
-        // Given a purchase with invoicing billing type
+    it('returns true for an invoice bill with a receipt', () => {
+        // Given an invoice purchase with a receipt source
         const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
 
         // When checking if the purchase is invoice billing
         // Then it returns true
         expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(true);
     });
 
+    it('returns true for a cleared invoice by following the failedPurchaseID chain', () => {
+        // Given a cleared invoice bill whose original failed invoice holds the receipt
+        const failedInvoice = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        failedInvoice.receipt = {receiptID: 200, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(20, '2026-02-05', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When checking if the clear purchase is invoice billing
+        // Then it follows the chain to the failed invoice and returns true
+        expect(isInvoiceBilling(toPurchases([failedInvoice, clear]), 20)).toBe(true);
+    });
+
     it('returns false for non-invoicing billing type', () => {
-        // Given a purchase with a non-invoicing billing type
+        // Given a non-invoicing purchase with a receipt
         const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_CLEAR});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
 
         // When checking if the purchase is invoice billing
         // Then it returns false

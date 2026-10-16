@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 
 import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import {getReceiptFileName, getReceiptSource} from '@libs/PaymentHistoryUtils';
+import {getReceiptFileName, getReceiptSource, isInvoiceBilling} from '@libs/PaymentHistoryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -54,12 +54,13 @@ function BillingReceiptModalContent() {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    const originalFileName = getReceiptFileName(source, purchaseID);
+    const originalFileName = getReceiptFileName(source, numericPurchaseID);
+    const isInvoice = isInvoiceBilling(purchases, numericPurchaseID);
 
     const contentProps: AttachmentModalBaseContentProps = {
         source,
         originalFileName,
-        headerTitle: translate('common.receipt'),
+        headerTitle: translate(isInvoice ? 'common.invoice' : 'common.receipt'),
         isAuthTokenRequired: true,
         shouldShowNotFoundPage: !source,
         onDownloadAttachment,

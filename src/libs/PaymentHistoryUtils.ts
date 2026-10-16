@@ -316,9 +316,9 @@ function getBadgeText(badge: PaymentDetailsBadge, state: PaymentHistoryState, tr
 }
 
 /**
- * Resolves the receipt source URL for a purchase, walking the failedPurchaseID chain for cleared bills.
+ * Returns the purchase whose receipt source applies to this bill, walking the failedPurchaseID chain for cleared bills.
  */
-function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: number): string | null {
+function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID: number): Purchase | null {
     if (!purchases) {
         return null;
     }
@@ -327,7 +327,7 @@ function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: n
         return null;
     }
     if (purchase.receipt?.source) {
-        return purchase.receipt.source;
+        return purchase;
     }
 
     if (!isClear(purchase) || !purchase.message.failedPurchaseID) {
@@ -343,7 +343,7 @@ function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: n
             return null;
         }
         if (current.receipt?.source) {
-            return current.receipt.source;
+            return current;
         }
         currentID = current.message.failedPurchaseID;
     }
@@ -351,12 +351,15 @@ function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: n
     return null;
 }
 
-function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: number): boolean {
-    const purchase = purchases?.[String(purchaseID)];
-    return purchase?.message.billingType === CONST.BILLING.TYPE_INVOICING;
+function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: number): string | null {
+    return getReceiptPurchase(purchases, purchaseID)?.receipt?.source ?? null;
 }
 
-function getReceiptFileName(source: string, purchaseID: number | string): string {
+function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: number): boolean {
+    return getReceiptPurchase(purchases, purchaseID)?.message.billingType === CONST.BILLING.TYPE_INVOICING;
+}
+
+function getReceiptFileName(source: string, purchaseID: number): string {
     try {
         const pathname = new URL(source).pathname;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
