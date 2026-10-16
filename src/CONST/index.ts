@@ -1007,43 +1007,9 @@ const CONST = {
             EXPENSIFY: 'EXPENSIFY',
             WISE: 'WISE',
         },
-        // Wise's KYC requirement types we collect. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
+        // Wise's KYC requirement types we collect
         KYC_REQUIREMENT: {
-            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
-            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
-        },
-        // Wise's source-of-wealth values
-        SOURCE_OF_WEALTH: {
-            REVENUE: 'REVENUE',
-            PERSONAL_FUNDING: 'PERSONAL_FUNDING',
-            BUSINESS_LOAN: 'BUSINESS_LOAN',
-            FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'FUNDING_AND_SHAREHOLDER_INVESTMENTS',
-            INVESTMENT_INCOME: 'INVESTMENT_INCOME',
-            DONATIONS: 'DONATIONS',
-            GRANTS: 'GRANTS',
-            LEGAL: 'LEGAL',
-        },
-        // Wise's proof-of-wealth document types
-        SOURCE_OF_WEALTH_DOCUMENT_TYPE: {
-            PAYSLIP: 'PAYSLIP',
-            INVOICES: 'INVOICES',
-            CONTRACTS: 'CONTRACTS',
-            TAX_DOCUMENTS: 'TAX_DOCUMENTS',
-            AUDITED_FINANCIAL_STATEMENTS: 'AUDITED_FINANCIAL_STATEMENTS',
-            E_COMMERCE_STATEMENTS: 'E_COMMERCE_STATEMENTS',
-            PERSONAL_INVESTMENT: 'PERSONAL_INVESTMENT',
-            PERSONAL_LOAN_AGREEMENT: 'PERSONAL_LOAN_AGREEMENT',
-            PERSONAL_TAX_DECLARATION: 'PERSONAL_TAX_DECLARATION',
-            LOAN_AGREEMENT: 'LOAN_AGREEMENT',
-            EQUITY_AGREEMENT: 'EQUITY_AGREEMENT',
-            SUBSCRIPTION_AGREEMENT: 'SUBSCRIPTION_AGREEMENT',
-            SAVINGS_STATEMENT: 'SAVINGS_STATEMENT',
-            ASSET_SALE_AGREEMENT: 'ASSET_SALE_AGREEMENT',
-            SHARE_SALE_CERTIFICATE: 'SHARE_SALE_CERTIFICATE',
-            DONATION_RECEIPTS: 'DONATION_RECEIPTS',
-            GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
-            WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
-            BANK_STATEMENT: 'BANK_STATEMENT',
+            ID_DOCUMENT: 'ID_DOCUMENT',
         },
         // Wise's companyRole values
         COMPANY_ROLE: {
@@ -1051,7 +1017,7 @@ const CONST = {
             DIRECTOR: 'DIRECTOR',
             OTHER: 'OTHER',
         },
-        // Wise's industryCategories values, keys only. docs.wise.com/guides/product/account-setup/customer-onboarding/business-categories
+        // Wise's industryCategories values, keys only
         INDUSTRY_CATEGORIES: [
             'GROWING_OF_CROPS_AGRICULTURE',
             'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',
