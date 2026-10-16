@@ -24,7 +24,6 @@ import {
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
-import {openRecipientPicker} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,13 +105,6 @@ function DynamicIOURequestStepParticipants({
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
         isDistanceRequest: isDistanceRequest(initialTransaction),
     });
-
-    useEffect(() => {
-        if (shouldExcludeWorkspaces) {
-            return;
-        }
-        openRecipientPicker();
-    }, [shouldExcludeWorkspaces]);
 
     const hasEndedSpan = useRef(false);
     useEffect(() => {
