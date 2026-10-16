@@ -1,4 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
@@ -182,6 +182,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
+    // `getPieChartLoadingHeight` reserves this row as one line of normal-size text, so the label has to keep that size.
     const renderLegendItem = (slice: PieSlice) => {
         return (
             <View
@@ -269,18 +270,10 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 }
 
 function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
-    const styles = useThemeStyles();
-
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
+    useReportChartLoading(isLoading);
 
     if (isLoading || chartWidth === null) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

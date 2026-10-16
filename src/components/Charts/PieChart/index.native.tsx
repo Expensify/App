@@ -1,4 +1,5 @@
-import ChartWidthBox from '@components/Charts/components/ChartWidthBox';
+import ChartFrame from '@components/Charts/components/ChartFrame';
+import {getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
 
@@ -8,14 +9,18 @@ import PieChartContent from './PieChartContent';
 
 function PieChart(props: PieChartProps) {
     return (
-        <ChartWidthBox>
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            loadingHeight={getPieChartLoadingHeight(props.shouldShowLegend)}
+        >
             {(chartWidth) => (
                 <PieChartContent
                     {...props}
                     chartWidth={chartWidth}
                 />
             )}
-        </ChartWidthBox>
+        </ChartFrame>
     );
 }
 

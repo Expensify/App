@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import {BAR_CORNER_RADIUS, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
@@ -15,7 +14,8 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +25,6 @@ import variables from '@styles/variables';
 
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {Bar, CartesianChart} from 'victory-native';
@@ -200,8 +199,8 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         );
     };
 
-    const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0) : 0;
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const labelSpace = shouldShowLabels ? getXAxisLabelSpace(xAxisLabelHeight) : 0;
+    const chartHeight = getBarChartHeight(shouldShowLabels, xAxisLabelHeight);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
 
     return (
@@ -263,19 +262,10 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
 }
 
 function VerticalBarChartContentBody({isLoading = false, chartWidth, ...canvasProps}: BarChartContentProps) {
-    const styles = useThemeStyles();
     const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
-
     if (!readyCanvas) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

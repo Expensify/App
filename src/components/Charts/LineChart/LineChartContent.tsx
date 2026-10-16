@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
@@ -17,16 +16,8 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {
-    CARTESIAN_Y_AXIS,
-    CHART_CONTENT_MIN_HEIGHT,
-    DASH_INTERVALS,
-    GLYPH_PADDING,
-    LABEL_PADDING,
-    LABEL_ROTATIONS,
-    SIN_45,
-    X_AXIS_LABEL_MIN_GAP,
-} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {CARTESIAN_Y_AXIS, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -37,7 +28,6 @@ import variables from '@styles/variables';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart, Line} from 'victory-native';
@@ -181,7 +171,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         plotRight.set(bounds.right);
     };
 
-    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
+    const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
 
     const isInPlotArea = (args: HitTestArgs) => {
         'worklet';
@@ -309,7 +299,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         );
     };
 
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const chartHeight = getCartesianChartHeight(xAxisLabelHeight);
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
@@ -371,19 +361,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
 }
 
 function LineChartContentBody({isLoading = false, chartWidth, ...canvasProps}: LineChartContentProps) {
-    const styles = useThemeStyles();
     const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
-
     if (!readyCanvas) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (
