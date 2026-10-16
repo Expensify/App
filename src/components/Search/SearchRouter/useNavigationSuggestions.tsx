@@ -145,6 +145,9 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled: boolean;
 
+    /** Whether the company agents beta is enabled. */
+    isCompanyAgentsBetaEnabled: boolean;
+
     /** Whether the unified Connections beta replaces the separate connection pages. */
     isUnifiedConnectionsBetaEnabled: boolean;
 
@@ -296,6 +299,7 @@ function buildWorkspaceNavigationItems({
     isOffline,
     isVendorMatchingBetaEnabled,
     isRecruitingBetaEnabled,
+    isCompanyAgentsBetaEnabled,
     isUnifiedConnectionsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
@@ -316,6 +320,7 @@ function buildWorkspaceNavigationItems({
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
                 isRecruitingBetaEnabled,
+                isCompanyAgentsBetaEnabled,
                 isUnifiedConnectionsBetaEnabled,
                 convertToDisplayString,
             });
@@ -453,6 +458,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         isUnifiedConnectionsBetaEnabled,
         shouldUseNarrowLayout,
         convertToDisplayString,

@@ -971,7 +971,7 @@ const CONST = {
         FILE_LIMIT: 1,
     },
     DYNAMIC_FORM: {
-        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
         LARGE_SELECT_MIN_OPTIONS: 10,
 
         /** Most questions sharing a page when pages are built from a flat list of fields */
@@ -1207,6 +1207,7 @@ const CONST = {
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
     },
@@ -1703,6 +1704,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             DOWNLOAD_RECEIPTS: 'downloadReceipts',
+            SHARE: 'share',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1866,6 +1868,7 @@ const CONST = {
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
+                MERGED_EXPENSE_DELETED: 'MERGEDEXPENSEDELETED',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
@@ -4699,8 +4702,10 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            ALL_REPORTS: 'allReports',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
             WORKFLOWS_PAYMENTS: 'workflowsPayments',
@@ -4940,6 +4945,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS: 'preventPayoutNonReimbursableReports',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         PROHIBITED_EXPENSES: {
@@ -6055,7 +6061,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
@@ -8332,6 +8337,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8426,6 +8432,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'any-approval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -9325,14 +9332,6 @@ const CONST = {
     // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
     SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
 
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
-
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
@@ -9458,6 +9457,7 @@ const CONST = {
         TYPE_TRANSFER_TO: 'transfer_to',
         TYPE_TRANSFER_FAILED: 'transfer_failed',
         TYPE_TRANSFER_OLD: 'transfer_old',
+        TYPE_INVOICING: 'invoicing2018',
     },
     PAYMENT_HISTORY: {
         STATE: {
@@ -9868,6 +9868,11 @@ const CONST = {
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
             DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
+            SHARE: 'MoreMenu-Share',
+            SHARE_REPORT: 'MoreMenu-ShareReport',
+            SHARE_CODE: 'MoreMenu-ShareCode',
+            REFER_FRIEND: 'MoreMenu-ReferFriend',
+            COPY_URL: 'MoreMenu-CopyURL',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -10139,6 +10144,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
@@ -10387,6 +10393,9 @@ const CONST = {
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
         },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
+        },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         },
@@ -10481,6 +10490,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
@@ -10547,10 +10557,6 @@ const CONST = {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
         },
-        AI_FEATURES_PROMO_MODAL: {
-            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
-            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
-        },
     },
 
     /**
@@ -10567,6 +10573,11 @@ const CONST = {
     },
 
     AGENTS: {
+        OWNER_TYPE: {
+            PERSON: 'person',
+            WORKSPACE: 'workspace',
+            DOMAIN: 'domain',
+        },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
         },
