@@ -82,8 +82,6 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
-            targetReportOwnerAsAttendee,
-            sourceReportOwnerAsAttendee,
         );
 
         setMergeTransactionKey(transactionID, mergeableData);
@@ -98,8 +96,6 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         targetTransactionPolicy,
         sourceTransactionPolicy,
         getCurrencyDecimals,
-        targetReportOwnerAsAttendee,
-        sourceReportOwnerAsAttendee,
     ]);
 
     // Handle selection

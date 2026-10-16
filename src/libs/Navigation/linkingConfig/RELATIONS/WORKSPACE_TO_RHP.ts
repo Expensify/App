@@ -10,6 +10,8 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
     [SCREENS.WORKSPACE.PROFILE]: [
         SCREENS.WORKSPACE.NAME,
         SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+        SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+        SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
         SCREENS.WORKSPACE.CURRENCY,
         SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY,
         SCREENS.WORKSPACE.DESCRIPTION,
@@ -33,6 +35,7 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         // would make getMatchingFullScreenRoute resolve that pane before reaching the dynamic base-path branch,
         // forcing Members underneath even when opened from Workflows. Leaving it out lets the base path decide.
     ],
+    [SCREENS.WORKSPACE.AGENTS]: [],
     [SCREENS.WORKSPACE.ROOMS]: [SCREENS.WORKSPACE.ROOM_CREATE],
     [SCREENS.WORKSPACE.WORKFLOWS]: [
         SCREENS.WORKSPACE.WORKFLOWS_IMPORT,
