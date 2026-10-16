@@ -4,6 +4,7 @@ import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -21,17 +22,11 @@ type BuildInsightsChartCSVParams = {
     translate: LocalizedTranslate;
 };
 
-const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
 const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'common.from',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
 };
-
-function escapeCsvField(value: string): string {
-    const safeValue = CSV_FORMULA_PREFIX_REGEXP.test(value) ? `'${value}` : value;
-    return /[",\r\n]/.test(safeValue) ? `"${safeValue.replaceAll('"', '""')}"` : safeValue;
-}
 
 function getPeriodStarts(groupBy: SearchGroupBy, interval: Interval): Date[] {
     switch (groupBy) {
