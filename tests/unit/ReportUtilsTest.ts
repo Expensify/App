@@ -205,7 +205,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentSourcesRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
     parseReportRouteParams,
@@ -7727,17 +7727,17 @@ describe('ReportUtils', () => {
         });
 
         it('reports the uploading attachment as removed once the draft drops its local reference', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+            expect(getUploadingAttachmentSourcesRemovedFromDraft('Hello edited', uploadingImageHtml)).toEqual(['blob:https://dev.new.expensify.com:8082/uuid-1']);
         });
 
         it('does not report a removal while the draft still references the uploading attachment', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+            expect(getUploadingAttachmentSourcesRemovedFromDraft(draft, uploadingImageHtml)).toEqual([]);
         });
 
         it('does not report a removal when the attachment already synced', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+            expect(getUploadingAttachmentSourcesRemovedFromDraft('Hello edited', syncedImageHtml)).toEqual([]);
         });
 
         it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
@@ -7745,6 +7745,36 @@ describe('ReportUtils', () => {
 
             expect(tag).toContain('data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1"');
             expect(tag?.startsWith('<img')).toBe(true);
+        });
+
+        describe('several uploading attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const uploadingImagesHtml = `Hello<br /><br /><img src="${firstSource}" data-optimistic-src="${firstSource}" /><br /><img src="${secondSource}" data-optimistic-src="${secondSource}" />`;
+
+            it('reports only the attachments the draft dropped', () => {
+                // Given a draft that keeps the second image but not the first
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // Then only the first image counts as removed
+                expect(getUploadingAttachmentSourcesRemovedFromDraft(draft, uploadingImagesHtml)).toEqual([firstSource]);
+            });
+
+            it('keeps showing every attachment the edit kept', () => {
+                // When the first image is removed
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, [firstSource]);
+
+                // Then only the second image is re-appended to the edited message
+                expect(html).toContain(secondSource);
+                expect(html).not.toContain(firstSource);
+            });
+
+            it('re-appends all the attachments when none were removed', () => {
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
+
+                expect(html).toContain(firstSource);
+                expect(html).toContain(secondSource);
+            });
         });
 
         it('returns nothing to re-append once the attachment has synced', () => {
@@ -7783,7 +7813,7 @@ describe('ReportUtils', () => {
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
                 expect(secondEditDraft).toContain(videoSource);
-                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+                expect(getUploadingAttachmentSourcesRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toEqual([]);
             });
         });
 
