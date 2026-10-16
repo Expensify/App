@@ -2742,6 +2742,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled: false,
+            isVendorMatchingBetaEnabled: false,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             transactionViolations: {},
@@ -2802,8 +2803,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             updateSplitTransactionsFromSplitExpensesFlow({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
+                reportDrafts: {},
                 allReportActionsList: allReportActions,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 transactionData: {
