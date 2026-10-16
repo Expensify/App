@@ -17,7 +17,7 @@ import {
 } from '@libs/CardUtils';
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError, getDistanceRateValueErrorMessage} from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
@@ -130,11 +130,7 @@ function updateDistanceRateValueInline(
 ): string | undefined {
     const rateError = getDistanceRateValueError(newRate, toLocaleDigit);
     if (rateError) {
-        // validateRateValue owns this copy and has no shared message helper.
-        if (rateError === CONST.INPUT_VALIDATION_ERRORS.TOO_LOW) {
-            return translate('common.error.lowRateError');
-        }
-        return translate('common.error.invalidRateError');
+        return getDistanceRateValueErrorMessage(translate, rateError);
     }
 
     const currentRateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
