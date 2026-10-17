@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
+import type {AvatarCommonProps} from '@components/Avatar/types';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
@@ -61,7 +62,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -248,7 +249,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
         /** Additional styles for the avatar image when the icon type is an avatar */
-        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
+        avatarImageStyles?: AvatarCommonProps['imageStyles'];
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;

@@ -42,6 +42,7 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {SafeString, Str} from 'expensify-common';
+import {Asset} from 'expo-asset';
 import React, {memo, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -118,7 +119,7 @@ function AttachmentView({
     shouldShowDownloadIcon,
     containerStyles,
     onToggleKeyboard,
-    onPDFLoadError: onPDFLoadErrorProp = () => {},
+    onPDFLoadError: onPDFLoadErrorProp,
     isFocused,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
@@ -154,6 +155,7 @@ function AttachmentView({
     const [loadComplete, setLoadComplete] = useState(false);
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
+    const [resolvedPDFAsset, setResolvedPDFAsset] = useState<{source: number; uri: string}>();
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
     const firstRenderRoute = useFirstRenderRoute();
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
@@ -193,6 +195,56 @@ function AttachmentView({
         const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
         onAttachmentError?.(source, isErrorInImage && isImageSource);
     }, [fallbackSource, file?.name, file?.type, imageError, onAttachmentError, source]);
+
+    // Blob PDFs rely on their filename because their source has no extension.
+    const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
+    const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
+    const shouldResolveNonStringPDF =
+        typeof source !== 'string' &&
+        typeof source !== 'function' &&
+        !maybeIcon &&
+        !(isPerDiemRequest(transaction) && transaction && !hasReceiptSource(transaction)) &&
+        !(transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) &&
+        !(transaction && isMapBasedDistanceRequest(transaction)) &&
+        !hasPDFFailedToLoad &&
+        !isUploading &&
+        !!isFilePDF &&
+        isFocused !== false;
+
+    useEffect(() => {
+        if (!shouldResolveNonStringPDF) {
+            return;
+        }
+        let cancelled = false;
+        const resolvePDFAsset = async () => {
+            let uri: string | undefined;
+            try {
+                if (typeof source === 'number') {
+                    const asset = Asset.fromModule(source);
+                    // A PDF filename alone does not establish the registered asset's type.
+                    if (asset.type.toLowerCase() === 'pdf') {
+                        await asset.downloadAsync();
+                        uri = asset.localUri ?? undefined;
+                    }
+                }
+            } catch {
+                // Asset lookup or transport failure uses the existing PDF failure transition.
+            }
+            if (cancelled) {
+                return;
+            }
+            if (typeof source === 'number' && uri) {
+                setResolvedPDFAsset({source, uri});
+                return;
+            }
+            setHasPDFFailedToLoad(true);
+            onPDFLoadErrorProp?.();
+        };
+        resolvePDFAsset();
+        return () => {
+            cancelled = true;
+        };
+    }, [source, shouldResolveNonStringPDF, onPDFLoadErrorProp]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -254,10 +306,6 @@ function AttachmentView({
         return <ScaledDistanceEReceipt transaction={transaction} />;
     }
 
-    // Check both source and file.name since PDFs dragged into the text field
-    // will appear with a source that is a blob
-    const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
-    const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
     if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
         // Every mounted PDF viewer is a full PDF.js document parse (its own worker + parsed document), so in a
         // carousel the memory cost scales with the number of PDF attachments — enough to OOM the WebContent
@@ -265,7 +313,9 @@ function AttachmentView({
         // for the item the carousel currently focuses; off-screen items render a lightweight placeholder until
         // they're swiped to. isFocused is undefined outside the carousel (single-attachment hosts), which must
         // keep mounting immediately.
-        if (isFocused === false) {
+        const numericPDFUri = resolvedPDFAsset?.source === source ? resolvedPDFAsset.uri : undefined;
+        const sourceUrl = typeof source === 'string' ? source : numericPDFUri;
+        if (isFocused === false || sourceUrl === undefined) {
             return (
                 <DefaultAttachmentView
                     fileName={file?.name}
@@ -274,7 +324,7 @@ function AttachmentView({
                 />
             );
         }
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
+        const encryptedSourceUrl = isAuthTokenRequired && typeof source === 'string' ? addEncryptedAuthTokenToURL(sourceUrl, encryptedAuthToken) : sourceUrl;
 
         const onPDFLoadComplete = (path: string) => {
             const id = transaction?.transactionID ?? reportActionID;
@@ -288,7 +338,7 @@ function AttachmentView({
 
         const onPDFLoadError = () => {
             setHasPDFFailedToLoad(true);
-            onPDFLoadErrorProp();
+            onPDFLoadErrorProp?.();
         };
 
         // We need the following View component on android native
@@ -352,7 +402,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
+        let imageSource = imageError && typeof fallbackSource !== 'function' && fallbackSource ? fallbackSource : (cachedSource ?? source);
 
         if (isHighResolution) {
             if (!isUploaded) {

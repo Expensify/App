@@ -4,6 +4,7 @@ import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from
 import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import type ImageViewProps from '@components/ImageView/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
@@ -28,7 +29,7 @@ import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const FALLBACK_OFFSET = 2;
 
-const cachedImageDimensions = new Map<string, Dimensions | undefined>();
+const cachedImageDimensions = new Map<ImageViewProps['url'], Dimensions | undefined>();
 
 function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
     if (isActive) {
@@ -44,8 +45,8 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** URI to full-sized attachment */
-    uri: string;
+    /** Static assets and URI sources retain their original identity. */
+    uri: ImageViewProps['url'];
 
     /** Triggers whenever the zoom scale changes */
     onScaleChanged?: OnScaleChangedCallback;
@@ -195,7 +196,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const imagePriority = getImagePriority(isActive, isLightboxVisible);
 
-    const isALocalFile = isLocalFile(uri);
+    const isALocalFile = (typeof uri === 'string' || typeof uri === 'number') && isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
     return (
@@ -224,7 +225,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                             >
                                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
-                                    source={{uri}}
+                                    source={typeof uri === 'string' ? {uri} : uri}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
@@ -254,7 +255,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
-                                source={{uri}}
+                                source={typeof uri === 'string' ? {uri} : uri}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
