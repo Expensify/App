@@ -152,12 +152,21 @@ export default {
         const {person, message} = reportAction;
         const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
 
-        // Specifically target the comment part of the message
+        // Specifically target the comment part of the message, falling back to the action's full text
+        // for system actions (e.g. MARKEDREIMBURSED) that have no COMMENT-type message fragment.
         let plainTextMessage = '';
         if (Array.isArray(message)) {
             plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
         } else {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
+        }
+        if (!plainTextMessage) {
+            const messages = Array.isArray(reportAction.message) ? reportAction.message : reportAction.message ? [reportAction.message] : [];
+            plainTextMessage = messages
+                .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
+                .map((m) => m.text ?? '')
+                .join(' ')
+                .trim();
         }
 
         if (isRoomOrGroupChat) {
