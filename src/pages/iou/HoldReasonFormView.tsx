@@ -31,9 +31,12 @@ type HoldReasonFormViewProps = {
 
     /** Whether the current user is the submitter of the expense */
     isSubmitter?: boolean;
+
+    /** Whether the form can be submitted while offline (defaults to true) */
+    enabledWhenOffline?: boolean;
 };
 
-function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSubmitter = true}: HoldReasonFormViewProps) {
+function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSubmitter = true, enabledWhenOffline = true}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -54,7 +57,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
-                enabledWhenOffline
+                enabledWhenOffline={enabledWhenOffline}
                 shouldHideFixErrorsAlert
             >
                 <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
