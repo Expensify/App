@@ -66,38 +66,29 @@ type BuildOptimisticNextStepParams = {
 
 function buildNextStepMessage(
     nextStep: ReportNextStep,
+    nextStepContext: ReportNextStepContext,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: DateFnsLocale | undefined,
-    currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
-    let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    if (nextStep.actorAccountID === currentUserAccountID) {
-        actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
-    } else if (nextStep.actorAccountID === -1) {
-        actorType = CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN;
-    } else {
-        actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
-    }
-
+    const actorType = nextStepContext.actorType;
+    const etaType = nextStepContext.etaType;
     let eta: string | undefined;
-    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    if (nextStep.eta?.etaKey) {
+    if (etaType === CONST.NEXT_STEP.ETA_TYPE.KEY && nextStep.eta?.etaKey) {
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
-        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
-    } else if (nextStep.eta?.dateTime) {
+    } else if (etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME && nextStep.eta?.dateTime) {
         const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
         // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
         // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
         // local midnight so the rendered day matches the day set in the workspace settings.
         eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
-        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
-
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message = translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType, requiredDepositCurrency});
+    const messageKeyModifier = nextStepContext.messageKeyModifier;
+
+    const message = translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType, requiredDepositCurrency, messageKeyModifier});
     if (!message) {
         Log.warn('Built NextStep message is empty', {nextStep});
         return '';

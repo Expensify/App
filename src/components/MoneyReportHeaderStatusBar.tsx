@@ -1,4 +1,3 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -41,17 +40,11 @@ function MoneyReportHeaderStatusBar({nextStepWithContext}: MoneyReportHeaderStat
         }),
         [icons],
     );
-    const {nextStep, nextStepCotext} = nextStepWithContext;
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-
-    const messageContent = useMemo(() => {
-        if (!nextStep) {
-            return '';
-        }
-
-        return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
-    }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
+    const {nextStep, nextStepContext} = nextStepWithContext;
+    const messageContent = useMemo(
+        () => buildNextStepMessage(nextStep, nextStepContext, translate, dateFnsLocale, formatPhoneNumber),
+        [nextStep, nextStepContext, translate, dateFnsLocale, formatPhoneNumber],
+    );
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
