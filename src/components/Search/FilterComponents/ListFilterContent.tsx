@@ -299,7 +299,6 @@ function ListFilterContent({
                 <UserSelector
                     value={typeof value === 'object' ? value : undefined}
                     policyID={policyID}
-                    shouldAllowTypedEmail={baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}
                     key={baseFilterKey}
                     isNegatable={isFilterKeyNegatable}
                     selectionListTextInputStyle={selectionListTextInputStyle}

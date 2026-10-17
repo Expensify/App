@@ -55,7 +55,6 @@ import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
-import {Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
@@ -1938,10 +1937,7 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
         ) {
             const resolvedValues = filterValues.map((id) => (id === CONST.SEARCH.ME && currentUserAccountID ? currentUserAccountID.toString() : id));
-            // The From filter also accepts a typed email (e.g. a member removed from the workspace), which has no personalDetails entry
-            filtersForm[addNegation(filterKey, isNegated)] = resolvedValues.filter(
-                (id) => !!personalDetails?.[id] || (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM && Str.isValidEmail(id)),
-            );
+            filtersForm[addNegation(filterKey, isNegated)] = resolvedValues.filter((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
