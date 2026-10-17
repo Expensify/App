@@ -10498,6 +10498,7 @@ const CONST = {
         SETTINGS_SUBSCRIPTION: {
             EXPLORE_PLANS: 'SettingsSubscription-ExplorePlans',
             SAVE_WITH_EXPENSIFY: 'SettingsSubscription-SaveWithExpensify',
+            ANNUAL_SAVINGS: 'SettingsSubscription-AnnualSavings',
             RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',

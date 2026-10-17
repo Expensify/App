@@ -11767,8 +11767,16 @@ ${reportName}`,
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
             editSubscription: 'Επεξεργασία συνδρομής',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Τύπος συνδρομής: ${subscriptionType}, Μέγεθος συνδρομής: ${subscriptionSize}${expensifyCode ? `, κωδικός Expensify: ${expensifyCode}` : ''}, Αυτόματη ανανέωση: ${autoRenew}, Αυτόματη ετήσια αύξηση θέσεων: ${autoIncrease}`,
+            subscriptionType: 'Τύπος συνδρομής',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
+            sizeNotSet: `<muted-text>Αν δεν ορίσετε τώρα το μέγεθος της συνδρομής, θα το ορίσουμε αυτόματα με βάση τα ενεργά μέλη του πρώτου μήνα. <a href="${CONST.PRICING}">Μάθετε περισσότερα</a></muted-text>`,
+            expensifyCodeApplied: 'Ο κωδικός Expensify εφαρμόστηκε',
+            addExpensifyCode: 'Προσθήκη κωδικού Expensify',
+            saveWithAnnualSubscription: 'Εξοικονομήστε με ετήσια συνδρομή',
+            extraSeats: 'Θα προσθέσουμε επιπλέον θέσεις όταν τα ενεργά μέλη ξεπεράσουν το μέγεθος της συνδρομής σας.',
             none: 'κανένα',
             on: 'ενεργό',
             off: 'κλειστό',

@@ -11550,8 +11550,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}${expensifyCode ? `, Expensify-Code: ${expensifyCode}` : ''}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
+            subscriptionType: 'Abonnementstyp',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
+            sizeNotSet: `<muted-text>Wenn du die Abonnementgröße jetzt nicht festlegst, setzen wir sie automatisch anhand der aktiven Mitglieder deines ersten Monats. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text>`,
+            expensifyCodeApplied: 'Expensify-Code angewendet',
+            addExpensifyCode: 'Expensify-Code hinzufügen',
+            saveWithAnnualSubscription: 'Mit einem Jahresabonnement sparen',
+            extraSeats: 'Wir fügen zusätzliche Plätze hinzu, wenn die aktiven Mitglieder deine Abonnementgröße überschreiten.',
             none: 'keine',
             on: 'an',
             off: 'aus',

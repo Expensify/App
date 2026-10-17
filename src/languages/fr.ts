@@ -11576,8 +11576,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Type d’abonnement : ${subscriptionType}, Taille de l’abonnement : ${subscriptionSize}${expensifyCode ? `, Code Expensify : ${expensifyCode}` : ''}, Renouvellement automatique : ${autoRenew}, Augmentation automatique des licences annuelles : ${autoIncrease}`,
+            subscriptionType: 'Type d’abonnement',
+            memberCount: ({count}: {count: number}) => ({
+                one: `${count} membre`,
+                other: `${count} membres`,
+            }),
+            sizeNotSet: `<muted-text>Si vous ne définissez pas la taille de votre abonnement maintenant, nous la définirons automatiquement selon le nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text>`,
+            expensifyCodeApplied: 'Code Expensify appliqué',
+            addExpensifyCode: 'Ajouter un code Expensify',
+            saveWithAnnualSubscription: 'Économisez avec un abonnement annuel',
+            extraSeats: 'Nous ajouterons des licences supplémentaires lorsque les membres actifs dépassent la taille de votre abonnement.',
             none: 'aucun',
             on: 'activé',
             off: 'désactivé',

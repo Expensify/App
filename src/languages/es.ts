@@ -11737,8 +11737,16 @@ ${reportName}`,
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
-            summary: (subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease) =>
-                `Tipo de suscripción: ${subscriptionType}, Tamaño de suscripción: ${subscriptionSize}${expensifyCode ? `, Código Expensify: ${expensifyCode}` : ''}, Renovación automática: ${autoRenew}, Aumento automático de asientos anuales: ${autoIncrease}`,
+            subscriptionType: 'Tipo de suscripción',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
+            sizeNotSet: `<muted-text>Si no defines el tamaño de tu suscripción ahora, lo estableceremos automáticamente según el número de miembros activos de tu primer mes. <a href="${CONST.PRICING}">Más información</a></muted-text>`,
+            expensifyCodeApplied: 'Código Expensify aplicado',
+            addExpensifyCode: 'Agregar código Expensify',
+            saveWithAnnualSubscription: 'Ahorra con una suscripción anual',
+            extraSeats: 'Agregaremos plazas adicionales cuando los miembros activos superen el tamaño de tu suscripción.',
             none: 'ninguno',
             on: 'activado',
             off: 'desactivado',
