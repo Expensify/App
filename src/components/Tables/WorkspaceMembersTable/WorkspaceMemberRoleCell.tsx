@@ -17,7 +17,7 @@ import React from 'react';
 
 type WorkspaceMemberRoleCellProps = {
     role: ValueOf<typeof CONST.POLICY.ROLE> | undefined;
-    policy: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy>;
     memberLogin: string;
     canEdit?: boolean;
     onSave?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
@@ -25,15 +25,15 @@ type WorkspaceMemberRoleCellProps = {
 
 function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: WorkspaceMemberRoleCellProps) {
     const {translate} = useLocalize();
-    const roleLabel = translate('workspace.common.roleName', role);
+    const roleLabel = role ? translate('workspace.common.roleName', role) : undefined;
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
-    const {popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole: role, allowedRoles});
+    const {popoverHeight: preferredPopoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole: role, allowedRoles});
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: role,
         onSave,
-        popoverHeight,
+        popoverHeight: preferredPopoverHeight,
     });
 
     return (
@@ -50,7 +50,10 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleSave}
                 />
             }
