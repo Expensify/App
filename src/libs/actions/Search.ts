@@ -20,6 +20,8 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    OpenSearchUserFiltersPageParams,
+    OpenSearchUserFiltersPageResponse,
     QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
@@ -1179,6 +1181,37 @@ function setSearchTagFiltersPagination(
         baseResults,
         baseHasMore,
         baseCursor,
+    });
+}
+
+function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS,
+            value: true,
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS,
+            value: false,
+        },
+    ];
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData, finallyData}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
+        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        return {
+            hasMore: !!userFiltersResponse?.hasMore,
+            nextCursor: userFiltersResponse?.nextCursor ?? '',
+        };
     });
 }
 
@@ -2724,6 +2757,7 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,

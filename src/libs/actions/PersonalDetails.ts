@@ -684,10 +684,25 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     });
 }
 
+function setOptimisticPersonalDetail(personalDetail: PersonalDetails) {
+    Onyx.update([
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [personalDetail.accountID]: {
+                accountID: personalDetail.accountID,
+                avatar: personalDetail.avatar ?? UserAvatarUtils.getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: personalDetail.login}),
+                displayName: personalDetail.displayName ?? personalDetail.login,
+                login: personalDetail.login,
+                isOptimisticPersonalDetail: true,
+            },
+        }),
+    ]);
+}
+
 export {
     buildOptimisticDisplayNameDetails,
     deleteAvatar,
     openPublicProfilePage,
+    setOptimisticPersonalDetail,
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
