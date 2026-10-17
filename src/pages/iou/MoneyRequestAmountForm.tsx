@@ -111,6 +111,7 @@ function MoneyRequestAmountForm({
     isP2P = false,
     amountFormRef,
     ref,
+    shouldAllowFocusInLandscapeMode = false,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -343,6 +344,7 @@ function MoneyRequestAmountForm({
                 clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
+                shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
             />
         </ScrollView>
     );
