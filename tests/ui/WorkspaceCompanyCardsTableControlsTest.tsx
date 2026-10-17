@@ -4,13 +4,19 @@ import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceComp
 
 import React from 'react';
 
+type MockDropdownOption = {
+    value: string;
+    onSelected: () => void;
+};
+
 type MockButtonProps = {
     customText: string;
     isDisabled?: boolean;
+    options: MockDropdownOption[];
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
-let mockProcessedData: Array<{selected?: boolean; disabled?: boolean; isAssigned?: boolean}> = [];
+let mockProcessedData: Array<{selected?: boolean; disabled?: boolean; isAssigned?: boolean; assignedCard?: {cardID: number}}> = [];
 let mockShouldUseNarrowLayout = true;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -82,18 +88,22 @@ jest.mock('@libs/actions/CompanyCards', () => ({unassignWorkspaceCompanyCard: je
 jest.mock('@libs/CardNavigationUtils', () => jest.fn());
 jest.mock('@libs/CardUtils', () => ({formatMaskedCardName: jest.fn()}));
 jest.mock('@libs/localFileDownload', () => jest.fn());
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 function renderControls(isSelectionModeEnabled: boolean) {
-    return render(
+    const clearCardSelection = jest.fn();
+    const renderResult = render(
         <WorkspaceCompanyCardsTableControls
             policyID="policy123"
             domainOrWorkspaceAccountID={123}
             bankName={undefined}
+            feedName="oauth.chase.com#123"
             canWriteCompanyCards
-            clearCardSelection={jest.fn()}
+            clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
         />,
     );
+    return {clearCardSelection, ...renderResult};
 }
 
 describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () => {
