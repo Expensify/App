@@ -95,7 +95,7 @@ const cases: ChartGroupByCase[] = [
         }),
         expectedIcon: 'Basket',
         expectedLabel: 'Coffee shop',
-        expectedFilterQuery: 'merchant:"Coffee shop"',
+        expectedFilterQuery: 'merchant="Coffee shop"',
     },
     {
         groupBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -211,9 +211,23 @@ const optionalLabelCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
 ];
 
 describe('CHART_GROUP_BY_CONFIG', () => {
+    it('uses the explicit exact operator for merchant drill-downs', () => {
+        // Given a merchant group whose short name must match exactly.
+        const item = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'I'});
+
+        // When the chart builds its merchant drill-down query.
+        const query = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(item);
+
+        // Then the exact operator prevents matching merchants that only contain this name.
+        expect(query).toBe('merchant="I"');
+    });
+
     test.each(cases)('returns the $groupBy chart values for a matching item', ({groupBy, item, expectedIcon, expectedLabel, expectedShortLabel, expectedFilterQuery}) => {
+        // Given a producer-shaped item for the selected group.
         const config = CHART_GROUP_BY_CONFIG[groupBy];
 
+        // When the chart reads its label and drill-down configuration.
+        // Then the matching group preserves its display values and filter.
         expect(config.titleIconName).toBe(expectedIcon);
         expect(config.getLabel(item)).toBe(expectedLabel);
         expect(config.getShortLabel?.(item)).toBe(expectedShortLabel);
@@ -221,15 +235,25 @@ describe('CHART_GROUP_BY_CONFIG', () => {
     });
 
     test.each(cases)('rejects an item that does not match the $groupBy configuration', ({groupBy}) => {
+        // Given a valid item from a different group.
         const config = CHART_GROUP_BY_CONFIG[groupBy];
         const mismatchedItem = groupBy === CONST.SEARCH.GROUP_BY.FROM ? cardItem : memberItem;
 
+        // When the selected configuration receives the other group.
+        // Then it returns empty values instead of reading unrelated fields.
         expect(config.getLabel(mismatchedItem)).toBe('');
         expect(config.getShortLabel?.(mismatchedItem)).toBeUndefined();
         expect(config.getFilterQuery(mismatchedItem)).toBe('');
     });
 
     test.each(optionalLabelCases)('returns an empty label for an absent or empty optional $groupBy label', ({groupBy, item}) => {
-        expect(CHART_GROUP_BY_CONFIG[groupBy].getLabel(item)).toBe('');
+        // Given a matching item with an absent or empty display label.
+        const config = CHART_GROUP_BY_CONFIG[groupBy];
+
+        // When the chart requests the optional label.
+        const label = config.getLabel(item);
+
+        // Then the display fallback remains an empty string.
+        expect(label).toBe('');
     });
 });

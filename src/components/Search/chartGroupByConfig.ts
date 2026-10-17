@@ -14,6 +14,12 @@ type ChartGroupByConfig = {
     /** Returns the compact label for chart axes, or undefined to fall back to `getLabel` */
     getShortLabel?: (item: GroupedItem) => string | undefined;
 
+    /** Returns the line chart axis label, or undefined to fall back to `getShortLabel` */
+    getLineChartLabel?: (item: GroupedItem) => string | undefined;
+
+    /** Intervals, in groups, the line chart may label its x-axis at. The smallest one that fits is used. */
+    axisLabelSteps?: readonly number[];
+
     /** Builds the query fragment appended to the current query to drill into a group's transactions */
     getFilterQuery: (item: GroupedItem) => string;
 
@@ -50,7 +56,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
         titleIconName: 'Basket',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : ''),
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? `merchant:"${item.merchant}"` : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? `merchant="${item.merchant}"` : ''),
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
@@ -61,6 +67,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.formattedDay : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
+        getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
+        axisLabelSteps: [1, 2, 7, 14],
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? `date>=${item.day} date<=${item.day}` : ''),
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined),
     },
@@ -68,6 +76,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? (item.formattedMonth ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
+        axisLabelSteps: [1, 2, 3, 6],
         getFilterQuery: (item: GroupedItem) => {
             if (item.groupedBy !== CONST.SEARCH.GROUP_BY.MONTH) {
                 return '';
@@ -81,6 +90,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? (item.formattedWeek ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
+        getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.lineChartFormattedWeek : undefined),
+        axisLabelSteps: [1, 2, 4],
         getFilterQuery: (item: GroupedItem) => {
             if (item.groupedBy !== CONST.SEARCH.GROUP_BY.WEEK) {
                 return '';
@@ -93,6 +104,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.YEAR]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? (item.formattedYear ?? '') : ''),
+        axisLabelSteps: [1, 2, 5],
         getFilterQuery: (item: GroupedItem) => {
             if (item.groupedBy !== CONST.SEARCH.GROUP_BY.YEAR) {
                 return '';
@@ -106,6 +118,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? (item.formattedQuarter ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
+        axisLabelSteps: [1, 2, 4],
         getFilterQuery: (item: GroupedItem) => {
             if (item.groupedBy !== CONST.SEARCH.GROUP_BY.QUARTER) {
                 return '';
