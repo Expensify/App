@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
-import type {Routes} from '../../src/types/onyx/Transaction';
+import type {Routes, TransactionChanges} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -1067,6 +1067,77 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(3);
             expect(updatedTransaction.modifiedMerchant).toBe('1.97 mi @ $0.015 / mi');
+        });
+
+        it('preserves the full amount through offline workspace distance and rate edits', () => {
+            // Given a workspace expense with a one-mile commuter exclusion and separate full/reduced snapshots
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rateA: {customUnitRateID: 'rateA', currency: CONST.CURRENCY.USD, rate: 100},
+                            rateB: {customUnitRateID: 'rateB', currency: CONST.CURRENCY.USD, rate: 200},
+                        },
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -1015,
+                modifiedAmount: -915,
+                currency: CONST.CURRENCY.USD,
+                merchant: '10.15 mi @ $1.00 / mi',
+                modifiedMerchant: '9.15 mi @ $1.00 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rateA',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10.15,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 9.15,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+            });
+            const updateWorkspaceTransaction = (transactionToUpdate: Transaction, transactionChanges: TransactionChanges) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: true,
+                    policy: fakePolicy,
+                    transactionChanges,
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+            // When offline optimistic edits change the distance away and back, then switch rate A to B and back to A
+            const longerTransaction = updateWorkspaceTransaction(transaction, {distance: 11.15});
+            const originalDistanceTransaction = updateWorkspaceTransaction(longerTransaction, {distance: 10.15});
+            const rateBTransaction = updateWorkspaceTransaction(originalDistanceTransaction, {customUnitRateID: 'rateB'});
+            const restoredRateATransaction = updateWorkspaceTransaction(rateBTransaction, {customUnitRateID: 'rateA'});
+            const personalDisplayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: restoredRateATransaction,
+                isPolicyExpenseChat: false,
+                policy: fakePolicy,
+                translate: (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters),
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the workspace keeps its reduced amount while Self DM can restore the preserved full snapshot
+            expect(rateBTransaction.amount).toBe(-1015);
+            expect(rateBTransaction.modifiedAmount).toBe(-1830);
+            expect(restoredRateATransaction.modifiedAmount).toBe(-915);
+            expect(personalDisplayTransaction?.amount).toBe(-1015);
+            expect(personalDisplayTransaction?.merchant).toBe('10.15 mi @ $1.00 / mi');
         });
 
         it('does not apply a newly enabled commuter exclusion when a historical manual distance is changed', () => {

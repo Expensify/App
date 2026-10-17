@@ -377,7 +377,9 @@ function getUpdatedTransaction({
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
-            updatedTransaction.amount = updatedAmount;
+            if (!commuterExclusionTransactionData) {
+                updatedTransaction.amount = updatedAmount;
+            }
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             updatedTransaction.modifiedCurrency = updatedCurrency;
