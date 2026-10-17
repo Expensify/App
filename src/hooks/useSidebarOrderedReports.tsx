@@ -48,6 +48,8 @@ type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
     setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
     setStickyReportID: (reportID: string) => void;
+    /** Stops keeping the opened report visible on the To-do/Unread tab, e.g. after "Mark all as read". */
+    clearStickyReport: () => void;
     /** The report IDs listed under the given Inbox tab, read on demand by bulk tab actions (e.g. "Mark all as read"). */
     getReportIDsForTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => string[];
 };
@@ -81,6 +83,7 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     clearLHNCache: () => {},
     setActiveTab: () => {},
     setStickyReportID: () => {},
+    clearStickyReport: () => {},
     getReportIDsForTab: () => [],
 });
 
@@ -404,6 +407,10 @@ function SidebarOrderedReportsContextProvider({
         [activeTab],
     );
 
+    const clearStickyReport = useCallback(() => {
+        setStickyReport(undefined);
+    }, []);
+
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
@@ -461,8 +468,8 @@ function SidebarOrderedReportsContextProvider({
     ]);
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(
-        () => ({clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab}),
-        [clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab],
+        () => ({clearLHNCache, setActiveTab, setStickyReportID, clearStickyReport, getReportIDsForTab}),
+        [clearLHNCache, setActiveTab, setStickyReportID, clearStickyReport, getReportIDsForTab],
     );
 
     return (

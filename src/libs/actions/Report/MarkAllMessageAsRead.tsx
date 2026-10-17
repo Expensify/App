@@ -6,12 +6,14 @@ import {getDBTimeWithSkew, getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 // We use connectWithoutView because markAllMessagesAsRead doesn't affect the UI rendering
@@ -54,6 +56,8 @@ function markAllMessagesAsRead(
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
+    // Tells open chats how far they are read now, so their "New" line goes away (see useUnreadMarker).
+    const readUpToTimes: Record<string, string> = {};
     const reportsToMark = reportIDs ? reportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(allReports ?? {});
     for (const report of reportsToMark) {
         if (!report) {
@@ -65,6 +69,12 @@ function markAllMessagesAsRead(
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributesDerived?.[report.reportID]?.isEmpty)) {
+            // Already read, e.g. the chat that is open right now. Nothing to write, but its "New" line can still be
+            // showing, so pass the time it's read up to without adding a new client time.
+            const readUpToTime = [report.lastReadTime ?? '', report.lastVisibleActionCreated ?? ''].reduce((latest, time) => (time > latest ? time : latest));
+            if (readUpToTime) {
+                readUpToTimes[report.reportID] = readUpToTime;
+            }
             continue;
         }
 
@@ -72,7 +82,10 @@ function markAllMessagesAsRead(
         optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
         failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
         reportIDList.push(report.reportID);
+        readUpToTimes[report.reportID] = newLastReadTime;
     }
+
+    DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, readUpToTimes);
 
     if (reportIDList.length === 0) {
         return;

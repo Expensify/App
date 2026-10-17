@@ -3,7 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {SidebarOrderedReportsContextProvider, useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 
 import SidebarUtils from '@libs/SidebarUtils';
 
@@ -427,6 +427,45 @@ describe('useSidebarOrderedReports', () => {
         });
 
         expect(fullRecomputeCall).toBeUndefined();
+    });
+
+    it('should keep the chat opened from the Unread tab listed after it is read, until the sticky report is cleared', async () => {
+        // Given two chats where only chat 2 is still unread, and the user is on the Unread tab
+        const reports = createMockReports({
+            report1: {reportName: 'Opened chat'},
+            report2: {reportName: 'Unread chat'},
+        });
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1', '2']);
+        mockSidebarUtils.filterReportsForInboxTab.mockImplementation((reportIDs, _reports, tab) =>
+            tab === CONST.INBOX_TAB.UNREAD ? reportIDs.filter((reportID) => reportID === '2') : reportIDs,
+        );
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, reports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, reports['2']);
+            await Onyx.set(ONYXKEYS.NVP_INBOX_TAB, CONST.INBOX_TAB.UNREAD);
+        });
+
+        const {result} = renderHook(() => ({state: useSidebarOrderedReportsState(), actions: useSidebarOrderedReportsActions()}), {
+            wrapper: TestWrapper,
+        });
+        await waitForBatchedUpdatesWithAct();
+        const getListedReportIDs = () => result.current.state.filteredReportIDs;
+
+        // When the user opens chat 1 from the Unread tab, it stays listed even though it's read
+        act(() => {
+            result.current.actions.setStickyReportID('1');
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(getListedReportIDs()).toEqual(['1', '2']);
+
+        // Then clearing the sticky report (what "Mark all as read" does) removes it from the tab
+        act(() => {
+            result.current.actions.clearStickyReport();
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(getListedReportIDs()).toEqual(['2']);
     });
 
     it('should recheck a hidden report when only its derived attributes change', async () => {

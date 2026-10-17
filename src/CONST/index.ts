@@ -7590,6 +7590,8 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
+        /** Emitted by markAllMessagesAsRead with a {reportID: readUpToTime} map, so open chats can clear their "New" line. */
+        MARK_ALL_AS_READ: 'markAllAsRead',
     },
     SELECTION_BUTTON_POSITION: {
         LEFT: 'left',

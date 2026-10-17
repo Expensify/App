@@ -127,6 +127,43 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('clears the marker when "Mark all as read" includes this report', () => {
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+        expect(result.current.unreadMarkerReportActionID).toBe('m1');
+
+        act(() => {
+            DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[REPORT_ID]: '2023-01-01 12:00:00.000'});
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('keeps the marker when "Mark all as read" only includes other reports', () => {
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+
+        act(() => {
+            DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {otherReport: '2023-01-01 12:00:00.000'});
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('m1');
+    });
+
+    it('does not move the marker back when "Mark all as read" sends an older time', () => {
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+
+        act(() => {
+            DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, '2023-01-01 12:00:00.000');
+        });
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        act(() => {
+            DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[REPORT_ID]: '2023-01-01 10:30:00.000'});
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+    });
+
     it('does not push the read watermark on a bulk history reveal without a session boundary (marker appears on the next render)', () => {
         const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
         const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
