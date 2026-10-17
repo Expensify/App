@@ -12175,7 +12175,10 @@ const translations = {
         }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
-        failedReportsBody: ({count}: {count: number}) => (count === 1 ? "1 report couldn't be updated." : `${count} reports couldn't be updated.`),
+        failedReportsBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be updated.",
+            other: `${count} reports couldn't be updated.`,
+        }),
         viewFailedReports: 'View reports',
         failedTitle: 'Something went wrong',
         failedBody: 'This action could not be started. Please try again later.',
