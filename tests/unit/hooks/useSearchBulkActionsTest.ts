@@ -20,6 +20,7 @@ import {
     queueExportSearchWithTemplate,
     submitMoneyRequestOnSearch,
 } from '@libs/actions/Search';
+import type * as NetworkState from '@libs/NetworkState';
 import type * as SearchUIUtils from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -128,6 +129,12 @@ let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: mockIsOffline}),
+}));
+
+let mockIsNetworkOffline = false;
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkState>('@libs/NetworkState'),
+    getIsOffline: () => mockIsNetworkOffline,
 }));
 
 const mockShowDecisionModal = jest.fn();
@@ -1151,6 +1158,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockIsOffline = false;
+        mockIsNetworkOffline = false;
         mockAreAllMatchingItemsSelected = true;
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
@@ -1204,6 +1212,29 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         // Then the search is handed to the backend with the deselected expense listed, so it is kept
         expect(queueBulkDeleteExpenses).toHaveBeenCalledWith(expect.any(String), ['tx2']);
         expect(queueBulkDeleteReports).not.toHaveBeenCalled();
+    });
+
+    it('deletes nothing when the user goes offline while the confirmation is open', async () => {
+        // Given "Select all" while online, and a user who loses connection before confirming the delete
+        mockShowConfirmModal.mockImplementation(() => {
+            mockIsNetworkOffline = true;
+            return Promise.resolve({action: ModalActions.CONFIRM});
+        });
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user confirms
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
+        });
+        const deleteOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
+        await act(async () => {
+            await deleteOption?.onSelected?.();
+        });
+
+        // Then nothing is queued, since the backend would delete whatever matches once the device reconnects
+        expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
+        expect(queueBulkDeleteReports).not.toHaveBeenCalled();
+        expect(mockShowDecisionModal).toHaveBeenCalled();
     });
 
     it('deletes nothing when the user cancels the confirmation', async () => {

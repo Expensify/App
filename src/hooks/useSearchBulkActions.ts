@@ -58,6 +58,7 @@ import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -1535,6 +1536,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         // "Select all" can cover more than is loaded, so hand the search query to the backend to delete every match.
         if (areAllMatchingItemsSelected) {
+            // The user can go offline while the confirmation is open.
+            if (getIsOffline()) {
+                showOfflineModal();
+                return;
+            }
             const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
             if (!allMatchingQuery) {
                 Log.info('[BulkDelete] Dropping bulk delete: an excluded row could not be resolved');
@@ -1633,6 +1639,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteModalTitle,
         deleteModalPrompt,
         areAllMatchingItemsSelected,
+        showOfflineModal,
         queryJSON,
         excludedTransactions,
         currentSearchResults?.data,
