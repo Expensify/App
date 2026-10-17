@@ -30,7 +30,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -60,6 +60,9 @@ function DynamicTwoFactorAuthPage() {
     };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    // EnableTwoFactorAuth mints a new secret on every call. Guard the in-flight request so a focus
+    // flicker before recovery codes land cannot send a second Toggle and invalidate the first QR code.
+    const hasRequestedEnableRef = useRef(false);
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
@@ -91,6 +94,11 @@ function DynamicTwoFactorAuthPage() {
         if (!isFocused) {
             return;
         }
+
+        if (hasRequestedEnableRef.current) {
+            return;
+        }
+        hasRequestedEnableRef.current = true;
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
