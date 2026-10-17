@@ -8,6 +8,7 @@ import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import variables from '@styles/variables';
@@ -56,13 +57,19 @@ import {
     captureBufferTransaction,
     clearFullscreenPreInsertedFlag,
     getIsFullscreenPreInsertedUnderRHP,
+    getIsRevealingPreMountedFullscreen,
     getPreInsertedFullscreenRouteName,
+    getPreMountedFullscreenRouteKey,
     markFullscreenPreInsertedUnderRHP,
     recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
+    setIsRevealingPreMountedFullscreen,
+    takePreMountedFullscreenForReveal,
 } from './helpers/preMountBuffer';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
+import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
+import {cancelWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
 import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
@@ -1201,18 +1208,51 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         return;
     }
 
+    const preMountedRouteKey = takePreMountedFullscreenForReveal(route);
+
+    // The revealed Search re-renders its whole list when the new expense lands, which would block the RHP slide.
+    if (preMountedRouteKey) {
+        holdPendingSearchWriteFlush();
+    }
+
+    // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
+    const afterTransition =
+        options?.afterTransition || preMountedRouteKey
+            ? () => {
+                  setIsRevealingPreMountedFullscreen(false);
+                  if (!preMountedRouteKey) {
+                      options?.afterTransition?.();
+                      return;
+                  }
+
+                  // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
+                  runAfterClosingScreenUnmount(() => {
+                      releasePendingSearchWriteFlush();
+                      options?.afterTransition?.();
+                  });
+              }
+            : undefined;
+
     requestAnimationFrame(() => {
+        const stateBeforeReplace = navigationRef.getRootState();
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-            payload: {route},
+            payload: {route, preMountedRouteKey},
         });
+
+        // A replace rejected because the RHP was closed first (e.g. Browser Back) would leave the pre-mount hidden in the stack.
+        if (preMountedRouteKey && navigationRef.getRootState() === stateBeforeReplace) {
+            cancelWideTabPreMount();
+        } else if (preMountedRouteKey) {
+            finishWideTabPreMountReveal(preMountedRouteKey);
+        }
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches
         // in separate renders so the dismiss animation is preserved. On narrow,
         // wait for the hidden destination transition first so the RHP slides out
         // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
+            dismissModal({afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
 }
@@ -1334,6 +1374,8 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    getPreMountedFullscreenRouteKey,
+    getIsRevealingPreMountedFullscreen,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
     getPreInsertedFullscreenRouteName,
