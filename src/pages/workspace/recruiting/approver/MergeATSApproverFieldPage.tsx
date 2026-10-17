@@ -11,7 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMergeConnected} from '@libs/merge/MergeUtils';
-import {getConnectedATSProvider} from '@libs/merge/RecruitingUtils';
+import {getConnectedATSProvider, getMergeATSApproverFields} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeATSApprovalNavigatorParamList} from '@libs/Navigation/types';
@@ -22,7 +22,6 @@ import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {MergeATSApproverField} from '@src/types/onyx/Policy';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -49,16 +48,12 @@ function MergeATSApproverFieldPage({
     const {approverField: currentApproverField} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApproverField} = useMergeATSApprovalDraftActions();
 
-    const approverFieldOptions: ApproverFieldListItem[] = ObjectUtils.typedKeys(CONST.MERGE.ATS_APPROVER_FIELD).map((key) => {
-        const value = CONST.MERGE.ATS_APPROVER_FIELD[key];
-
-        return {
-            text: getApproverFieldName(value, translate),
-            keyForList: value,
-            value,
-            isSelected: currentApproverField === value,
-        };
-    });
+    const approverFieldOptions: ApproverFieldListItem[] = getMergeATSApproverFields(policy).map((value) => ({
+        text: getApproverFieldName(value, translate),
+        keyForList: value,
+        value,
+        isSelected: currentApproverField === value,
+    }));
 
     const selectApproverField = (approverField: MergeATSApproverField) => {
         setDraftApproverField(approverField);
