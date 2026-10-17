@@ -1,4 +1,5 @@
 import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
@@ -69,6 +71,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [allOpenReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: openExpenseReportIDsSelector});
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
 
     const transactionsSelector = useCallback(
@@ -199,10 +202,12 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
-            <HeaderWithBackButton
-                title={translate('iou.addExistingExpense')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('iou.addExistingExpense')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <View style={styles.flex1}>
                 <AddExistingExpenseTable
                     data={unreportedExpenses}
@@ -210,10 +215,21 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                     onRowSelectionChange={onRowSelectionChange}
                     onEndReached={fetchMoreUnreportedTransactions}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={paginationFooterContent}
+                    ListFooterComponent={
+                        shouldFooterBeInsideList ? (
+                            <>
+                                {paginationFooterContent}
+                                {footerContent}
+                            </>
+                        ) : (
+                            paginationFooterContent
+                        )
+                    }
+                    // The skeleton appended while the next page loads continues the rows, so it draws the bottom corners.
+                    shouldFooterRenderAsLastRow={!!paginationFooterContent}
                 />
             </View>
-            {footerContent}
+            {!shouldFooterBeInsideList && footerContent}
         </ScreenWrapper>
     );
 }
