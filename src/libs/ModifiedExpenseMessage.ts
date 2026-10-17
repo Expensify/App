@@ -9,7 +9,7 @@ import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Entries, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
 
@@ -214,49 +214,49 @@ function getRulesModifiedMessage(
     policyID?: string,
     hasPolicyRuleAccess?: boolean,
 ) {
-    const entries = ObjectUtils.typedEntries(fields);
+    const modifiedFields: PersonalRulesModifiedFields = fields;
+    const standaloneFragments: string[] = [];
+    const listKeys: Array<Exclude<keyof PersonalRulesModifiedFields, 'reportName' | 'reimbursable' | 'billable'>> = [];
 
-    // reportName ("moved to report X"), reimbursable/billable ("marked the expense as reimbursable/billable"), are standalone clauses with their own verb.
-    // They must not be mixed into the "set ... and ..." list produced by the other field fragments.
-    const {standaloneFragments, listEntries} = entries.reduce<{standaloneFragments: string[]; listEntries: Entries<PolicyRulesModifiedFields>}>(
-        (acc, entry) => {
-            const [key, value] = entry;
-            if (key === 'reportName') {
-                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.reportName', value as string));
-            } else if (key === 'reimbursable') {
-                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.reimbursable', value as boolean));
-            } else if (key === 'billable') {
-                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.billable', value as boolean));
-            } else {
-                acc.listEntries.push(entry as Entries<PolicyRulesModifiedFields>[number]);
-            }
-            return acc;
-        },
-        {standaloneFragments: [], listEntries: []},
-    );
+    // These clauses have their own verbs and must precede the list of fields that were set.
+    for (const [key] of ObjectUtils.typedEntries(modifiedFields)) {
+        if (key === 'reportName') {
+            standaloneFragments.push(translate('iou.rulesModifiedFields.reportName', String(modifiedFields[key])));
+        } else if (key === 'reimbursable') {
+            standaloneFragments.push(translate('iou.rulesModifiedFields.reimbursable', !!modifiedFields[key]));
+        } else if (key === 'billable') {
+            standaloneFragments.push(translate('iou.rulesModifiedFields.billable', !!modifiedFields[key]));
+        } else {
+            listKeys.push(key);
+        }
+    }
 
-    const listFragment = listEntries.map(([key, value], i) => {
+    const listFragment = listKeys.map((key, i) => {
         const isFirst = i === 0;
 
         if (key === 'tax') {
-            const taxEntry = value as PolicyRulesModifiedFields['tax'];
+            const taxEntry = modifiedFields[key];
             const taxRateName = taxEntry?.field_id_TAX?.name ?? '';
             return translate('iou.rulesModifiedFields.tax', taxRateName, isFirst);
         }
 
-        const updatedValue = value as string;
+        const value = modifiedFields[key];
         if (key === 'category') {
-            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(value ?? ''), isFirst);
         }
         if (key === 'tag') {
-            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(updatedValue), isFirst);
+            if (value === undefined) {
+                // Preserve the TypeError from getTagArrayFromName attempting replaceAll on undefined.
+                throw new TypeError('Cannot decode an undefined tag');
+            }
+            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value), isFirst);
         }
-        // The backend saves the description field as `comment` key, but we need to display it as `description` key.
+        // The backend saves description as comment, so display it with the description label.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', updatedValue, isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', String(value), isFirst);
         }
 
-        return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
+        return translate('iou.rulesModifiedFields.common', key, String(value), isFirst);
     });
 
     const fragments = [...standaloneFragments, ...listFragment];
