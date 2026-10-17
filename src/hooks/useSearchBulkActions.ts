@@ -2819,6 +2819,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) => {
+            const report = getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports);
+            return isExpenseReportUtil(report) && canEditReportPolicy(report, getPolicyFromSearchSnapshot(report?.policyID, searchResults?.data, policies));
+        };
+        const changeWorkspaceOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Buildings,
+            text: translate('iou.changeWorkspace'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
+        };
+
         if (areAllMatchingItemsSelected) {
             // The backend only approves the matching reports the user can approve, so one approvable loaded item is enough to offer it.
             const hasLoadedApprovableItem = selectedReports.length
@@ -2900,6 +2912,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     shouldCloseModalOnSelect: true,
                     onSelected: handleDeleteSelectedTransactions,
                 });
+            }
+            // The backend only moves the matching reports the user can move, so one movable loaded report is enough to offer it.
+            if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
+                allMatchingOptions.push(changeWorkspaceOption);
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -3019,25 +3035,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) => {
-            const report = getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports);
-            return isExpenseReportUtil(report) && canEditReportPolicy(report, getPolicyFromSearchSnapshot(report?.policyID, searchResults?.data, policies));
-        };
-        // Under "Select all" the backend skips the reports it can't move, so one movable loaded report is enough.
-        const shouldShowChangeWorkspaceOption =
-            !isOffline &&
-            isExpenseReportType &&
-            selectedReports.length > 0 &&
-            (areAllMatchingItemsSelected ? selectedReports.some(canChangeWorkspaceOfReport) : selectedReports.every(canChangeWorkspaceOfReport));
-
-        if (shouldShowChangeWorkspaceOption) {
-            options.push({
-                icon: expensifyIcons.Buildings,
-                text: translate('iou.changeWorkspace'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
-            });
+        if (!isOffline && isExpenseReportType && selectedReports.length > 0 && selectedReports.every(canChangeWorkspaceOfReport)) {
+            options.push(changeWorkspaceOption);
         }
 
         const uniqueSelectedReportIDsFromTransactions = new Set(
