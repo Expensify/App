@@ -1685,13 +1685,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
-                if (isExpenseReportType && !allMatchingQuery) {
+                const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                if (!allMatchingQuery) {
                     Log.info('[BulkPay] Dropping bulk pay: report exclusion has no reportID');
                     return;
                 }
-                const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
-                queueBulkPayReports(serializedQuery);
+                queueBulkPayReports(serializeQueryJSONForBackend(allMatchingQuery));
                 clearSelectedTransactions();
                 return;
             }
