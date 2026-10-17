@@ -48,6 +48,146 @@ const DONE_TITLES = {
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
+type BulkActionRunningProps = {
+    /** The action that is running */
+    action: BulkActionType | undefined;
+
+    /** Callback when the user asks Concierge to send the result */
+    onSendFromConcierge: () => void;
+};
+
+function BulkActionRunning({action, onSendFromConcierge}: BulkActionRunningProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <>
+            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
+                <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate(RUNNING_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY])}</Text>
+                <ActivityIndicator size="small" />
+            </View>
+            <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
+            <Button
+                onPress={onSendFromConcierge}
+                style={styles.w100}
+            >
+                <Button.Text>{translate('bulkAction.sendFromConcierge')}</Button.Text>
+            </Button>
+        </>
+    );
+}
+
+type BulkActionConciergeProps = {
+    /** Callback when the modal is closed */
+    onClose: () => void;
+};
+
+function BulkActionConcierge({onClose}: BulkActionConciergeProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+
+    return (
+        <>
+            <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.conciergeTitle')}</Text>
+            <Text style={styles.mb5}>{translate('bulkAction.conciergeBody')}</Text>
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => close(() => openConciergeAnywhere({forceConcierge: true}))}
+                style={styles.w100}
+            >
+                <Button.Text>{translate('bulkAction.goToConcierge')}</Button.Text>
+            </Button>
+            <Button
+                onPress={onClose}
+                style={[styles.w100, styles.mt3]}
+            >
+                <Button.Text>{translate('common.dismiss')}</Button.Text>
+            </Button>
+        </>
+    );
+}
+
+type BulkActionDoneProps = {
+    /** The action that finished */
+    action: BulkActionType | undefined;
+
+    /** How many reports the action ran on */
+    total: number;
+
+    /** The reports the action couldn't update */
+    failedReportIDs: string[];
+
+    /** Callback when the modal is closed */
+    onClose: () => void;
+};
+
+function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDoneProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const doneTitle =
+        total === 0
+            ? translate('bulkAction.noReportsTitle')
+            : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {doneCount: total - failedReportIDs.length, count: total});
+
+    const viewFailedReports = () => {
+        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${failedReportIDs.join(',')}`);
+        onClose();
+        if (!queryJSON) {
+            return;
+        }
+        close(() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)})));
+    };
+
+    return (
+        <>
+            <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
+            {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
+            {failedReportIDs.length > 0 && (
+                <>
+                    <Text style={styles.mb5}>{translate('bulkAction.failedReportsBody', {count: failedReportIDs.length})}</Text>
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={viewFailedReports}
+                        style={[styles.w100, styles.mb3]}
+                    >
+                        <Button.Text>{translate('bulkAction.viewFailedReports')}</Button.Text>
+                    </Button>
+                </>
+            )}
+            <Button
+                onPress={onClose}
+                style={styles.w100}
+            >
+                <Button.Text>{translate('common.close')}</Button.Text>
+            </Button>
+        </>
+    );
+}
+
+type BulkActionFailedProps = {
+    /** Callback when the modal is closed */
+    onClose: () => void;
+};
+
+function BulkActionFailed({onClose}: BulkActionFailedProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <>
+            <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.failedTitle')}</Text>
+            <Text style={styles.mb5}>{translate('bulkAction.failedBody')}</Text>
+            <Button
+                onPress={onClose}
+                style={styles.w100}
+            >
+                <Button.Text>{translate('common.close')}</Button.Text>
+            </Button>
+        </>
+    );
+}
+
 type BulkActionStatusModalProps = {
     /** The bulk action ID to subscribe to */
     bulkActionID: string;
@@ -60,11 +200,9 @@ type BulkActionStatusModalProps = {
 
 function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionStatusModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
 
     const [bulkAction] = useOnyx(`${ONYXKEYS.COLLECTION.BULK_ACTION}${bulkActionID}`);
@@ -76,107 +214,8 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
     const state = displayedBulkAction?.state;
     const action = displayedBulkAction?.action;
     const shouldSendFromConcierge = !!displayedBulkAction?.shouldSendFromConcierge;
-    const total = displayedBulkAction?.total ?? 0;
-    const failedReportIDs = displayedBulkAction?.failedReportIDs ?? [];
     const isRunning = state === CONST.BULK_ACTION.STATE.RUNNING && !shouldSendFromConcierge;
     const isConcierge = shouldSendFromConcierge && state !== CONST.BULK_ACTION.STATE.DONE;
-
-    const handleViewFailedReports = () => {
-        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${failedReportIDs.join(',')}`);
-        onClose();
-        if (!queryJSON) {
-            return;
-        }
-        close(() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)})));
-    };
-
-    const renderContent = () => {
-        if (isRunning) {
-            return (
-                <>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
-                        <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate(RUNNING_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY])}</Text>
-                        <ActivityIndicator size="small" />
-                    </View>
-                    <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
-                    <Button
-                        onPress={() => sendBulkActionSummaryFromConcierge(bulkActionID, displayedBulkAction ?? undefined)}
-                        style={styles.w100}
-                    >
-                        <Button.Text>{translate('bulkAction.sendFromConcierge')}</Button.Text>
-                    </Button>
-                </>
-            );
-        }
-
-        if (isConcierge) {
-            return (
-                <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.conciergeTitle')}</Text>
-                    <Text style={styles.mb5}>{translate('bulkAction.conciergeBody')}</Text>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => close(() => openConciergeAnywhere({forceConcierge: true}))}
-                        style={styles.w100}
-                    >
-                        <Button.Text>{translate('bulkAction.goToConcierge')}</Button.Text>
-                    </Button>
-                    <Button
-                        onPress={onClose}
-                        style={[styles.w100, styles.mt3]}
-                    >
-                        <Button.Text>{translate('common.dismiss')}</Button.Text>
-                    </Button>
-                </>
-            );
-        }
-
-        if (state === CONST.BULK_ACTION.STATE.DONE) {
-            const count = total - failedReportIDs.length;
-            const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {doneCount: count, count: total});
-            return (
-                <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
-                    {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
-                    {failedReportIDs.length > 0 && (
-                        <>
-                            <Text style={styles.mb5}>{translate('bulkAction.failedReportsBody', {count: failedReportIDs.length})}</Text>
-                            <Button
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={handleViewFailedReports}
-                                style={[styles.w100, styles.mb3]}
-                            >
-                                <Button.Text>{translate('bulkAction.viewFailedReports')}</Button.Text>
-                            </Button>
-                        </>
-                    )}
-                    <Button
-                        onPress={onClose}
-                        style={styles.w100}
-                    >
-                        <Button.Text>{translate('common.close')}</Button.Text>
-                    </Button>
-                </>
-            );
-        }
-
-        if (state === CONST.BULK_ACTION.STATE.FAILED) {
-            return (
-                <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.failedTitle')}</Text>
-                    <Text style={styles.mb5}>{translate('bulkAction.failedBody')}</Text>
-                    <Button
-                        onPress={onClose}
-                        style={styles.w100}
-                    >
-                        <Button.Text>{translate('common.close')}</Button.Text>
-                    </Button>
-                </>
-            );
-        }
-
-        return null;
-    };
 
     return (
         <Modal
@@ -188,7 +227,24 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
             innerContainerStyle={styles.pv0}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={bottomSafeAreaPaddingStyle}>{renderContent()}</View>
+            <View style={bottomSafeAreaPaddingStyle}>
+                {isRunning && (
+                    <BulkActionRunning
+                        action={action}
+                        onSendFromConcierge={() => sendBulkActionSummaryFromConcierge(bulkActionID, displayedBulkAction ?? undefined)}
+                    />
+                )}
+                {isConcierge && <BulkActionConcierge onClose={onClose} />}
+                {state === CONST.BULK_ACTION.STATE.DONE && (
+                    <BulkActionDone
+                        action={action}
+                        total={displayedBulkAction?.total ?? 0}
+                        failedReportIDs={displayedBulkAction?.failedReportIDs ?? []}
+                        onClose={onClose}
+                    />
+                )}
+                {!isConcierge && state === CONST.BULK_ACTION.STATE.FAILED && <BulkActionFailed onClose={onClose} />}
+            </View>
         </Modal>
     );
 }
