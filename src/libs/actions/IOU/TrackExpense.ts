@@ -1952,6 +1952,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       isSelfTourViewed,
                       conciergeChat,
                       delegateAccountID,
+                      currentUserAccountID: currentUserAccountIDParam,
                   })?.guidedSetupData
                 : undefined;
 
