@@ -87,6 +87,7 @@ function renderSubmission(overrides: Partial<UseParticipantSubmissionParams> = {
             isMovingTransactionFromTrackExpense: true,
             isFocused: true,
             isWorkspacesOnly: false,
+            shouldExcludeWorkspaces: false,
             ...overrides,
         }),
     );
@@ -289,7 +290,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
-    it('keeps the p2p rate so the confirmation step can ask the user to pick a workspace rate', () => {
+    it("selects the destination workspace's rate when the tracked expense still carries the p2p rate ", () => {
         mockDraftTransactions = [buildTrackedDistanceDraft(CONST.CUSTOM_UNITS.FAKE_P2P_ID)];
         const {result} = renderSubmission();
 
@@ -297,7 +298,8 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
             result.current.addParticipant([DESTINATION_CHAT]);
         });
 
-        expect(setCustomUnitRateID).not.toHaveBeenCalled();
+        expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
     it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {

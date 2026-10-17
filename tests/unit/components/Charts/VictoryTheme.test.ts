@@ -3,6 +3,8 @@ import type * as VictoryThemeModule from '@components/Charts/VictoryTheme';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
+
 /**
  * Loads VictoryTheme after each module reset so individual tests can mock
  * `@styles/theme/colors` before the module's IIFE runs.
@@ -15,6 +17,37 @@ function loadVictoryTheme(): typeof VictoryThemeModule.default {
 describe('VictoryTheme', () => {
     beforeEach(() => {
         jest.resetModules();
+    });
+
+    describe('colors.getComparisonColor', () => {
+        it('lightens each color to the 200 shade of the same hue', () => {
+            // Given palette colors items and series are drawn in
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting the colors their compared periods are drawn in, in light mode
+            const comparisonColors = [colors.yellow400, colors.blue400, colors.pink600].map((color) => VictoryTheme.colors.getComparisonColor(color, CONST.COLOR_SCHEME.LIGHT));
+
+            // Then each keeps its hue, so the two bars or lines of a comparison read as one item
+            expect(comparisonColors).toEqual([colors.yellow200, colors.blue200, colors.pink200]);
+        });
+
+        it('lightens the default line color to green200', () => {
+            // Given the default chart color, green400
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting its comparison color
+            // Then it is green200
+            expect(VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, CONST.COLOR_SCHEME.LIGHT)).toBe(colors.green200);
+        });
+
+        it('darkens to the 700 shade in dark mode', () => {
+            // Given green400, drawn on a dark background
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting its comparison color in dark mode
+            // Then it is the 700 shade
+            expect(VictoryTheme.colors.getComparisonColor(colors.green400, CONST.COLOR_SCHEME.DARK)).toBe(colors.green700);
+        });
     });
 
     describe('colors.palette', () => {
@@ -51,13 +84,6 @@ describe('VictoryTheme', () => {
         it('matches getColor(3)', () => {
             const VictoryTheme = loadVictoryTheme();
             expect(VictoryTheme.colors.default).toBe(VictoryTheme.colors.getColor(3));
-        });
-    });
-
-    describe('colors.defaultDot', () => {
-        it('equals the palette entry at the default dot index (green500)', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.defaultDot).toBe(colors.green500);
         });
     });
 
@@ -127,15 +153,8 @@ describe('VictoryTheme', () => {
                 xLineWidth: 0,
                 yLineWidth: 1,
                 labelGap: 12,
+                xAxisLabelGap: 24,
                 padding: {top: 5, left: 5, right: 5, bottom: 5},
-            });
-        });
-
-        it('exposes tooltip values', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.tooltip).toEqual({
-                pointerHeight: 4,
-                pointerWidth: 12,
             });
         });
 
