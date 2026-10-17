@@ -12141,14 +12141,38 @@ const translations = {
         conciergeTitle: 'You bet!',
         conciergeBody: "Concierge will message you when it's done.",
         goToConcierge: 'Go to Concierge',
-        approvedTitle: ({count, total}: {count: number; total: number}) => `Approved ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        submittedTitle: ({count, total}: {count: number; total: number}) => `Submitted ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        paidTitle: ({count, total}: {count: number; total: number}) => `Marked ${count} of ${total} ${total === 1 ? 'report' : 'reports'} as paid`,
-        heldTitle: ({count, total}: {count: number; total: number}) => `Held expenses on ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        unheldTitle: ({count, total}: {count: number; total: number}) => `Unheld expenses on ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        rejectedTitle: ({count, total}: {count: number; total: number}) => `Rejected expenses on ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        deletedTitle: ({count, total}: {count: number; total: number}) => `Deleted ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
-        deletedExpensesTitle: ({count, total}: {count: number; total: number}) => `Deleted expenses on ${count} of ${total} ${total === 1 ? 'report' : 'reports'}`,
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approved ${doneCount} of ${count} report`,
+            other: `Approved ${doneCount} of ${count} reports`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Submitted ${doneCount} of ${count} report`,
+            other: `Submitted ${doneCount} of ${count} reports`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marked ${doneCount} of ${count} report as paid`,
+            other: `Marked ${doneCount} of ${count} reports as paid`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Held expenses on ${doneCount} of ${count} report`,
+            other: `Held expenses on ${doneCount} of ${count} reports`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Unheld expenses on ${doneCount} of ${count} report`,
+            other: `Unheld expenses on ${doneCount} of ${count} reports`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Rejected expenses on ${doneCount} of ${count} report`,
+            other: `Rejected expenses on ${doneCount} of ${count} reports`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted ${doneCount} of ${count} report`,
+            other: `Deleted ${doneCount} of ${count} reports`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted expenses on ${doneCount} of ${count} report`,
+            other: `Deleted expenses on ${doneCount} of ${count} reports`,
+        }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
         failedReportsBody: ({count}: {count: number}) => (count === 1 ? "1 report couldn't be updated." : `${count} reports couldn't be updated.`),

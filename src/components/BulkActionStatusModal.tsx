@@ -133,7 +133,7 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
 
         if (state === CONST.BULK_ACTION.STATE.DONE) {
             const count = total - failedReportIDs.length;
-            const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count, total});
+            const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {doneCount: count, count: total});
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
