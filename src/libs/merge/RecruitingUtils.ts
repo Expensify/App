@@ -156,7 +156,7 @@ function getMergeATSApproverField(policy: OnyxEntry<Policy>): MergeATSApproverFi
 /**
  * Returns the ATS fields the connected provider supports as the source of a candidate's default approver.
  */
-function getMergeATSApproverFields(policy: OnyxEntry<Policy>): ReadonlyArray<MergeATSApproverField> {
+function getMergeATSApproverFields(policy: OnyxEntry<Policy>): readonly MergeATSApproverField[] {
     const slug = getConnectedATSProvider(policy)?.mergeSlug;
     const approverFields = slug ? MERGE_ATS_PROVIDERS[slug]?.approverFields : undefined;
     return approverFields ?? [];
