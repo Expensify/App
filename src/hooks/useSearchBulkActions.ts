@@ -756,6 +756,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // The backend runs a Select all bulk action only on an expense or report search.
+    const isExpenseOrReportSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Download',
         'Export',
@@ -2817,13 +2819,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const hasLoadedApprovableItem = selectedReports.length
                 ? selectedReports.some((report) => report.canApprove)
                 : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
-            const shouldShowApproveOptionForAllMatchingItems = !isOffline && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && isExpenseOrReportSearch && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
             // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
             // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
             const hasLoadedSubmittableItem = selectedReports.length
                 ? selectedReports.some((report) => report.canSubmit)
                 : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
-            const shouldShowSubmitOptionForAllMatchingItems = !isOffline && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+            const shouldShowSubmitOptionForAllMatchingItems =
+                !isOffline && isExpenseOrReportSearch && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
             const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
                 icon: expensifyIcons.Send,
                 text: translate('common.submit'),
@@ -2868,14 +2871,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 allMatchingOptions.push(payButtonOption);
             }
             // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
-            if (queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
+            if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
                 allMatchingOptions.push(rejectOption);
             }
             // The backend only acts on the matching expenses the user can hold or unhold, so one loaded item is enough to offer it.
-            if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
+            if (!isOffline && isExpenseOrReportSearch && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
                 allMatchingOptions.push(holdOption);
             }
-            if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
+            if (!isOffline && isExpenseOrReportSearch && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
                 allMatchingOptions.push(unholdOption);
             }
             // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
@@ -2885,7 +2888,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     : selectedTransactionsKeys.some((id) =>
                           shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, cardList, [], queryJSON?.type),
                       );
-            if (!isOffline && hasLoadedDeletableItem) {
+            if (!isOffline && isExpenseOrReportSearch && hasLoadedDeletableItem) {
                 allMatchingOptions.push({
                     icon: expensifyIcons.Trashcan,
                     text: translate('search.bulkActions.delete'),
