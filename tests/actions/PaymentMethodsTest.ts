@@ -49,7 +49,7 @@ describe('actions/PaymentMethods', () => {
         mockFetch = TestHelper.createGlobalFetchMock();
         global.fetch = mockFetch;
         await Onyx.clear();
-        await Onyx.multiSet(policyMemberBankAccounts);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${PAYMENTS_ON_POLICY_ID}`, {[ACCOUNT_ID]: previousBankAccount});
         await waitForBatchedUpdates();
     });
 
