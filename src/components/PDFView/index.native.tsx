@@ -11,8 +11,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getPlatform from '@libs/getPlatform';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import shouldEnableAttachmentModalKeyboardAvoidance from '@libs/shouldEnableAttachmentModalKeyboardAvoidance';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 
 import CONST from '@src/CONST';
@@ -73,7 +73,7 @@ function PDFView({
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
     const {insets} = useSafeAreaPaddings();
-    const shouldAvoidPasswordKeyboard = !!isUsedInAttachmentModal && getPlatform() === CONST.PLATFORM.IOS;
+    const shouldAvoidPasswordKeyboard = !!isUsedInAttachmentModal && !shouldEnableAttachmentModalKeyboardAvoidance;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
