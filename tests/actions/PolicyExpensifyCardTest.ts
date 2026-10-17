@@ -5,7 +5,7 @@ import {activatePhysicalExpensifyCard, issueExpensifyCard, openIssueNewCardShipp
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {openPolicyExpensifyCardsPage} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardLoadingState, ExpensifyCardSettings} from '@src/types/onyx';
+import type {ExpensifyCardLoadingState, ExpensifyCardSettings, IssueNewCard} from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -169,6 +169,29 @@ describe('actions/PolicyExpensifyCard', () => {
             // Then we check the cardholder's phone number so the admin is only asked for one when it's missing
             const body = TestHelper.getFetchMockCalls(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP).at(-1)?.[1]?.body;
             expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({policyID, assigneeEmail: 'zany@example.com'}));
+        });
+
+        it('keeps knowing the cardholder has a phone number while the step loads again', async () => {
+            // Given an admin who already knows the cardholder has a phone number, on a slow network
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {hasAssigneePhoneNumber: true});
+            mockFetch.pause();
+
+            // When the admin goes back to the shipping address step from the confirmation
+            openIssueNewCardShippingAddressStep(policyID, 'zany@example.com');
+            await waitForBatchedUpdates();
+
+            // Then the phone number step isn't added to the steps while the check is still loading
+            const issueNewCard = await new Promise<OnyxEntry<IssueNewCard>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(issueNewCard?.hasAssigneePhoneNumber).toBe(true);
+            await mockFetch.resume();
         });
     });
 
