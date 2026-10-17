@@ -1,0 +1,334 @@
+{
+    "@typescript-eslint/adjacent-overload-signatures": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/adjacent-overload-signatures",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; declare-function overloads split by an unrelated signature; the consecutive pair below is the control",
+        "oxlintLines": [38],
+        "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the out-of-order signature (the second `interleaved`, line 40), oxlint reports on the first signature of the split group (line 38). Counts match at 1. Matters for suppressions: a disable comment placed for one tool misses the other."
+    },
+    "@typescript-eslint/array-type": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/array-type",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's array-simple: Array<string> must be string[], while Array<BatchShape | null> stays legal"
+    },
+    "@typescript-eslint/await-thenable": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/await-thenable",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; await on a number; the awaited Promise control proves type information reached both tools"
+    },
+    "@typescript-eslint/ban-ts-comment": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/ban-ts-comment",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; bare @ts-expect-error against the default allow-with-description; the described directive is the control"
+    },
+    "@typescript-eslint/ban-tslint-comment": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/ban-tslint-comment",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a tslint:disable comment, reported on the comment node on both sides"
+    },
+    "@typescript-eslint/class-literal-property-style": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/class-literal-property-style",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'fields' (production default) reports a getter that returns a literal; the readonly field is the control"
+    },
+    "@typescript-eslint/consistent-generic-constructors": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-generic-constructors",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'constructor' (default) reports type arguments on the annotation side of new Map()"
+    },
+    "@typescript-eslint/consistent-indexed-object-style": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-indexed-object-style",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'record' (default) reports an index signature where Record<string, number> is expected"
+    },
+    "@typescript-eslint/consistent-type-assertions": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-type-assertions",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'as' (default) reports the angle-bracket assertion; the as-cast of the same unknown is the control"
+    },
+    "@typescript-eslint/consistent-type-definitions": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-type-definitions",
+        "expected": 7,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's 'type': an interface declaration reports, the type alias does not"
+    },
+    "@typescript-eslint/consistent-type-exports": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-type-exports",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; re-exporting an imported type without `type`; the export type line is the control"
+    },
+    "@typescript-eslint/consistent-type-imports": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/consistent-type-imports",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; value import of type-only symbols with fixStyle separate-type-imports; the import type line is the control"
+    },
+    "@typescript-eslint/dot-notation": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/dot-notation",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; allowKeywords only exempts obj['default']; obj['alpha'] still reports"
+    },
+    "@typescript-eslint/no-array-delete": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-array-delete",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; delete on an array index; deleting a Record key is the control"
+    },
+    "@typescript-eslint/no-base-to-string": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-base-to-string",
+        "expected": 3,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; String() of a class with no toString; the TalkativeBox control overrides toString"
+    },
+    "@typescript-eslint/no-confusing-non-null-assertion": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-confusing-non-null-assertion",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a non-null assertion inside an equality operand; the parenthesized comparison is the control"
+    },
+    "@typescript-eslint/no-duplicate-enum-values": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-duplicate-enum-values",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the second member repeats the value 1; the uniquely valued enum is the control",
+        "oxlintLines": [102],
+        "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the duplicate member (`Second = 1`, line 103), oxlint reports on the first member holding that value (`First = 1`, line 102). Counts match at 1. Same suppression-placement consequence as adjacent-overload-signatures."
+    },
+    "@typescript-eslint/no-duplicate-type-constituents": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-duplicate-type-constituents",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's ignoreUnions:true leaves the duplicated intersection reporting and the duplicated union quiet",
+        "oxlintLines": [114],
+        "whyOxlintLines": "oxlint reports the primitive intersection (string & string) but not the structurally identical object literals on the next line; ESLint asks the type checker and catches both. Measured: with this rule enabled alone, oxlint reports `string & string` and `string | string` (the latter only with ignoreUnions off, so the option is honoured) and stays silent on `{a: string} | {a: string}` and `{b: string} & {b: string}`. The gap is structural comparison of object types, not unions vs intersections. Production enables this rule, so that is a real hole; this row flips the day oxlint compares structurally."
+    },
+    "@typescript-eslint/no-empty-object-type": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-empty-object-type",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the {} type literal; the populated type alias is the control"
+    },
+    "@typescript-eslint/no-explicit-any": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-explicit-any",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; an any annotation on a parameter; the unknown parameter is the control"
+    },
+    "@typescript-eslint/no-extra-non-null-assertion": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-extra-non-null-assertion",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a doubled !; single assertions elsewhere belong to no-non-null-assertion"
+    },
+    "@typescript-eslint/no-for-in-array": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-for-in-array",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; for-in over string[]; the for-in over a Record is the control"
+    },
+    "@typescript-eslint/no-implied-eval": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-implied-eval",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a string handler passed to setTimeout, which lib.dom still types as TimerHandler; the arrow handler is the control"
+    },
+    "@typescript-eslint/no-import-type-side-effects": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-import-type-side-effects",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; an import whose only specifiers are inline `type`; the top-level import type line is the control"
+    },
+    "@typescript-eslint/no-inferrable-types": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-inferrable-types",
+        "expected": 3,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; const x: number = 5; the Number('1') initializer control keeps the annotation meaningful"
+    },
+    "@typescript-eslint/no-misused-new": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-misused-new",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a construct signature returning its own interface; the builder returning a class is the control"
+    },
+    "@typescript-eslint/no-namespace": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-namespace",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a value namespace; declare global is exempt on both tools"
+    },
+    "@typescript-eslint/no-non-null-asserted-optional-chain": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-non-null-asserted-optional-chain",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a ! applied to nested.inner?.name; the ?? fallback is the control"
+    },
+    "@typescript-eslint/no-non-null-assertion": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-non-null-assertion",
+        "expected": 3,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; maybeText!.length; the ?? guard is the control"
+    },
+    "@typescript-eslint/no-redundant-type-constituents": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-redundant-type-constituents",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'a' | string, where the literal is swallowed; 'a' | 'b' is the control"
+    },
+    "@typescript-eslint/no-restricted-types": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-restricted-types",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production bans only the object type with its own message; Record<string, unknown> is the control"
+    },
+    "@typescript-eslint/no-this-alias": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-this-alias",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; const self = this in a method; destructuring and the arrow closure are allowed by the defaults"
+    },
+    "@typescript-eslint/no-unnecessary-type-constraint": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-unnecessary-type-constraint",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; <T extends unknown> is the implicit constraint; <T extends string> is the control"
+    },
+    "@typescript-eslint/no-unsafe-argument": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-unsafe-argument",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; JSON.parse's any flows into a number parameter; the literal call is the control"
+    },
+    "@typescript-eslint/no-unsafe-call": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-unsafe-call",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; calling the any that JSON.parse returns; the typed callback is the control"
+    },
+    "@typescript-eslint/no-unsafe-declaration-merging": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-unsafe-declaration-merging",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a class merged with an interface of the same name; interface-with-interface is the safe control",
+        "oxlintLines": [207],
+        "whyOxlintLines": "both tools find the unsafe merge; they anchor it differently. ESLint reports twice, once on the interface and once on the class that merges with it, while oxlint reports once on the interface. Same defect, one diagnostic instead of two -- not a missed detection."
+    },
+    "@typescript-eslint/no-unsafe-enum-comparison": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-unsafe-enum-comparison",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a number compared with an enum member; the enum-with-enum comparison is the control"
+    },
+    "@typescript-eslint/no-unsafe-function-type": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-unsafe-function-type",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a Function typed parameter; the () => void parameter is the control"
+    },
+    "@typescript-eslint/no-unsafe-unary-minus": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/no-unsafe-unary-minus",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; unary minus on JSON.parse's any; minus on a number is the control"
+    },
+    "@typescript-eslint/no-wrapper-object-types": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/no-wrapper-object-types",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the String wrapper type; the string primitive is the control"
+    },
+    "@typescript-eslint/non-nullable-type-assertion-style": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/non-nullable-type-assertion-style",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; as string on string | undefined should be !; the ?? control keeps the row honest"
+    },
+    "@typescript-eslint/prefer-as-const": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-as-const",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; an assertion to a literal type; as const is the control"
+    },
+    "@typescript-eslint/prefer-enum-initializers": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-enum-initializers",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; one member without an initializer inside an otherwise initialized enum"
+    },
+    "@typescript-eslint/prefer-for-of": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-for-of",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; an index loop whose counter only indexes the array; the for-of loop is the control"
+    },
+    "@typescript-eslint/prefer-function-type": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-function-type",
+        "expected": 3,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a type literal holding a single call signature; the arrow type alias is the control"
+    },
+    "@typescript-eslint/prefer-namespace-keyword": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-namespace-keyword",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the module keyword instead of namespace"
+    },
+    "@typescript-eslint/prefer-nullish-coalescing": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/prefer-nullish-coalescing",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's ignorePrimitives:{} means string || still reports; ??, the ignored ternary, and the ignored if are controls"
+    },
+    "@typescript-eslint/prefer-string-starts-ends-with": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/prefer-string-starts-ends-with",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; indexOf(...) === 0 on a string; startsWith is the control"
+    },
+    "@typescript-eslint/restrict-plus-operands": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/restrict-plus-operands",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; string + number under the default allow* flags; string + string is the control"
+    },
+    "@typescript-eslint/restrict-template-expressions": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/restrict-template-expressions",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a nullish interpolation under the default allowNumber:true; the number interpolation is the control"
+    },
+    "@typescript-eslint/return-await": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/return-await",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; 'in-try-catch': await on a return outside try/catch reports, the same await inside try does not"
+    },
+    "@typescript-eslint/switch-exhaustiveness-check": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/switch-exhaustiveness-check",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; considerDefaultExhaustiveForUnions:true leaves the default-less switch reporting and the defaulted one quiet"
+    },
+    "@typescript-eslint/triple-slash-reference": {
+        "fixture": "fixtures/tsBatchA.ts",
+        "oxlintRule": "typescript/triple-slash-reference",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the path: 'never' default reports the /// <reference path> directive at the top of the file"
+    },
+    "@typescript-eslint/unbound-method": {
+        "fixture": "fixtures/tsBatchB.ts",
+        "oxlintRule": "typescript/unbound-method",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; detaching a prototype method from its instance; the .bind() reference is the control"
+    }
+}

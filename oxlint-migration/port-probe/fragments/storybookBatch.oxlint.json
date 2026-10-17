@@ -1,0 +1,66 @@
+{
+    "overrides": [
+        {
+            "files": ["**/sbTitleBatch.stories.tsx"],
+            "rules": {
+                "hosted/hierarchy-separator": "error",
+                "hosted/no-redundant-story-name": "error",
+                "hosted/prefer-pascal-case": "error"
+            }
+        },
+        {
+            "files": ["**/sbNoDefault.stories.tsx"],
+            "rules": {
+                "hosted/default-exports": "error"
+            }
+        },
+        {
+            "files": ["**/sbNoStories.stories.tsx"],
+            "rules": {
+                "hosted/story-exports": "error"
+            }
+        },
+        {
+            "files": ["**/sbRenderer.stories.tsx"],
+            "rules": {
+                "hosted/no-renderer-packages": "error"
+            }
+        },
+        {
+            "files": ["**/sbPlay.stories.tsx"],
+            "rules": {
+                "hosted/context-in-play-function": "error",
+                "hosted/use-storybook-expect": "error",
+                "hosted/use-storybook-testing-library": "error"
+            }
+        },
+        {
+            "files": ["**/sbAwait.stories.tsx"],
+            "rules": {
+                "hosted/await-interactions": "error"
+            }
+        },
+        {
+            "files": ["**/sbMain.ts"],
+            "rules": {
+                "hosted/no-uninstalled-addons": [
+                    "error",
+                    {
+                        "packageJsonLocation": "../../package.json"
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/sbRequireJsdoc.ts"],
+            "rules": {
+                "hosted/require-jsdoc": [
+                    "error",
+                    {
+                        "contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration"]
+                    }
+                ]
+            }
+        }
+    ]
+}
