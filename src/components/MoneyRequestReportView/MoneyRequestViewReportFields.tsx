@@ -152,8 +152,8 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style}: Mo
                 // An input the user can type into is seeded with the raw value, the same as the report field editor page.
                 // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
                 // time it was edited, so the field would stop following the field it refers to.
-                const canTypeIntoField = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
-                const fieldValue = canTypeIntoField
+                const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+                const fieldValue = shouldUseRawValue
                     ? (field.value ?? field.defaultValue ?? '')
                     : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
 
