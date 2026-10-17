@@ -31,10 +31,12 @@ const mockQueryJSON: SearchQueryJSON = {
 const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
 let mockSubmitHoldReason: ((values: {comment: string}) => void) | undefined;
+let mockEnabledWhenOffline: boolean | undefined;
 
 jest.mock('@pages/iou/HoldReasonFormView', () => {
-    function MockHoldReasonFormView({onSubmit}: {onSubmit: (values: {comment: string}) => void}) {
+    function MockHoldReasonFormView({onSubmit, enabledWhenOffline}: {onSubmit: (values: {comment: string}) => void; enabledWhenOffline?: boolean}) {
         mockSubmitHoldReason = onSubmit;
+        mockEnabledWhenOffline = enabledWhenOffline;
         return null;
     }
     return MockHoldReasonFormView;
@@ -81,6 +83,7 @@ describe('SearchHoldReasonPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockSubmitHoldReason = undefined;
+        mockEnabledWhenOffline = undefined;
         await Onyx.clear();
     });
 
@@ -109,5 +112,23 @@ describe('SearchHoldReasonPage', () => {
         // Then the selected expense is held directly and nothing is queued on the backend
         expect(putOnHold).toHaveBeenCalledTimes(1);
         expect(queueBulkHoldExpenses).not.toHaveBeenCalled();
+    });
+
+    it('keeps the reason form from submitting offline when Select all is checked', async () => {
+        // Given the hold reason page opened with "Select all" checked
+        renderPage(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form is disabled offline, since the backend would hold whatever matches once the device reconnects
+        expect(mockEnabledWhenOffline).toBe(false);
+    });
+
+    it('lets the reason form submit offline when Select all is not checked', async () => {
+        // Given the hold reason page opened with a manual selection
+        renderPage(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form still works offline, since each selected expense is updated optimistically
+        expect(mockEnabledWhenOffline).toBe(true);
     });
 });
