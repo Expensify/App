@@ -37,9 +37,9 @@ import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
  * Report next step context is a FE-only derived values for ReportNextStep
  */
 type ReportNextStepContext = {
-    messageKeyModifier?: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER>;
-    actorType?: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+    messageKeyModifier: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER> | undefined;
+    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE> | undefined;
+    etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
 };
 
 type BuildOptimisticNextStepParams = {
@@ -356,6 +356,11 @@ type GetReportNextStepParams = {
     isReportArchived: boolean;
 };
 
+type GetReportNextStepResult = {
+    nextStep: ReportNextStep;
+    nextStepContext: ReportNextStepContext;
+};
+
 function getReportNextStep({
     currentUserLogin,
     currentUserEmail,
@@ -368,7 +373,7 @@ function getReportNextStep({
     rules,
     areStrictPolicyRulesEnabled,
     isReportArchived,
-}: GetReportNextStepParams) {
+}: GetReportNextStepParams): GetReportNextStepResult {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
