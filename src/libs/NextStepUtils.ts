@@ -324,6 +324,13 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
+function buildOptimisticsNoFurtherActionNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+    };
+}
+
 type GetReportNextStepParams = {
     currentUserLogin: string;
     currentUserEmail: string;
@@ -379,10 +386,7 @@ function getReportNextStep({
         reimbursableSpend === 0 &&
         (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
     if (shouldShowNoFurtherAction) {
-        return {
-            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        };
+        return buildOptimisticsNoFurtherActionNextStep();
     }
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
@@ -395,7 +399,6 @@ function getReportNextStep({
                 return acc;
             }, {});
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
-
             if (errors?.dewSubmitFailed) {
                 return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
@@ -444,11 +447,4 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
     return !automaticAction;
 }
 
-export {
-    getReportNextStep,
-    buildNextStepMessage,
-    buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
-};
+export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, shouldShowDynamicExternalWorkflowApproveErrorNextStep};
