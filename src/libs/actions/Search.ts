@@ -2290,6 +2290,12 @@ function queueBulkDeleteReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_DELETE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+/** Moves every report matching the search query that the user can move to the given workspace. */
+function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    write(WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY, {jsonQuery, policyID, bulkActionID}, onyxData);
+}
+
 /** Queues a delete for every expense matching the search query that the user can delete. */
 function queueBulkDeleteExpenses(jsonQuery: string, excludedTransactionIDList: string[]) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.BULK_ACTION.DELETE_EXPENSES);
@@ -2753,6 +2759,7 @@ export {
     queueBulkUnholdExpenses,
     queueBulkRejectExpenses,
     queueBulkDeleteReports,
+    queueBulkChangeReportPolicy,
     queueBulkDeleteExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
