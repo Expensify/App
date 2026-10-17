@@ -25,13 +25,13 @@ function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, 
     const {translate} = useLocalize();
     const currentLimitType = getDisplayedExpensifyCardLimitType(limitType, getDefaultExpensifyCardLimitType(policy));
     const limitTypeLabel = translate(getTranslationKeyForLimitType(currentLimitType));
-    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const {popoverHeight: preferredPopoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: currentLimitType,
         onSave,
-        popoverHeight,
+        popoverHeight: preferredPopoverHeight,
     });
 
     return (
@@ -48,7 +48,10 @@ function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, 
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={(selectedLimitType) => {
                         handleSave(selectedLimitType);
                     }}
