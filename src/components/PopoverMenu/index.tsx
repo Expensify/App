@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -419,13 +420,23 @@ function BasePopoverMenu({
     const activeElementRole = useActiveElementRole();
     const isInteractiveElementFocused = isSearchEnabled && !!activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
+    const [arrowFocusedItemAnnouncement, setArrowFocusedItemAnnouncement] = useState({message: '', key: 0});
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const rowLayoutsRef = useRef(new Map<number, {height: number; y: number}>());
     const scrollOffsetRef = useRef(0);
     const scrollViewHeightRef = useRef(0);
-    const scrollFocusedRowIntoView = (index: number, shouldScroll: boolean) => {
+    const handleFocusedIndexChange = (index: number, shouldScroll: boolean) => {
         if (!isSearchEnabled || !shouldScroll) {
             return;
+        }
+        if (isWeb && isSearchInputFocused) {
+            const focusedItem = currentMenuItems.at(index);
+            if (focusedItem) {
+                const message = [focusedItem.text, focusedItem.description, focusedItem.badgeText]
+                    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+                    .join(', ');
+                setArrowFocusedItemAnnouncement((previousAnnouncement) => ({message, key: previousAnnouncement.key + 1}));
+            }
         }
         const rowLayout = rowLayoutsRef.current.get(index);
         if (!rowLayout || scrollViewHeightRef.current === 0) {
@@ -448,8 +459,14 @@ function BasePopoverMenu({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
         isActive: isVisible,
-        onFocusedIndexChange: scrollFocusedRowIntoView,
+        onFocusedIndexChange: handleFocusedIndexChange,
         setHasKeyBeenPressed: isSearchEnabled ? showFocusedRow : undefined,
+    });
+    useAccessibilityAnnouncement(arrowFocusedItemAnnouncement.message, isWeb && isVisible && isSearchInputFocused && !!arrowFocusedItemAnnouncement.message, {
+        shouldAnnounceOnNative: false,
+        shouldAnnounceOnWeb: true,
+        announcementKey: arrowFocusedItemAnnouncement.key,
+        politeness: 'polite',
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -876,8 +893,14 @@ function BasePopoverMenu({
                                     label={searchInputOptions.label}
                                     inputValue={searchInputOptions.value}
                                     onChangeText={searchInputOptions.onChangeText}
-                                    onFocus={() => setIsSearchInputFocused(true)}
-                                    onBlur={() => setIsSearchInputFocused(false)}
+                                    onFocus={() => {
+                                        setArrowFocusedItemAnnouncement((previousAnnouncement) => ({...previousAnnouncement, message: ''}));
+                                        setIsSearchInputFocused(true);
+                                    }}
+                                    onBlur={() => {
+                                        setArrowFocusedItemAnnouncement((previousAnnouncement) => ({...previousAnnouncement, message: ''}));
+                                        setIsSearchInputFocused(false);
+                                    }}
                                     shouldShowEmptyState={searchInputOptions.shouldShowEmptyState}
                                     shouldShowIcon={false}
                                     style={[styles.mw100, searchInputOptions.style]}
