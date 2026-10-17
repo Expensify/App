@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -40,7 +41,7 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -78,6 +79,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const isSubmittingAccountMerge = useRef(false);
     const shouldContinueAfterAccountMerge = useRef(false);
     const delegateAccountID = useDelegateAccountID();
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding();
+    const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -123,7 +126,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         }
 
         if (onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            continueJoinWorkspaceOnboardingFromEffect({forceReplace: true});
             return;
         }
 

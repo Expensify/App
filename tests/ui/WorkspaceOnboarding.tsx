@@ -743,6 +743,130 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should complete onboarding without reopening the name step when joining empties the workspace list', async () => {
+        // Given a validated Join Workspace user who already saved a name and has a single joinable workspace
+        const policyID = 'joined-policy-id';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                [policyID]: {
+                    policyID,
+                    policyName: 'Joined workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When Join now is pressed and the join's Onyx update removes the workspace before this screen loses focus
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the emptied list neither starts another lookup nor sends the user back to the name step
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete onboarding with the saved name when a Join Workspace lookup comes back empty', async () => {
+        // Given a validated Join Workspace user who already saved a name, such as one whose onboarding restarted on
+        // this screen after the joined workspace dropped out of the list
+        const requestID = 'join-accessible-policies-request';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the lookup finishes with no joinable workspaces
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, requestID});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then onboarding completes with the saved name, the same as pressing Continue on the name step
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+            expect.objectContaining({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                firstName: 'Test',
+                lastName: 'User',
+            }),
+        );
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should collect a name after joining when the saved personal details have no first name', async () => {
+        // Given a Join Workspace user whose personal details form holds only a last name
+        const policyID = 'joined-policy-id';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {lastName: 'User'});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                [policyID]: {
+                    policyID,
+                    policyName: 'Joined workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user joins the workspace
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        // Then the name step opens to collect the missing first name
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should finish the marked Join Workspace flow when the merged account has a different persisted intent', async () => {
         // Given a merge resumed from a Join Workspace task while the target account still persists a different intent.
         const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});

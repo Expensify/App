@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -90,6 +91,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding();
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -457,7 +459,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                                     // The user already picked an intent, so skipping continues to the last onboarding
                                     // step rather than returning them to the intent list they came from.
                                     if (isJoiningCompanyWorkspace) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+                                        continueJoinWorkspaceOnboarding();
                                     }
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
