@@ -1422,15 +1422,11 @@ function openIssueNewCardShippingAddressStep(policyID: string | undefined, assig
         assigneeEmail: addSMSDomainIfPhoneNumber(assigneeEmail),
     };
 
-    API.read(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
-                value: {hasAssigneePhoneNumber: null},
-            },
-        ],
-    });
+    API.read(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP, parameters);
+}
+
+function clearIssueNewCardAssigneePhoneNumber(policyID: string | undefined) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {hasAssigneePhoneNumber: null});
 }
 
 function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
@@ -2120,6 +2116,7 @@ export {
     clearSettlementAccountError,
     startIssueNewCardFlow,
     openIssueNewCardShippingAddressStep,
+    clearIssueNewCardAssigneePhoneNumber,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,

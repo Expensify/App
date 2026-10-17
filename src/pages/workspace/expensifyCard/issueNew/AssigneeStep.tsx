@@ -28,7 +28,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
 
-import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
+import {clearIssueNewCardAssigneePhoneNumber, clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,6 +109,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         // The shipping name, address and phone number were entered for the previous cardholder
         if (data.assigneeEmail !== issueNewCard?.data?.assigneeEmail) {
             data.shippingAddress = null;
+            clearIssueNewCardAssigneePhoneNumber(policyID);
         }
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
