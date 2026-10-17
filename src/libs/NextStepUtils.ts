@@ -30,9 +30,9 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from './ReportUtils';
-import {hasSubmissionBlockingViolationInList, hasSubmissionBlockingViolations} from './TransactionUtils';
+import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
-type BuildNextStepNewParams = {
+type BuildOptimisticNextStepParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     currentUserAccountIDParam?: number;
@@ -87,10 +87,7 @@ function buildNextStepMessage(
     }
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    const message = translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType, requiredDepositCurrency});
     return `<next-step>${message}</next-step>`;
 }
 
@@ -98,7 +95,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportNextStep | null {
     const {
         report,
         policy,
