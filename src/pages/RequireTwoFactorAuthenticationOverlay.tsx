@@ -155,8 +155,6 @@ function RequireTwoFactorAuthenticationOverlay() {
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={enableTwoFactorAuth}
                                     >
-                                        {/* The overlay sits outside a screen, so this shortcut always looks focused.
-                                            Leave it off while test tools are open, or Enter there starts 2FA setup. */}
                                         {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
                                         <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
                                     </Button>
@@ -166,9 +164,6 @@ function RequireTwoFactorAuthenticationOverlay() {
                     </View>
                 </View>
             </FocusTrapForModal>
-            {/* The overlay covers the screen (and its ScreenWrapper banner) at a higher z-index, so render the
-                offline banner here, above the overlay, so the user can still see they're offline. box-none lets
-                taps fall through to the overlay below. */}
             <View
                 pointerEvents="box-none"
                 style={[StyleSheet.absoluteFill, styles.twoFARequiredOfflineBanner]}
