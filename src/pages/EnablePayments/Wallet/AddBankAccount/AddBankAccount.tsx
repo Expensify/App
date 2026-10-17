@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -188,8 +188,7 @@ function AddBankAccount() {
             shouldShowOfflineIndicator
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
+            <HeaderWithBackButtonAndTitle
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.addBankAccount')}
             />
