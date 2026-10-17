@@ -9,6 +9,7 @@ import type {TargetedEvent} from 'react-native';
 
 type AppStateTrackerModule = {
     getWasAppRelaunchedFromIcon: () => Promise<boolean>;
+    reportFullyDrawn: () => void;
 };
 
 type RNTextInputResetModule = {
