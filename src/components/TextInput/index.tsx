@@ -6,11 +6,11 @@ import Visibility from '@libs/Visibility';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 
-import type {BaseTextInputProps} from './BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 
 import BaseTextInput from './BaseTextInput';
 import * as styleConst from './styleConst';
@@ -23,7 +23,7 @@ function getIsRestoringKeyboardFocus() {
 
 function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
-    const textInputRef = useRef<HTMLFormElement | null>(null);
+    const textInputRef = useRef<BaseTextInputRef | null>(null);
     const removeVisibilityListenerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
@@ -88,7 +88,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
     }, []);
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
-    const labelAnimationStyle = {
+    const labelAnimationStyle: ViewStyle & Record<'--active-label-translate-y' | '--active-label-scale' | '--label-transition-duration', string> = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -101,7 +101,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         <BaseTextInput
             {...props}
             ref={(element) => {
-                textInputRef.current = element as HTMLFormElement;
+                textInputRef.current = element;
 
                 if (!ref) {
                     return;
@@ -116,7 +116,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
                 ref.current = element;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles, styles.cursorText]}
+            textInputContainerStyles={[labelAnimationStyle, props.textInputContainerStyles, styles.cursorText]}
         />
     );
 }

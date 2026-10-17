@@ -1584,7 +1584,19 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+): Array<OnyxCollectionValuesMapping[T]>;
+function getAllPolicyValues(
+    policyID: Filter | undefined,
+    key: typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    policyData: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+): Array<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>;
+function getAllPolicyValues<T extends OnyxCollectionKey>(
+    policyID: Filter | undefined,
+    key: T,
+    policyData: OnyxCollection<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+): Array<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1601,7 +1613,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
                 }
                 return acc;
             },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
+            [] as Array<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
         );
     }
 
@@ -1811,7 +1823,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,

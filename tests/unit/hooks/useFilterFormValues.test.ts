@@ -1,20 +1,29 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
 
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector} from '@hooks/useFilterFormValues';
+import useOnyx from '@hooks/useOnyx';
+
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyReportField} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1`;
-const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2`;
-const CATEGORIES_KEY = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`;
-const CATEGORIES_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`;
+const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1` satisfies OnyxKey;
+const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2` satisfies OnyxKey;
+const CATEGORIES_KEY = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1` satisfies OnyxKey;
+const CATEGORIES_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2` satisfies OnyxKey;
 
 describe('useFilterFormValues selectors', () => {
     describe('policiesSelector', () => {
@@ -267,6 +276,92 @@ describe('useFilterFormValues selectors', () => {
 
             expect(result).toHaveProperty(POLICY_KEY);
             expect(result).not.toHaveProperty(POLICY_KEY_2);
+        });
+    });
+    describe('projection consumers', () => {
+        it('passes exact tax and category projections through the real filter builder', () => {
+            // Given two policies with overlapping tax keys and disabled categories whose names remain searchable
+            const policies: OnyxCollection<Policy> = {
+                [POLICY_KEY]: createMock<Policy>({id: '1', name: 'One', taxRates: {taxes: {vat: {name: 'VAT', value: '20%'}, local: {name: 'Local', value: '5%'}}}}),
+                [POLICY_KEY_2]: createMock<Policy>({id: '2', name: 'Two', taxRates: {taxes: {vat: {name: 'VAT', value: '10%'}, other: {name: 'VAT', value: '15%'}}}}),
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: undefined,
+            };
+            const categories: OnyxCollection<PolicyCategories> = {
+                [CATEGORIES_KEY]: {foodKey: {name: 'Food', enabled: false}},
+                [CATEGORIES_KEY_2]: {travelKey: {name: 'Travel', enabled: true}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}3`]: undefined,
+            };
+            const projectedPolicies = policiesSelector(policies);
+            const projectedCategories = policyCategoriesSelector(categories);
+            const taxes = getAllTaxRates(projectedPolicies);
+            // When each scoped query is restored from the reduced subscriptions
+            const positive = buildSearchQueryJSON('category:Food,Travel tax-rate:vat,other,missing policyID:1');
+            const negative = buildSearchQueryJSON('category:Food,Travel -policyID:1');
+            expect(positive).toBeDefined();
+            expect(negative).toBeDefined();
+            if (!positive || !negative) {
+                throw new Error('The production parser did not build the search fixtures');
+            }
+            const form = buildFilterFormValuesFromQuery(positive, projectedCategories, {}, undefined, undefined, undefined, taxes);
+            const negatedForm = buildFilterFormValuesFromQuery(negative, projectedCategories, {}, undefined, undefined, undefined, taxes);
+            // Then key/name projection, deduplication and policy scoping survive without invented metadata
+            expect(projectedPolicies?.[POLICY_KEY]).toEqual({taxRates: policies[POLICY_KEY]?.taxRates});
+            expect(projectedCategories).toEqual({[CATEGORIES_KEY]: {foodKey: {name: 'Food'}}, [CATEGORIES_KEY_2]: {travelKey: {name: 'Travel'}}});
+            expect(taxes).toEqual({VAT: ['vat', 'other'], Local: ['local']});
+            expect(form.category).toEqual(['Food']);
+            expect(form.taxRate).toEqual(['vat', 'other']);
+            expect(negatedForm.category).toEqual(['Travel']);
+            expect(policiesSelector({})).toEqual({});
+            expect(policyCategoriesSelector({})).toEqual({});
+            expect(getAllTaxRates(undefined)).toEqual({});
+        });
+
+        it('does not notify projected subscriptions for unrelated metadata but does for consumed values', async () => {
+            // Given real Onyx subscriptions to the two production selectors
+            Onyx.init({keys: ONYXKEYS});
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(POLICY_KEY, createMock<Policy>({id: '1', name: 'One', taxRates: {taxes: {vat: {name: 'VAT', value: '20%'}}}}));
+                await Onyx.set(CATEGORIES_KEY, {foodKey: {name: 'Food', enabled: true}});
+            });
+            let policyRenders = 0;
+            let categoryRenders = 0;
+            const policyHook = renderHook(() => {
+                policyRenders += 1;
+                return useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector})[0];
+            });
+            const categoryHook = renderHook(() => {
+                categoryRenders += 1;
+                return useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector})[0];
+            });
+            await waitForBatchedUpdatesWithAct();
+            const policiesBefore = policyHook.result.current;
+            const categoriesBefore = categoryHook.result.current;
+            const policyRendersBefore = policyRenders;
+            const categoryRendersBefore = categoryRenders;
+            // When only omitted policy/category metadata changes
+            await act(async () => {
+                await Onyx.merge(POLICY_KEY, {name: 'Renamed'});
+                await Onyx.merge(CATEGORIES_KEY, {foodKey: {enabled: false}});
+            });
+            await waitForBatchedUpdatesWithAct();
+            // Then the actual subscriptions retain their selected values without rendering
+            expect(policyHook.result.current).toBe(policiesBefore);
+            expect(categoryHook.result.current).toBe(categoriesBefore);
+            expect(policyRenders).toBe(policyRendersBefore);
+            expect(categoryRenders).toBe(categoryRendersBefore);
+            await act(async () => {
+                await Onyx.merge(POLICY_KEY, {taxRates: {taxes: {vat: {name: 'New VAT'}}}});
+                await Onyx.merge(CATEGORIES_KEY, {foodKey: {name: 'Dining'}});
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getAllTaxRates(policyHook.result.current)).toEqual(Object.fromEntries([['New VAT', ['vat']]]));
+            expect(categoryHook.result.current?.[CATEGORIES_KEY]).toEqual({foodKey: {name: 'Dining'}});
+            expect(policyRenders).toBeGreaterThan(policyRendersBefore);
+            expect(categoryRenders).toBeGreaterThan(categoryRendersBefore);
+            policyHook.unmount();
+            categoryHook.unmount();
+            await act(async () => Onyx.clear());
         });
     });
 });
