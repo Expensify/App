@@ -3527,6 +3527,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateReportOptionVisible,
         invokeDuplicateReportHandler,
         isExpenseReportType,
+        isExpenseOrReportSearch,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
         theme.icon,
