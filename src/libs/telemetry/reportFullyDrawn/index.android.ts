@@ -3,7 +3,7 @@ import {NativeModules} from 'react-native';
 import type ReportFullyDrawn from './types';
 
 const reportFullyDrawn: ReportFullyDrawn = () => {
-    NativeModules.AppStateTracker.reportFullyDrawn();
+    NativeModules.AppStateTracker.reportFullyDrawn?.();
 };
 
 export default reportFullyDrawn;
