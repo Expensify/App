@@ -1030,6 +1030,32 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
+    it('does not offer the backend bulk actions on an invoice search', async () => {
+        // Given "Select all" on an invoice search with an expense that could be held, unheld, rejected or approved
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({canHold: true, canUnhold: true, canReject: true, action: CONST.SEARCH.ACTION_TYPES.APPROVE}),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: {...baseQueryJSON, type: CONST.SEARCH.DATA_TYPES.INVOICE}}), {wrapper: OnyxListItemProvider});
+
+        // Then none of them is offered, because the backend only runs them on expense and report searches
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
+        const offeredValues = result.current.headerButtonsOptions.map((option) => option.value);
+        for (const value of [
+            CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+            CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+            CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+            CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+            CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+        ]) {
+            expect(offeredValues).not.toContain(value);
+        }
+    });
+
     it('offers Reject on an expenses search when one loaded expense can be rejected', async () => {
         // Given "Select all" on an expenses search with one rejectable expense and one that is not, which hides Reject for a normal selection
         mockSelectedTransactions = {tx1: makeSelectedTransaction({canReject: true}), tx2: makeSelectedTransaction({canReject: false})};
