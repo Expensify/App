@@ -209,6 +209,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...tabRootScrollProps}
+                keyboardShouldPersistTaps="always"
             >
                 {headerContent}
                 {accountMenuItems}
