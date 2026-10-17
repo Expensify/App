@@ -2881,8 +2881,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
             const hasLoadedDeletableItem =
                 selectedReports.length && isExpenseReportType
-                    ? selectedReports.some((report) => shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, [report], queryJSON?.type))
-                    : selectedTransactionsKeys.some((id) => shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, [], queryJSON?.type));
+                    ? selectedReports.some((report) => shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, [report], queryJSON?.type))
+                    : selectedTransactionsKeys.some((id) =>
+                          shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, cardList, [], queryJSON?.type),
+                      );
             if (!isOffline && hasLoadedDeletableItem) {
                 allMatchingOptions.push({
                     icon: expensifyIcons.Trashcan,
