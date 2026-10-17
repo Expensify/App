@@ -453,6 +453,7 @@ export type {default as MergeTransactionParams} from './MergeTransactionParams';
 export type {default as ResolveDuplicatesParams} from './ResolveDuplicatesParams';
 export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscriptionTypeParams';
 export type {default as SignUpUserParams} from './SignUpUserParams';
+export type {default as UpdateAdvertisingConsentParams} from './UpdateAdvertisingConsentParams';
 export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscriptionAutoRenewParams';
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as UpdatePersonalKarmaParams} from './UpdatePersonalKarmaParams';

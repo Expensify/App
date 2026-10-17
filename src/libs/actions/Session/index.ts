@@ -27,6 +27,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import {getTargetedAdvertisingConsent} from '@libs/Ketch';
 import Log from '@libs/Log';
 import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -661,6 +662,15 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
 }
 
 /**
+ * Returns the user's Ketch targeted advertising consent as a request param, or no param when it's unknown (always on native).
+ * Sent with the requests that can create an account, since the server gates Google Ads enhanced conversions on it.
+ */
+function getTargetedAdvertisingConsentParam(): Pick<SignUpUserParams, 'targetedAdvertisingConsent'> {
+    const targetedAdvertisingConsent = getTargetedAdvertisingConsent();
+    return targetedAdvertisingConsent ? {targetedAdvertisingConsent} : {};
+}
+
+/**
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
@@ -706,7 +716,13 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: SignUpUserParams = {
+            email: login,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+            ...getTargetedAdvertisingConsentParam(),
+        };
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -889,7 +905,13 @@ function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: L
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginAppleSignInParams = {
+            idToken,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+            ...getTargetedAdvertisingConsentParam(),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
@@ -903,7 +925,13 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginGoogleSignInParams = {
+            token,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+            ...getTargetedAdvertisingConsentParam(),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
