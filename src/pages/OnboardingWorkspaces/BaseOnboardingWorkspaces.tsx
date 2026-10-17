@@ -146,7 +146,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         isFinishingOnboarding.current = true;
 
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
-        const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+        const shouldUseSubmitFlow = !isJoiningCompanyWorkspace && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         // Auto-joining finishes the join-workspace task immediately, so the welcome message drops its task list.
         const joinWorkspaceOnboardingMessage = policy.automaticJoiningEnabled ? {...joinWorkspaceMessages.joinWorkspace, tasks: []} : joinWorkspaceMessages.joinWorkspace;
