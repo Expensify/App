@@ -553,4 +553,5 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
     return !automaticAction;
 }
 
+export type {ReportNextStepWithContext};
 export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, shouldShowDynamicExternalWorkflowApproveErrorNextStep};

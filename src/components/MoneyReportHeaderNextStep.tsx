@@ -17,13 +17,13 @@ type MoneyReportHeaderNextStepProps = {
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
-    const optimisticNextStep = useNextStep(reportID);
+    const nextStep = useNextStep(reportID);
 
-    const showNextStepBar = !!optimisticNextStep && 'messageKey' in optimisticNextStep;
-    const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
+    const showNextStepBar = !!nextStep;
+    const showNextStepSkeleton = !nextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
-        return <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />;
+        return <MoneyReportHeaderStatusBar nextStepWithContext={nextStep} />;
     }
 
     if (showNextStepSkeleton) {

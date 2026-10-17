@@ -5,11 +5,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {buildNextStepMessage} from '@libs/NextStepUtils';
+import type {ReportNextStepWithContext} from '@libs/NextStepUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {ReportNextStep} from '@src/types/onyx/Report';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -21,13 +21,13 @@ import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    nextStep: ReportNextStep | undefined;
+    nextStepWithContext: ReportNextStepWithContext;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStepWithContext}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -41,6 +41,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         }),
         [icons],
     );
+    const {nextStep, nextStepCotext} = nextStepWithContext;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
 
