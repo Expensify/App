@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,8 +33,8 @@ import {AddWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
-    clearOnboardingShouldValidate,
     clearWorkEmailFormErrors,
+    resetOnboardingWorkEmailValidation,
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
@@ -242,12 +243,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
 
             // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
             if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
+                setHasSubmittedWorkEmail(true);
                 setOnboardingShouldValidate(false);
                 return;
             }
 
             // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
-            clearOnboardingShouldValidate(onboardingValues).then(() => {
+            resetOnboardingWorkEmailValidation(onboardingValues).then(() => {
                 setHasSubmittedWorkEmail(true);
                 AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
             });
@@ -255,14 +257,19 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, originReportID, sessionEmail],
     );
 
+    const isBackButtonMessage = onboardingErrorMessageTranslationKey === 'onboarding.purpose.errorBackButton';
+
+    // The back button message is about leaving onboarding, not about the email, so it never becomes a field error and never blocks the submit
+    const workEmailErrorTranslationKey = onboardingErrorMessageTranslationKey && !isBackButtonMessage ? onboardingErrorMessageTranslationKey : undefined;
+
     useEffect(() => {
-        if (!onboardingErrorMessageTranslationKey) {
+        if (!workEmailErrorTranslationKey) {
             clearWorkEmailFormErrors();
             return;
         }
 
-        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
-    }, [onboardingErrorMessageTranslationKey, translate]);
+        addWorkEmailFormError(translate(workEmailErrorTranslationKey));
+    }, [workEmailErrorTranslationKey, translate]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
         if (!onboardingErrorMessageTranslationKey) {
@@ -270,6 +277,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         }
         setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
+
+    const clearBackButtonMessage = () => {
+        if (!isBackButtonMessage) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+    };
 
     const handleRegularJoinWorkspaceErrorConfirm = useCallback(() => {
         setOnboardingErrorMessage(null);
@@ -290,6 +304,31 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     } else if (isJoiningCompanyWorkspace) {
         handleMergingAccountBlockedConfirm = handleRegularJoinWorkspaceErrorConfirm;
     }
+
+    // This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here.
+    // The intent stays saved across a cold start, so check it instead of the route index.
+    const canGoBackToPurpose = isJoiningCompanyWorkspace && !isConciergeTaskFlow;
+
+    const goBackToPurpose = () => {
+        // Clear any work email error so the purpose screen doesn't render it without its translation params.
+        clearOnboardingMergeAccountBlocked();
+        // Pops to the intent list when it's in the stack, or replaces this screen with it, so the user stays in onboarding.
+        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    };
+
+    const handleAndroidBackPress = () => {
+        if (canGoBackToPurpose) {
+            goBackToPurpose();
+            return true;
+        }
+
+        // Otherwise there is no earlier step, so keep the press from closing onboarding and tell the user to finish setup.
+        setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+        return true;
+    };
+
+    // Android's system back runs the same logic as the header back button.
+    useAndroidBackButtonHandler(handleAndroidBackPress);
 
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
         if (
@@ -359,10 +398,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
             <OnboardingHeader
-                shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute())}
+                shouldShowBackButton={canGoBackToPurpose}
+                onBackButtonPress={goBackToPurpose}
                 shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={onboardingValues?.isMergingAccountBlocked ? handleConciergeTaskErrorConfirm : returnToOriginReport}
             />
@@ -379,6 +417,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
                     validate={validate}
+                    onBeforeSubmit={clearBackButtonMessage}
                     onSubmit={submitWorkEmail}
                     submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
                     enabledWhenOffline

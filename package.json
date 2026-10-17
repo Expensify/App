@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.9-0",
+  "version": "9.5.13-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -48,6 +48,7 @@
     "test:verbose": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
+    "perf-local": "NODE_OPTIONS=--experimental-vm-modules npx reassure --testMatch '<rootDir>/tests/perf-local/**/*.perf-local.ts'",
     "typecheck": "bun scripts/typecheck.ts",
     "lint": "bun scripts/lint/index.ts",
     "lint-changed": "./scripts/lintChanged.sh",
@@ -228,7 +229,7 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "scheduler": "0.27.0",
-    "victory-native": "^41.21.0",
+    "victory-native": "^42.0.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
