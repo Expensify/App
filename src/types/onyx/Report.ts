@@ -51,7 +51,12 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
-/** Report next step */
+/**
+ * Report next step
+ *
+ * IMPORTANT: Do NOT add fields that are not returned by the backend.
+ *            BE send the next step updates using Onyx MERGE method and any frontend-only field becomes stale.
+ */
 type ReportNextStep = {
     /** Message key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
