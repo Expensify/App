@@ -346,7 +346,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                                 label={translate('workspace.common.workspace')}
                                 items={workspaceOptions}
                                 value={policyID}
-                                onValueChange={(value) => setPolicyID(value as typeof policyID)}
+                                valueType="string"
+                                onValueChange={(value) => setPolicyID(value)}
                             />
                         </View>
                     )}
@@ -358,7 +359,12 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                                 label={translate('writeCapabilityPage.label')}
                                 items={writeCapabilityOptions}
                                 value={writeCapability}
-                                onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
+                                onValueChange={(value) => {
+                                    const selectedOption = writeCapabilityOptions.find((option) => option.value === value);
+                                    if (selectedOption) {
+                                        setWriteCapability(selectedOption.value);
+                                    }
+                                }}
                             />
                         </View>
                     )}
@@ -368,7 +374,12 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                             inputID={INPUT_IDS.VISIBILITY}
                             label={translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            onValueChange={(value) => setVisibility(value as typeof visibility)}
+                            onValueChange={(value) => {
+                                const selectedOption = visibilityOptions.find((option) => option.value === value);
+                                if (selectedOption) {
+                                    setVisibility(selectedOption.value);
+                                }
+                            }}
                             value={visibility}
                             furtherDetails={visibilityDescription}
                             shouldShowTooltips={false}
