@@ -116,7 +116,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
 
                     {!shouldUseNarrowTableLayout && shouldShowRoleColumn && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <WorkspaceMemberRoleCell
