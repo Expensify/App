@@ -37,9 +37,9 @@ import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
  * Report next step context is a FE-only derived values for ReportNextStep
  */
 type ReportNextStepContext = {
-    messageKeyModifier: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER> | undefined;
     actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE> | undefined;
     etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
+    messageKeyModifier: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER> | undefined;
 };
 
 type BuildOptimisticNextStepParams = {
@@ -342,6 +342,28 @@ function buildOptimisticsNoFurtherActionNextStep(): ReportNextStep {
     };
 }
 
+function getActorType(nextStep: ReportNextStep, currentUserAccountID: number): ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE> | undefined {
+    if (nextStep.actorAccountID === currentUserAccountID) {
+        return CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
+    }
+    if (nextStep.actorAccountID === -1) {
+        return CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN;
+    }
+    if (nextStep.actorAccountID) {
+        return CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
+    }
+    return undefined;
+}
+
+function getEtaType(nextStep: ReportNextStep): ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined {
+    if (nextStep.eta?.etaKey) {
+        return CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.dateTime) {
+        return CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
+    }
+    return undefined;
+}
+
 type GetReportNextStepParams = {
     currentUserLogin: string;
     currentUserEmail: string;
@@ -356,7 +378,7 @@ type GetReportNextStepParams = {
     isReportArchived: boolean;
 };
 
-type GetReportNextStepResult = {
+type ReportNextStepWithContext = {
     nextStep: ReportNextStep;
     nextStepContext: ReportNextStepContext;
 };
@@ -373,10 +395,18 @@ function getReportNextStep({
     rules,
     areStrictPolicyRulesEnabled,
     isReportArchived,
-}: GetReportNextStepParams): GetReportNextStepResult {
+}: GetReportNextStepParams): ReportNextStepWithContext | undefined {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
-        return buildChangeWorkspaceNextStep();
+        const nextStep = buildChangeWorkspaceNextStep();
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
     }
 
     if (
@@ -387,14 +417,30 @@ function getReportNextStep({
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
-        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
+        const nextStep = buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
     }
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
     if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
-        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+        const nextStep = buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
@@ -402,7 +448,15 @@ function getReportNextStep({
         reimbursableSpend === 0 &&
         (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
     if (shouldShowNoFurtherAction) {
-        return buildOptimisticsNoFurtherActionNextStep();
+        const nextStep = buildOptimisticsNoFurtherActionNextStep();
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
     }
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
@@ -416,7 +470,15 @@ function getReportNextStep({
             }, {});
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
             if (errors?.dewSubmitFailed) {
-                return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+                const nextStep = buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+                return {
+                    nextStep,
+                    nextStepContext: {
+                        actorType: getActorType(nextStep, currentUserAccountID),
+                        etaType: getEtaType(nextStep),
+                        messageKeyModifier: undefined,
+                    },
+                };
             }
         } else if (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention({
@@ -428,7 +490,15 @@ function getReportNextStep({
             });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
-                return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+                const nextStep = buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+                return {
+                    nextStep,
+                    nextStepContext: {
+                        actorType: getActorType(nextStep, currentUserAccountID),
+                        etaType: getEtaType(nextStep),
+                        messageKeyModifier: undefined,
+                    },
+                };
             }
         }
     }
@@ -442,10 +512,30 @@ function getReportNextStep({
         Object.values(transactions),
     );
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
-        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+        const nextStep = buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
     }
 
-    return report?.nextStep;
+    const nextStep = report?.nextStep;
+    if (nextStep) {
+        return {
+            nextStep,
+            nextStepContext: {
+                actorType: getActorType(nextStep, currentUserAccountID),
+                etaType: getEtaType(nextStep),
+                messageKeyModifier: undefined,
+            },
+        };
+    }
+
+    return undefined;
 }
 
 /**
