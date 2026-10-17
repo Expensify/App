@@ -6659,6 +6659,50 @@ const translations = {
             noBankAccountsFoundDescription: 'Please add bank accounts in Dynamics 365 Business Central and sync the connection again',
             noPaymentMethodsFound: 'No payment methods found',
             noPaymentMethodsFoundDescription: 'Please add payment methods in Dynamics 365 Business Central and sync the connection again',
+            advanced: {
+                autoSyncDescription: 'Sync Dynamics 365 Business Central and Expensify automatically, every day. Reports sync in realtime.',
+                accountingMethods: {
+                    label: 'Export method',
+                    description: 'Choose when to export expenses.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                    },
+                },
+                postingMode: {
+                    label: 'Posting mode',
+                    description: 'Choose whether entries post automatically or require manual review first.',
+                    note: 'Note: Expensify posts every open journal in the General Journal batch you chose on the Expensify Setup page in Business Central, not just the ones it created. Use a batch only for Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Create and post',
+                            description: 'Post entries against the GL automatically upon export',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Create only',
+                            description: 'Manually post entries in Dynamics 365 Business Central after export',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Auto-create employees/vendors',
+                exportToNextOpenPeriod: 'Export to next open period',
+                exportToNextOpenPeriodDescription: 'When a report is dated in a closed Dynamics 365 Business Central period, export it to the next open period.',
+                syncReimbursedReports: 'Sync reimbursed reports',
+                syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+                reimbursementBankAccount: {
+                    label: 'Bill payment account',
+                    description: "Choose where to pay bills from and we'll create the payment in Dynamics 365 Business Central.",
+                },
+                syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+                settlementsBankAccount: {
+                    label: 'Expensify Card settlement account',
+                    description: "Choose your settlement account and we'll create the payment in Dynamics 365 Business Central.",
+                },
+            },
         },
         type: {
             free: 'Free',
@@ -10486,6 +10530,7 @@ const translations = {
             createdDate: 'Created date',
             withdrawn: 'Withdrawn',
             billable: 'Billable',
+            rejected: 'Rejected',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {

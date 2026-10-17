@@ -9437,6 +9437,50 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Προσθέστε τραπεζικούς λογαριασμούς στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
             noPaymentMethodsFound: 'Δεν βρέθηκαν μέθοδοι πληρωμής',
             noPaymentMethodsFoundDescription: 'Προσθέστε μεθόδους πληρωμής στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            advanced: {
+                autoSyncDescription: 'Συγχρονίστε αυτόματα το Dynamics 365 Business Central και το Expensify, κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+                accountingMethods: {
+                    label: 'Μέθοδος εξαγωγής',
+                    description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι δαπάνες από ίδια κεφάλαια θα εξαχθούν όταν λάβουν την τελική έγκριση',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν πληρωθούν',
+                    },
+                },
+                postingMode: {
+                    label: 'Λειτουργία καταχώρισης',
+                    description: 'Επιλέξτε αν οι εγγραφές καταχωρίζονται αυτόματα ή απαιτούν πρώτα χειροκίνητο έλεγχο.',
+                    note: 'Σημείωση: Το Expensify καταχωρίζει κάθε ανοιχτό ημερολόγιο στη δέσμη Γενικού Ημερολογίου που επιλέξατε στη σελίδα Expensify Setup στο Business Central, όχι μόνο αυτά που δημιούργησε. Χρησιμοποιήστε μια δέσμη μόνο για το Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Δημιουργία και καταχώριση',
+                            description: 'Αυτόματη καταχώριση εγγραφών στο Γενικό Καθολικό κατά την εξαγωγή',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Μόνο δημιουργία',
+                            description: 'Χειροκίνητη καταχώριση εγγραφών στο Dynamics 365 Business Central μετά την εξαγωγή',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Αυτόματη δημιουργία υπαλλήλων/προμηθευτών',
+                exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
+                exportToNextOpenPeriodDescription: 'Όταν μια αναφορά έχει ημερομηνία σε κλειστή περίοδο του Dynamics 365 Business Central, εξάγεται στην επόμενη ανοιχτή περίοδο.',
+                syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+                syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+                reimbursementBankAccount: {
+                    label: 'Λογαριασμός πληρωμής λογαριασμών',
+                    description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
+                settlementsBankAccount: {
+                    label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify',
+                    description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Οι λογαριασμοί σας στο Dynamics 365 Business Central θα εισαχθούν ως κατηγορίες.',
             dimensionsImportAsTags: 'Όλες οι διαστάσεις του Dynamics 365 Business Central εισάγονται ως ετικέτες',
             customers: 'Πελάτες',
@@ -10441,6 +10485,7 @@ ${reportName}`,
             posted: 'Καταχωρισμένο',
             withdrawn: 'Ανακλήθηκε',
             billable: 'Χρεώσιμη',
+            rejected: 'Απορρίφθηκε',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
