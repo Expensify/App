@@ -1,5 +1,6 @@
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -160,7 +161,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, scrollOffsetSV, maxScrollOffsetSV} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -235,7 +236,18 @@ function useReportActionsScroll({
         // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            scrollOffsetRef.current = contentOffset.y;
+
+            // The shared values exist for CollapsibleHeaderOnScroll, which only ever does anything on a phone
+            // browser. Writing a shared value from JS is a cross-thread sync on native, and this handler runs on
+            // every scroll frame, so everywhere else they are left alone.
+            if (isMobilePhoneWeb) {
+                scrollOffsetSV.set(contentOffset.y);
+                // Clamped because a list shorter than its viewport reports a negative range, which would put
+                // every offset past the end.
+                maxScrollOffsetSV.set(Math.max(contentSize.height - layoutMeasurement.height, 0));
+            }
         },
         actionBadgeTargetIndex,
         shouldBeAlignedToTop,

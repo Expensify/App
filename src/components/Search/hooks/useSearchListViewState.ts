@@ -4,6 +4,7 @@ import useScrollRestoration from '@components/Search/primitives/useScrollRestora
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -65,6 +66,8 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const prevDataLength = usePrevious(data.length);
@@ -103,7 +106,9 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         if (isEditingCell || wasRecentlyEditingCell) {
             return;
         }
-        listRef.current.scrollToIndex({index, animated, viewOffset: -contentHeaderHeight});
+        // The offset keeps the row clear of the header pinned above the list. Where the header scrolls as part of the
+        // list's content there is nothing pinned to clear — see useIsMobileWebLandscape.
+        listRef.current.scrollToIndex({index, animated, viewOffset: shouldScrollMainHeader ? 0 : -contentHeaderHeight});
     };
 
     useScrollRestoration(listRef);

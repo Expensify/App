@@ -6,6 +6,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import {MouseProvider} from '@hooks/useMouseContext';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import useShouldHideHeaderForKeyboard from '@hooks/useShouldHideHeaderForKeyboard';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ReactNode, RefObject} from 'react';
@@ -98,6 +99,10 @@ function ConfirmationListLayout({
         </ConfirmationFieldsProvider>
     );
 
+    // When the header yields its space to the keyboard, a docked confirm button would still eat what is left, so it
+    // scrolls with the fields instead until the keyboard goes away.
+    const shouldFooterScrollWithFields = useShouldHideHeaderForKeyboard();
+
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
@@ -118,7 +123,7 @@ function ConfirmationListLayout({
                 shouldPreventDefaultFocusOnSelectRow
                 shouldShowListEmptyContent={false}
                 footerContent={footerContent}
-                shouldFooterBeInsideList={shouldFooterBeInsideList}
+                shouldFooterBeInsideList={shouldFooterBeInsideList || shouldFooterScrollWithFields}
                 listFooterContent={fieldsContent}
                 style={selectionListStyle}
                 keyboardShouldPersistTaps="handled"

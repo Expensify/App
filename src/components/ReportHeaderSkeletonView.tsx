@@ -1,9 +1,12 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -27,14 +30,18 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
-    const {contentHeaderHeight: height} = useContentHeaderHeight();
+    const {contentHeaderHeight} = useContentHeaderHeight();
+    // Shorter report header and compose row on mobile web in landscape, where vertical space is scarce.
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
+    // Matches the header this skeleton stands in for, so the loaded header doesn't change height under it.
+    const height = shouldUseCompactChrome ? variables.contentHeaderCompactHeight : contentHeaderHeight;
     const radius = 20;
     const circleY = height / 2;
     const circleTopY = circleY - radius;
     const circleBottomY = circleY + radius;
 
     return (
-        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
+        <View style={[styles.appContentHeader, shouldUseCompactChrome && styles.appContentHeaderCompact, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
             <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
                 {shouldUseNarrowLayout && (
                     <PressableWithFeedback

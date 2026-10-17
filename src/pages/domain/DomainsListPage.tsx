@@ -115,6 +115,7 @@ function DomainsListPage() {
         <WorkspaceListHeaderContent
             activeTabKey="domains"
             headerButton={headerButton}
+            scrollHeaderWithTable
         />
     );
 

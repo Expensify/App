@@ -39,9 +39,15 @@ type SidebarLinksProps = {
 
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+
+    /**
+     * Header to render as the list's first item so it scrolls away with the rows. When set, it must also be rendered
+     * in the branches that show no list at all (empty LHN), otherwise the screen loses its header entirely.
+     */
+    listHeaderComponent?: React.ReactNode;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, listHeaderComponent}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -95,9 +101,12 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={emptyLHNStyle}>
-                        <LHNEmptyState />
-                    </View>
+                    <>
+                        {listHeaderComponent}
+                        <View style={emptyLHNStyle}>
+                            <LHNEmptyState />
+                        </View>
+                    </>
                 ) : (
                     <LHNOptionsList
                         style={styles.flex1}
@@ -107,6 +116,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
                         optionMode={viewMode}
                         onFirstItemRendered={setSidebarLoaded}
+                        listHeaderComponent={listHeaderComponent}
                     />
                 )}
                 {shouldShowLoadingSkeleton && (

@@ -2,11 +2,26 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import type {ReactNode, RefObject} from 'react';
 import type {FlatList} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
+import {makeMutable, useSharedValue} from 'react-native-reanimated';
 
 type ActionListContextType = {
     scrollOffsetRef: RefObject<number>;
+
+    /**
+     * Worklet-readable mirror of `scrollOffsetRef`, written by the same scroll handler. Lets animations react to
+     * scrolling without re-rendering the report — see CollapsibleHeaderOnScroll.
+     */
+    scrollOffsetSV: SharedValue<number>;
+
+    /**
+     * Worklet-readable largest offset the list can scroll to (content height minus viewport height), written by the
+     * same scroll handler. The list is inverted, so this end is the oldest message — the visual top. Lets animations
+     * tell a real gesture there from the list rubber-banding back off the end — see CollapsibleHeaderOnScroll.
+     */
+    maxScrollOffsetSV: SharedValue<number>;
 
     /** Snapshot of the persisted scroll offset. Safe to call during render (e.g. a useState initializer) to restore mount-time scroll state. */
     getScrollOffset: () => number;
@@ -20,6 +35,8 @@ type ActionListContextType = {
 
 const ActionListContext = createContext<ActionListContextType>({
     scrollOffsetRef: {current: 0},
+    scrollOffsetSV: makeMutable(0),
+    maxScrollOffsetSV: makeMutable(0),
     getScrollOffset: () => 0,
     registerListRef: () => {},
     getListRef: () => null,
@@ -51,9 +68,13 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     // callbacks live in context, so attaching `ref={}` stays local to each list.
     const listRefHolder = useRef<FlatListRefType>(null);
     const scrollOffsetRef = useRef(0);
+    const scrollOffsetSV = useSharedValue(0);
+    const maxScrollOffsetSV = useSharedValue(0);
 
     const value: ActionListContextType = {
         scrollOffsetRef,
+        scrollOffsetSV,
+        maxScrollOffsetSV,
         getScrollOffset: () => scrollOffsetRef.current,
         registerListRef: (ref) => {
             listRefHolder.current = ref;
@@ -61,7 +82,7 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
         getListRef: () => listRefHolder.current,
     };
 
-    // The value is only stable refs and ref accessors — none of it triggers re-renders — so a
+    // The value is only stable refs, a shared value and ref accessors — none of it triggers re-renders — so a
     // single context is intentional; splitting state/actions into two providers would add ceremony
     // for no benefit.
     // eslint-disable-next-line rulesdir/context-provider-split-values
