@@ -55,6 +55,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
 
     if (!policyID) {
