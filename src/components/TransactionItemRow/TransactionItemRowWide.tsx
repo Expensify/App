@@ -386,6 +386,7 @@ function TransactionItemRowWide({
                                 chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
+                                snapshotTransactions={[transactionItem]}
                             />
                         )}
                     </View>
