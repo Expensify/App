@@ -13,21 +13,18 @@ import java.io.OutputStream
 
 object FileUtils {
     private const val tag = "FileUtils"
-    private const val shareDirectoryName = "sharedFiles"
-    private const val legacyShareDirectoryName = "Expensify"
+    private const val directoryName = "Expensify"
 
-    private fun getShareStorageDirectory(context: Context): File {
-        val shareStorageDirectory = File(context.filesDir.absolutePath, shareDirectoryName)
-        if (!shareStorageDirectory.exists()) {
-            shareStorageDirectory.mkdirs()
+    private fun getInternalStorageDirectory(context: Context): File {
+        val internalStorageDirectory = File(context.filesDir.absolutePath, directoryName)
+        if (!internalStorageDirectory.exists()) {
+            internalStorageDirectory.mkdirs()
         }
-        return shareStorageDirectory
+        return internalStorageDirectory
     }
 
     fun clearInternalStorageDirectory(context: Context) {
-        val shareStorageDirectory = getShareStorageDirectory(context)
-        clearStorageDirectory(shareStorageDirectory)
-        clearStorageDirectory(File(context.filesDir.absolutePath, legacyShareDirectoryName))
+        clearStorageDirectory(getInternalStorageDirectory(context))
     }
 
     private fun clearStorageDirectory(storageDirectory: File) {
@@ -91,7 +88,7 @@ object FileUtils {
         val file: File = File.createTempFile(
             getUniqueFilePrefix(),
             fileExtension,
-            getShareStorageDirectory(context)
+            getInternalStorageDirectory(context)
         )
 
         Log.i(tag, "Created a temporary file at" + file.absolutePath)
@@ -107,11 +104,15 @@ object FileUtils {
      */
     fun copyUriToStorage(fileUri: Uri, context: Context): String? {
         val fileName = getFileName(context, fileUri) ?: generateFileName(context, fileUri)
-        val destinationFile = File(getShareStorageDirectory(context), fileName)
+        val destinationFile = File(getInternalStorageDirectory(context), fileName)
 
         return try {
             saveFileFromProviderUri(fileUri, destinationFile, context)
-            if (!destinationFile.exists() || destinationFile.length() == 0L) {
+            if (!destinationFile.exists()) {
+                destinationFile.delete()
+                return null
+            }
+            if (destinationFile.length() == 0L) {
                 destinationFile.delete()
                 return null
             }
