@@ -646,6 +646,14 @@ const CONST = {
             RECEIPTS: 'receipts',
         },
     },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+        DELETE_EXPENSES: 'deleteExpenses',
+    },
 
     SECURE_DOWNLOAD_TYPE: {
         CSV_EXPORT: 'csvexport',
@@ -7716,6 +7724,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
