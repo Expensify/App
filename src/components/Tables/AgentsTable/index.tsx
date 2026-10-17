@@ -113,7 +113,6 @@ export default function AgentsTable({
                       key: 'role' as const,
                       label: translate('common.role'),
                       sortable: true,
-                      width: variables.workspaceMembersRoleColumnWidth,
                       styling: {
                           // editableCellHeader matches the padded role cell so the label and value share an edge.
                           containerStyles: [styles.editableCellHeader],
