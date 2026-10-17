@@ -24,7 +24,7 @@ import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
-function useOptimisticNextStep(reportID: string | undefined) {
+function useNextStep(reportID: string | undefined) {
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
@@ -103,4 +103,4 @@ function useOptimisticNextStep(reportID: string | undefined) {
     return optimisticNextStep;
 }
 
-export default useOptimisticNextStep;
+export default useNextStep;

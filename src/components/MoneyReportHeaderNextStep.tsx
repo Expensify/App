@@ -1,6 +1,6 @@
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
-import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
+import useNextStep from '@hooks/useNextStep';
 
 import React from 'react';
 
@@ -17,7 +17,7 @@ type MoneyReportHeaderNextStepProps = {
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
-    const optimisticNextStep = useOptimisticNextStep(reportID);
+    const optimisticNextStep = useNextStep(reportID);
 
     const showNextStepBar = !!optimisticNextStep && 'messageKey' in optimisticNextStep;
     const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
