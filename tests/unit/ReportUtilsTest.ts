@@ -126,6 +126,7 @@ import {
     getParentNavigationSubtitle,
     getParentReport,
     getParsedComment,
+    getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPayeeName,
     getPendingChatMembers,
@@ -4611,10 +4612,50 @@ describe('ReportUtils', () => {
                         currentUserLogin: currentUserEmail,
                         currentUserAccountID,
                         transactionViolations: undefined,
+                        reportMetadata: undefined,
                     }) ?? {};
 
                 expect(reportAction?.childReportID).toBe(approvableExpenseReportID);
                 expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+            });
+
+            it('drops the approve badge when the caller passes metadata with an approve already pending', async () => {
+                // Given a dynamic external workflow whose approve request for the chat report is already in flight
+                const policyExpenseChat = await seedTwoChildExpenses();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+
+                // When the caller passes that report metadata
+                const {actionBadge} =
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: policyExpenseChat,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID,
+                        transactionViolations: undefined,
+                        reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
+                    }) ?? {};
+
+                // Then no approve badge is offered, because approving again would be a duplicate
+                expect(actionBadge).toBeUndefined();
+            });
+
+            it('should fall back to the report metadata in Onyx while callers have not been threaded yet', async () => {
+                // Given the same pending approve stored in Onyx rather than passed in
+                const policyExpenseChat = await seedTwoChildExpenses();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyExpenseChat.reportID}`, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
+
+                // When the caller asks for the badge without passing the metadata
+                const {actionBadge} =
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: policyExpenseChat,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID,
+                        transactionViolations: undefined,
+                        reportMetadata: undefined,
+                    }) ?? {};
+
+                // Then the approve badge is still suppressed, because the fallback reads the pending approve from Onyx
+                expect(actionBadge).toBeUndefined();
             });
         });
 
@@ -12466,6 +12507,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -12501,6 +12543,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived,
                     allReportActions: reportActions,
                     cardList,
@@ -12600,6 +12643,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -12647,6 +12691,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -12690,6 +12735,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
             expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
@@ -12700,6 +12746,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
                 allReportActions: allReportActionsParam,
             });
@@ -12749,6 +12796,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12763,6 +12811,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID: ownerA,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12771,6 +12820,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID: bystanderC,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12793,6 +12843,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12801,6 +12852,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID: ownerA,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12809,6 +12861,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID: bystanderC,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12832,6 +12885,7 @@ describe('ReportUtils', () => {
                         currentUserLogin: currentUserEmail,
                         currentUserAccountID: accountID,
                         transactionViolations: undefined,
+                        reportMetadata: undefined,
                         isReportArchived: isReportArchived.current,
                         allReportActions: allReportActionsParam,
                     }),
@@ -12856,6 +12910,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12898,6 +12953,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                     isReportArchived: isReportArchived.current,
                     allReportActions: allReportActionsParam,
                 });
@@ -12931,6 +12987,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -12968,6 +13025,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13022,6 +13080,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13075,6 +13134,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13132,6 +13192,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13187,6 +13248,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13241,6 +13303,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13296,6 +13359,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
             expect(resultWithoutParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
@@ -13312,6 +13376,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
                 policies: policiesParam,
             });
@@ -13365,6 +13430,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13427,6 +13493,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the action badge wins over the mention, even though the mention came first
@@ -13468,6 +13535,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the Pay badge is shown and links to the IOU preview
@@ -13506,6 +13574,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the mention reason is returned with the oldest unread mention, so the LHN can deep link to it
@@ -13535,6 +13604,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the IOU action still wins over the mention, even though no badge could be computed for it
@@ -13563,6 +13633,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the mention still returns a reason instead of the invoice room branch returning null
@@ -13611,6 +13682,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the green dot links to the only mention the user can see and act on
@@ -13642,6 +13714,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then @here counts as a mention of the current user, so the green dot links to it
@@ -13675,6 +13748,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: 'someone-else@example.com',
                     currentUserAccountID: passedAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the mention is found through the passed account ID
@@ -13710,6 +13784,7 @@ describe('ReportUtils', () => {
                     currentUserLogin: currentUserEmail,
                     currentUserAccountID,
                     transactionViolations: undefined,
+                    reportMetadata: undefined,
                 });
 
                 // Then the assignee expense action still wins over the mention, even without a badge
@@ -13765,6 +13840,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -13845,6 +13921,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: isReportArchived.current,
             });
 
@@ -16917,6 +16994,39 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getParticipantsAccountIDsForDisplay', () => {
+        const reportWithPendingDeleteMember: Report = {
+            ...createRandomReport(90),
+            participants: {
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+        const reportMetadata: OnyxEntry<ReportMetadata> = {
+            pendingChatMembers: [{accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        };
+
+        it('should exclude the member pending removal when the caller passes the report metadata', () => {
+            // Given a report whose metadata marks member 2 as pending removal
+            // When the caller asks for the participants to display and passes that metadata
+            const participantAccountIDs = getParticipantsAccountIDsForDisplay(reportWithPendingDeleteMember, reportMetadata, false, true);
+
+            // Then member 2 is left out
+            expect(participantAccountIDs).toEqual([1]);
+        });
+
+        it('should not read the report metadata from Onyx when the caller does not pass it', async () => {
+            // Given the same pending removal stored in Onyx rather than passed in
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportWithPendingDeleteMember.reportID}`, reportMetadata);
+
+            // When the caller asks for the participants to display without passing the metadata
+            const participantAccountIDs = getParticipantsAccountIDsForDisplay(reportWithPendingDeleteMember, undefined, false, true);
+
+            // Then member 2 is still listed: the function no longer falls back to reading Onyx itself
+            expect(participantAccountIDs).toEqual([1, 2]);
+        });
+    });
+
     describe('getReportURLForCurrentContext', () => {
         const flushPromises = () =>
             new Promise<void>((resolve) => {
@@ -19170,6 +19280,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: false,
             });
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -19223,6 +19334,7 @@ describe('ReportUtils', () => {
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
                 isReportArchived: false,
             });
             expect(reasonForAttention?.reason).toBe(undefined);
@@ -20604,6 +20716,7 @@ describe('ReportUtils', () => {
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             transactionViolations: undefined,
+            reportMetadata: undefined,
             isReportArchived: false,
         });
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
