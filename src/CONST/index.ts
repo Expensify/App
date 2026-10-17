@@ -2271,6 +2271,7 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
             END_OF_TRIP: 'endOfTrip',
         },
+        /** ETA type is a FE-only derived value from nextStep.eta */
         ETA_TYPE: {
             KEY: 'key',
             DATE_TIME: 'dateTime',
