@@ -31,7 +31,7 @@ import {buildOptimisticTransactionAndCreateDraft} from '@userActions/Transaction
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {readFileSync} from 'node:fs';
@@ -307,6 +307,103 @@ describe('receipt drop callback boundaries', () => {
             });
             expect(selected[0].file).toBe(file);
             expect(initMoneyRequest).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        } finally {
+            url.mockRestore();
+        }
+    });
+
+    it.each([
+        {parentTransactionID: 'tx', hasLoadedThread: false, expectedThread: 'current'},
+        {parentTransactionID: 'other-tx', hasLoadedThread: false, expectedThread: 'none'},
+        {parentTransactionID: undefined, hasLoadedThread: false, expectedThread: 'none'},
+        {parentTransactionID: 'tx', hasLoadedThread: true, expectedThread: 'loaded'},
+    ])('resolves replacement thread for parent=$parentTransactionID and loaded=$hasLoadedThread', async ({parentTransactionID, hasLoadedThread, expectedThread}) => {
+        // Given IOU actions link their original transaction to a child thread, including a thread opened before its lookup is loaded.
+        const parentActionID = 'parent-action';
+        const expenseActionID = 'expense-action';
+        const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}tx` = `${ONYXKEYS.COLLECTION.TRANSACTION}tx`;
+        const transactionReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}expense-report` = `${ONYXKEYS.COLLECTION.REPORT}expense-report`;
+        const currentReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}100` = `${ONYXKEYS.COLLECTION.REPORT}100`;
+        const expenseReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}expense-report` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}expense-report`;
+        const loadedThreadKey: `${typeof ONYXKEYS.COLLECTION.REPORT}loaded-thread` = `${ONYXKEYS.COLLECTION.REPORT}loaded-thread`;
+        const transaction = createMock<Transaction>({transactionID: 'tx', reportID: 'expense-report'});
+        const transactionReport = createMock<Report>({reportID: 'expense-report', type: CONST.REPORT.TYPE.IOU});
+        const currentReport = createMock<Report>({reportID: '100', parentReportID: 'parent-report', parentReportActionID: parentActionID, type: CONST.REPORT.TYPE.CHAT});
+        const loadedThread = createMock<Report>({reportID: 'loaded-thread', type: CONST.REPORT.TYPE.CHAT});
+        await Onyx.multiSet({
+            [transactionKey]: transaction,
+            [transactionReportKey]: transactionReport,
+            [currentReportKey]: currentReport,
+        });
+        if (parentTransactionID !== undefined) {
+            const parentAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: parentActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {IOUTransactionID: parentTransactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}parent-report`, {[parentActionID]: parentAction});
+        }
+        if (hasLoadedThread) {
+            const expenseAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: expenseActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: loadedThread.reportID,
+                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            await Onyx.multiSet({
+                [expenseReportActionsKey]: {[expenseActionID]: expenseAction},
+                [loadedThreadKey]: loadedThread,
+            });
+        }
+        renderHook(() => useReceiptDrop({reportID: '100', report: currentReport, transactionID: 'tx', shouldAddOrReplaceReceipt: true}));
+        await waitForBatchedUpdatesWithAct();
+        const callback = receiptCallback;
+        expect(callback).toBeDefined();
+        if (!callback) {
+            throw new Error('Expected the actual receipt callback');
+        }
+        const file = new File(['receipt'], 'receipt.text', {type: 'text/plain'});
+        const url = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:thread-replacement');
+        try {
+            // When replacement runs through the real parent hook and thread resolver after Onyx subscribers finish loading.
+            callback([file], []);
+            // Then the selected replacement keeps the loaded thread first and otherwise falls back only for a matching IOU parent.
+            expect(replaceReceipt).toHaveBeenCalledTimes(1);
+            const selected = jest.mocked(replaceReceipt).mock.calls.at(0);
+            expect(selected).toBeDefined();
+            if (!selected) {
+                throw new Error('Expected the replacement call');
+            }
+            let expectedReport: Report | undefined;
+            if (expectedThread === 'loaded') {
+                expectedReport = loadedThread;
+            } else if (expectedThread === 'current') {
+                expectedReport = currentReport;
+            }
+            expect(selected[0]).toEqual({
+                isVendorMatchingBetaEnabled: false,
+                transaction,
+                file,
+                source: 'blob:thread-replacement',
+                transactionPolicy: undefined,
+                transactionPolicyCategories: undefined,
+                transactionPolicyTagList: undefined,
+                transactionViolations: undefined,
+                transactionReport,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({accountID: 1}),
+                transactionThreadReport: expectedReport,
+            });
+            if (expectedThread === 'current') {
+                expect(selected[0].transactionThreadReport).toBe(currentReport);
+            }
+            expect(selected[0].file).toBe(file);
+            expect(url.mock.calls).toEqual([[file]]);
+            expect(initMoneyRequest).not.toHaveBeenCalled();
+            expect(buildOptimisticTransactionAndCreateDraft).not.toHaveBeenCalled();
+            expect(setMoneyRequestReceipt).not.toHaveBeenCalled();
+            expect(setMoneyRequestParticipantsFromReport).not.toHaveBeenCalled();
             expect(Navigation.navigate).not.toHaveBeenCalled();
         } finally {
             url.mockRestore();
