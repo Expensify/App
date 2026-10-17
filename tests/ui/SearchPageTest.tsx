@@ -1028,13 +1028,10 @@ describe('SearchPageNarrow', () => {
             expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
         });
 
-        it.each([
-            ['sends no totals request once paged, since the first page already brought the report count', {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10}, false],
-            ['asks for totals once paged when the report count is missing, so the bulk actions get one', {}, true],
-        ])('when every match is selected, %s', async (_description, snapshotFigures, shouldAskForTotals) => {
-            // Given Drafts paged past its first page
+        it('asks for a fresh count when every match is selected past the first page', async () => {
+            // Given Drafts paged past its first page, whose response carried the report count
             await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
-            await seedTodoSnapshot(true, snapshotFigures);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
             searchWritesLoadingState();
             renderPage(TODO_QUERY);
             await act(async () => {
@@ -1054,8 +1051,8 @@ describe('SearchPageNarrow', () => {
                 jest.advanceTimersByTime(0);
             });
 
-            // Then totals are asked for only when there's no report count, since a later page with totals would start the counted reports over without page 1's
-            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(shouldAskForTotals);
+            // Then the page on screen is asked for again with totals, so the count includes reports that left or joined since the first page
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldCalculateTotals: true}));
         });
 
         it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
