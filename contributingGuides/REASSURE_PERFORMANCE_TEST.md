@@ -22,6 +22,9 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 
 - Identifying functions with heavy calculations.
 - Targeting functions that are frequently used throughout the app.
+- `measureFunction` benchmarks only produce durations, so CI does not run them. Put new ones in `tests/perf-local/*.perf-local.ts`.
+- Run them with `npm run perf-local -- --baseline` on the base and `npm run perf-local` on your branch, on the same machine, and put the numbers in the PR description.
+- `perf-local` and `perf-test` share `.reassure/baseline.perf` and `current.perf`, so don't mix them. Pair `perf-local -- --baseline` with `perf-local`, and `perf-test -- --baseline` with `perf-test`, or every entry shows up as added or removed.
 
 ## Running tests locally
 
@@ -35,7 +38,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 ## Metrics for Regression Detection
 
 - **Render count**: If the number of renders increases by one compared to the baseline, it will be considered a performance regression, leading to a failed test. This metric helps detect unexpected changes in component rendering behavior. *NOTE: sometimes regressions are intentional. For instance, if a new functionality is added to the tested component, causing an additional re-render, this regression is expected.*
-- **Render duration**: A performance regression will occur if the measured rendering time is 20% higher than the baseline, resulting in a failed test. This threshold allows for reasonable fluctuations and accounts for changes that may lead to longer rendering times.
+- **Render duration**: Durations are reported but not gated, because the baseline and the branch run on different machines.
 
 ## Tips for Performance Testing with Reassure
 

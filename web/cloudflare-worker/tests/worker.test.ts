@@ -207,6 +207,88 @@ describe('staging worker', () => {
     });
 });
 
+describe('staging worker with files from previous builds', () => {
+    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('staging');
+    const PREVIOUS_CHUNK_PATH = '/main-aaaaaaaaaaaaaaaa.bundle.js';
+
+    before(async () => {
+        await server.listen();
+        await addPreviousBuildFiles([
+            {path: PREVIOUS_CHUNK_PATH.slice(1), contents: 'window.previousBuildChunk = true;', contentType: 'text/javascript'},
+            {path: 'canvaskit-0.40.0.wasm', contents: 'previous wasm', contentType: 'application/wasm'},
+            {path: HASHED_BUNDLE_PATH.slice(1), contents: 'window.previousCopyOfCurrentChunk = true;', contentType: 'text/javascript'},
+            {path: 'r/123/receipt.pdf', contents: 'not a page', contentType: 'application/pdf'},
+        ]);
+    });
+
+    after(async () => {
+        await cleanup();
+    });
+
+    test('serves a chunk the current build no longer has from a previous build', async () => {
+        // Given a tab still running an older build, whose chunk was uploaded to the bucket when that build deployed
+        // When the tab lazy-loads it after a newer deploy
+        const response = await server.fetch(PREVIOUS_CHUNK_PATH);
+
+        // Then it loads, so the tab keeps working instead of reloading
+        assert.equal(response.status, 200);
+        assert.equal(await response.text(), 'window.previousBuildChunk = true;');
+        assert.equal(response.headers.get('Content-Type'), 'text/javascript');
+        assert.equal(response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
+        assertSecurityHeaders(response);
+    });
+
+    test('makes a previous build file without a content hash revalidate', async () => {
+        // Given a previous build file whose name has a version instead of a content hash
+        // When it is requested
+        const response = await server.fetch('/canvaskit-0.40.0.wasm');
+
+        // Then it is served, but not cached as immutable
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('Content-Type'), 'application/wasm');
+        assert.equal(response.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate');
+    });
+
+    test('answers HEAD for a previous build file without a body', async () => {
+        // Given a chunk that only exists in a previous build
+        // When it is requested with HEAD
+        const response = await server.fetch(PREVIOUS_CHUNK_PATH, {method: 'HEAD'});
+
+        // Then it reports the file exists, without sending it
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('Content-Type'), 'text/javascript');
+        assert.equal(await response.text(), '');
+    });
+
+    test('serves the current build when a previous build has the same file', async () => {
+        // Given a file that is in both the current build and the bucket
+        // When it is requested
+        const response = await server.fetch(HASHED_BUNDLE_PATH);
+
+        // Then the current build's copy wins, so the bucket can never replace what was just deployed
+        assert.match(await response.text(), /fixtureBundle/);
+    });
+
+    test('never serves a previous build file to a navigation', async () => {
+        // Given a route that looks like a file and happens to match a key in the bucket
+        // When the browser navigates to it
+        const response = await server.fetch('/r/123/receipt.pdf', {headers: NAVIGATION_HEADERS});
+
+        // Then it gets the app shell, because only script and image requests can need an older build's files
+        assert.equal(response.status, 200);
+        assert.match(await response.text(), /New Expensify fixture/);
+    });
+
+    test('returns 404 for a file no build has', async () => {
+        // Given a chunk that is in neither the current build nor the bucket
+        // When it is requested
+        const response = await server.fetch('/main-ffffffffffffffff.bundle.js');
+
+        // Then it is a 404, so the client's ChunkLoadError recovery runs
+        assert.equal(response.status, 404);
+    });
+});
+
 describe('worker with a build that has no apple-app-site-association file', () => {
     const {server, cleanup} = createWorkerHarness('staging', {omittedFiles: ['.well-known/apple-app-site-association']});
 
@@ -273,5 +355,14 @@ describe('production worker', () => {
         assert.match(csp, /font-src data: 'self' https:\/\/www\.expensify\.com/);
         assert.doesNotMatch(csp, /new-expensify:\/\/staging/);
         assertTemplateInlineScriptsAllowed(csp);
+    });
+
+    test('returns 404 for a missing chunk without a previous builds bucket', async () => {
+        // Given production has no PREVIOUS_BUILDS binding yet
+        // When a chunk the current build doesn't have is requested
+        const response = await server.fetch('/main-ffffffffffffffff.bundle.js');
+
+        // Then it is a 404 rather than an error from the missing binding
+        assert.equal(response.status, 404);
     });
 });

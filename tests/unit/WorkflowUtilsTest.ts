@@ -1268,6 +1268,16 @@ describe('WorkflowUtils', () => {
             // Then it doesn't have everyone, so no workflow is made the default by mistake
             expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
+
+        it('skips a null employeeList entry instead of crashing', () => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime
+            const employeeListWithNull: PolicyEmployeeList = {...employeeList};
+            Reflect.set(employeeListWithNull, 'stale@example.com', null);
+
+            // When checking a workflow with every member, as creating or saving a workflow does
+            // Then the null entry is skipped rather than crashing, and the workflow still has everyone
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeListWithNull)).toBe(true);
+        });
     });
 
     describe('convertApprovalWorkflowToPolicyEmployees', () => {
@@ -3461,6 +3471,21 @@ describe('WorkflowUtils', () => {
             ).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: approvalsOffPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+        });
+
+        it.each([false, true])('skips a null employeeList entry instead of crashing when the multiple approvers beta is %s', (isMultipleApproversBetaEnabled) => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime,
+            // next to member 1 who still submits to someone no longer on the workspace
+            // The type rules out a null entry, so set it without a cast. It goes in first so every pass over employeeList reaches it before member 1
+            const employeeList: PolicyEmployeeList = {};
+            Reflect.set(employeeList, 'stale@example.com', null);
+            employeeList[ownerEmail] = {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail};
+            employeeList['1@example.com'] = {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail};
+            const policy = buildPolicy({employeeList});
+
+            // When the owner checks whether a workflow needs fixing, as the Workspaces tab does on every page
+            // Then the null entry is skipped rather than crashing the tab bar, and member 1's workflow is still flagged
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled})).toBe(true);
         });
     });
 
