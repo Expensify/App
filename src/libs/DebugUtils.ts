@@ -1065,6 +1065,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'isReusedRoute':
             return validateBoolean(value);
         case 'amount':
+        case 'initialAmount':
         case 'taxAmount':
         case 'modifiedAmount':
         case 'cardID':
@@ -1157,6 +1158,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    initialAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     convertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     convertedTaxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1231,6 +1233,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    initialIsAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1408,6 +1411,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 previousMessage: 'object',
             });
         case 'isAmountSet':
+        case 'initialIsAmountSet':
         case 'isMerchantSet':
         case 'isCreatedSet':
             return validateBoolean(value);

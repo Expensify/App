@@ -18,6 +18,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -26,6 +27,7 @@ import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -150,7 +152,7 @@ function IOURequestStepAmount({
 
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt, confirmNavigation} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
                 typedAmount: typedAmount ?? baselineAmount,
@@ -161,7 +163,9 @@ function IOURequestStepAmount({
                 isSignChanged: isSignDirty,
             }),
         onCancel: () => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+            // The amount input uses a custom native TextInput. Wait for the discard modal transition to finish
+            // before restoring its caret, matching the legacy merchant and description steps.
+            focusComposerWithDelay(textInput.current)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
         },
     });
 
@@ -211,9 +215,7 @@ function IOURequestStepAmount({
         setSelectedCurrency(originalCurrency);
     }, [originalCurrency]);
 
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
+    const navigateBack = () => confirmNavigation(() => Navigation.goBack(backTo));
 
     const saveAndNavigateBack = () => {
         Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
@@ -364,6 +366,7 @@ function IOURequestStepAmount({
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                 })}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
+                shouldAllowFocusInLandscapeMode
             />
         </StepScreenWrapper>
     );

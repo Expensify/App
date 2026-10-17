@@ -9,40 +9,45 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, usePreventRemove, useRoute} from '@react-navigation/native';
-import {useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import {BackHandler} from 'react-native';
 
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+import continueNavigationAfterDiscard from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
     onCancel,
     onVisibilityChange,
+    shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
+    shouldPromptWhenUnfocused = false,
+    onConfirmWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
+    const navigationCallbackRef = useRef<(() => void) | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
 
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    // Only the focused screen should prompt unless configured to prompt when unfocused (e.g. parent screens in embedded flows) — a flow-leave reset fires `beforeRemove` for hidden siblings too.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
     });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+    const hasUnsavedChanges = () => (shouldPromptWhenUnfocused || isFocused) && !isSavingRef.current && getHasUnsavedChanges();
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
-    const shouldPreventRemove = isFocused && getHasUnsavedChanges();
+    const shouldPreventRemove = (shouldPromptWhenUnfocused || isFocused) && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -50,27 +55,47 @@ function useDiscardChangesConfirmation({
         blockedNavigationAction.current = blockedAction;
         isDiscardModalOpen.current = true;
         onVisibilityChange?.(true);
-        showConfirmModal(getDiscardChangesModalConfig(translate)).then((result) => {
+        showConfirmModal({...getDiscardChangesModalConfig(translate), shouldEnableNewFocusManagement}).then((result) => {
             isDiscardModalOpen.current = false;
             onVisibilityChange?.(false);
             if (result.action !== ModalActions.CONFIRM) {
                 blockedNavigationAction.current = undefined;
+                navigationCallbackRef.current = undefined;
                 onCancel?.();
                 return;
             }
-            const confirmNavigation = () => {
-                isReplayingBlockedNavigation.current = true;
-                if (blockedNavigationAction.current) {
-                    navigationRef.current?.dispatch(blockedNavigationAction.current);
+            runDiscardConfirmation(
+                onConfirm,
+                () =>
+                    continueNavigationAfterDiscard({
+                        clearBlockedNavigation: () => {
+                            blockedNavigationAction.current = undefined;
+                        },
+                        continueNavigation: () => {
+                            isReplayingBlockedNavigation.current = true;
+                            if (blockedNavigationAction.current) {
+                                navigationRef.current?.dispatch(blockedNavigationAction.current);
+                                blockedNavigationAction.current = undefined;
+                            } else {
+                                navigationRef.current?.goBack();
+                            }
+                            isReplayingBlockedNavigation.current = false;
+                        },
+                        getNavigationCallback: () => navigationCallbackRef.current,
+                        isFocused,
+                        clearNavigationCallback: () => {
+                            navigationCallbackRef.current = undefined;
+                        },
+                        onConfirmWhenUnfocused,
+                        suppressDiscardPrompt: () => {
+                            isSavingRef.current = true;
+                        },
+                    }),
+                () => {
                     blockedNavigationAction.current = undefined;
-                } else {
-                    navigationRef.current?.goBack();
-                }
-                isReplayingBlockedNavigation.current = false;
-            };
-            runDiscardConfirmation(onConfirm, confirmNavigation, () => {
-                blockedNavigationAction.current = undefined;
-            });
+                    navigationCallbackRef.current = undefined;
+                },
+            );
         });
     };
 
@@ -86,6 +111,23 @@ function useDiscardChangesConfirmation({
         showDiscardModal(data.action);
     });
 
+    const confirmNavigation = useCallback(
+        (navigationCallback: () => void) => {
+            if (!hasUnsavedChanges()) {
+                navigationCallback();
+                return;
+            }
+
+            if (isDiscardModalOpen.current) {
+                return;
+            }
+
+            navigationCallbackRef.current = navigationCallback;
+            showDiscardModal();
+        },
+        [hasUnsavedChanges, showDiscardModal],
+    );
+
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).
     useFocusEffect(() => {
@@ -93,7 +135,7 @@ function useDiscardChangesConfirmation({
             if (isDiscardModalOpen.current) {
                 return true;
             }
-            if (!hasUnsavedChanges()) {
+            if (!isFocused || !hasUnsavedChanges()) {
                 return false;
             }
             showDiscardModal();
@@ -106,7 +148,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt};
+    return {suppressDiscardPrompt, confirmNavigation};
 }
 
 export default useDiscardChangesConfirmation;
