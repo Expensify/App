@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -36,6 +36,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
@@ -199,7 +200,11 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[]) {
+    if (isExportInProgress(reportActions)) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -244,6 +249,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    reportActions,
     ownerLogin,
     rules,
 }: {
@@ -261,6 +267,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    reportActions?: ReportAction[];
     ownerLogin: string | undefined;
     rules: OnyxCollection<Rule>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
@@ -294,7 +301,7 @@ function getReportPreviewAction({
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy)) {
+    if (canExport(report, currentUserLogin, policy, reportActions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

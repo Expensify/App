@@ -47,6 +47,7 @@ function useReportPreviewActionDecision({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [iouReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -97,6 +98,7 @@ function useReportPreviewActionDecision({
         isDEWSubmitPending,
         violationsData: transactionViolations,
         reportMetadata: iouReportMetadata,
+        reportActions: iouReportActions ? Object.values(iouReportActions) : undefined,
         ownerLogin,
         rules,
     });
