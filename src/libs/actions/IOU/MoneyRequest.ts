@@ -640,14 +640,20 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, curren
 }
 
 /**
- * Adds each participant's login from personal details, for participants that are stored in a draft. A recipient created
- * offline has an optimistic accountID that is dropped from personal details once the request syncs, and
- * getParticipantsOption needs the login to find the real account.
+ * Gets the participants for a draft from the attached report. Each participant keeps their login, and a recipient created
+ * offline also keeps the reportID of their 1:1 chat, like a recipient picked from the participant list does. A recipient
+ * created offline has an optimistic accountID that is dropped from personal details once the request syncs. The login and
+ * the chat are saved in the draft so getParticipantsOption and getSyncedParticipantAccountIDs can still find the real
+ * account, even when the confirmation page only opens after the sync.
  */
-function addLoginsToParticipants(participants: Participant[]): Participant[] {
-    return participants.map((participant) => {
-        const login = participant.login ?? getPersonalDetail(participant.accountID)?.login;
-        return login ? {...participant, login} : participant;
+function getMoneyRequestDraftParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
+    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const isOneOnOneChatReport = isOneOnOneChat(chatReport, currentUserAccountID);
+    return getMoneyRequestParticipantsFromReport(report, currentUserAccountID).map((participant) => {
+        const personalDetail = getPersonalDetail(participant.accountID);
+        const login = participant.login ?? personalDetail?.login;
+        const reportID = participant.reportID ?? (isOneOnOneChatReport && personalDetail?.isOptimisticPersonalDetail ? chatReport?.reportID : undefined);
+        return {...participant, ...(login ? {login} : {}), ...(reportID ? {reportID} : {})};
     });
 }
 
@@ -656,14 +662,12 @@ function addLoginsToParticipants(participants: Participant[]): Participant[] {
  * created the recipient synced, to the real accountID. The login finds the real account when the server returns it with
  * a login. The server can leave the login off an existing Expensify account, so a lone recipient falls back to the other
  * participant of the 1:1 chat the draft points to, which now lists the real account. That fallback only applies when the
- * chat listed the recipient's optimistic accountID before the sync, so a newly picked recipient is never swapped for the
- * chat's recipient.
+ * draft saved that chat as the recipient's chat, so a newly picked recipient is never swapped for the chat's recipient.
  */
 function getSyncedParticipantAccountIDs(
     participants: Participant[] | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     chatReport: OnyxEntry<Report>,
-    chatAccountIDsBeforeSync: number[],
     currentUserAccountID: number,
 ): Record<number, number> {
     const chatAccountIDs = Object.keys(chatReport?.participants ?? {}).map(Number);
@@ -675,7 +679,7 @@ function getSyncedParticipantAccountIDs(
             continue;
         }
         const accountIDFromLogin = participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login))?.accountID : undefined;
-        const syncedAccountID = accountIDFromLogin ?? (chatAccountIDsBeforeSync.includes(participant.accountID) ? accountIDFromChat : undefined);
+        const syncedAccountID = accountIDFromLogin ?? (participant.reportID && participant.reportID === chatReport?.reportID ? accountIDFromChat : undefined);
         if (!syncedAccountID || syncedAccountID === participant.accountID || !personalDetails?.[syncedAccountID]) {
             continue;
         }
@@ -718,7 +722,7 @@ function setMoneyRequestParticipantsSyncedAccountIDs(transaction: OnyxEntry<Tran
  * @param participantsAutoAssigned whether participants were auto assigned
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
-    const participants = addLoginsToParticipants(getMoneyRequestParticipantsFromReport(report, currentUserAccountID));
+    const participants = getMoneyRequestDraftParticipantsFromReport(report, currentUserAccountID);
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         participantsAutoAssigned,
@@ -737,7 +741,7 @@ function updateLastLocationPermissionPrompt() {
 }
 
 function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<Report>, currentUserAccountID: number) {
-    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
+    const participants = getMoneyRequestDraftParticipantsFromReport(reportValue, currentUserAccountID);
     const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<Transaction>> = {};
     for (const transactionID of transactionIDs) {
         updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
@@ -1220,7 +1224,7 @@ export {
     startMoneyRequest,
     startDistanceRequest,
     setMoneyRequestParticipants,
-    addLoginsToParticipants,
+    getMoneyRequestDraftParticipantsFromReport,
     getSyncedParticipantAccountIDs,
     setMoneyRequestParticipantsSyncedAccountIDs,
     getMoneyRequestParticipantsFromReport,

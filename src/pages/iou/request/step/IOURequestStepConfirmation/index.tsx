@@ -92,7 +92,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
@@ -269,18 +269,12 @@ function IOURequestStepConfirmationContent({
 
     // A recipient created offline keeps an optimistic accountID in the draft until the request that created them syncs.
     // Move the draft to the real accountID then, so the existing chat is found and split shares stay on the shown row.
-    // The chat's participants are remembered across the sync, which drops the optimistic accountID from the chat.
-    const chatAccountIDsBeforeSyncRef = useRef(new Set<number>());
+    // This only reads the draft and Onyx, so it also works when the sync happened before this page opened.
     useEffect(() => {
-        const chatReport = participantReport ?? transactionReport;
-        for (const accountID of Object.keys(chatReport?.participants ?? {})) {
-            chatAccountIDsBeforeSyncRef.current.add(Number(accountID));
-        }
         const syncedParticipantAccountIDs = getSyncedParticipantAccountIDs(
             optimisticTransaction?.participants,
             personalDetails,
-            chatReport,
-            [...chatAccountIDsBeforeSyncRef.current],
+            participantReport ?? transactionReport,
             currentUserPersonalDetails.accountID,
         );
         setMoneyRequestParticipantsSyncedAccountIDs(optimisticTransaction, syncedParticipantAccountIDs);

@@ -1887,6 +1887,76 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(params?.report?.reportID).toBe(chatReportID);
         });
 
+        it('sends an expense to the existing chat when the recipient synced without a login before the page opened', async () => {
+            // Given a second expense draft to an existing Expensify user who was picked offline, so the draft saved their optimistic accountID and their chat
+            const chatReportID = '7004';
+            const realAccountID = 53;
+            const optimisticAccountID = 43;
+            const login = 'synced.user@example.com';
+            const transactionID = 'tx-synced-before-open';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, reportID: chatReportID, selected: true}],
+                });
+
+                // And the first expense already synced, for example while the app was in the background, so the chat only lists the
+                // real account and the server returned it without its login
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: {accountID: realAccountID, displayName: 'Synced User'}});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+            });
+
+            // When the confirmation page opens only after the sync
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, found through the chat the draft saved
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
         it("keeps the recipient's split share when their optimistic accountID is replaced on sync", async () => {
             // Given a chat with a recipient created offline, who still has an optimistic accountID
             const chatReportID = '7003';
