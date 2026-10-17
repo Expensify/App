@@ -174,6 +174,9 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
+                        {/* One-expense reports keep rows that open the report field editor instead of the inline inputs
+                            the multi-expense table uses. This view renders inside the inverted report actions list, and
+                            a keyboard opened by an input inside that list makes it scroll away from the field. */}
                         {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
