@@ -290,10 +290,10 @@ function WorkspaceCompanyCardsTable({
                   const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
                   const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
                   const hasTransactionStartDateErrors = !isEmptyObject(transactionStartDateErrors);
-                  const hasCardErrors = !isEmptyObject(assignedCard?.errors ?? {});
                   // The feed-level prompt owns connection errors, but a failed start-date edit is a separate user action
                   // and must remain visible and dismissible on the affected row.
                   const cardErrors = isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors;
+                  const hasVisibleCardErrors = !isEmptyObject(cardErrors ?? {});
                   const rowErrors = hasTransactionStartDateErrors ? {...cardErrors, ...transactionStartDateErrors} : cardErrors;
 
                   return {
@@ -321,7 +321,7 @@ function WorkspaceCompanyCardsTable({
                           if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {
                               clearCompanyCardErrorField(domainOrWorkspaceAccountID, String(cardID), bankName, 'scrapeMinDate', true);
                           }
-                          if (hasCardErrors) {
+                          if (hasVisibleCardErrors) {
                               resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID);
                           }
                       },

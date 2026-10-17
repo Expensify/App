@@ -952,11 +952,12 @@ function bulkUpdateCardTransactionStartDate(
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards}];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCards}];
+    const bulkTransactionStartDateUpdateID = rand64();
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
-            value: {bulkTransactionStartDateUpdateSuccessID: rand64()},
+            value: {bulkTransactionStartDateUpdateSuccessID: bulkTransactionStartDateUpdateID},
         },
     ];
 
@@ -965,11 +966,23 @@ function bulkUpdateCardTransactionStartDate(
         startDate: newStartDate,
     };
 
-    return API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
+    const request = API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
         optimisticData,
         successData,
         finallyData,
         failureData,
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateID,
+    });
+
+    return request;
+}
+
+function clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateID: null,
     });
 }
 
@@ -1561,6 +1574,7 @@ export {
     updateCompanyCardName,
     updateCardTransactionStartDate,
     bulkUpdateCardTransactionStartDate,
+    clearBulkUpdateTransactionStartDateUpdate,
     clearBulkUpdateTransactionStartDateSuccess,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,

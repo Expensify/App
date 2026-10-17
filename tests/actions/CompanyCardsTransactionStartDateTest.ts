@@ -4,6 +4,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import Onyx from 'react-native-onyx';
+
 const DOMAIN_OR_WORKSPACE_ACCOUNT_ID = 1234567;
 const CARD_ID = '123';
 const FEED = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
@@ -36,14 +38,18 @@ describe('actions/CompanyCards transaction start date updates', () => {
         );
     });
 
-    it('rolls back absent dates and signals success only through success data for bulk updates', () => {
+    it('rolls back absent dates, signals the queued update immediately, and signals success only through success data for bulk updates', () => {
         // Given cards that previously imported transactions from the beginning
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const onyxMergeSpy = jest.spyOn(Onyx, 'merge');
 
         // When setting a custom start date in bulk
         bulkUpdateCardTransactionStartDate(DOMAIN_OR_WORKSPACE_ACCOUNT_ID, FEED, [{cardID: CARD_ID, oldStartDate: undefined}], '2026-10-13');
 
-        // Then failure data removes the optimistic date and success data signals the confirmed server response
+        // Then the queued request signals selection clearing immediately
+        expect(onyxMergeSpy).toHaveBeenCalledWith(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}`, expect.anything());
+
+        // And failure data removes the optimistic date while success data signals the confirmed server response
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE,
             expect.anything(),

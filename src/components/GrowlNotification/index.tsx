@@ -32,8 +32,8 @@ type GrowlNotificationProps = {
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const [content, setContent] = useState<GrowlContent | null>(null);
 
-    const show = (text: string, growlType: GrowlType, duration: number, action?: GrowlAction, position?: GrowlPosition) => {
-        setContent((prev) => ({bodyText: text, type: growlType, duration, action, position, nonce: (prev?.nonce ?? 0) + 1}));
+    const show: NonNullable<GrowlRef['show']> = ({bodyText, type, duration, action, position}) => {
+        setContent((prev) => ({bodyText, type, duration, action, position, nonce: (prev?.nonce ?? 0) + 1}));
     };
 
     useImperativeHandle(ref, () => ({show}), [show]);

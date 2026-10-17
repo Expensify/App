@@ -25,7 +25,7 @@ import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import {clearBulkUpdateTransactionStartDateSuccess, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearBulkUpdateTransactionStartDateSuccess, clearBulkUpdateTransactionStartDateUpdate, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +62,19 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
+    const bulkTransactionStartDateUpdateID = companyCardsLoadingState?.bulkTransactionStartDateUpdateID;
+    const lastHandledBulkTransactionStartDateUpdateID = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!bulkTransactionStartDateUpdateID || lastHandledBulkTransactionStartDateUpdateID.current === bulkTransactionStartDateUpdateID) {
+            return;
+        }
+
+        lastHandledBulkTransactionStartDateUpdateID.current = bulkTransactionStartDateUpdateID;
+        clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID);
+        companyCardsTableRef.current?.clearSelection();
+    }, [bulkTransactionStartDateUpdateID, domainOrWorkspaceAccountID]);
+
     const bulkTransactionStartDateUpdateSuccessID = companyCardsLoadingState?.bulkTransactionStartDateUpdateSuccessID;
     const lastHandledBulkTransactionStartDateUpdateSuccessID = useRef<string | undefined>(undefined);
 
@@ -72,8 +85,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
         clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
-        companyCardsTableRef.current?.clearSelection();
-        Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'), {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        Growl.success({bodyText: translate('workspace.companyCards.bulkStartDateUpdated'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     }, [bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
 
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
