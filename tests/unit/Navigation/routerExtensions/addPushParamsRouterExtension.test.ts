@@ -111,7 +111,7 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Push
                 return makeState([route]);
             },
 
-            getRehydratedState(partialState: PartialState<TestState>): TestState {
+            getRehydratedState(partialState: PartialState<TestState> | TestState): TestState {
                 const routes = partialState.routes.map((r) =>
                     createMock<TestRoute>({
                         key: r.key ?? `${r.name}-rehydrated`,
@@ -1081,5 +1081,88 @@ describe('resolveCursorForReset (pure function)', () => {
     it("returns 'unknown' when different route key even if compound matches", () => {
         const history = mkHistory('A', 'B');
         expect(resolveCursorForReset(history, 1, {key: 'other-route', params: {q: 'B'}})).toEqual({type: 'unknown'});
+    });
+});
+
+describe('raw PUSH_PARAMS history', () => {
+    it.each([undefined, Object.freeze({q: 'previous'})])('restores partial keyed snapshots without cloning params %s', (params) => {
+        // Given framework history whose opaque member contributes to the surplus count
+        const route = makeRoute('Search', 'search-raw', {q: 'current'});
+        const snapshot = Object.freeze({key: route.key, params});
+        const opaque = Object.freeze({overlay: 'unrecognized'});
+        const history: unknown[] = [snapshot, opaque, {key: route.key, params: route.params}];
+        Object.freeze(history);
+        const state: RouterState = {...makeState([makeRoute('ScreenA', 'other'), route]), history};
+        const router = addPushParamsRouterExtension(createMockRouterFactory())(createMock<PlatformStackRouterOptions>({}));
+
+        // When GO_BACK consumes a partial snapshot with no name/state promise
+        const result = router.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS);
+
+        // Then raw surplus counting allows restoration and frozen params/opaque entries retain identity
+        expect(result).not.toBeNull();
+        expect(result?.routes).toHaveLength(2);
+        expect(result?.routes.at(1)?.params).toBe(params);
+        expect(result?.history).toEqual([snapshot, opaque]);
+        expect(result?.history?.at(1)).toBe(opaque);
+        expect(history).toHaveLength(3);
+    });
+
+    it('preserves opaque entries and surviving keyed snapshots on RESET', () => {
+        // Given a framework-typed router seam with partial keyed and opaque history
+        const route = makeRoute('Search', 'search-raw', Object.freeze({q: 'current'}));
+        const removedRoute = makeRoute('ScreenB', 'removed');
+        const opaque = Object.freeze({overlay: 'unrecognized'});
+        const keyed = Object.freeze({key: route.key, params: route.params});
+        const history: unknown[] = [opaque, {key: removedRoute.key}, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, keyed];
+        Object.freeze(history);
+        const state: RouterState = {...makeState([route, removedRoute]), index: 0, history};
+        const factory = (options: PlatformStackRouterOptions): Router<RouterState, PushParamsRouterAction> => ({
+            ...createMockRouterFactory()(options),
+            getStateForAction: () => ({...state, routes: [route], index: 0}),
+        });
+        const router = addPushParamsRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
+
+        // When the real extension preserves history for the remaining route
+        const result = router.getStateForAction(state, CommonActions.reset({...state, routes: [route], index: 0}), CONFIG_OPTIONS);
+
+        // Then only recognized removed-route entries disappear, without cloning surviving values
+        expect(result).not.toBeNull();
+        expect(result?.history).toEqual([opaque, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, keyed]);
+        expect(result?.history?.at(0)).toBe(opaque);
+        expect(result?.history?.at(-1)).toBe(keyed);
+        expect(route.params).toEqual({q: 'current'});
+    });
+
+    it.each([null, 'invalid params', 42])('does not install malformed erased params %s onto a trusted route', (params) => {
+        // Given a malformed history field confined to unknown[] storage
+        const route = makeRoute('Search', 'search-raw', {q: 'current'});
+        const state: RouterState = {
+            ...makeState([route]),
+            history: [
+                {key: route.key, params},
+                {key: route.key, params: route.params},
+            ],
+        };
+        const router = addPushParamsRouterExtension(createMockRouterFactory())(createMock<PlatformStackRouterOptions>({}));
+
+        // When GO_BACK tries to restore that erased field
+        const result = router.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS);
+
+        // Then the single-route stack fallback cancels rather than fabricating valid route params
+        expect(result).toBeNull();
+        expect(route.params).toEqual({q: 'current'});
+    });
+
+    it('matches partial keys and compound params through opaque gaps with forward distance ties', () => {
+        // Given frozen raw snapshots, including numeric/string URL equivalence and nested key ordering
+        const history: unknown[] = [{key: 'search-raw', params: {q: 7, nested: {b: 2, a: 1}}}, null, {overlay: true}, false, {key: 'search-raw', params: {nested: {a: 1, b: 2}, q: '7'}}];
+        Object.freeze(history);
+
+        // When RESET searches at an opaque midpoint equally distant from two matches
+        const outcome = resolveCursorForReset(history, 2, {key: 'search-raw', params: {q: '7', nested: {a: 1, b: 2}}});
+
+        // Then unconsumed fields do not reject snapshots and the forward match wins the tie
+        expect(outcome).toEqual({type: 'forward', cursor: 4});
+        expect(resolveCursorForReset([{key: 'search-raw'}], 0, {key: 'search-raw', params: undefined})).toEqual({type: 'noop', cursor: 0});
     });
 });
