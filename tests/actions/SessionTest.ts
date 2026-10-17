@@ -13,6 +13,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import * as Ketch from '@libs/Ketch';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
@@ -1136,6 +1137,32 @@ describe('Session', () => {
 
             writeSpy.mockRestore();
         });
+
+        test('includes the targeted advertising consent read from Ketch', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const consentSpy = jest.spyOn(Ketch, 'getTargetedAdvertisingConsent').mockReturnValue(CONST.TARGETED_ADVERTISING_CONSENT.DENIED);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({targetedAdvertisingConsent: CONST.TARGETED_ADVERTISING_CONSENT.DENIED}));
+
+            consentSpy.mockRestore();
+            writeSpy.mockRestore();
+        });
+
+        test('omits the targeted advertising consent when it is unknown', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const consentSpy = jest.spyOn(Ketch, 'getTargetedAdvertisingConsent').mockReturnValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('targetedAdvertisingConsent');
+
+            consentSpy.mockRestore();
+            writeSpy.mockRestore();
+        });
     });
 
     describe('setupNewDotAfterTransitionFromOldDot', () => {
@@ -1599,6 +1626,21 @@ describe('Session', () => {
             // Then the request carries only the sign in params
             const params = writeSpy.mock.calls.at(0)?.[1] ?? {};
             expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'preferredLocale', tokenParam].sort());
+            writeSpy.mockRestore();
+        });
+
+        test('sends the targeted advertising consent read from Ketch', async () => {
+            // Given the user granted targeted advertising in the Ketch banner
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const consentSpy = jest.spyOn(Ketch, 'getTargetedAdvertisingConsent').mockReturnValue(CONST.TARGETED_ADVERTISING_CONSENT.GRANTED);
+
+            // When the user signs in with the third party, which can create a new account
+            beginSignIn('testToken', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the consent is sent with the request params
+            expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({targetedAdvertisingConsent: CONST.TARGETED_ADVERTISING_CONSENT.GRANTED}), expect.anything());
+            consentSpy.mockRestore();
             writeSpy.mockRestore();
         });
     });

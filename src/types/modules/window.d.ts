@@ -10,6 +10,9 @@ declare global {
         report?: Promise<Report | undefined>;
         transaction?: Promise<Transaction | undefined>;
         receipt?: Promise<Receipt | undefined>;
+
+        /** Ketch consent command function, defined by the Ketch boot snippet in web/index.html. Only present on web when third party scripts are on. */
+        ketch?: (command: string, ...args: unknown[]) => void;
     }
 
     // Injected by Rspack's DefinePlugin at build time; empty string in non-development builds.

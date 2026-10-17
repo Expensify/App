@@ -421,6 +421,7 @@ const WRITE_COMMANDS = {
     MERGE_TRANSACTION: 'Transaction_Merge',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
     SIGN_UP_USER: 'SignUpUser',
+    UPDATE_ADVERTISING_CONSENT: 'UpdateAdvertisingConsent',
     UPDATE_SUBSCRIPTION_AUTO_RENEW: 'UpdateSubscriptionAutoRenew',
     ACCEPT_EARLY_RENEWAL_OFFER: 'AcceptEarlyRenewalOffer',
     UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY: 'UpdateSubscriptionAddNewUsersAutomatically',
@@ -1223,6 +1224,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT]: Parameters.UnshareBankAccountParams;
     [WRITE_COMMANDS.UPDATE_BANK_ACCOUNT]: Parameters.UpdateBankAccountParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
+    [WRITE_COMMANDS.UPDATE_ADVERTISING_CONSENT]: Parameters.UpdateAdvertisingConsentParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.ACCEPT_EARLY_RENEWAL_OFFER]: Parameters.AcceptEarlyRenewalOfferParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
