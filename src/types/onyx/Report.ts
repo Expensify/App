@@ -67,9 +67,6 @@ type ReportNextStep = {
         dateTime?: string;
     };
 
-    /** The fill color of the icon */
-    iconFill?: string;
-
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
 };

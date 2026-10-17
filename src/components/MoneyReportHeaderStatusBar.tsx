@@ -59,7 +59,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
-                    fill={nextStep?.iconFill ?? theme.icon}
+                    fill={theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
