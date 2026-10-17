@@ -103,6 +103,24 @@ describe('ReportNotFoundGuard', () => {
         expect(isContentVisible()).toBe(false);
     });
 
+    it('shows the not-found page when opening a report in Onyx fails with report not found', async () => {
+        // Given a report the user has locally but cannot open, like the workspace chat behind a report shared with them
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, reportName: 'Chat Report'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // When opening it comes back with report not found
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {errorFields: {notFound: {[Date.now()]: 'Report not found'}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then the not-found page shows instead of loading forever
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
     it('does NOT show the not-found page offline for a pre-mounted report that is still pending creation (#100785)', async () => {
         // Given the route carries isPendingCreation and the device is offline, so the actions-loading term is ignored
         mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
