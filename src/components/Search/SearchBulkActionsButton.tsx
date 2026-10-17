@@ -2,8 +2,6 @@ import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams} from '@components/KYCWall/types';
@@ -77,15 +75,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment,
-        isHoldEducationalModalVisible,
-        areAllTransactionsFromDMReports,
-        rejectModalAction,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
         handleExpensifyCardStatementPDFModalHide,
-        dismissModalAndUpdateUseHold,
-        dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
@@ -269,19 +262,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     isVisible={isExpensifyCardStatementPDFModalVisible}
                     onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
                     onModalHide={handleExpensifyCardStatementPDFModalHide}
-                />
-            )}
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                    isDM={areAllTransactionsFromDMReports}
                 />
             )}
         </>

@@ -1,4 +1,3 @@
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,8 +27,6 @@ function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitter
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
-
-    useBeforeRemove(onClose);
 
     return (
         <FeatureTrainingModal
