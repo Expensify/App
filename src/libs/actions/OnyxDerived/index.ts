@@ -27,6 +27,20 @@ import type {DerivedValueContext} from './types';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import {setDerivedValue} from './utils';
 
+// Derived values that share a collection dependency get the same snapshot from one write and usually diff it against
+// the same baseline, so the first one's delta is reused. One slot per collection, so no chain of old snapshots is kept.
+const lastCollectionDeltas = new Map<OnyxKey, {current: OnyxCollection<unknown>; previous: OnyxCollection<unknown>; delta: OnyxCollection<unknown> | undefined}>();
+
+function getSharedCollectionDelta(collectionKey: OnyxKey, current: OnyxCollection<unknown>, previous: OnyxCollection<unknown>): OnyxCollection<unknown> | undefined {
+    const cached = lastCollectionDeltas.get(collectionKey);
+    if (cached && cached.current === current && cached.previous === previous) {
+        return cached.delta;
+    }
+    const delta = getCollectionDelta<unknown>(current, previous);
+    lastCollectionDeltas.set(collectionKey, {current, previous, delta});
+    return delta;
+}
+
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
@@ -105,6 +119,7 @@ function init() {
                 derivedValue = undefined;
                 hasFlushedOnce = false;
                 lastFlushedCollectionValues.length = 0;
+                lastCollectionDeltas.clear();
                 onReset?.();
             };
 
@@ -131,6 +146,16 @@ function init() {
                 try {
                     // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                     const newDerivedValue = compute(dependencyValues, context);
+
+                    // A config signals "nothing changed" by handing back the exact `currentValue` reference it was
+                    // given. Writing in that case rewrites the whole value to disk and notifies every subscriber with
+                    // a value equal to the one it already holds, so skip it. Onyx still holding the key is part of the
+                    // condition: a clear that preserves every dependency of this config never notifies it, so
+                    // `resetForClear` above never runs and `derivedValue` outlives the key Onyx dropped. Writing is
+                    // what puts it back.
+                    if (newDerivedValue === derivedValue && OnyxCache.hasCacheForKey(key)) {
+                        return;
+                    }
                     Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                     derivedValue = newDerivedValue;
                     setDerivedValue(key, derivedValue);
@@ -171,7 +196,7 @@ function init() {
                         const dependencyOnyxKey = dependencies[index];
                         if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                             const currentValue = readCollectionDependency(index);
-                            const delta = getCollectionDelta<unknown>(currentValue, lastFlushedCollectionValues.at(index));
+                            const delta = getSharedCollectionDelta(dependencyOnyxKey, currentValue, lastFlushedCollectionValues.at(index));
                             stagedBaselines.push([index, currentValue]);
                             if (delta !== undefined) {
                                 sourceValues ??= {};
