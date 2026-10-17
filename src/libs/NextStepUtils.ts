@@ -1,7 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportAction, ReportActions, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -11,21 +12,25 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, hasDynamicExternalWorkflow, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
+    getReasonAndReportActionThatRequiresAttention,
     isExpenseReport,
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
+    isReportOwner,
     shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from './ReportUtils';
-import {hasSubmissionBlockingViolations} from './TransactionUtils';
+import {hasSubmissionBlockingViolationInList, hasSubmissionBlockingViolations} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -46,17 +51,6 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
-    rules: OnyxCollection<Rule>;
-};
-
-type GetReportNextStepParams = {
-    moneyRequestReport: OnyxEntry<Report>;
-    moneyRequestReportOwnerLogin: string | undefined;
-    transactions: Array<OnyxEntry<Transaction>>;
-    policy: OnyxEntry<Policy>;
-    transactionViolations: OnyxCollection<TransactionViolations>;
-    currentUserEmail: string;
-    currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
 };
 
@@ -330,47 +324,60 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
+type GetReportNextStepParams = {
+    currentUserLogin: string;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    report: OnyxEntry<Report>;
+    reportActions: ReportAction[];
+    transactions: Record<string, Transaction>;
+    violations: Record<string, TransactionViolations>;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+    areStrictPolicyRulesEnabled: boolean;
+    isReportArchived: boolean;
+};
+
 function getReportNextStep({
-    moneyRequestReport,
-    moneyRequestReportOwnerLogin,
-    transactions,
-    policy,
-    transactionViolations,
+    currentUserLogin,
     currentUserEmail,
     currentUserAccountID,
+    report,
+    reportActions,
+    transactions,
+    violations,
+    policy,
     rules,
+    areStrictPolicyRulesEnabled,
+    isReportArchived,
 }: GetReportNextStepParams) {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
     }
 
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const shouldShowNoFurtherAction =
-        reimbursableSpend === 0 &&
-        (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ||
-            (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
-
     if (
-        isOpenExpenseReport(moneyRequestReport) &&
-        transactions.length > 0 &&
-        transactions.every(
-            (transaction) =>
-                !!transaction &&
-                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
+        isOpenExpenseReport(report) &&
+        Object.values(transactions).length > 0 &&
+        Object.values(transactions).every(
+            (transaction) => !!transaction && hasSubmissionBlockingViolationInList(violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
-        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
+        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
     }
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
     if (shouldShowNoFurtherAction) {
         return {
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
@@ -378,7 +385,48 @@ function getReportNextStep({
         };
     }
 
-    return moneyRequestReport?.nextStep;
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (isDEWPolicy && (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
+        if (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
+
+            if (errors?.dewSubmitFailed) {
+                return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+            }
+        } else if (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            const gbrResult = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin,
+                currentUserAccountID,
+                transactionViolations: violations,
+                isReportArchived,
+            });
+            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
+                return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+            }
+        }
+    }
+
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        report?.reportID,
+        violations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail,
+        Object.values(transactions),
+    );
+    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
+        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
+    }
+
+    return report?.nextStep;
 }
 
 /**

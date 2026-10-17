@@ -28,77 +28,27 @@ function useNextStep(reportID: string | undefined) {
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const transactions = Object.values(reportTransactions);
+    const {transactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
 
-    const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-
-    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
-        moneyRequestReport?.reportID,
-        violations,
-        areStrictPolicyRulesEnabled,
-        accountID,
-        email ?? '',
-        transactions,
-    );
+    const isArchivedReport = useReportIsArchived(report?.reportID);
 
     let optimisticNextStep = getReportNextStep({
-        moneyRequestReport,
-        moneyRequestReportOwnerLogin: ownerLogin,
-        transactions,
+        report,
         policy,
-        transactionViolations: allTransactionViolations,
+        transactions,
+        violations,
         currentUserEmail: email ?? '',
         currentUserAccountID: accountID,
         rules,
     });
-
-    // Archived workspaces always show the change workspace next step, so skip the fix-issue overrides below
-    if (isArchivedPolicy(policy)) {
-        return optimisticNextStep;
-    }
-
-    if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
-        if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-                if (action.reportActionID) {
-                    acc[action.reportActionID] = action;
-                }
-                return acc;
-            }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions, accountID);
-
-            if (errors?.dewSubmitFailed) {
-                optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
-            }
-        } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention({
-                optionOrReport: moneyRequestReport,
-                currentUserLogin: currentUserLogin ?? '',
-                currentUserAccountID: accountID,
-                transactionViolations: allTransactionViolations,
-                isReportArchived: isArchivedReport,
-            });
-            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
-            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
-                optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
-            }
-        }
-    }
-
-    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
-        optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
-    }
 
     return optimisticNextStep;
 }
