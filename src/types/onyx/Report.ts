@@ -56,6 +56,7 @@ type Participants = Record<number, Participant>;
  *
  * IMPORTANT: Do NOT add fields that are not returned by the backend.
  *            BE send the next step updates using Onyx MERGE method and any frontend-only field becomes stale.
+ *            Use ReportNextStepContext for FE-only values.
  */
 type ReportNextStep = {
     /** Message key */

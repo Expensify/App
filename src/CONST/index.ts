@@ -2251,11 +2251,6 @@ const CONST = {
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
         },
-        /**
-         * The message key modifier is a FE-only derived value from the report context
-         * This modifier is used to display different nextStep messages for a given nextStep meesage key
-         */
-        MESSAGE_KEY_MODIFIER: {},
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
@@ -2271,6 +2266,11 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
             END_OF_TRIP: 'endOfTrip',
         },
+        /**
+         * The message key modifier is a FE-only derived value from the report context
+         * This modifier is used to display different nextStep messages for a given nextStep meesage key
+         */
+        MESSAGE_KEY_MODIFIER: {},
         /** ETA type is a FE-only derived value from nextStep.eta */
         ETA_TYPE: {
             KEY: 'key',

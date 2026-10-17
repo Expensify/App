@@ -33,6 +33,15 @@ import {
 } from './ReportUtils';
 import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
+/**
+ * Report next step context is a FE-only derived values for ReportNextStep
+ */
+type ReportNextStepContext = {
+    messageKeyModifier?: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER>;
+    actorType?: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+};
+
 type BuildOptimisticNextStepParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
