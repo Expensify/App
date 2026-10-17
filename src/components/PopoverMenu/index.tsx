@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -415,6 +416,8 @@ function BasePopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const isSearchEnabled = !!searchInputOptions;
+    const activeElementRole = useActiveElementRole();
+    const isInteractiveElementFocused = isSearchEnabled && !!activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const rowLayoutsRef = useRef(new Map<number, {height: number; y: number}>());
@@ -682,7 +685,7 @@ function BasePopoverMenu({
             selectItem(focusedIndex);
             setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         },
-        {isActive: isVisible},
+        {isActive: isVisible && !isInteractiveElementFocused},
     );
 
     const keyboardShortcutSpaceCallback = useCallback(
