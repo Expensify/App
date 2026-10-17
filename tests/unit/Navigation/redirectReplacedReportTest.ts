@@ -1,5 +1,6 @@
 import redirectReplacedReport from '@libs/Navigation/helpers/redirectReplacedReport';
 import replaceReportIDInPath from '@libs/Navigation/helpers/replaceReportIDInPath';
+import {resolveReplacementReportID} from '@libs/Navigation/helpers/reportReplacementMapping';
 
 import SCREENS from '@src/SCREENS';
 
@@ -135,6 +136,18 @@ describe('redirectReplacedReport', () => {
         // When replacement is requested
         redirectReplacedReport('100', '200');
         // Then no redirect can be dispatched
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('remembers a replacement even when navigation is not ready to redirect', () => {
+        // Given no navigator is mounted when the replacement arrives
+        mockIsReady.mockReturnValue(false);
+
+        // When the optimistic report is replaced
+        redirectReplacedReport('6100', '6200');
+
+        // Then a later restored history entry can still resolve its ID, without dispatching prematurely
+        expect(resolveReplacementReportID('6100')).toBe('6200');
         expect(mockSetParams).not.toHaveBeenCalled();
     });
 });
