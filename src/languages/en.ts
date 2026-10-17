@@ -30,6 +30,7 @@ import type {
     ReportAction,
     SageIntacctMappingName,
     ViolationDataType,
+    ReportNextStepMessageParams,
 } from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
@@ -41,14 +42,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
-
-type ReportNextStepMessageParams = {
-    actor: string;
-    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    eta?: string;
-    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
-    requiredDepositCurrency?: string;
-};
 
 const translations = {
     earlyRenewal: {
