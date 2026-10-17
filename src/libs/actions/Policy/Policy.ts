@@ -3418,6 +3418,7 @@ function buildOptimisticDuplicatePolicy(
         distanceCustomUnitID: duplicatedDistanceCustomUnitID,
         perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
         customUnitRateID: duplicatedCustomUnitRateID,
+        policyCategories: duplicatedPolicyCategories,
     } = policyOptions;
 
     const isMemberFeatureSelected = duplicatedParts?.people;
@@ -3472,7 +3473,7 @@ function buildOptimisticDuplicatePolicy(
         areTagsEnabled: isTagsFeatureSelected,
         areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
         areInvoicesEnabled: isInvoicesFeatureSelected,
-        areRulesEnabled: isRulesFeatureSelected ? sourcePolicy?.areRulesEnabled : false,
+        areRulesEnabled: isRulesFeatureSelected ? PolicyUtils.arePolicyRulesEnabled(sourcePolicy, duplicatedPolicyCategories) : false,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
