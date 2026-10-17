@@ -466,14 +466,14 @@ describe('RecruitingUtils', () => {
             ]);
         });
 
-        it('falls back to the fields every provider supports when the provider is unknown', () => {
+        it('offers nothing when the provider is unknown', () => {
             // Given a connection whose integration slug we can't resolve, since the backend sets it
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- deliberately simulating a slug we cannot resolve
             const policy = makeMergeATSPolicy({config: {integration: undefined as unknown as MergeATSProviderSlug}});
 
             // When the approver fields are read
-            // Then only the fields every provider supports are offered, so the admin can't pick one the ATS lacks
-            expect(getMergeATSApproverFields(policy)).toEqual([CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER, CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR]);
+            // Then no fields are offered
+            expect(getMergeATSApproverFields(policy)).toEqual([]);
         });
     });
 
