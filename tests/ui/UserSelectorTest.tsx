@@ -9,16 +9,24 @@ import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelec
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 
 import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import React from 'react';
+
+let mockPolicies: Record<string, Partial<Policy>> | undefined;
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/UserSelectionListItem', () => jest.fn(() => null));
 jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.fn()}));
 jest.mock('@hooks/usePersonalDetailSearchSelector', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({email: 'me@expensify.com', accountID: 999})));
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+jest.mock('@hooks/useOnyx', () =>
+    jest.fn((key: string) => {
+        const {default: ACTUAL_ONYXKEYS} = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS');
+        return [key === ACTUAL_ONYXKEYS.COLLECTION.POLICY ? mockPolicies : undefined];
+    }),
+);
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({pb0: {}})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -75,6 +83,7 @@ describe('UserSelector', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockPolicies = undefined;
         currentUserOption = null;
         mockedUsePersonalDetails.mockReturnValue(personalDetailsList);
         mockedUsePersonalDetailSearchSelector.mockImplementation(buildSelectorReturn);
@@ -194,5 +203,50 @@ describe('UserSelector', () => {
         // Then the selected user remains visible so they can be deselected
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(expect.objectContaining(publicProfileOption));
+    });
+
+    it('shows the search input for a short list when a workspace filter is set', () => {
+        // Given a workspace with a single member, so the suggestions are shorter than the search input threshold
+        const policyID = 'ABC123';
+        const memberLogin = 'user0@example.com';
+        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {id: policyID, owner: 'owner@example.com', employeeList: {[memberLogin]: {email: memberLogin}}}};
+        mockedUsePersonalDetailSearchSelector.mockImplementation((config) => ({
+            ...buildSelectorReturn(config),
+            totalOptionsCount: 1,
+        }));
+
+        // When the selector renders with that workspace filter
+        render(
+            <UserSelector
+                value={[]}
+                policyID={{value: [policyID], isNegated: false}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the members are the default suggestions, and the search input is shown so people outside the workspace (e.g. removed members) can still be found
+        const config = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0];
+        expect(config?.includeLoginsOnly).toEqual(new Set(['user0@example.com', 'owner@example.com']));
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions).toBeDefined();
+    });
+
+    it('hides the search input for a short list without a workspace filter', () => {
+        // Given fewer options than the search input threshold
+        mockedUsePersonalDetailSearchSelector.mockImplementation((config) => ({
+            ...buildSelectorReturn(config),
+            totalOptionsCount: 1,
+        }));
+
+        // When the selector renders without a workspace filter
+        render(
+            <UserSelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the short list is shown without a search input, as before
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions).toBeUndefined();
     });
 });

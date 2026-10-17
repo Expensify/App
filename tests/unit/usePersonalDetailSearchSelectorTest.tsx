@@ -590,6 +590,8 @@ describe('usePersonalDetailSearchSelector includeLoginsOnly', () => {
             usePersonalDetailSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
                 includeLoginsOnly,
+                includeRecentReports: false,
+                shouldKeepSelectedInAvailableOptions: true,
             }),
         );
         await waitForBatchedUpdatesWithAct();
@@ -597,6 +599,60 @@ describe('usePersonalDetailSearchSelector includeLoginsOnly', () => {
     };
 
     const availableLogins = (result: Awaited<ReturnType<typeof renderSelector>>) => result.current.availableOptions.personalDetails.map((option) => option.login).toSorted();
+
+    /** Types searchTerm into the selector, flushing the debounce. */
+    const search = async (result: Awaited<ReturnType<typeof renderSelector>>, searchTerm: string) => {
+        jest.useFakeTimers();
+        act(() => {
+            result.current.setSearchTerm(searchTerm);
+        });
+        // Advance past the debounce delay (300ms)
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+        jest.useRealTimers();
+    };
+
+    it('loads every personal detail, so the allowlist does not hide anyone from a search', async () => {
+        // Given an allowlist, e.g. the members of the workspace in the Search filter
+        await renderSelector(new Set(['bob@expensify.com']));
+
+        // Then the allowlist is not used to narrow the options that are loaded
+        expect(mockUsePersonalDetailOptions).toHaveBeenLastCalledWith({enabled: true});
+    });
+
+    it('finds a user outside the allowlist when searching, e.g. a member removed from the workspace', async () => {
+        // Given an allowlist that no longer holds Alice, as happens after she is removed from the workspace
+        const result = await renderSelector(new Set(['bob@expensify.com']));
+
+        // When her email is typed
+        await search(result, 'alice@expensify.com');
+
+        // Then she is found with her real accountID instead of a generated one
+        expect(result.current.availableOptions.personalDetails).toEqual([expect.objectContaining({login: 'alice@expensify.com', accountID: 100})]);
+        expect(result.current.availableOptions.userToInvite).toBeNull();
+    });
+
+    it('keeps a user found by searching visible after the search is cleared, once selected', async () => {
+        // Given Alice, outside the allowlist, was found by searching and selected
+        const result = await renderSelector(new Set(['bob@expensify.com']));
+        await search(result, 'alice@expensify.com');
+        const aliceOption = result.current.availableOptions.personalDetails.at(0);
+        act(() => {
+            if (!aliceOption) {
+                return;
+            }
+            result.current.toggleSelection(aliceOption);
+        });
+
+        // When the search is cleared
+        await search(result, '');
+
+        // Then the suggestions are the allowlist again, plus Alice so she can still be deselected
+        expect(availableLogins(result)).toEqual(['alice@expensify.com', 'bob@expensify.com']);
+        expect(result.current.selectedOptions.map((option) => option.accountID)).toEqual([100]);
+    });
 
     it('returns every option when no allowlist is given', async () => {
         const result = await renderSelector();

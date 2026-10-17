@@ -120,7 +120,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     };
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const shouldShowSearchInput = totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    // With a workspace filter, people outside the workspace (e.g. removed members) can only be found by searching, so the input is always shown.
+    const shouldShowSearchInput = !!workspaceMemberLogins || totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = shouldShowSearchInput
         ? {

@@ -38,7 +38,7 @@ type UseSearchSelectorConfig = {
     /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
     excludeFromSuggestionsOnly?: Record<string, boolean>;
 
-    /** When set, only the logins in this set are turned into options */
+    /** When set, only the logins in this set are suggested while the search term is empty. A search still matches every known user. */
     includeLoginsOnly?: Set<string>;
 
     includeRecentReports?: boolean;
@@ -203,7 +203,7 @@ function usePersonalDetailSearchSelectorBase({
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 
@@ -216,10 +216,9 @@ function usePersonalDetailSearchSelectorBase({
         if (!contactOptions?.length || !shouldInitialize) {
             return defaultOptions;
         }
-        // Phone contacts are built outside of usePersonalDetailOptions, so they need the allowlist applied here.
-        const allowedContactOptions = includeLoginsOnly ? contactOptions.filter((option) => !!option.login && includeLoginsOnly.has(option.login)) : contactOptions;
-        return (defaultOptions ?? []).concat(allowedContactOptions);
+        return (defaultOptions ?? []).concat(contactOptions);
     })();
+    const isAllowedLogin = (option: OptionData) => !!option.login && !!includeLoginsOnly?.has(option.login);
     const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
 
     // With nothing selected the options already carry the right state, so the list is passed through instead of a copy
@@ -253,9 +252,13 @@ function usePersonalDetailSearchSelectorBase({
     // and the "invite user" option disappears for logins that don't have an account yet.
     const trimmedSearchTerm = debouncedSearchTerm.trim();
 
+    // The allowlist only narrows the default suggestions. A search looks through every known user, so someone outside it
+    // (e.g. a member removed from the workspace) can still be found. Selected options stay visible after the search is cleared.
+    const optionsForSearch = includeLoginsOnly && !trimmedSearchTerm ? transformedOptions.filter((option) => !!option.isSelected || isAllowedLogin(option)) : transformedOptions;
+
     const optionsList = !areOptionsInitialized
         ? defaultListOptions
-        : memoizedGetValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+        : memoizedGetValidOptions(optionsForSearch, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
               excludeLogins,
               excludeFromSuggestionsOnly,
               includeSelectedOptions: shouldKeepSelectedInAvailableOptions,
@@ -360,7 +363,7 @@ function usePersonalDetailSearchSelectorBase({
             currentUserOption: filteredCurrentUserOption,
             extraOptions,
         },
-        totalOptionsCount: optionsWithContacts?.length ?? 0,
+        totalOptionsCount: (includeLoginsOnly ? optionsWithContacts?.filter(isAllowedLogin).length : optionsWithContacts?.length) ?? 0,
         toggleSelection,
         resetSelection,
         areOptionsInitialized,
