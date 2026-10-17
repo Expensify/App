@@ -127,14 +127,14 @@ function OptionRow({
     const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
     const flattenHoverStyle = StyleSheet.flatten(hoverStyle);
     const hoveredStyle = hoverStyle ? flattenHoverStyle : styles.sidebarLinkHover;
-    const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? (hoveredStyle.backgroundColor as string) : backgroundColor;
+    const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? hoveredStyle.backgroundColor : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const shouldUseShortFormInTooltip = (option.participantsList?.length ?? 0) > 1;
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
+        (option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10),
         shouldUseShortFormInTooltip,
         localeCompare,
         formatPhoneNumber,
@@ -255,7 +255,7 @@ function OptionRow({
                                         containerStyle={[styles.textInputContainer]}
                                         inputStyle={[
                                             styles.optionRowAmountInput,
-                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
+                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft),
                                             option.amountInputProps.inputStyle,
                                         ]}
                                         onAmountChange={option.amountInputProps.onAmountChange}
