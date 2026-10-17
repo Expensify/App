@@ -96,7 +96,7 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, false, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {

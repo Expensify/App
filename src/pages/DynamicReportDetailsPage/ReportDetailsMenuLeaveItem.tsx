@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,10 +45,11 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const [personalDetails] = useAllPersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(reportID);
     const {showConfirmModal} = useConfirmModal();
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, isAnonymousUser, !!reportNameValuePairs?.private_isArchived);
 
     if (!report || !shouldShowLeaveButton) {
         return null;
@@ -59,7 +61,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     const leaveChat = () => {
         // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
