@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardNameError, getCardNameErrorMessage, getDefaultCardName} from '@libs/CardUtils';
+import {getCardNameError, getCardNameErrorMessage, getDefaultCardName, shouldShowShippingAddressStep} from '@libs/CardUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -67,7 +67,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
             KeyboardUtils.dismiss().then(() => {
                 setIssueNewCardStepAndData({
-                    step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                    step: !isEditing && shouldShowShippingAddressStep(data) ? CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS : CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
                     data: {
                         cardTitle: StringUtils.sanitizeName(values.cardTitle),
                     },
@@ -76,7 +76,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 });
             });
         },
-        [policyID],
+        [data, isEditing, policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
