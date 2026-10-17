@@ -26,7 +26,7 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -61,6 +61,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 const threadID =
                     transactionThreadReportID ??

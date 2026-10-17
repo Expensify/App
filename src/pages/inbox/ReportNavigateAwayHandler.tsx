@@ -3,6 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -26,6 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useReportWasDeleted from './hooks/useReportWasDeleted';
@@ -73,8 +75,10 @@ function ReportNavigateAwayHandler() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const parentReportAction = useParentReportAction(report);
@@ -142,7 +146,15 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     });
 
@@ -233,9 +245,21 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
         });
-    }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, reportIDFromRoute]);
+    }, [
+        reportWasDeleted,
+        previousReportWasDeleted,
+        isFocused,
+        deletedReportParentID,
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        conciergePersonalDetails,
+        reportIDFromRoute,
+    ]);
 
     return null;
 }

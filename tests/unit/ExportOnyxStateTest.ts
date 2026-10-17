@@ -3,6 +3,7 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormSensitiveAnswers} from '@src/types/onyx';
 
 describe('maskOnyxState', () => {
     const mockSession = {
@@ -139,6 +140,20 @@ describe('maskOnyxState', () => {
         } else {
             expect(result.unknownData).toEqual(input.unknownData);
         }
+    });
+
+    it.each([false, true])('removes sensitive dynamic form answers entirely when masking is %s', (isMaskingEnabled) => {
+        // Given the per-form sensitive values written by saveSensitiveAnswers instead of persisted drafts
+        const sensitiveAnswers: DynamicFormSensitiveAnswers = {[ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: {ssn: 'private-social-security-number'}};
+        const input = {[ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: sensitiveAnswers, [ONYXKEYS.CURRENT_DATE]: '2024-01-01'};
+
+        // When the export runs with either toggle state, since removal must precede optional redaction
+        const result = maskOnyxState(input, isMaskingEnabled);
+
+        // Then the sensitive key is absent rather than present with masked or undefined answers
+        expect(result).not.toHaveProperty(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS);
+        expect(JSON.stringify(result)).not.toContain('private-social-security-number');
+        expect(result[ONYXKEYS.CURRENT_DATE]).toBe(input[ONYXKEYS.CURRENT_DATE]);
     });
 
     it('propagates collection, title and reservation context through nested records and arrays', () => {

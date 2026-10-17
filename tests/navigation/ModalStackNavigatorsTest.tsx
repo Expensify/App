@@ -3,7 +3,7 @@
  */
 import {render} from '@testing-library/react-native';
 
-import {SearchReportActionsModalStackNavigator, TravelModalStackNavigator} from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import {SearchReportActionsModalStackNavigator, SettingsModalStackNavigator, TravelModalStackNavigator} from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import type createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -106,6 +106,28 @@ describe('modal screen registrations', () => {
         expect(defaultOptions).toEqual(commonOptions);
         expect(verifyOptions).toEqual({...commonOptions, animationTypeForReplace: 'push'});
         expect(getCommonOptions.mock.calls).toEqual([[{route}], [{route: verifyRoute}]]);
+    });
+
+    it.each([SCREENS.REIMBURSEMENT_ACCOUNT_USD, SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD])('applies the reimbursement push override for %s', (screenName) => {
+        // Given a common reverse transition that must yield to the reimbursement flow's forward transition
+        const commonOptions: PlatformStackNavigationOptions = {animationTypeForReplace: 'pop', title: 'Reimbursement options'};
+        const getCommonOptions = jest.fn<ReturnType<ReturnType<typeof useModalStackScreenOptions>>, Parameters<ReturnType<typeof useModalStackScreenOptions>>>(() => commonOptions);
+        jest.mocked(useModalStackScreenOptions).mockReturnValue(getCommonOptions);
+
+        // When the real settings navigator registers the selected currency flow without loading its page
+        render(<SettingsModalStackNavigator />);
+
+        // Then the registered flow preserves common options while replacing the reverse transition
+        const reimbursementScreen = mockScreenRegistrations.find(({name}) => name === screenName);
+        expect(reimbursementScreen).toBeDefined();
+        if (!reimbursementScreen) {
+            throw new Error('Expected a reimbursement screen registration');
+        }
+        expect(reimbursementScreen.isLazyLoaderDefined).toBe(true);
+        expect(getCommonOptions).not.toHaveBeenCalled();
+        const route = {key: 'reimbursement-route', name: screenName};
+        expect(reimbursementScreen.getOptions(route.key)).toEqual({...commonOptions, animationTypeForReplace: 'push'});
+        expect(getCommonOptions.mock.calls).toEqual([[{route}]]);
     });
 
     it('applies NONE after common search options while retaining routes without overrides', () => {
