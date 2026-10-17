@@ -53,7 +53,10 @@ type Participants = Record<number, Participant>;
 
 /** Report next step */
 type ReportNextStep = {
+    /** Message key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** Icon */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
