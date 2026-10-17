@@ -147,6 +147,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         <RejectReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            enabledWhenOffline={route.name !== SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP || !areAllMatchingItemsSelected}
         />
     );
 }
