@@ -209,7 +209,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         street1={street1}
                                         street2={street2}
                                         city={shippingAddress?.addressCity}
-                                        state={shippingAddress?.addressState}
+                                        state={inputValues.state ?? shippingAddress?.addressState}
                                         zip={shippingAddress?.addressZip}
                                         defaultCountry={defaultCountry}
                                         country={inputValues.country ?? defaultCountry}
