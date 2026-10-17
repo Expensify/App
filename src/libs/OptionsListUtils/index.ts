@@ -399,6 +399,7 @@ type CreateOptionParams = {
     lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     currentUserLogin?: string;
 };
 
@@ -446,6 +447,7 @@ function createOption({
     lastActions,
     currentUserAccountID,
     pendingDeleteMemberAccountIDs,
+    formatPhoneNumber,
     currentUserLogin,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
@@ -546,6 +548,7 @@ function createOption({
                           currentUserAccountID,
                           currentUserLogin,
                           rules,
+                          formatPhoneNumber,
                       },
                   );
 
@@ -609,7 +612,12 @@ type GetReportOptionParams = {
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     reportDraft: OnyxEntry<Report>;
     currentUserAccountID: number;
-    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
+    localize: {
+        translate: LocalizedTranslate;
+        dateFnsLocale: DateFnsLocale | undefined;
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    };
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
     pendingDeleteMemberAccountIDs: string[] | undefined;
@@ -632,7 +640,7 @@ function getReportOption({
     policyTags,
     pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
-    const {translate, dateFnsLocale, convertToDisplayString} = localize;
+    const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -658,6 +666,7 @@ function getReportOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
     });
 
@@ -703,6 +712,7 @@ type GetReportDisplayOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
@@ -724,6 +734,7 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
+    formatPhoneNumber,
     pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -749,6 +760,7 @@ function getReportDisplayOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
     });
 
@@ -783,14 +795,19 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']},
+    localize: {
+        translate: LocalizedTranslate;
+        dateFnsLocale: DateFnsLocale | undefined;
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    },
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): SearchOptionData {
-    const {translate, dateFnsLocale, convertToDisplayString} = localize;
+    const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
@@ -816,6 +833,7 @@ function getPolicyExpenseReportOption(
         policyTags,
         visibleReportActionsData,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -962,6 +980,7 @@ function processReport(
         currentUserLogin?: string;
     },
     rules: OnyxCollection<Rule>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1004,6 +1023,7 @@ function processReport(
                 lastActions,
                 currentUserAccountID,
                 pendingDeleteMemberAccountIDs,
+                formatPhoneNumber,
                 currentUserLogin,
             }),
         },
@@ -1093,6 +1113,7 @@ function buildFullOption(
         dateFnsLocale,
         translate,
         convertToDisplayString,
+        formatPhoneNumber,
     } = context;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1118,6 +1139,7 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            formatPhoneNumber,
         }),
         isHydrated: true,
     };
@@ -1208,6 +1230,7 @@ function createFilteredOptionList(
          * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
          */
         pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     },
     rules: OnyxCollection<Rule>,
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1228,6 +1251,7 @@ function createFilteredOptionList(
         deferContactsUntilSearch = false,
         locale,
         pendingDeleteMemberAccountIDsByReportID,
+        formatPhoneNumber,
     } = options;
 
     // Use the cache-key locale for translated contact fields.
@@ -1344,6 +1368,7 @@ function createFilteredOptionList(
                 currentUserLogin,
             },
             rules,
+            formatPhoneNumber,
         );
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1382,6 +1407,7 @@ function createFilteredOptionList(
                   dateFnsLocale: options.dateFnsLocale,
                   convertToDisplayString: options.convertToDisplayString,
                   translate: translateInActiveLocale,
+                  formatPhoneNumber,
               },
               rules,
           )
@@ -1434,6 +1460,7 @@ type CreateOptionFromReportParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     pendingDeleteMemberAccountIDs: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function createOptionFromReport({
@@ -1457,6 +1484,7 @@ function createOptionFromReport({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     pendingDeleteMemberAccountIDs,
+    formatPhoneNumber,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1484,6 +1512,7 @@ function createOptionFromReport({
             currentUserLogin,
             isTrackIntentUser,
             pendingDeleteMemberAccountIDs,
+            formatPhoneNumber,
         }),
     };
 }
@@ -1814,6 +1843,7 @@ function getUserToInviteOption({
     currentUserAccountID,
     visibleReportActionsData = {},
     rules,
+    formatPhoneNumber,
 }: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined; rules: OnyxCollection<Rule>}): SearchOptionData | null {
     if (!searchValue) {
         return null;
@@ -1861,6 +1891,7 @@ function getUserToInviteOption({
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,
+        formatPhoneNumber,
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
@@ -2350,12 +2381,11 @@ function getValidOptions(
         lastActions,
         currentUserLogin,
         localeCompare,
-        formatPhoneNumber,
         isTrackIntentUser,
         isOffline,
         ...config
     }: GetOptionsConfig,
-    translate: LocalizedTranslate,
+    localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
 ): OptionsResult {
     // Gather shared configs:
@@ -2364,6 +2394,7 @@ function getValidOptions(
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
     };
+    const {translate, formatPhoneNumber} = localize;
 
     // Soft exclusions: hidden from suggestions but can be manually entered (e.g., Guide/AM)
     const loginsToExcludeFromSuggestions: Record<string, boolean> = {
@@ -2678,6 +2709,7 @@ function getValidOptions(
                 currentUserAccountID,
             },
             rules,
+            formatPhoneNumber,
         );
     }
 
@@ -2724,7 +2756,7 @@ type SearchOptionsConfig = {
     lastActions?: Record<string, ReportAction>;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2816,12 +2848,11 @@ function getSearchOptions({
             lastActions,
             currentUserLogin: currentUserLogin ?? currentUserEmail,
             localeCompare,
-            formatPhoneNumber,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
             getReportByID,
         },
-        translate,
+        {translate, formatPhoneNumber},
         rules,
     );
 
@@ -2964,6 +2995,7 @@ function formatSectionsFromSearchTerm(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
     getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
@@ -2993,7 +3025,7 @@ function formatSectionsFromSearchTerm(
                                   personalDetails,
                                   expenseReport,
                                   expenseReportPolicy,
-                                  {translate, dateFnsLocale, convertToDisplayString},
+                                  {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                                   currentUserAccountID,
                                   rules,
                                   reportAttributesDerived,
@@ -3035,7 +3067,7 @@ function formatSectionsFromSearchTerm(
                               personalDetails,
                               expenseReport,
                               expenseReportPolicy,
-                              {translate, dateFnsLocale, convertToDisplayString},
+                              {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                               currentUserAccountID,
                               rules,
                               reportAttributesDerived,
@@ -3178,6 +3210,7 @@ function filterUserToInvite(
     countryCode: number,
     config: FilterUserToInviteConfig,
     rules: OnyxCollection<Rule>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}, currentUserAccountID} = config;
     if (!canInviteUser) {
@@ -3209,6 +3242,7 @@ function filterUserToInvite(
         rules,
         ...config,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 }
 
@@ -3225,11 +3259,12 @@ function filterOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config: FilterUserToInviteConfig,
-    translate: LocalizedTranslate,
+    localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
+    const {translate, formatPhoneNumber} = localize;
 
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
@@ -3255,6 +3290,7 @@ function filterOptions<T extends SearchOptionData>(
             currentUserAccountID,
         },
         rules,
+        formatPhoneNumber,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
@@ -3315,6 +3351,7 @@ type FilterAndOrderOptionsParams<T extends SearchOptionData> = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     config: FilterAndOrderConfig;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
     activePolicyID: OnyxEntry<string>;
 };
@@ -3333,12 +3370,24 @@ function filterAndOrderOptions<T extends SearchOptionData>({
     personalDetails,
     config,
     translate,
+    formatPhoneNumber,
     rules,
     activePolicyID,
 }: FilterAndOrderOptionsParams<T>): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules);
+        filterResult = filterOptions(
+            options,
+            searchInputValue,
+            countryCode,
+            loginList,
+            currentUserEmail,
+            currentUserAccountID,
+            personalDetails,
+            config,
+            {translate, formatPhoneNumber},
+            rules,
+        );
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, activePolicyID, config);
