@@ -176,7 +176,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         },
     ];
 
-    const headerMessage = getHeaderMessage(sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 

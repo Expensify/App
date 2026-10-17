@@ -63,6 +63,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSupportTicket as reportUtilsIsSupportTicket,
     isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
@@ -234,9 +235,8 @@ type GetAlternateTextConfig = {
     lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    currentUserAccountID: number;
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
@@ -399,10 +399,9 @@ type CreateOptionParams = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    currentUserAccountID: number;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
     currentUserLogin?: string;
@@ -618,6 +617,7 @@ type GetReportOptionParams = {
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -635,6 +635,7 @@ function getReportOption({
     localize,
     rules,
     policyTags,
+    pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -662,6 +663,7 @@ function getReportOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -706,6 +708,7 @@ type GetReportDisplayOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -726,6 +729,7 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
+    pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -750,6 +754,7 @@ function getReportDisplayOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1433,6 +1438,7 @@ type CreateOptionFromReportParams = {
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 function createOptionFromReport({
@@ -1455,6 +1461,7 @@ function createOptionFromReport({
     isTrackIntentUser,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1481,6 +1488,7 @@ function createOptionFromReport({
             currentUserAccountID,
             currentUserLogin,
             isTrackIntentUser,
+            pendingDeleteMemberAccountIDs,
         }),
     };
 }
@@ -1942,6 +1950,7 @@ function isValidReport(
         conciergeReportID,
         hasGuidesEmails,
         derivedIsEmptyReport,
+        transactionViolations,
     });
 
     if (!shouldBeInOptionList) {
@@ -2121,7 +2130,7 @@ function prepareReportOptionsForDisplay(
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
-        currentUserAccountID?: number;
+        currentUserAccountID: number;
         currentUserLogin?: string;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
@@ -2248,7 +2257,8 @@ function prepareReportOptionsForDisplay(
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
+            // isUnread() gates on isEmptyReport, so an empty chat is not shown in bold here.
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty);
         }
 
         let lastIOUCreationDate;
@@ -2424,7 +2434,7 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!doesReportMatchSearchTerms(report, searchTerms)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms, translate)) {
                 return false;
             }
 
@@ -2557,7 +2567,7 @@ function getValidOptions(
             recentReportOptions = recentReportOptions.filter((report) => !report.reportID || !reportIDsToExclude.has(report.reportID));
         }
     } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
+        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms, translate) as Array<SearchOption<Report>>;
 
         // Only cap the recent attendees when there's no active search. During a search we surface every match, since
         // all recent attendees are excluded from "Contacts" and capped-off matches would otherwise vanish from the list.
@@ -2883,28 +2893,35 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+function getHeaderMessage(
+    translate: LocalizedTranslate,
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    countryCode: number,
+    hasMatchedParticipant = false,
+): string {
     const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return translateLocal('messages.errorMessageInvalidPhone');
+        return translate('messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return translateLocal('messages.errorMessageInvalidPhone');
+            return translate('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return translateLocal('messages.errorMessageInvalidEmail');
+            return translate('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
 
     return '';
@@ -2913,9 +2930,9 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
 /**
  * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
+function getHeaderMessageForNonUserList(translate: LocalizedTranslate, hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
     return '';
 }
@@ -3047,7 +3064,7 @@ function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(rece
 /**
  * Filters options based on the search input value
  */
-function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
+function filterReports(reports: SearchOptionData[], searchTerms: string[], translate: LocalizedTranslate): SearchOptionData[] {
     const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
@@ -3076,6 +3093,12 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
                     }
                 }
 
+                // Let the current user find their self DM by the localized "You"/"Me", like their own contact row
+                if (item.isSelfDM) {
+                    values.push(StringUtils.normalizeForMatch(translate('common.you')));
+                    values.push(StringUtils.normalizeForMatch(translate('common.me')));
+                }
+
                 return uniqFast(values);
             }),
         // We start from all unfiltered reports:
@@ -3090,7 +3113,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
  * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
  * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
  */
-function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[], translate: LocalizedTranslate): boolean {
     const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
     const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
     let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -3104,9 +3127,12 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
         const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
         searchText += participantsSearchText;
     }
+    if (report.isSelfDM) {
+        searchText += `${translate('common.you')} ${translate('common.me')}`;
+    }
     searchText = normalizeSearchText(searchText);
 
-    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms, translate).length > 0;
 }
 
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
@@ -3191,8 +3217,8 @@ function filterUserToInvite(
     });
 }
 
-function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): SearchOptionData | undefined {
-    return filterReports([report], searchTerms).at(0);
+function filterSelfDMChat(report: SearchOptionData, searchTerms: string[], translate: LocalizedTranslate): SearchOptionData | undefined {
+    return filterReports([report], searchTerms, translate).at(0);
 }
 
 function filterOptions<T extends SearchOptionData>(
@@ -3214,7 +3240,7 @@ function filterOptions<T extends SearchOptionData>(
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    const recentReports = filterReports(options.recentReports, searchTerms);
+    const recentReports = filterReports(options.recentReports, searchTerms, translate);
     const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID, translate);
     const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms, translate);
     const userToInvite = filterUserToInvite(
@@ -3237,7 +3263,7 @@ function filterOptions<T extends SearchOptionData>(
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
-    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms) : undefined;
+    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms, translate) : undefined;
 
     return {
         personalDetails,
@@ -3364,6 +3390,7 @@ function shouldUseFullTitleForOption(option: OptionData): boolean {
         !!option.isChatRoom ||
         !!option.isPolicyExpenseChat ||
         !!option.isTaskReport ||
+        reportUtilsIsSupportTicket(option) ||
         !!option.isThread ||
         !!option.isMoneyRequestReport ||
         !!option.isInvoiceReport ||

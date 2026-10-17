@@ -12,28 +12,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import type {ReportDetailsRequestData} from './types';
-
 import getReportDetailsCaseID from './getReportDetailsCaseID';
+import ReportDetailsMenuItems from './ReportDetailsMenuItems';
 import ReportDetailsRequestActions from './ReportDetailsRequestActions';
 import ReportDetailsTaskDeleteAction from './ReportDetailsTaskDeleteAction';
 import {CASES} from './types';
 
 type ReportDetailsActionsProps = {
     reportID: string;
-
-    /** Renders the menu rows. The request data is only passed for the money cases. */
-    renderMenu: (requestData?: ReportDetailsRequestData) => React.ReactNode;
-
-    /** Confirms the delete, navigates away and then runs the passed delete */
-    showDeleteModal: (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => Promise<void>;
-
-    /** Deletes the expense described by the request data */
-    deleteTransaction: (requestData: ReportDetailsRequestData) => void;
 };
 
 /** Gates the money request subscriptions behind the caseID, so chats, rooms and tasks never mount them */
-function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTransaction}: ReportDetailsActionsProps) {
+function ReportDetailsActions({reportID}: ReportDetailsActionsProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
@@ -47,10 +37,10 @@ function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTran
     if (caseID === CASES.DEFAULT) {
         return (
             <>
-                {renderMenu()}
+                <ReportDetailsMenuItems reportID={reportID} />
                 <ReportDetailsTaskDeleteAction
                     reportID={reportID}
-                    showDeleteModal={showDeleteModal}
+                    caseID={caseID}
                 />
             </>
         );
@@ -59,9 +49,7 @@ function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTran
     return (
         <ReportDetailsRequestActions
             reportID={reportID}
-            renderMenu={renderMenu}
-            showDeleteModal={showDeleteModal}
-            deleteTransaction={deleteTransaction}
+            caseID={caseID}
         />
     );
 }

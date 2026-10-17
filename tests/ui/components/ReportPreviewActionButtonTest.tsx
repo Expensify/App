@@ -148,4 +148,15 @@ describe('ReportPreviewActionButton', () => {
         expect(primaryWrapperStyle).toEqual(expect.arrayContaining([mockStyles.flex1]));
         expect(mockView).toHaveBeenCalledWith(expect.objectContaining({style: mockStyles.flex1}));
     });
+
+    it('does not flex a lone View button', () => {
+        // Given a report whose preview shows only View
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+
+        // When the buttons render
+        render(<ReportPreviewActionButton />);
+
+        // Then View keeps its content height, because flex: 1 in the column layout collapses it on iOS Safari and cuts off the button
+        expect(mockView).toHaveBeenCalledWith(expect.objectContaining({style: undefined}));
+    });
 });

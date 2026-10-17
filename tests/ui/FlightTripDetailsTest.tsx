@@ -51,6 +51,24 @@ const mockFlightReservation: Reservation = {
 };
 
 describe('FlightTripDetailsTest', () => {
+    it.each(['start', 'end'] as const)('should preserve flight details when the %s date is missing', (missingDate) => {
+        // Given a flight reservation with one date omitted by the travel provider
+        const reservation: Reservation = {...mockFlightReservation, [missingDate]: {...mockFlightReservation[missingDate], date: ''}};
+
+        // When the traveler opens the flight details
+        render(
+            <FlightTripDetails
+                reservation={reservation}
+                prevReservation={undefined}
+                personalDetails={undefined}
+            />,
+        );
+
+        // Then available flight details remain visible instead of showing a crash screen
+        expect(screen.getByTestId(CONST.FLIGHT_SEAT_TEST_ID)).toHaveTextContent('18D');
+        expect(screen.getByText('CONF123')).toBeOnTheScreen();
+    });
+
     it('should display the actual seat number correctly', () => {
         render(
             <FlightTripDetails

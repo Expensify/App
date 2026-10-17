@@ -43,7 +43,7 @@ function getIntegrationData({
         },
     });
 
-    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBD, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, policy);
+    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBD, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, {policy});
 }
 
 describe('QBD subscribed settings', () => {
