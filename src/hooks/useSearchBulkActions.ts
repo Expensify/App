@@ -65,6 +65,7 @@ import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} fro
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canEditReportPolicy,
     canIOUBePaid,
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
@@ -793,6 +794,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Pencil',
         'Workflows',
         'Document',
+        'Buildings',
     ]);
 
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
@@ -3014,6 +3016,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+            });
+        }
+
+        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) => {
+            const report = getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports);
+            return isExpenseReportUtil(report) && canEditReportPolicy(report, getPolicyFromSearchSnapshot(report?.policyID, searchResults?.data, policies));
+        };
+        // Under "Select all" the backend skips the reports it can't move, so one movable loaded report is enough.
+        const shouldShowChangeWorkspaceOption =
+            !isOffline &&
+            isExpenseReportType &&
+            selectedReports.length > 0 &&
+            (areAllMatchingItemsSelected ? selectedReports.some(canChangeWorkspaceOfReport) : selectedReports.every(canChangeWorkspaceOfReport));
+
+        if (shouldShowChangeWorkspaceOption) {
+            options.push({
+                icon: expensifyIcons.Buildings,
+                text: translate('iou.changeWorkspace'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
             });
         }
 
