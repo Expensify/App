@@ -19,7 +19,6 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import type {InputType} from '@libs/focusComposerWithDelay/types';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -166,7 +165,7 @@ function IOURequestStepAmount({
         onCancel: () => {
             // The amount input uses a custom native TextInput. Wait for the discard modal transition to finish
             // before restoring its caret, matching the legacy merchant and description steps.
-            void focusComposerWithDelay(textInput.current as InputType | null)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
+            focusComposerWithDelay(textInput.current)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
         },
     });
 
