@@ -2461,4 +2461,118 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
         });
     });
+
+    describe('deleteMoneyRequest last visible action', () => {
+        it("resolves the IOU report's last visible action from the deleting user's own visibility", async () => {
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const deleteAs = async (currentUserAccountID: number, idBase: number) => {
+                const chatReportID = `${idBase + 1}`;
+                const iouReportID = `${idBase + 2}`;
+                const deletedTransactionID = `${idBase + 3}`;
+                const remainingTransactionID = `${idBase + 4}`;
+
+                const olderComment: ReportAction = {
+                    ...createRandomReportAction(idBase + 5),
+                    reportActionID: `${idBase + 5}`,
+                    reportID: iouReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-10-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                };
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                const whisper: ReportAction = {
+                    ...createRandomReportAction(idBase + 6),
+                    reportActionID: `${idBase + 6}`,
+                    reportID: iouReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    created: '2026-10-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                };
+                const deletedIOUAction: ReportAction = {
+                    ...createRandomReportAction(idBase + 7),
+                    reportActionID: `${idBase + 7}`,
+                    reportID: iouReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-10-01 08:00:00.000',
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: deletedTransactionID, amount: 100, currency: CONST.CURRENCY.USD, IOUReportID: iouReportID},
+                };
+
+                const chatReport: Report = {...createRandomReport(idBase + 1, undefined), reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT};
+                const iouReport: Report = {
+                    ...createRandomReport(idBase + 2, undefined),
+                    reportID: iouReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID,
+                    currency: CONST.CURRENCY.USD,
+                    total: -200,
+                };
+                const deletedTransaction: Transaction = {
+                    ...createRandomTransaction(idBase + 3),
+                    transactionID: deletedTransactionID,
+                    reportID: iouReportID,
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                };
+                const remainingTransaction: Transaction = {
+                    ...createRandomTransaction(idBase + 4),
+                    transactionID: remainingTransactionID,
+                    reportID: iouReportID,
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`, deletedTransaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransactionID}`, remainingTransaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                    [deletedIOUAction.reportActionID]: deletedIOUAction,
+                });
+                await waitForBatchedUpdates();
+
+                deleteMoneyRequest({
+                    transactionThreadReportActions: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    transactionID: deletedTransactionID,
+                    reportAction: deletedIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    iouReportTransactions: [deletedTransaction, remainingTransaction],
+                    chatReport,
+                    transactionThreadReport: undefined,
+                    isChatIOUReportArchived: false,
+                    allTransactionViolationsParam: {},
+                    currentUserAccountID,
+                    currentUserEmail: RORY_EMAIL,
+                });
+                await waitForBatchedUpdates();
+
+                return {
+                    lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`))?.lastVisibleActionCreated,
+                    olderComment,
+                    whisper,
+                };
+            };
+
+            // Given an expense report that keeps one expense, whose newest remaining action is a whisper aimed at the deleting user
+            // When that user deletes the other expense
+            const targeted = await deleteAs(WHISPER_TARGET_ACCOUNT_ID, 71000);
+
+            // Then the report tracks the whisper, which that user can see
+            expect(targeted.lastVisibleActionCreated).toBe(targeted.whisper.created);
+
+            // Given the same setup, but the deleting user is not the whisper's target
+            // When they delete the other expense
+            const notTargeted = await deleteAs(WHISPER_TARGET_ACCOUNT_ID + 1, 72000);
+
+            // Then the whisper is invisible to them and the older comment is tracked instead
+            expect(notTargeted.lastVisibleActionCreated).toBe(notTargeted.olderComment.created);
+        });
+    });
 });
