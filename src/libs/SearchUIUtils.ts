@@ -5448,6 +5448,7 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
             return commonPresets;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
@@ -5574,6 +5575,11 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.APPROVED_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
     [FILTER_KEYS.APPROVED_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 
+    [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    [FILTER_KEYS.ANY_APPROVAL_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    [FILTER_KEYS.ANY_APPROVAL_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    [FILTER_KEYS.ANY_APPROVAL_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+
     [FILTER_KEYS.PAID_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
     [FILTER_KEYS.PAID_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
     [FILTER_KEYS.PAID_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
@@ -5652,6 +5658,10 @@ const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: {
         labelKey: 'common.currency',
         icon: 'MoneyCircle',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED]: {
+        labelKey: 'search.filters.rejected',
+        icon: 'ThumbsDown',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
         labelKey: 'common.description',
@@ -5799,6 +5809,10 @@ const FILTER_VIEW_MAP = {
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
         labelKey: 'search.filters.approved',
+        icon: 'ThumbsUp',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {
+        labelKey: 'search.filters.anyApproval',
         icon: 'ThumbsUp',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {
@@ -5967,7 +5981,14 @@ function getDisplayValue(
         return form[key]?.sort(localeCompare).join(', ');
     }
 
-    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE) {
+    if (
+        key === FILTER_KEYS.BILLABLE ||
+        key === FILTER_KEYS.BILLABLE_NOT ||
+        key === FILTER_KEYS.REIMBURSABLE ||
+        key === FILTER_KEYS.REIMBURSABLE_NOT ||
+        key === FILTER_KEYS.DECLINED ||
+        key === FILTER_KEYS.DECLINED_NOT
+    ) {
         const formValue = form[key];
         return formValue ? translate(`common.${formValue}`) : undefined;
     }
@@ -6271,7 +6292,7 @@ function mapFiltersFormToLabelValueList(
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
-    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
+    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE || filterKey === FILTER_KEYS.DECLINED) {
         return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
     }
 

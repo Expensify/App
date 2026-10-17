@@ -285,6 +285,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportDetailsPage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareCodePage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareReportPage').default,
 });
 
 const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
@@ -515,13 +516,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UpdatePersonalBankAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
-    [SCREENS.SETTINGS.AGENTS.NEW]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/NewAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.ADD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/AddAgentAvatarPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/EditAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditNamePage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditPromptPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditAgentAvatarPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicNewAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicAddAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicAddAgentAvatarPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicEditAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditNamePage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditPromptPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditAgentAvatarPage').default),
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
@@ -1073,6 +1074,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralDefaultVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralPaymentMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAccountingMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralPostingModeSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralBankAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
