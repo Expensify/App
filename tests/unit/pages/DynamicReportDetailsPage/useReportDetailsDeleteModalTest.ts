@@ -17,7 +17,7 @@ import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import {StackActions} from '@react-navigation/native';
 
@@ -175,6 +175,86 @@ describe('useReportDetailsDeleteModal', () => {
         // Then the RHP stack pops back to the super wide RHP instead of closing it
         expect(mockDispatch).toHaveBeenCalledWith({...StackActions.pop(2), target: RHP_KEY});
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
+    });
+
+    it('should close the RHP instead of popping back when deleting the only expense of the report in the super wide RHP', async () => {
+        // Given a single-expense report in the table view, whose expense was opened on top of the report
+        setRHPRoutes([
+            {name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {reportID: '10'}},
+            {name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: REPORT_ID}},
+            {name: SCREENS.RIGHT_MODAL.REPORT_DETAILS},
+        ]);
+        jest.mocked(getNavigationUrlOnMoneyRequestDelete).mockReturnValue(BACK_URL);
+        const requestData = buildRequestData({iouReport: createMock<Report>({reportID: '10'}), iouReportTransactions: [createMock<Transaction>({transactionID: TRANSACTION_ID})]});
+
+        // When the delete is confirmed
+        await confirmDelete(requestData, jest.fn());
+
+        // Then the RHP closes, because deleting the only expense also deletes the report and going back would show "Not here"
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(navigateBackOnDeleteTransaction).not.toHaveBeenCalled();
+        expect(setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(BACK_URL);
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('should still pop back to the super wide RHP when the report keeps other expenses', async () => {
+        // Given a report with two expenses in the super wide RHP, and one of them opened on top of it
+        setRHPRoutes([
+            {name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {reportID: '10'}},
+            {name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: REPORT_ID}},
+            {name: SCREENS.RIGHT_MODAL.REPORT_DETAILS},
+        ]);
+        const requestData = buildRequestData({
+            iouReport: createMock<Report>({reportID: '10'}),
+            iouReportTransactions: [createMock<Transaction>({transactionID: TRANSACTION_ID}), createMock<Transaction>({transactionID: '1001'})],
+        });
+
+        // When the delete is confirmed
+        await confirmDelete(requestData, jest.fn());
+
+        // Then the RHP pops back to the report, which still exists
+        expect(mockDispatch).toHaveBeenCalledWith({...StackActions.pop(2), target: RHP_KEY});
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+    });
+
+    it('should close the RHP when the only other expense on the report is already pending deletion', async () => {
+        // Given a report in the super wide RHP whose second expense was deleted offline, so only the opened expense is still on the report
+        setRHPRoutes([
+            {name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {reportID: '10'}},
+            {name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: REPORT_ID}},
+            {name: SCREENS.RIGHT_MODAL.REPORT_DETAILS},
+        ]);
+        jest.mocked(getNavigationUrlOnMoneyRequestDelete).mockReturnValue(BACK_URL);
+        const requestData = buildRequestData({
+            iouReport: createMock<Report>({reportID: '10'}),
+            iouReportTransactions: [
+                createMock<Transaction>({transactionID: TRANSACTION_ID}),
+                createMock<Transaction>({transactionID: '1001', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            ],
+        });
+
+        // When the delete is confirmed
+        await confirmDelete(requestData, jest.fn());
+
+        // Then the RHP closes, because the pending-delete expense doesn't count and deleting this one also deletes the report
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(navigateBackOnDeleteTransaction).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('should close the RHP without navigating away when deleting the only expense from a Search report outside the super wide RHP', async () => {
+        // Given the default expense view, where the expense was opened from Search without a super wide RHP below it
+        setRHPRoutes([{name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: REPORT_ID}}, {name: SCREENS.RIGHT_MODAL.REPORT_DETAILS}]);
+        jest.mocked(getNavigationUrlOnMoneyRequestDelete).mockReturnValue(BACK_URL);
+        const requestData = buildRequestData({iouReport: createMock<Report>({reportID: '10'}), iouReportTransactions: [createMock<Transaction>({transactionID: TRANSACTION_ID})]});
+
+        // When the delete is confirmed
+        await confirmDelete(requestData, jest.fn());
+
+        // Then the RHP closes back to Search, because closing it doesn't reveal the deleted report, so the user isn't sent to the chat
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigateBackOnDeleteTransaction).not.toHaveBeenCalled();
+        expect(setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
     });
 
     it('should navigate to the track expense URL when the deleted expense is a tracked expense', async () => {
