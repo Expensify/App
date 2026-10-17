@@ -12136,6 +12136,7 @@ const translations = {
         rejectingTitle: 'Rejecting expenses...',
         deletingTitle: 'Deleting reports...',
         deletingExpensesTitle: 'Deleting expenses...',
+        changingWorkspaceTitle: 'Moving reports...',
         runningBody: "This can take a few minutes. You can wait here, or Concierge can message you when it's done.",
         sendFromConcierge: "Message me when it's done",
         conciergeTitle: 'You bet!',
@@ -12172,6 +12173,10 @@ const translations = {
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Deleted expenses on ${doneCount} of ${count} report`,
             other: `Deleted expenses on ${doneCount} of ${count} reports`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Moved ${doneCount} of ${count} report`,
+            other: `Moved ${doneCount} of ${count} reports`,
         }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
