@@ -110,6 +110,9 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
+    /** Opens the system contact picker and adds the picked contacts to the list. Only set where contacts can't be imported in bulk (Android) */
+    pickContact?: () => void;
+
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -194,8 +197,8 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig<TSelected>): UseSearchSelectorReturn<TSelected> {
-    const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -208,6 +211,8 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -297,6 +302,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -310,7 +316,14 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserLogin: currentUserEmail,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
@@ -329,6 +342,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -348,6 +362,10 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
@@ -367,6 +385,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -387,7 +406,12 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
+                        visibleReportActionsData,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
@@ -407,6 +431,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         includeP2P: true,
                         includeSelectedOptions: false,
@@ -426,6 +451,10 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,

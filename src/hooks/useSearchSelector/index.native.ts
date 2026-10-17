@@ -1,5 +1,6 @@
 import useContactImport from '@hooks/useContactImport';
 
+import {canPickContacts} from '@libs/ContactPicker';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
@@ -22,7 +23,7 @@ function useSearchSelector<TSelected extends Option = OptionData>(config: UseSea
     const {enablePhoneContacts = false} = config;
 
     // Phone contacts logic
-    const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
+    const {contacts, contactPermissionState, importAndSaveContacts, pickContact, setContactPermissionState} = useContactImport();
     const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
@@ -39,6 +40,7 @@ function useSearchSelector<TSelected extends Option = OptionData>(config: UseSea
               contactOptions: contacts,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
+              pickContact: canPickContacts ? pickContact : undefined,
               setContactPermissionState,
           }
         : undefined;

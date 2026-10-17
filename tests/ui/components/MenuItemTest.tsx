@@ -31,6 +31,12 @@ const mockNewWindowIcon: React.FC<SvgProps> = () => null;
 const mockLinkIcon: React.FC<SvgProps> = () => null;
 const mockDownloadIcon: React.FC<SvgProps> = () => null;
 const mockCheckmarkIcon: React.FC<SvgProps> = () => null;
+const mockRenderHTML = jest.fn<null, [{html: string; isSelectable?: boolean}]>(() => null);
+
+jest.mock('@components/RenderHTML', () => ({
+    __esModule: true,
+    default: (props: {html: string; isSelectable?: boolean}) => mockRenderHTML(props),
+}));
 
 let mockUseNativeSingleExecution = false;
 
@@ -68,10 +74,40 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
 
+function renderMenuItem(props: MenuItemProps) {
+    return (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test file verifies behavior that remains supported by the legacy MenuItem implementation.
+        <MenuItem {...props} />
+    );
+}
+
 describe('MenuItem', () => {
     beforeEach(() => {
+        mockRenderHTML.mockClear();
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
+    });
+
+    it('forwards selectable HTML titles to RenderHTML on web', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(<Wrapper>{renderMenuItem({title: '<strong>Formatted description</strong>', shouldRenderAsHTML: true, isTitleSelectable: true})}</Wrapper>);
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: true}));
+    });
+
+    it('does not override HTML title selection when the title is not selectable', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        render(<Wrapper>{renderMenuItem({title: '<strong>Formatted description</strong>', shouldRenderAsHTML: true, isTitleSelectable: false})}</Wrapper>);
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
+    });
+
+    it('does not override HTML title selection on native', () => {
+        render(<Wrapper>{renderMenuItem({title: '<strong>Formatted description</strong>', shouldRenderAsHTML: true, isTitleSelectable: true})}</Wrapper>);
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
     });
 
     describe('accessibility label with NewWindow icon', () => {
@@ -228,17 +264,7 @@ describe('MenuItem style and press preservation', () => {
         const titleStyle: StyleProp<TextStyle> = [registered.title, false, [{color: 'blue'}]];
         const descriptionTextStyle: StyleProp<TextStyle> = [registered.description, false, [{color: 'purple'}]];
         // When the real MenuItem composes both style paths.
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="Styled title"
-                    description="Styled description"
-                    shouldShowDescriptionOnTop
-                    titleStyle={titleStyle}
-                    descriptionTextStyle={descriptionTextStyle}
-                />
-            </Wrapper>,
-        );
+        render(<Wrapper>{renderMenuItem({title: 'Styled title', description: 'Styled description', shouldShowDescriptionOnTop: true, titleStyle, descriptionTextStyle})}</Wrapper>);
         // Then the title appends entries individually while the description retains the supplied nested entry.
         const title = screen.UNSAFE_getAllByType(Text).find((text) => text.props.children === 'Styled title');
         const description = screen.UNSAFE_getAllByType(Text).find((text) => text.props.children === 'Styled description');
@@ -253,16 +279,7 @@ describe('MenuItem style and press preservation', () => {
     it.each<StyleProp<TextStyle>>([false, []])('preserves description fallback truthiness for %s', (descriptionTextStyle) => {
         // Given false requests the existing fallback, whereas an empty style array is intentionally truthy.
         // When the real MenuItem renders its description.
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="Fallback title"
-                    description="Fallback description"
-                    shouldShowDescriptionOnTop
-                    descriptionTextStyle={descriptionTextStyle}
-                />
-            </Wrapper>,
-        );
+        render(<Wrapper>{renderMenuItem({title: 'Fallback title', description: 'Fallback description', shouldShowDescriptionOnTop: true, descriptionTextStyle})}</Wrapper>);
         const description = screen.UNSAFE_getAllByType(Text).find((text) => text.props.children === 'Fallback description');
         expect(description).toBeDefined();
         const {result} = renderHook(useThemeStyles);
@@ -292,14 +309,7 @@ describe('MenuItem style and press preservation', () => {
             order.push('press');
         });
         const event = createMock<KeyboardEvent>({type: 'click', currentTarget: target});
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="Clickable item"
-                    onPress={onPress}
-                />
-            </Wrapper>,
-        );
+        render(<Wrapper>{renderMenuItem({title: 'Clickable item', onPress})}</Wrapper>);
         // When the actual MenuItem press handler receives the click.
         fireEvent.press(screen.getByLabelText('Clickable item'), event);
         // Then focus is removed before the single callback.
@@ -317,15 +327,7 @@ describe('MenuItem style and press preservation', () => {
         const target = document.createElement('button');
         const blur = jest.spyOn(target, 'blur');
         const onPress = jest.fn();
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="Inactive item"
-                    {...props}
-                    onPress={onPress}
-                />
-            </Wrapper>,
-        );
+        render(<Wrapper>{renderMenuItem({title: 'Inactive item', ...props, onPress})}</Wrapper>);
         // When a click is delivered to the item.
         fireEvent.press(screen.getByText('Inactive item'), createMock<KeyboardEvent>({type: 'click', currentTarget: target}));
         // Then the early return prevents both focus changes and execution.
@@ -339,14 +341,7 @@ describe('MenuItem style and press preservation', () => {
         const blur = jest.spyOn(target, 'blur');
         const onPress = jest.fn();
         const event = createMock<KeyboardEvent>({type: 'keydown', currentTarget: target});
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="Keyboard item"
-                    onPress={onPress}
-                />
-            </Wrapper>,
-        );
+        render(<Wrapper>{renderMenuItem({title: 'Keyboard item', onPress})}</Wrapper>);
         // When the actual handler receives the keyboard action.
         fireEvent.press(screen.getByLabelText('Keyboard item'), event);
         // Then keyboard focus remains and the original event reaches the callback.
@@ -373,12 +368,7 @@ it.each([false, true])('preserves navigation waiting through the actual single-e
     const {unmount} = render(
         <NavigationContainer>
             <Wrapper>
-                <MenuItemGroup>
-                    <MenuItem
-                        title="Navigate once"
-                        onPress={onPress}
-                    />
-                </MenuItemGroup>
+                <MenuItemGroup>{renderMenuItem({title: 'Navigate once', onPress})}</MenuItemGroup>
             </Wrapper>
         </NavigationContainer>,
     );

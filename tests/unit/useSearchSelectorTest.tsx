@@ -2,10 +2,12 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useContactImport from '@hooks/useContactImport';
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
 import type useSearchSelectorWeb from '@hooks/useSearchSelector/index';
 import type useSearchSelectorNative from '@hooks/useSearchSelector/index.native';
 
+import type * as ContactPicker from '@libs/ContactPicker';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -19,6 +21,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 
 import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -33,6 +36,16 @@ jest.mock('@libs/OptionsListUtils', () => ({
     ...jest.requireActual('@libs/OptionsListUtils'),
     getValidOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
     getSearchOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
+}));
+
+let mockCanPickContacts = false;
+
+jest.mock('@hooks/useContactImport', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@libs/ContactPicker', () => ({
+    ...jest.requireActual<typeof ContactPicker>('@libs/ContactPicker'),
+    get canPickContacts() {
+        return mockCanPickContacts;
+    },
 }));
 
 const MOCK_ACCOUNT_ID = 12345;
@@ -58,6 +71,8 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 jest.mock('@components/OnyxListItemProvider', () => ({
     ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
     usePersonalDetails: () => ({}),
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
@@ -424,6 +439,57 @@ describe('useSearchSelector selection and non-existing options', () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it.each([
+        {enablePhoneContacts: false, canPickContacts: false},
+        {enablePhoneContacts: false, canPickContacts: true},
+        {enablePhoneContacts: true, canPickContacts: false},
+        {enablePhoneContacts: true, canPickContacts: true},
+    ])('preserves native contact integration for %o', async ({enablePhoneContacts, canPickContacts}) => {
+        // Given picker capability varies by platform while contact import remains below the real wrapper.
+        mockCanPickContacts = canPickContacts;
+        const contacts: ReturnType<typeof useContactImport>['contacts'] = [createMock<SearchOption<PersonalDetails>>({accountID: 321, login: 'picked@example.com', keyForList: '321'})];
+        const importAndSaveContacts = jest.fn<
+            ReturnType<ReturnType<typeof useContactImport>['importAndSaveContacts']>,
+            Parameters<ReturnType<typeof useContactImport>['importAndSaveContacts']>
+        >();
+        const pickContact = jest.fn<ReturnType<ReturnType<typeof useContactImport>['pickContact']>, Parameters<ReturnType<typeof useContactImport>['pickContact']>>();
+        const setContactPermissionState = jest.fn<
+            ReturnType<ReturnType<typeof useContactImport>['setContactPermissionState']>,
+            Parameters<ReturnType<typeof useContactImport>['setContactPermissionState']>
+        >();
+        jest.mocked(useContactImport).mockReturnValue({contacts, contactPermissionState: RESULTS.DENIED, importAndSaveContacts, pickContact, setContactPermissionState});
+        const useNativeSelector = jest.requireActual<{default: typeof useSearchSelectorNative}>('@hooks/useSearchSelector/index.native.ts').default;
+        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        mockFilteredPersonalDetails.current = [];
+
+        // When the actual native wrapper delegates to the real base selector.
+        const {result} = renderHook(() =>
+            useNativeSelector({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                enablePhoneContacts,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+        const optionsCall = mockGetValidOptions.mock.calls.at(-1);
+        expect(optionsCall).toBeDefined();
+        expect(optionsCall?.[0].personalDetails).toEqual(enablePhoneContacts ? [{...contacts.at(0), isHydrated: true}] : []);
+
+        // Then disabled integration exposes no contact state and enabled integration retains its exact lower callbacks.
+        if (!enablePhoneContacts) {
+            expect(result.current.contactState).toBeUndefined();
+            return;
+        }
+        const state = result.current.contactState;
+        expect(state).toBeDefined();
+        expect(state?.contactOptions).toBe(contacts);
+        expect(state?.permissionStatus).toBe(RESULTS.DENIED);
+        expect(state?.showImportUI).toBe(true);
+        expect(state?.importContacts).toBe(importAndSaveContacts);
+        expect(state?.setContactPermissionState).toBe(setContactPermissionState);
+        expect(state?.pickContact).toBe(canPickContacts ? pickContact : undefined);
     });
 
     it('preserves initial participants and truthfully emits the added true selection flag', async () => {

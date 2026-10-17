@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -149,6 +150,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
+        measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
         title,
@@ -161,6 +163,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        isDefaultViewEmpty,
         scrollWidth,
         tableWidth,
     } = useTableContext<TableData>();
@@ -179,6 +182,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onLoad,
         onChangeStickyIndex,
         onScroll,
+        onScrollBeginDrag,
         onStartReached,
         onViewableItemsChanged,
         overrideItemLayout,
@@ -188,6 +192,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
+
+    const handleScrollBeginDrag: NonNullable<typeof onScrollBeginDrag> = (event) => {
+        // Match native SelectionList behavior so a focused search cannot be dragged offscreen with the keyboard open.
+        dismissKeyboardOnDrag();
+        onScrollBeginDrag?.(event);
+    };
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -305,8 +315,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     ) : null;
 
-    // While the columns scroll the column header sits here rather than in FlashList's sticky-row overlay, so the
-    // scroller carries it sideways. Also one copy instead of the overlay's two, so no duplicate to hide from readers.
+    // The column header sits here rather than in FlashList's sticky-row overlay so that the scroller holds it, which keeps
+    // it clear of the scrollbar and carries it sideways. Also one copy instead of the overlay's two, so no duplicate to
+    // hide from readers.
     const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
@@ -327,8 +338,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     );
 
-    const emptyStateContent =
-        tableListMetadata.hasPageHeader && isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
+    // When the default view hides every row (e.g. all workspaces are archived), no search or filter is active,
+    // so show the empty state rather than "No results".
+    const shouldShowNoResultsState = tableListMetadata.hasPageHeader && isEmptyResult && !isDefaultViewEmpty;
+    const emptyStateContent = shouldShowNoResultsState ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
     const footerElement = renderListComponent(ListFooterComponent);
     // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
     // footer it can expand over the page header. Preserve the remaining style while disabling growth.
@@ -364,7 +377,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
-                        showsVerticalScrollIndicator={false}
+                        onScrollBeginDrag={handleScrollBeginDrag}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
                         {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
@@ -401,12 +414,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
-                return React.cloneElement(tableHeaderElement, {
+                const headerElement = React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-hidden': isAccessibilityHidden ? true : undefined,
                     isAccessibilityHidden,
                 });
+
+                return headerElement;
             }
             case 'data':
             default: {
@@ -453,10 +468,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             {...props}
         >
             <FlashList<TableData>
-                ref={listRef}
+                ref={(instance) => {
+                    listRef.current = instance;
+                    measureScrollbarRef(instance);
+                }}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
-                showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
@@ -485,6 +502,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         },
                 ]}
                 keyboardShouldPersistTaps="handled"
+                onScrollBeginDrag={handleScrollBeginDrag}
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}

@@ -1,16 +1,20 @@
+import {useEditingCellState} from '@components/EditableCell';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 
@@ -51,9 +55,12 @@ function TransactionListItemWide<TItem extends ListItem>({
     chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -93,6 +100,10 @@ function TransactionListItemWide<TItem extends ListItem>({
     });
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
@@ -115,9 +126,10 @@ function TransactionListItemWide<TItem extends ListItem>({
 
     const handleOnMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
 
         // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
-        if (!isEditingCell) {
+        if (!isEditingCell && !isCopyableTarget) {
             e?.preventDefault();
         }
     };
@@ -147,16 +159,25 @@ function TransactionListItemWide<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
+                shouldAllowTextSelection
                 onMouseDown={handleOnMouseDown}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 onHoverIn={handleOnHoverIn}
                 hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
@@ -164,9 +185,14 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 wrapperStyle={[
-                    styles.mh5,
+                    pageGutterMargin,
                     styles.flex1,
                     StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
