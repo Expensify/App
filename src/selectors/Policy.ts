@@ -534,6 +534,8 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const fullPolicySnapshotLastModifiedSelector = (policy: OnyxEntry<Policy>) => policy?.fullPolicySnapshotLastModified;
+
 /** The policy fields a workspace avatar renders from. */
 const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
@@ -603,6 +605,7 @@ export {
     homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyAvatarFieldsSelector,
     policyNameSelector,
+    fullPolicySnapshotLastModifiedSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,

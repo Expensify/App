@@ -64,6 +64,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -124,6 +125,9 @@ function ReportFetchHandler() {
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
@@ -260,6 +264,7 @@ function ReportFetchHandler() {
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportOnyx?.policyID && fullPolicySnapshotLastModified ? {policyID: reportOnyx.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
     });
 
