@@ -1184,7 +1184,7 @@ function setSearchTagFiltersPagination(
     });
 }
 
-function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
+function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
     }
@@ -1208,9 +1208,20 @@ function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shou
     return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData, finallyData}).then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
         const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        const logins: string[] = [];
+        for (const update of response?.onyxData ?? []) {
+            if (update.key === ONYXKEYS.PERSONAL_DETAILS_LIST && update.value && typeof update.value === 'object') {
+                for (const detail of Object.values(update.value as Record<string, {login?: string} | null>)) {
+                    if (detail?.login) {
+                        logins.push(detail.login);
+                    }
+                }
+            }
+        }
         return {
             hasMore: !!userFiltersResponse?.hasMore,
             nextCursor: userFiltersResponse?.nextCursor ?? '',
+            logins,
         };
     });
 }

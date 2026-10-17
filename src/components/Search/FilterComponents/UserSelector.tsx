@@ -45,6 +45,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [pagination, setPagination] = useState({hasMore: false, nextCursor: '', isLoadingMore: false});
+    const [serverScopedLogins, setServerScopedLogins] = useState<string[]>([]);
     const requestSeqRef = useRef(0);
 
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
@@ -67,8 +68,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
     const policyIDs = selectedPolicies ? selectedPolicies.map((policy) => policy.id).join(',') : '';
 
-    // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
-    // selected when the filter opened are kept in the list even when they aren't members, so they can still be deselected here.
+    // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
+    // the server for those workspaces' reports (such as removed members). Users that were already selected when the
+    // filter opened are kept in the list even when they aren't members, so they can still be deselected here.
     const workspaceMemberLogins = (() => {
         if (!selectedPolicies) {
             return undefined;
@@ -87,6 +89,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 }
             }
             logins.add(policy.owner);
+        }
+        for (const login of serverScopedLogins) {
+            logins.add(login);
         }
         for (const accountID of initialSelectedValues) {
             const login = personalDetails?.[accountID]?.login;
@@ -114,7 +119,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const trimmedSearchTerm = debouncedSearchTerm.trim();
 
     useEffect(() => {
-        if (!ready || isOffline || !trimmedSearchTerm) {
+        if (!ready || isOffline) {
             setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
             return;
         }
@@ -123,9 +128,12 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
 
         openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: '', policyIDs: policyIDs || undefined}, true)
-            .then(({hasMore, nextCursor}) => {
+            .then(({hasMore, nextCursor, logins}) => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
+                }
+                if (policyIDs && logins.length > 0) {
+                    setServerScopedLogins((prev) => Array.from(new Set([...prev, ...logins])));
                 }
                 setPagination({hasMore, nextCursor, isLoadingMore: false});
             })
@@ -138,7 +146,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     }, [ready, isOffline, trimmedSearchTerm, policyIDs]);
 
     const loadMoreUsers = () => {
-        if (isOffline || !trimmedSearchTerm || !pagination.hasMore || pagination.isLoadingMore || isSearchingForUsers) {
+        if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearchingForUsers) {
             return;
         }
 
@@ -146,9 +154,12 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         setPagination((prev) => ({...prev, isLoadingMore: true}));
 
         openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: pagination.nextCursor, policyIDs: policyIDs || undefined}, false)
-            .then(({hasMore, nextCursor}) => {
+            .then(({hasMore, nextCursor, logins}) => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
+                }
+                if (policyIDs && logins.length > 0) {
+                    setServerScopedLogins((prev) => Array.from(new Set([...prev, ...logins])));
                 }
                 setPagination({hasMore, nextCursor, isLoadingMore: false});
             })
