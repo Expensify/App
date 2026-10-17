@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBusinessCentralErrorField, updateBusinessCentralPaymentMethod} from '@libs/actions/connections/BusinessCentral';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -53,7 +54,8 @@ function BusinessCentralPaymentMethodSelectPage({policy}: WithPolicyConnectionsP
         keyForList: '',
         isSelected: !paymentMethodCode,
     };
-    const data = paymentMethodOptions.length > 0 ? [noneOption, ...filteredData] : [];
+    const isSelectionPinnedToTop = paymentMethodOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (filteredData.at(0)?.isSelected ?? false);
+    const data = paymentMethodOptions.length > 0 ? withClearRow(filteredData, noneOption, isSelectionPinnedToTop) : [];
 
     const headerContent = (
         <View>
