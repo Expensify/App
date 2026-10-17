@@ -7,6 +7,12 @@ import type {NonEmptyTuple, ValueOf} from 'type-fest';
 type ChartSeries = {
     /** Identifies this series' amount in every point's `values` */
     key: string;
+
+    /** Color of the series' line. Left out, the chart's default color. */
+    color?: string;
+
+    /** Names the series in the tooltip, like "Average" */
+    label?: string;
 };
 
 type ChartDataPoint = {
@@ -17,7 +23,7 @@ type ChartDataPoint = {
     shortLabel?: string;
 
     /** One amount per series (pre-formatted, e.g., dollars not cents), keyed by that series' key */
-    values: Record<string, number>;
+    values: Partial<Record<string, number>>;
 
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
