@@ -23,6 +23,10 @@ import {
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
     getRequiresTagMessage,
+    getPolicyWorkArrangementMessage,
+    getAddedOfficeLocationMessage,
+    getUpdatedOfficeLocationMessage,
+    getDeletedOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -469,6 +473,39 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it('formats an agent prompt update from its original message', () => {
+            const report: Report = createRandomReport(0, undefined);
+            const agentPromptUpdatedAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                originalMessage: {
+                    previousPrompt: 'Summarize expenses.',
+                    newPrompt: 'Summarize expenses and flag policy exceptions.',
+                    updatedByAccountID: CURRENT_USER_ACCOUNT_ID,
+                    updatedBy: CURRENT_USER_LOGIN,
+                },
+            };
+
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction: agentPromptUpdatedAction,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                rules: undefined,
+            });
+
+            expect(lastMessage).toBe(
+                `${CURRENT_USER_LOGIN} updated this agent's instructions.\nPrevious instructions:\nSummarize expenses.\nNew instructions:\nSummarize expenses and flag policy exceptions.`,
+            );
+        });
+
         describe('getReportPreviewMessage', () => {
             it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const report: Report = {
@@ -1530,6 +1567,84 @@ describe('ReportAlternateTextUtils', () => {
             });
             expect(lastMessage).toBe(expectedMessage);
         });
+        it('UPDATE_POLICY_WORK_ARRANGEMENT action', async () => {
+            // Given a change log for an admin switching the workspace-wide work arrangement
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {newValue: false, oldValue: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When the sidebar resolves the report's last message
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then the preview reads the same as the in-chat change log rather than the raw stored text
+            expect(lastMessage).toBe(getPolicyWorkArrangementMessage(translateLocal, action));
+        });
+        it.each([
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
+                {officeID: 'OFFICE1', name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}},
+                getAddedOfficeLocationMessage,
+            ],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION,
+                {officeID: 'OFFICE1', name: 'HQ', updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.NAME, newValue: 'HQ', oldValue: 'Headquarters'},
+                getUpdatedOfficeLocationMessage,
+            ],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+        ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
+            // Given an office location change log, whose stored text is Auth's English message
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName,
+                message: [{type: 'COMMENT', text: 'stored message'}],
+                originalMessage,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When the sidebar resolves the report's last message
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then the preview reads the same translated text as the in-chat change log rather than the stored text
+            expect(lastMessage).toBe(getMessage(translateLocal, action));
+        });
         it('UPDATE_AUTO_HARVESTING action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {
@@ -2023,6 +2138,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction: addCommentAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then the mention should fall back to the hidden placeholder
@@ -2395,6 +2511,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: true,
 
                     currentUserLogin: '',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(lastMessage).toContain('UnavailableMarker');

@@ -236,6 +236,7 @@ function BaseReportActionContextMenu({
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -244,6 +245,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -283,10 +285,13 @@ function BaseReportActionContextMenu({
                 type,
                 reportAction,
                 childReportActions,
+                originalReportActions,
+                moneyRequestReportActions,
                 isArchivedRoom,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
+                report,
                 isPinnedChat,
                 isUnreadChat,
                 isThreadReportParentAction,
@@ -305,6 +310,7 @@ function BaseReportActionContextMenu({
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 rules,
+                cardList,
             }),
     );
 
@@ -411,6 +417,7 @@ function BaseReportActionContextMenu({
                                 personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
+                                moneyRequestPolicy,
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,

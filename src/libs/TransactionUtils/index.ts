@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -41,7 +42,8 @@ import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-f
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
-// These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates, tax, and violations helpers were extracted from this file to keep it under the max-lines limit.
+import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
+// These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates and tax helpers were extracted from this file to keep it under the max-lines limit.
 // They import helper functions from this file, and this file re-exports them. Neither side calls the other at initialization time.
 // eslint-disable-next-line import/no-cycle
 import buildOptimisticTransaction from './buildOptimisticTransaction';
@@ -79,7 +81,6 @@ import {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
@@ -94,6 +95,7 @@ import {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -415,6 +417,15 @@ function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
 }
 
+/**
+ * Whether a receipt can be shown as a real PDF rendered over its thumbnail, rather than just the static thumbnail.
+ * E-receipts have no underlying PDF to render, and map-based distance receipts show the map image instead.
+ */
+function canOverlayReceiptPDF(transaction: OnyxEntry<Transaction>): boolean {
+    const isEReceipt = !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    return !isEReceipt && !isMapBasedDistanceRequest(transaction);
+}
+
 /** Check if odometer image has the source file */
 function hasOdometerImageSource(transaction: OnyxInputOrEntry<Transaction>, imageType: string): boolean {
     const odometerImage = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
@@ -459,20 +470,6 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
-    if (isFromExpenseReport) {
-        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
-    }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
-}
-
-function hasValidModifiedAmount(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'modifiedAmount'>>>): boolean {
-    if (!transaction) {
-        return false;
-    }
-    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
-}
-
 /**
  * Builds the optimistic transaction used when an IOU report is converted to an expense report.
  *
@@ -498,10 +495,11 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
-    // a missing field on an expense report either, where only the merchant is checked.
-    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
+    const isUnreportedExpense = isExpenseUnreported(transaction);
+    const isZeroAmountAllowed = isFromExpenseReport || isUnreportedExpense;
+    const isMissingAmount = isFailedScanAmountPlaceholder(transaction) || (!isZeroAmountAllowed && isAmountMissing(transaction, false));
+
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isMissingAmount;
 }
 
 /**
@@ -583,7 +581,7 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
  */
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
-    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    const parsedDate = parse(postedDate.slice(0, 8), 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
         return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
@@ -1249,7 +1247,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
 
     // Check if manual request is being created
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        return true;
+        return transaction.wasAutoCategorizeEnabledOnCreation !== false;
     }
 
     // Check if within auto-categorization grace period
@@ -1606,6 +1604,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1656,6 +1655,11 @@ function getEligibleTransactionsToAdd({
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
         }
 
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
+        }
+
         return true;
     });
 }
@@ -1687,6 +1691,14 @@ function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
 
 function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean {
     return isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+}
+
+/**
+ * Whether the expense has no settled value yet: SmartScan is still running, an Expensify Card charge is still pending,
+ * or the scan failed and left required fields empty.
+ */
+function isExpenseValueUnsettled(transaction: Transaction, report: OnyxEntry<Report>, isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning): boolean {
+    return isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report);
 }
 
 /**
@@ -1783,7 +1795,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+    const reusedRouteDistance = transaction?.isReusedRoute ? transaction.comment?.customUnit?.routeDistanceMeters : undefined;
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? reusedRouteDistance ?? undefined;
 }
 
 /**
@@ -1806,6 +1819,14 @@ function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): 
     // re-fetch can return a slightly different distance for the same route, which must not read as an override.
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     return !quantityMatchesDistance(selectedRouteDistanceInMeters) && !(routeDistanceMeters && quantityMatchesDistance(routeDistanceMeters));
+}
+
+function isTransactionOwner(transaction: OnyxEntry<Transaction>, cardList: OnyxEntry<CardList>) {
+    /**
+     * The transaction should belong to the current user if its card is in Onyx. Note that cash transactions are also
+     * linked to a "cash card".
+     */
+    return !!cardList?.[transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 }
 
 export {
@@ -1898,7 +1919,6 @@ export {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getUnsuppressibleBrokenConnectionTransactionID,
-    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
     allHavePendingRTERViolation,
@@ -1915,6 +1935,7 @@ export {
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     isBrokenConnectionViolation,
+    isPendingRTERViolation,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -1936,6 +1957,7 @@ export {
     getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
     hasReceiptSource,
+    canOverlayReceiptPDF,
     hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
@@ -1945,6 +1967,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
+    isExpenseValueUnsettled,
     isScanningTransaction,
     isScanning,
     isTransactionSubmittable,
@@ -1988,12 +2011,15 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
     getReservationNights,
+    isTransactionOwner,
 };
 
 export type {ManuallyEnteredScanFields};
+export type {MergeDuplicatesTransactionParams} from './duplicates';

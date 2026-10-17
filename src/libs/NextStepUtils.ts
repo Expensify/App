@@ -11,7 +11,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -323,6 +323,13 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
+function buildChangeWorkspaceNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
 function getReportNextStep({
     moneyRequestReport,
     moneyRequestReportOwnerLogin,
@@ -333,6 +340,11 @@ function getReportNextStep({
     currentUserAccountID,
     rules,
 }: GetReportNextStepParams) {
+    // Reports on an archived workspace can't be acted on until they're moved to another workspace
+    if (isArchivedPolicy(policy)) {
+        return buildChangeWorkspaceNextStep();
+    }
+
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
