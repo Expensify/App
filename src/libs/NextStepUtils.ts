@@ -467,7 +467,7 @@ function getReportNextStep({
                     nextStepContext: {
                         actorType: getActorType(nextStep, currentUserAccountID),
                         etaType: getEtaType(nextStep),
-                        messageKeyModifier: undefined,
+                        messageKeyModifier: CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR,
                     },
                 };
             }
@@ -487,7 +487,7 @@ function getReportNextStep({
                     nextStepContext: {
                         actorType: getActorType(nextStep, currentUserAccountID),
                         etaType: getEtaType(nextStep),
-                        messageKeyModifier: undefined,
+                        messageKeyModifier: CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR,
                     },
                 };
             }
@@ -509,7 +509,7 @@ function getReportNextStep({
             nextStepContext: {
                 actorType: getActorType(nextStep, currentUserAccountID),
                 etaType: getEtaType(nextStep),
-                messageKeyModifier: undefined,
+                messageKeyModifier: CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER.STRICT_POLICY_RULE_VIOLATIONS,
             },
         };
     }

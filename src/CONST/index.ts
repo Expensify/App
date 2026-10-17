@@ -2270,7 +2270,11 @@ const CONST = {
          * The message key modifier is a FE-only derived value from the report context
          * This modifier is used to display different nextStep messages for a given nextStep meesage key
          */
-        MESSAGE_KEY_MODIFIER: {},
+        MESSAGE_KEY_MODIFIER: {
+            STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
+            DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
+            DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
+        },
         /** ETA type is a FE-only derived value from nextStep.eta */
         ETA_TYPE: {
             KEY: 'key',
