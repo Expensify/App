@@ -96,7 +96,8 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure')},
+                // Key at 0 so a verification error from the API (keyed by timestamp) sorts above it and getLatestError shows that instead.
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0)},
             },
         ],
         finallyData: [
