@@ -121,7 +121,7 @@ describe('useBulkPayOptions', () => {
         mockInvoiceBetaEnabled = beta;
         // When the real hook builds invoice submenus.
         const {result} = renderHook(() => useBulkPayOptions({...baseProps, currency}));
-        // Then a supported CAD invoice retains add-bank and pay-elsewhere but excludes USD banks; other cases retain only pay-elsewhere.
+        // Then a supported CAD invoice retains add-bank and pay-elsewhere but excludes USD banks. Other cases retain only pay-elsewhere.
         const expected = currency === 'CAD' ? ['bankAccount.addBankAccount', CONST.IOU.PAYMENT_TYPE.ELSEWHERE] : [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
         const items = result.current.bulkPayButtonOptions?.map((option) => option.subMenuItems?.map((item) => item.additionalData?.bankAccountID ?? item.key ?? item.text));
         expect(items).toEqual([expected, expected]);

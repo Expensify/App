@@ -5,6 +5,7 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -18,9 +19,8 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -35,8 +35,8 @@ function DatePicker({
     errorText,
     inputID,
     label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
     onInputChange,
     onTouched = () => {},
     placeholder,
@@ -52,9 +52,14 @@ function DatePicker({
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    icon,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    // The clear button takes the calendar icon's place once a date is picked, so it gets the same horizontal padding as the icon's
+    // container instead of its own margins. Otherwise the X sits in a different spot than the icon it replaces.
+    const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -216,14 +221,6 @@ function DatePicker({
         [autoFocus],
     );
 
-    const getValidDateForCalendar = useMemo(() => {
-        if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return selectedDate;
-    }, [selectedDate, defaultValue]);
-
     return (
         <>
             <View
@@ -234,7 +231,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    icon={selectedDate || shouldHideCalendarIcon ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -252,6 +249,7 @@ function DatePicker({
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
@@ -263,7 +261,8 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={getValidDateForCalendar}
+                value={selectedDate}
+                defaultValue={defaultValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

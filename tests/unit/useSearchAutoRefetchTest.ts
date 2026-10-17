@@ -404,6 +404,88 @@ describe('useSearchAutoRefetch', () => {
         expect(search).toHaveBeenCalledTimes(1);
     });
 
+    it('should not trigger search when only the snapshot changes and the collections are unchanged', () => {
+        // Given Search rendered with a transaction the results show, where `usePrevious` has caught up so both collections are the same object
+        const reportActions = {};
+        const transactions = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})};
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions,
+            previousTransactions: transactions,
+            reportActions,
+            previousReportActions: reportActions,
+        });
+
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When a new snapshot arrives without any transaction changing, which re-runs the effect through its `searchResultsData` dependency
+        rerender(
+            createMock<UseSearchAutoRefetch>({
+                ...initialProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                        transactions_2: {transactionID: '2'},
+                    },
+                },
+            }),
+        );
+
+        // Then no search is triggered, because nothing in the collections changed since the last run
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger the deferred search when the collections are the same object once Search is active again', () => {
+        // Given Search rendered offline with a transaction the results show and no report action changes
+        const reportActions = {};
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
+        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+            reportActions,
+            previousReportActions: reportActions,
+        });
+
+        mockIsOffline = true;
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When the transaction is edited while offline, which defers the search
+        const editedTransactions = {transactions_1: editedTransaction};
+        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: editedTransactions}));
+        expect(search).not.toHaveBeenCalled();
+
+        // And `usePrevious` catches up, so both collections are the same object like they are in Search
+        const settledProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: editedTransactions, previousTransactions: editedTransactions});
+        rerender(settledProps);
+        expect(search).not.toHaveBeenCalled();
+
+        // And the network comes back
+        mockIsOffline = false;
+        rerender({...settledProps});
+
+        // Then the deferred search still runs, because unchanged collections must not swallow a pending refetch
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
     it('should not trigger search on a non-chat search when a report action was added and Onyx holds a transaction the query filters out', () => {
         const transaction1 = createMock<Transaction>({transactionID: '1'});
         const transaction99 = createMock<Transaction>({transactionID: '99'});
