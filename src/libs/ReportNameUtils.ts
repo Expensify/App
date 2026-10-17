@@ -1312,7 +1312,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+    if (isClosedExpenseReportWithNoExpenses(report, reportTransactions[report.reportID] ?? [])) {
         return translate('parentReportAction.deletedReport');
     }
 
