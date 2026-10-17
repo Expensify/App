@@ -200,6 +200,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             expenseCount={expenseCount}
             backTo={backTo}
             isSubmitter={isSubmitter}
+            enabledWhenOffline={isBulkHold || !areAllMatchingItemsSelected}
         />
     );
 }
