@@ -1,12 +1,13 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
+import useCameraPhotoAspectRatio from '@hooks/useCameraPhotoAspectRatio';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import type CapturedPhoto from '@libs/cameraCapture/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
@@ -20,7 +21,6 @@ import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IO
 import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
-import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
@@ -28,17 +28,21 @@ import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {PhotoFile} from 'react-native-vision-camera';
-
 import React, {useRef} from 'react';
 import {Alert, Platform, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
-import {useCameraFormat} from 'react-native-vision-camera';
+import {usePhotoOutput} from 'react-native-vision-camera';
 
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
+
+const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
+
+const QUALITY_PRIORITIZATION = Platform.OS === 'ios' ? 'speed' : 'quality';
+
+const PREPARED_IOS_PHOTO_SETTINGS = [{flashMode: 'off' as const, enableShutterSound: false}];
 
 /**
  * Camera — native capture variant.
@@ -50,7 +54,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {windowWidth, windowHeight} = useWindowDimensions();
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
 
@@ -84,22 +87,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    // photoResolution picks the format; videoResolution only breaks ties. videoResolution is platform-specific:
-    //  - iOS: `takeSnapshot` returns the raw video frame, so prefer a video size close to 6 MP.
-    //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
-    //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
-    //    higher-than-needed preview.
-    const format = useCameraFormat(device, [
-        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        Platform.OS === 'ios'
-            ? {photoResolution: {width: CONST.RECEIPT_CAMERA.IOS_STILL_WIDTH, height: CONST.RECEIPT_CAMERA.IOS_STILL_HEIGHT}}
-            : {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        Platform.OS === 'ios'
-            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
-            : {videoResolution: {width: windowHeight, height: windowWidth}},
-    ]);
-    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
-    const fps = format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30;
+    // v5's default 'native' container is HEIC on iOS.
+    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization: QUALITY_PRIORITIZATION});
+    const outputs = [photoOutput];
+    // `<Camera>` already adds a `resolutionBias` for every output.
+    const constraints = [{fps: 30}];
+    const {cameraAspectRatio, updatePhotoResolution} = useCameraPhotoAspectRatio(photoOutput, PHOTO_TARGET_RESOLUTION, isInLandscapeMode);
 
     // Blink animation for shutter feedback
     const blinkOpacity = useSharedValue(0);
@@ -112,7 +105,20 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device, format});
+    const {handleCameraInitialized, handleSessionConfigSelected} = useCameraInitTelemetry({cameraPermissionStatus, device});
+
+    // VisionCamera replaces the prepared settings on every reconfigure.
+    const handleCameraConfigured = () => {
+        updatePhotoResolution();
+        handleCameraInitialized();
+        if (Platform.OS !== 'ios') {
+            return;
+        }
+        photoOutput.prepareSettings(PREPARED_IOS_PHOTO_SETTINGS).catch((error: unknown) => {
+            Log.info('[Camera] could not prepare the photo settings', false, {error: error instanceof Error ? error.message : String(error)});
+        });
+    };
+
     const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const maybeCancelShutterSpan = () => {
@@ -171,16 +177,11 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         isCapturingPhoto.current = true;
         showBlink();
 
-        const path = getReceiptsUploadFolderPath();
-
         const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
 
-        // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
-        // reads the most recent video frame, which a photo capture can interrupt.
-        const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
-
-        receiptCapture
-            .then((photo: PhotoFile) => {
+        // The snapshot goes first so its request reaches the native queue ahead of the still.
+        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path: getReceiptsUploadFolderPath()})
+            .then((photo: CapturedPhoto) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
@@ -210,16 +211,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
                 onCapture(cameraFile, source);
             })
-            .catch((error: string) => {
+            .catch((error: unknown) => {
                 isCapturingPhoto.current = false;
                 maybeCancelShutterSpan();
                 showCameraAlert();
-                Log.warn('Error taking photo', error);
+                Log.warn('Error taking photo', {message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined});
                 discardPendingPhoto();
             });
 
         if (shouldUpgradeToPhoto) {
-            startPhotoCapture(camera.current);
+            startPhotoCapture(photoOutput);
         }
     };
 
@@ -254,8 +255,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                         <CameraViewport
                             camera={camera}
                             device={device}
-                            format={format}
-                            fps={fps}
+                            outputs={outputs}
+                            constraints={constraints}
                             cameraAspectRatio={cameraAspectRatio}
                             isInLandscapeMode={isInLandscapeMode}
                             tapGesture={tapGesture}
@@ -264,16 +265,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
                             hasPendingPhotoCapture={hasPendingPhotoCapture}
-                            onInitialized={handleCameraInitialized}
+                            onConfigured={handleCameraConfigured}
+                            onStarted={updatePhotoResolution}
+                            onSessionConfigSelected={handleSessionConfigSelected}
                             shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
-                            // "preview" turns every capture to match the screen, the way the preview is drawn. The default "device" follows the
-                            // phone's physical orientation instead, so a phone held flat over a receipt keeps its last landscape reading and the
-                            // photo comes out sideways.
-                            outputOrientation="preview"
                         />
                     )}
                 </View>

@@ -1,13 +1,15 @@
-import type {Camera, PhotoFile} from 'react-native-vision-camera';
+import type CapturedPhoto from '@libs/cameraCapture/types';
+
+import type {CameraPhotoOutput, CameraRef} from 'react-native-vision-camera';
 
 type CaptureReceiptOptions = {
     flash: boolean;
     hasFlash: boolean;
     isPlatformMuted: boolean | undefined;
-    path: string;
     isInLandscapeMode: boolean;
+    path: string;
 };
 
-type CaptureReceipt = (camera: Camera, options: CaptureReceiptOptions) => Promise<PhotoFile>;
+type CaptureReceipt = (camera: CameraRef, photoOutput: CameraPhotoOutput, options: CaptureReceiptOptions) => Promise<CapturedPhoto>;
 
 export type {CaptureReceipt, CaptureReceiptOptions};

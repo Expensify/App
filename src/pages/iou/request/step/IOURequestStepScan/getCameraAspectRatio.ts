@@ -1,14 +1,15 @@
-import type {CameraDeviceFormat} from 'react-native-vision-camera';
+import type {Size} from 'react-native-vision-camera';
 
-function getCameraAspectRatio(format: CameraDeviceFormat | undefined, isInLandscapeMode: boolean): number | undefined {
-    if (!format) {
+/** Viewfinder aspect ratio for a photo of the given sensor-oriented (landscape) size. */
+function getCameraAspectRatio(photoSize: Size | undefined, isInLandscapeMode: boolean): number | undefined {
+    if (!photoSize) {
         return undefined;
     }
     if (isInLandscapeMode) {
-        return format.photoWidth / format.photoHeight;
+        return photoSize.width / photoSize.height;
     }
 
-    return format.photoHeight / format.photoWidth;
+    return photoSize.height / photoSize.width;
 }
 
 export default getCameraAspectRatio;
