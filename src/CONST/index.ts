@@ -2274,6 +2274,7 @@ const CONST = {
             STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
+            DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE: 'dynamicExternalWorkflowWOffline',
         },
         /** ETA type is a FE-only derived value from nextStep.eta */
         ETA_TYPE: {
