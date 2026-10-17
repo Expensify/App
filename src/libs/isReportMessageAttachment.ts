@@ -6,6 +6,8 @@ import {Parser as HtmlParser} from 'htmlparser2';
 const ATTACHMENT_TAGS = new Set(['a', 'img', 'video']);
 // Leading space + `="` (not a bare substring) so a URL query param like `?data-expensify-source=` isn't a false positive.
 const ATTACHMENT_SOURCE_TOKEN = ` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="`;
+// The server re-serializes an edited comment without `data-expensify-source` but keeps the attachment ID on the anchor.
+const ATTACHMENT_ID_TOKEN = ` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="`;
 
 // Keyed by Onyx message identity: re-renders pass the same immutable object, so parse at most once per message.
 const resultCache = new WeakMap<Message, boolean>();
@@ -16,8 +18,8 @@ function computeIsReportMessageAttachment(html: string, text: string, translatio
         return true;
     }
 
-    // Fast path: no source attribute → not an attachment (avoids the parser for most messages).
-    if (!html.includes(ATTACHMENT_SOURCE_TOKEN)) {
+    // Fast path: no attachment marker → not an attachment (avoids the parser for most messages).
+    if (!html.includes(ATTACHMENT_SOURCE_TOKEN) && !html.includes(ATTACHMENT_ID_TOKEN)) {
         return false;
     }
 
@@ -46,7 +48,7 @@ function computeIsReportMessageAttachment(html: string, text: string, translatio
             if (name === 'br') {
                 return;
             }
-            if (ATTACHMENT_TAGS.has(name) && !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]) {
+            if (ATTACHMENT_TAGS.has(name) && (!!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || (name === 'a' && !!attribs[CONST.ATTACHMENT_ID_ATTRIBUTE]))) {
                 hasAttachment = true;
                 if (name === 'a' || name === 'video') {
                     depth = 1;
