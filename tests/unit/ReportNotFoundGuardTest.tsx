@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -117,6 +118,24 @@ describe('ReportNotFoundGuard', () => {
         await waitForBatchedUpdates();
 
         // Then the not-found page shows instead of loading forever
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
+    it('shows the not-found page when opening a closed report in Onyx fails with report not found', async () => {
+        // Given a closed report the user has locally but can no longer open
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // When opening it comes back with report not found
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {errorFields: {notFound: {[Date.now()]: 'Report not found'}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then the not-found page shows, since a closed status alone does not mean the report is being deleted
         expect(isNotFoundVisible()).toBe(true);
         expect(isContentVisible()).toBe(false);
     });
