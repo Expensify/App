@@ -4,7 +4,7 @@ import SearchSelectionFooter, {resetAnsweredFooterTotalsForTesting} from '@compo
 import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, isSearchQuerySavable} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1044,6 +1044,67 @@ describe('SearchSelectionFooter', () => {
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
             // ...while the query carries the choice so it survives a reload, with no results reload of its own.
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
+        });
+
+        it('leaves the default currency out of the query, so a Reset no longer offers to save the search', async () => {
+            // Given a search whose footer was switched to EUR
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            const defaultCurrency = mockCapturedFooterProps.current?.defaultCurrency ?? '';
+
+            // When the currency is reset, which picks the default currency explicitly
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(defaultCurrency);
+                await waitForBatchedUpdates();
+            });
+
+            // Then the query carries no currency, so it matches the default search and the Save button goes away
+            const nextQuery = mockSetParams.mock.calls.at(-1)?.at(0)?.q ?? '';
+            expect(nextQuery).not.toContain('footerCurrency');
+            expect(isSearchQuerySavable(buildSearchQueryJSON(nextQuery), buildSearchQueryJSON('type:expense'))).toBe(false);
+        });
+
+        it('keeps converting to the reset currency once the query lands without one', async () => {
+            // Given a search on EUR whose snapshot is still in another currency than the default it resets to
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            const defaultCurrency = mockCapturedFooterProps.current?.defaultCurrency ?? '';
+            expect(defaultCurrency).not.toBe(CONST.CURRENCY.USD);
+
+            // When the currency is reset and the query, now carrying no currency, lands
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(defaultCurrency);
+                await waitForBatchedUpdates();
+            });
+            jest.mocked(getFooterConvertedAmounts).mockClear();
+            setSearchQuery(mockSetParams.mock.calls.at(-1)?.at(0)?.q ?? '');
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer still converts to the reset currency instead of falling back to the snapshot's
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: defaultCurrency}));
+        });
+
+        it('still writes a currency other than the default into the query', async () => {
+            // Given a search with no footer currency
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // When a currency other than the default is picked
+            const otherCurrency = mockCapturedFooterProps.current?.defaultCurrency === CONST.CURRENCY.EUR ? CONST.CURRENCY.GBP : CONST.CURRENCY.EUR;
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(otherCurrency);
+                await waitForBatchedUpdates();
+            });
+
+            // Then it is kept in the query, so it survives a reload and a saved search
+            expect(mockSetParams.mock.calls.at(-1)?.at(0)?.q).toContain(`footerCurrency:${otherCurrency}`);
         });
 
         it('lets the query currency take over once it moves off the one the pick was made on', async () => {
