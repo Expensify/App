@@ -12036,6 +12036,7 @@ ${reportName}`,
     export: {
         basicExport: 'Βασική εξαγωγή',
         currentView: 'Τρέχουσα προβολή',
+        currentViewGroupsOnly: 'Τρέχουσα προβολή (μόνο ομάδες)',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
