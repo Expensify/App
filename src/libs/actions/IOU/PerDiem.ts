@@ -51,7 +51,7 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -85,9 +85,8 @@ function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+        ...transaction,
         comment: {
             ...transaction?.comment,
             customUnit: {
@@ -119,9 +118,8 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+        ...transaction,
         comment: {
             ...transaction?.comment,
             customUnit: {
@@ -157,9 +155,8 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+        ...transaction,
         comment: {
             ...transaction?.comment,
             customUnit: {
