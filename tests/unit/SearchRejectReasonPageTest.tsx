@@ -31,10 +31,12 @@ const mockQueryJSON: SearchQueryJSON = {
 const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
 let mockSubmitRejectReason: ((values: {comment: string}) => void) | undefined;
+let mockEnabledWhenOffline: boolean | undefined;
 
 jest.mock('@pages/iou/RejectReasonFormView', () => {
-    function MockRejectReasonFormView({onSubmit}: {onSubmit: (values: {comment: string}) => void}) {
+    function MockRejectReasonFormView({onSubmit, enabledWhenOffline}: {onSubmit: (values: {comment: string}) => void; enabledWhenOffline?: boolean}) {
         mockSubmitRejectReason = onSubmit;
+        mockEnabledWhenOffline = enabledWhenOffline;
         return null;
     }
     return MockRejectReasonFormView;
@@ -79,6 +81,7 @@ describe('SearchRejectReasonPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockSubmitRejectReason = undefined;
+        mockEnabledWhenOffline = undefined;
         await Onyx.clear();
     });
 
@@ -107,5 +110,23 @@ describe('SearchRejectReasonPage', () => {
         // Then the selected expenses are rejected directly and nothing is queued on the backend
         expect(rejectMoneyRequestsOnSearch).toHaveBeenCalledTimes(1);
         expect(queueBulkRejectExpenses).not.toHaveBeenCalled();
+    });
+
+    it('keeps the reason form from submitting offline when Select all is checked', async () => {
+        // Given the reject reason page opened with "Select all" checked
+        renderPage(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form is disabled offline, since the backend would reject whatever matches once the device reconnects
+        expect(mockEnabledWhenOffline).toBe(false);
+    });
+
+    it('lets the reason form submit offline when Select all is not checked', async () => {
+        // Given the reject reason page opened with a manual selection
+        renderPage(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form still works offline, since each selected expense is updated optimistically
+        expect(mockEnabledWhenOffline).toBe(true);
     });
 });
