@@ -1,7 +1,7 @@
 ---
 title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
-keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
+keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning, who can see draft reports, unsubmitted report visibility]
 ---
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
@@ -12,7 +12,7 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Draft**: The report is a draft. You can still add or remove expenses.
+- **Draft**: The report is a draft. You can still add or remove expenses. Draft reports are visible to the submitter, the approvers in their approval workflow, and Workspace Admins. A Draft report isn't sent to anyone for approval until it's submitted.
 - **Submitted**: The report is awaiting approval from another person.
 - **Outstanding**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export.
@@ -93,6 +93,9 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 - **To delete a report**: Go to a **Draft** report and tap **More > Delete**.
   - If the report contains only one expense, that expense will also be deleted.
   - If the report contains multiple expenses, they will become **Unreported** and available to add to a new report.
+- **To delete another member’s report as a Workspace Admin**: Go to the member’s **Draft** report on your workspace and tap **More > Delete**.
+  - The expenses on the report become **Unreported** and stay in the member’s account, including when the report contains only one expense.
+  - This applies to **Draft** reports only. You can’t delete a member’s report after it is submitted, and you can’t delete a member’s individual expenses.
 
 ---
 
@@ -121,6 +124,13 @@ If no green button appears, it means no immediate action is required. Tap the **
 
 ## Can I delete reports?  
 Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** reports cannot be deleted.
+
+## Can a Workspace Admin delete a member’s report?  
+Yes, while the report is still a **Draft**. Open the report and tap **More > Delete**. The expenses on it become **Unreported** rather than deleted, so the member can add them to a new report.
+## Who can view a Draft (unsubmitted) report?
+The submitter, their copilots, the approvers in their approval workflow, and Workspace Admins can all view a Draft report in **Spend > Reports**. Viewing a Draft report is not limited to Workspace Admins.
+
+Approvers can see a Draft report in the **Reports** list, but it won't appear in their approval queue until the submitter submits it. [Learn how to approve expenses](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.

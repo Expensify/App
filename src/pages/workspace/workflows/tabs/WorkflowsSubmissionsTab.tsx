@@ -5,6 +5,7 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, setWorkspaceAutoHarvesting} from '@libs/actions/Policy/Policy';
@@ -30,6 +31,7 @@ type WorkflowsSubmissionsTabProps = {
 
 function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -45,7 +47,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
         if (!policy) {
             return;
         }
-        setWorkspaceAutoHarvesting(policy, isEnabled);
+        setWorkspaceAutoHarvesting(policy, isEnabled, getReviewWorkspaceSettingsTaskCompletion());
     };
 
     return (

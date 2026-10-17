@@ -18,6 +18,7 @@ import {queueBulkHoldExpenses} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
@@ -30,6 +31,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {reportsByIDsSelector} from '@selectors/Report';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
@@ -54,6 +56,25 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
     const [relevantTransactions] = useTransactionsByID(relevantTransactionIDs);
+
+    // Subscribe only to the reports the hold flow reads: every transaction's expense report and its thread report
+    // (taken from the selection on the single-hold path, or from the report's IOU actions on the bulk path).
+    // The report actions are subscribed to so the thread report ID is reactive when the IOU actions load after mount.
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const transactionsByID = new Map(relevantTransactions.map((transaction) => [transaction.transactionID, transaction]));
+    const relevantReportIDs = new Set<string>();
+    for (const transactionID of relevantTransactionIDs) {
+        const selection = selectedTransactions[transactionID];
+        const transactionReportID = (transactionsByID.get(transactionID) ?? selection?.transaction)?.reportID;
+        if (transactionReportID) {
+            relevantReportIDs.add(transactionReportID);
+        }
+        const childReportID = isBulkHold ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : selection?.reportAction?.childReportID;
+        if (childReportID) {
+            relevantReportIDs.add(childReportID);
+        }
+    }
+    const [relevantReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsByIDsSelector([...relevantReportIDs])});
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -84,6 +105,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             } else if (isBulkHold) {
                 putTransactionsOnHold({
                     transactionsID: selectedTransactionIDs,
+                    allReports: relevantReports,
                     comment,
                     reportID,
                     isOffline,
@@ -109,6 +131,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         transaction,
                         comment,
                         initialReportID: transactionThreadReportID,
+                        initialReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
+                        transactionReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
                         isOffline,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -135,6 +159,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserAccountID,
             selectedTransactionViolations,
             relevantTransactions,
+            relevantReports,
             isTrackIntentUser,
             delegateAccountID,
             rules,

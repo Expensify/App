@@ -368,6 +368,74 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('parseCalendarDate', () => {
+        it('reads a stored date as local midnight', () => {
+            // Given a date as forms and Search store it
+            const storedDate = '2008-10-06';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(storedDate);
+
+            // Then it is midnight of that day in local time, not UTC midnight, which would be the previous day west of UTC
+            expect(date).toEqual(new Date(2008, 9, 6));
+        });
+
+        it('keeps the day and time of a stored date with a time', () => {
+            // Given a transaction date that includes a time after a space
+            const storedDate = '2025-02-05 10:30:00';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(storedDate);
+
+            // Then the calendar day and time are kept in local time
+            expect(date).toEqual(new Date(2025, 1, 5, 10, 30));
+        });
+
+        it('reads a date without leading zeros, as Search accepts it', () => {
+            // Given a date typed in a Search query without leading zeros, which Search's date validation accepts
+            const typedDate = '2025-2-5';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(typedDate);
+
+            // Then it is February 5, 2025 at local midnight, so the calendar can show it and limit other days by it
+            expect(date).toEqual(new Date(2025, 1, 5));
+        });
+
+        it('returns undefined when there is no date to parse', () => {
+            // Given a missing value, a cleared form value and text that isn't a date
+            // When each is parsed for the calendar
+            // Then none of them becomes an invalid Date, so the calendar treats them all as "nothing selected"
+            expect(DateUtils.parseCalendarDate(undefined)).toBeUndefined();
+            expect(DateUtils.parseCalendarDate('')).toBeUndefined();
+            expect(DateUtils.parseCalendarDate('not-a-date')).toBeUndefined();
+        });
+    });
+
+    describe('isWithinCalendarPickerRange', () => {
+        it('includes the first and last days of the range', () => {
+            // Given the first and last days of CONST.CALENDAR_PICKER.MIN_DATE..MAX_DATE, at local midnight like the calendar's days
+            const firstDay = startOfDay(CONST.CALENDAR_PICKER.MIN_DATE);
+            const lastDay = startOfDay(CONST.CALENDAR_PICKER.MAX_DATE);
+
+            // When each is checked
+            // Then both can be selected, because the range includes its end days
+            expect(DateUtils.isWithinCalendarPickerRange(firstDay)).toBe(true);
+            expect(DateUtils.isWithinCalendarPickerRange(lastDay)).toBe(true);
+        });
+
+        it('excludes the days just outside the range', () => {
+            // Given the day before MIN_DATE and the day after MAX_DATE
+            const dayBefore = subDays(startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), 1);
+            const dayAfter = addDays(startOfDay(CONST.CALENDAR_PICKER.MAX_DATE), 1);
+
+            // When each is checked
+            // Then neither can be selected
+            expect(DateUtils.isWithinCalendarPickerRange(dayBefore)).toBe(false);
+            expect(DateUtils.isWithinCalendarPickerRange(dayAfter)).toBe(false);
+        });
+    });
+
     describe('getMonthNames', () => {
         it('returns twelve months in the given language', () => {
             const englishMonths = DateUtils.getMonthNames(undefined);
@@ -472,6 +540,54 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedTransportDateAndHour(thisYear, undefined)).toEqual({date: 'Tuesday, Mar 17', hour: '8:00 AM'});
             expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, März 17', hour: '08:00'});
             expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, März 17, 2023', hour: '20:30'});
+        });
+
+        it('should leave the date and hour blank when a booking has no date', () => {
+            // Given an incomplete reservation with an empty date from the travel parser
+            const missingDate = new Date('');
+
+            // When trip details format the unavailable departure or arrival
+            const result = DateUtils.getFormattedTransportDateAndHour(missingDate, undefined);
+
+            // Then opening the reservation does not throw or show an invented date
+            expect(result).toEqual({date: '', hour: ''});
+        });
+
+        it('should leave trip-room departure labels blank when a booking has no date', () => {
+            // Given a flight or rail reservation with no departure date
+            const missingDate = new Date('');
+
+            // When the trip room formats the departure label for each transit type
+            const flightDate = DateUtils.getFormattedTransportDate(translateLocal, undefined, missingDate);
+            const railDate = DateUtils.formatToLongDateWithWeekday(missingDate, undefined);
+
+            // Then both labels remain blank rather than crashing the trip room
+            expect(flightDate).toBe('');
+            expect(railDate).toBe('');
+        });
+
+        it.each(['start', 'end'] as const)('should omit a reservation date range when its %s date is missing', (missingDate) => {
+            // Given a hotel or car reservation with one unavailable date
+            const start = missingDate === 'start' ? new Date('') : thisYear;
+            const end = missingDate === 'end' ? new Date('') : thisYear;
+
+            // When the trip room formats the booking date range
+            const result = DateUtils.getFormattedReservationRangeDate(translateLocal, undefined, start, end);
+
+            // Then no invalid date range is displayed
+            expect(result).toBe('');
+        });
+
+        it.each(['start', 'end'] as const)('should omit a duration when the booking %s date is missing', (missingDate) => {
+            // Given a train or connecting flight with one unavailable date
+            const start = missingDate === 'start' ? new Date('') : thisYear;
+            const end = missingDate === 'end' ? new Date('') : thisYear;
+
+            // When trip details calculate the duration or layover
+            const result = DateUtils.getFormattedDurationBetweenDates(translateLocal, start, end);
+
+            // Then no invalid duration is displayed
+            expect(result).toBeUndefined();
         });
     });
 
@@ -962,6 +1078,17 @@ describe('DateUtils', () => {
     describe('Search day formatting', () => {
         test('formats a compact day label', () => {
             expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
+        });
+
+        test('formats compact labels without the year when asked to', () => {
+            // Given a chart whose points all fall in one year, so the year is left out of each axis label
+            // When each compact formatter is asked to leave the year out
+            // Then only the day, month, quarter or range remains
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined, false)).toBe('Sep 15');
+            expect(DateUtils.getShortFormattedMonthForSearch(2026, 9, undefined, false)).toBe('Sep');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
         });
     });
 });
