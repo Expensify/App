@@ -15,7 +15,6 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
-import usePrevious from './usePrevious';
 
 function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
@@ -45,20 +44,6 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
 
     // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
     useEffect(() => getWorkspaceMembersEvent(), [shouldShowMemberBankAccounts]);
-
-    // Invited members aren't in the loaded bank accounts, so load the members again once they're added.
-    const accountIDs = Object.values(policyMemberEmailsToAccountIDs).map((accountID) => Number(accountID));
-    const prevAccountIDs = usePrevious(accountIDs);
-    useEffect(() => {
-        if (!shouldShowMemberBankAccounts || !prevAccountIDs.length) {
-            return;
-        }
-        const prevAccountIDSet = new Set(prevAccountIDs);
-        if (accountIDs.every((accountID) => prevAccountIDSet.has(accountID))) {
-            return;
-        }
-        getWorkspaceMembersEvent();
-    }, [accountIDs, prevAccountIDs, shouldShowMemberBankAccounts]);
 
     const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
     for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
