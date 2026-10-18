@@ -587,7 +587,7 @@ function getCombinedCardFeedsFromAllFeeds(
                 }
             }
 
-            // setFeedReimbursable only touches settings.companyCards, so while the change is pending or failed that entry must win over the older OAuth value.
+            // Use the local reimbursable value during pending or failed saves; the OAuth value may be stale.
             const hasLocalReimbursableChange = !!feedSettings?.pendingFields?.forceReimbursable || !!feedSettings?.errorFields?.forceReimbursable;
             const reimbursableOverrides: Partial<CombinedCardFeed> =
                 oAuthAccountDetails && hasLocalReimbursableChange
