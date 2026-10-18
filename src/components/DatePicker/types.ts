@@ -157,6 +157,13 @@ type DatePickerProps = {
 
     /** Called once the month or year picker has closed, which is where focus has to be taken back from it */
     onMonthOrYearPickerClose?: () => void;
+
+    /**
+     * Whether to measure the calendar's rendered height instead of assuming `POPOVER_DATE_MIN_HEIGHT`, which only covers
+     * a 5-row month: months that need a sixth week row reach `POPOVER_DATE_MAX_HEIGHT` instead. Needed where the popover
+     * can open above its anchor, or its top edge clips in those months.
+     */
+    shouldMeasureContentHeight?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

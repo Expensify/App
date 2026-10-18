@@ -539,6 +539,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
+        shareReport: 'Udostępnij raport',
+        reportShared: 'Udostępniono raport',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -993,6 +995,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj'},
             addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
             addBankAccount: {title: 'Dodaj konto bankowe, aby otrzymać zwrot'},
+            addDepositAccount: {title: 'Dodaj konto bankowe, aby otrzymywać płatności'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Karta Expensify',
@@ -8424,6 +8427,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
+                preventPayoutNonReimbursableReportsTitle: 'Zapobiegaj oznaczaniu nierozliczanych raportów jako opłaconych',
+                preventPayoutNonReimbursableReportsSubtitle: 'Nie pozwalaj administratorom oznaczać nierozliczanych raportów jako opłacone.',
             },
             agentsPromoBanner: {title: 'Nie widzisz potrzebnej reguły? Dodaj agenta', subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki własnym agentom.', cta: 'Wypróbuj'},
             merchantRules: {
@@ -9206,6 +9211,50 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noBankAccountsFoundDescription: 'Dodaj konta bankowe w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
             noPaymentMethodsFound: 'Nie znaleziono metod płatności',
             noPaymentMethodsFoundDescription: 'Dodaj metody płatności w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
+            advanced: {
+                autoSyncDescription: 'Synchronizuj Dynamics 365 Business Central i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+                accountingMethods: {
+                    label: 'Metoda eksportu',
+                    description: 'Wybierz, kiedy eksportować wydatki.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                    },
+                },
+                postingMode: {
+                    label: 'Tryb księgowania',
+                    description: 'Wybierz, czy zapisy mają być księgowane automatycznie, czy najpierw wymagają ręcznej weryfikacji.',
+                    note: 'Uwaga: Expensify księguje każdy otwarty dziennik w partii dziennika głównego wybranej na stronie Expensify Setup w Business Central, a nie tylko te, które samo utworzyło. Używaj partii tylko dla Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Utwórz i zaksięguj',
+                            description: 'Automatycznie księguj zapisy w księdze głównej podczas eksportu',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Tylko utwórz',
+                            description: 'Ręcznie księguj zapisy w Dynamics 365 Business Central po eksporcie',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Automatycznie twórz pracowników/dostawców',
+                exportToNextOpenPeriod: 'Eksportuj do następnego otwartego okresu',
+                exportToNextOpenPeriodDescription: 'Gdy raport ma datę w zamkniętym okresie w Dynamics 365 Business Central, zostanie wyeksportowany do następnego otwartego okresu.',
+                syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+                syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność rachunku.',
+                reimbursementBankAccount: {
+                    label: 'Konto do opłacania rachunków',
+                    description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+                settlementsBankAccount: {
+                    label: 'Rachunek rozliczeniowy Karty Expensify',
+                    description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Twoje konta Dynamics 365 Business Central zostaną zaimportowane jako kategorie.',
             dimensionsImportAsTags: 'Wszystkie wymiary z Dynamics 365 Business Central są importowane jako tagi',
             customers: 'Klienci',
@@ -9919,6 +9968,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `zaktualizowano „Zapobiegaj oznaczaniu raportów niepodlegających zwrotowi jako opłacone” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -10160,6 +10211,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             past: 'Przeszłe',
             submitted: 'Przesłano',
             approved: 'Zatwierdzono',
+            anyApproval: 'Jakiekolwiek zatwierdzenie',
             firstApprover: 'Pierwszy zatwierdzający',
             firstApproved: 'Najpierw zatwierdzono',
             paidBy: 'Zapłacone przez',
@@ -10168,6 +10220,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             posted: 'Opublikowano',
             withdrawn: 'Wycofano',
             billable: 'Fakturowalne',
+            rejected: 'Odrzucone',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
             sortOrder: {
@@ -11182,6 +11235,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'dopasowano paragon do tej transakcji',
+        mergedExpenseDeleted: 'scalono wydatki i przeniesiono jeden do Usuniętych',
     },
     subscription: {
         authenticatePaymentCard: 'Uwierzytelnij kartę płatniczą',
@@ -11426,6 +11480,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 refundedOn: ({date}: {date: string}) => `Zwrócono ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Zwrócono ${amount} ${date}`,
             },
+            billedTo: 'Obciążono',
+            viewReceipt: 'Wyświetl paragon',
+            viewInvoice: 'Wyświetl fakturę',
         },
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
@@ -11983,22 +12040,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         addPaymentCardButton: 'Dodaj kartę płatniczą',
     },
     monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nowość w Concierge AI',
-        confirmText: 'Jedziemy!',
-        spendAnalysis: {
-            title: 'Interaktywna analiza wydatków',
-            description: `<muted-text>Concierge przedstawia miesięczne informacje o wydatkach i pozwala zagłębić się w szczegóły stojące za każdą liczbą. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Poznaj swojego nowego asystenta wydatków',
-            description: `<muted-text>Rozmawiaj z Concierge, aby tworzyć i aktualizować wydatki bezpośrednio w aplikacji, e-mailem lub SMS-em. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Zbuduj własne agentów',
-            description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problem z e‑mailem',
         intro: (login: string) => `Nasz dostawca poczty wstrzymał wysyłanie na adres <strong>${login}</strong> z powodu problemów z dostarczaniem. Aby rozwiązać ten problem:`,

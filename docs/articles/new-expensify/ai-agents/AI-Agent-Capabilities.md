@@ -52,6 +52,18 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that unapprove expense reports
+
+**Goal:** Undoes the approval of an Approved expense report so it can be reviewed and approved again. The report returns to Outstanding (submitted), or to Draft if the submitter approved it themselves. Requires workspace admin role, unless the agent is the approver who gave the final approval. On a workspace that uses Dynamic External Workflow approvals, only a workspace admin can unapprove. A report that has already been paid through Expensify cannot be unapproved.
+
+To accomplish this, include phrases like:
+- Unapprove reports over $10,000
+- Unapprove this report so it can be reviewed again
+- Undo the approval on reports that were approved with violations
+- Unapprove reports that were approved while an expense was missing a receipt
+
+---
+
 ## How to write instructions that reject expense reports
 
 **Goal:** Sends an entire Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
@@ -177,7 +189,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that delete expense reports
 
-**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only reports that are still open or in draft can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only draft reports can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
 
 To accomplish this, include phrases like:
 - Delete this report
@@ -236,7 +248,7 @@ To accomplish this, include phrases like:
 To accomplish this, include phrases like:
 - Send each employee a reminder to submit their expenses at the end of the month
 - Message the submitter directly when their report is rejected
-- Notify individual workspace members of a workspace change
+- Notify individual workspace members of an expense policy change
 - DM each person with outstanding reports a personalized nudge
 - Send a private message to the submitter when a receipt is missing
 - Reach out to each team member individually with their spending summary
@@ -268,9 +280,21 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that export a report as a PDF
+
+**Goal:** Generates a PDF of an expense report and attaches it to the chat as a downloadable file. When the chat is itself an expense report, it exports that report. From any other chat, such as a Concierge DM, the requester can choose a report by report ID, by submitter, or by what was bought. It does not change the report, and anyone who can view the report can ask for one.
+
+To accomplish this, include phrases like:
+- Send me a PDF of this report
+- Download this expense report as a PDF
+- Export Alice's latest report to PDF
+- Send me a PDF of my most recent report
+
+---
+
 ## How to write instructions that manage workspace settings and members
 
-**Goal:** Inspects workspace configuration, answers membership questions, and — for workspace admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
+**Goal:** Inspects workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for workspace admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
 
 To accomplish this, include phrases like:
 - Add new employees to the workspace when they join
@@ -280,6 +304,7 @@ To accomplish this, include phrases like:
 - What is the current approval mode for this workspace?
 - Copy the category list from one workspace to another
 - Assign all unassigned company cards to the matching members
+- How much of our Expensify Card limit is left?
 
 ---
 
@@ -297,4 +322,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 22 AI agent capabilities.*
+*This reference covers all 24 AI agent capabilities.*
