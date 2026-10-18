@@ -12,7 +12,6 @@ import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelec
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setOptimisticPersonalDetail} from '@libs/actions/PersonalDetails';
 import {openSearchUserFiltersPage} from '@libs/actions/Search';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
@@ -24,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {SafeString} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -109,7 +107,6 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         excludeFromSuggestionsOnly: expensifyTeamExclusions,
         includeLoginsOnly: workspaceMemberLogins,
-        includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
         shouldInitialize: ready,
@@ -182,8 +179,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const availablePersonalDetails = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
     const availableAccountIDs = new Set(availablePersonalDetails.map((option) => option.accountID));
     const selectedPublicProfileOptions = selectedOptions.filter((option) => !option.login && !availableAccountIDs.has(option.accountID));
-    const userToInviteOptions = availableOptions.userToInvite && !availableAccountIDs.has(availableOptions.userToInvite.accountID) ? [availableOptions.userToInvite] : [];
-    const baseListData = [...selectedPublicProfileOptions, ...availablePersonalDetails, ...userToInviteOptions];
+    const baseListData = [...selectedPublicProfileOptions, ...availablePersonalDetails];
 
     // moveInitialSelectionToTop keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
     // leaving the current user just below them in its natural sorted position.
@@ -195,16 +191,6 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const selectUser = (option: OptionData) => {
-        if (option.isOptimisticPersonalDetail && !personalDetails?.[option.accountID]) {
-            const iconSource = option.icons?.[0]?.source;
-            const avatar = typeof iconSource === 'function' ? undefined : SafeString(iconSource);
-            setOptimisticPersonalDetail({
-                accountID: option.accountID,
-                login: option.login,
-                displayName: option.text || option.login,
-                avatar,
-            });
-        }
         toggleSelection(option);
     };
 
