@@ -2282,8 +2282,7 @@ function updateGeneralSettings(
     // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
     const governmentRateAutoUpdateData = governmentRateCountry
         ? buildOnyxDataForGovernmentRateAutoUpdate(
-              policy.id,
-              distanceUnit,
+              policy,
               true,
               governmentMileageRates,
               currency,
