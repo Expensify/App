@@ -7,14 +7,21 @@ const PDF_SCROLLER_SELECTOR = '.react-pdf__Document > [tabindex="-1"]';
  * from elsewhere inside the container. The scroller renders only after the PDF loads (and is unlocked, for
  * password-protected PDFs), so it keeps watching the container until the scroller appears.
  *
+ * The scroller is a plain div, so screen readers announce it only as "group". It is named with the given label so
+ * they announce which PDF is focused.
+ *
  * @returns a cleanup function that stops watching the container
  */
-function focusPDFScrollerWhenReady(container: HTMLElement): () => void {
+function focusPDFScrollerWhenReady(container: HTMLElement, accessibilityLabel: string): () => void {
     const focusPDFScroller = () => {
         const scroller = container.querySelector<HTMLElement>(PDF_SCROLLER_SELECTOR);
         if (!scroller) {
             return false;
         }
+
+        // A generic div can't carry an accessible name, so give it the group role screen readers already announce
+        scroller.setAttribute('role', 'group');
+        scroller.setAttribute('aria-label', accessibilityLabel);
 
         const activeElement = document.activeElement;
         const isFocusAvailable = !activeElement || activeElement === document.body || (container.contains(activeElement) && !scroller.contains(activeElement));

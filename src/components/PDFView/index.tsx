@@ -232,8 +232,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             return;
         }
 
-        return focusPDFScrollerWhenReady(container);
-    }, [isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return focusPDFScrollerWhenReady(container, fileName || translate('attachmentView.unknownFilename'));
+    }, [fileName, isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom, translate]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
