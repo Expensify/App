@@ -507,6 +507,56 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it("resolves the last message from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '76001';
+            const WHISPER_TARGET_ACCOUNT_ID = 949;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '76002',
+                reportID: REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '76003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved without a precomputed last action
+            const getLastMessageFor = (currentUserAccountID: number) =>
+                getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID,
+                    personalDetails: PERSONAL_DETAILS,
+                    translate: translateLocal,
+                    convertToDisplayString,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    rules: undefined,
+                });
+
+            // Then the whisper's target gets the whisper, not the older comment, as the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+
+            // Then anyone else cannot see the whisper, so the older comment is the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+        });
+
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
             const agentPromptUpdatedAction: ReportAction = {
