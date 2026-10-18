@@ -164,7 +164,7 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, reportNameValuePairs);
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, reportNameValuePairs, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`]);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
@@ -223,7 +223,7 @@ function SearchMergeReports() {
         isLoadingOnyxData ||
         selectedReportIDs?.some((reportID) => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+            return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
         });
 
     if (!isReportMergeBetaEnabled) {
