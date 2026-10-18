@@ -8322,9 +8322,14 @@ function buildOptimisticChangePolicyData({
             },
             currentUserAccountID,
         )?.lastMessageText;
-        const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
-            [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
-        })?.lastVisibleActionCreated;
+        const lastVisibleActionCreated = getReportLastMessage(
+            oldWorkspaceChatReportID,
+            isReportLastVisibleArchived,
+            {
+                [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
+            },
+            currentUserAccountID,
+        )?.lastVisibleActionCreated;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

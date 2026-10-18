@@ -6027,7 +6027,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            const getOldChatLastMessageFor = (currentUserAccountID: number) => {
+            const getOldChatUpdateFor = (currentUserAccountID: number) => {
                 // When the change-policy data is built for the given user
                 const {optimisticData} = Report.buildOptimisticChangePolicyData({
                     report,
@@ -6049,17 +6049,21 @@ describe('actions/Report', () => {
                 });
                 const oldChatUpdate = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${OLD_CHAT_REPORT_ID}`);
                 const value: unknown = oldChatUpdate?.value;
-                if (!value || typeof value !== 'object' || !('lastMessageText' in value)) {
+                if (!value || typeof value !== 'object' || !('lastMessageText' in value) || !('lastVisibleActionCreated' in value)) {
                     return undefined;
                 }
-                return value.lastMessageText;
+                return {lastMessageText: value.lastMessageText, lastVisibleActionCreated: value.lastVisibleActionCreated};
             };
 
-            // Then the whisper's target gets the whisper, not the older comment, as the old chat's last message
-            expect(getOldChatLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+            // Then the whisper's target gets the whisper, not the older comment, as the old chat's last message and last action
+            const targetUpdate = getOldChatUpdateFor(WHISPER_TARGET_ACCOUNT_ID);
+            expect(targetUpdate?.lastMessageText).not.toBe('Older comment');
+            expect(targetUpdate?.lastVisibleActionCreated).toBe(whisper.created);
 
-            // Then anyone else cannot see the whisper, so the older comment is the old chat's last message
-            expect(getOldChatLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+            // Then anyone else cannot see the whisper, so the older comment is the old chat's last message and last action
+            const otherUpdate = getOldChatUpdateFor(WHISPER_TARGET_ACCOUNT_ID + 1);
+            expect(otherUpdate?.lastMessageText).toBe('Older comment');
+            expect(otherUpdate?.lastVisibleActionCreated).toBe(olderComment.created);
         });
 
         it('should NOT clear convertedAmount when source and destination currencies are the same', async () => {
