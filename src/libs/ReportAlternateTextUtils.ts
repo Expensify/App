@@ -552,7 +552,8 @@ function getLastMessageTextForReport({
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
-            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID) ?? lastReportAction;
+            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID, currentUserAccountID) ??
+            lastReportAction;
     }
 
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
