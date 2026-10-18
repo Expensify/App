@@ -549,7 +549,7 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string) {
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: true, errors: null}},
+                value: {[bankAccountID]: {isLoading: true, errors: null, errorFields: {[CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD]: null}}},
             },
         ],
         finallyData: [
@@ -565,7 +565,9 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string) {
 }
 
 function clearLinkPlaidBankAccountErrors(bankAccountID: number) {
-    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {isLoading: false, errors: null}});
+    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        [bankAccountID]: {isLoading: false, errors: null, errorFields: {[CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD]: null}},
+    });
 }
 
 /**
