@@ -17,6 +17,7 @@ import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isOneTransactionReport} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+import {isSplitContainerTransaction} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -266,6 +267,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return undefined;
         }
 
+        // A split original lives in the hidden split report, which has no screen to open. This has to sit above the
+        // descriptor and child-action shortcuts below: either of them would otherwise hand back a route for a report
+        // the user cannot reach, and the fallback at the end would resolve the original against that hidden report.
+        if (isSplitContainerTransaction(siblingTransaction)) {
+            return undefined;
+        }
+
         const isReported = !!siblingTransaction?.reportID && siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
 
         // A report holding a single expense *is* that expense's view, so open it directly rather than its thread.
@@ -325,6 +333,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         siblingParentReportAction: OnyxTypes.ReportAction | undefined,
     ) => {
         if (!siblingTransactionID) {
+            return false;
+        }
+        // Same reason as the early return in `resolveSiblingReportID`, and it has to sit above the shortcut on the
+        // next line for the same reason: that shortcut resolves a sibling on its own, so a split original with a
+        // descriptor or an existing thread would still be reported as openable.
+        if (isSplitContainerTransaction(siblingTransaction)) {
             return false;
         }
         // An existing thread or a descriptor resolves on its own, with nothing else needed.

@@ -3,6 +3,7 @@ import type {SearchActionsContextValue, SearchStateContextValue} from '@componen
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import {getActiveTransactionIDs, removeActiveTransactionIDsForReport} from '@libs/actions/TransactionThreadNavigation';
 import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
@@ -388,7 +389,14 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT> = {
+    const onyxData: OnyxData<
+        | BuildOnyxDataForMoneyRequestKeys
+        | UpdateMoneyRequestDataKeys
+        | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT
+        | typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS
+        | typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH
+        | typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS
+    > = {
         successData: [],
         failureData: [],
         optimisticData: [],
@@ -2146,6 +2154,52 @@ function updateSplitTransactions({
         }
         writeWhenReady(command, parameters, onyxData, createTransitionBarrier('navigation'));
     };
+
+    // Creating splits moves the original expense into the hidden split report, so it leaves behind any carousel
+    // seeded from the report it was on. `changeTransactionsReport` applies the same rule to a regular move through
+    // `removeMovedTransactionsFromCarousel`; splitting was the one move that skipped it. Without the prune, a
+    // carousel seeded as [A, B] keeps both IDs after B is split - the two children it creates were never part of
+    // that seed - so a report left with one expense still reads as "1 of 2" and the arrow resolves B against a
+    // report that has no screen.
+    //
+    // Only creation prunes: an update already sits on the hidden report, so there is no real report left to match
+    // a carousel source against. `removeActiveTransactionIDsForReport` is itself scoped to a carousel owned by that
+    // report, so a Search-seeded carousel spanning several reports is left alone.
+    const carouselBeforeSplit = getActiveTransactionIDs();
+    const reportIDToPruneFrom = isCreationOfSplits ? originalTransaction?.reportID : undefined;
+
+    if (reportIDToPruneFrom && reportIDToPruneFrom !== CONST.REPORT.SPLIT_REPORT_ID) {
+        removeActiveTransactionIDsForReport([originalTransactionID], reportIDToPruneFrom);
+
+        // Only a prune that actually changed something may be undone. When the carousel belongs to another screen the
+        // call is a no-op, and restoring then would put back a list nobody was using - over whatever a different screen
+        // seeded while the request was in flight.
+        const carouselAfterPrune = getActiveTransactionIDs();
+        const didPruneCarousel = carouselAfterPrune.ids !== carouselBeforeSplit.ids || carouselAfterPrune.source !== carouselBeforeSplit.source;
+
+        // The optimistic move is undone by the failure entries above, but this prune is not derived from Onyx, so
+        // nothing re-derives it when the write is rejected - the original would simply be left without its arrows
+        // until something re-seeded. Restoring the captured state is a straight SET, so the pair stays symmetric.
+        if (didPruneCarousel) {
+            onyxData.failureData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
+                    value: carouselBeforeSplit.ids,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH,
+                    value: carouselBeforeSplit.snapshotHash,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
+                    value: carouselBeforeSplit.descriptors,
+                },
+            );
+        }
+    }
 
     if (isReverseSplitOperation) {
         const parameters = {

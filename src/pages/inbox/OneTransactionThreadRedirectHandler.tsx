@@ -1,3 +1,4 @@
+import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useIsOneTransactionThread from '@hooks/useIsOneTransactionThread';
 import useOnyx from '@hooks/useOnyx';
 
@@ -16,8 +17,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
 import {findFocusedRoute} from '@react-navigation/core';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -25,11 +24,6 @@ import {useEffect} from 'react';
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
-
-/** Hoisted out of the component because `useOnyx` selectors may not be defined inline. */
-function selectIsSteppingThroughExpenses(transactionIDs: OnyxEntry<string[]>): boolean {
-    return (transactionIDs?.length ?? 0) > 1;
-}
 
 type ExpenseReportRouteParams = {
     routeName: string;
@@ -80,7 +74,14 @@ function OneTransactionThreadRedirectHandler() {
 
     // The prev/next arrows only exist in a thread's header, so redirecting out of a thread that is part of a sibling
     // set (Home "Recently added", "Review N flagged expenses", the duplicate review list) would dead-end mid-review.
-    const [isSteppingThroughExpenses] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {selector: selectIsSteppingThroughExpenses});
+    //
+    // The raw seed cannot answer that on its own. Splitting moves an original into the hidden split report without
+    // taking it out of the seed, so counting IDs keeps a report that is down to one expense looking like a sibling
+    // set and suppresses the redirect below for an expense whose thread no longer duplicates anything. Read the
+    // filtered list the arrows actually render from, and hold the raw count while it is still loading, so a sibling
+    // that has not reported yet is never mistaken for the only one on screen.
+    const {transactionIDs: carouselTransactionIDs, isLoading: isCarouselLoading} = useCarouselTransactionIDs();
+    const isSteppingThroughExpenses = isCarouselLoading || carouselTransactionIDs.length > 1;
 
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!route.params?.reportActionID;
