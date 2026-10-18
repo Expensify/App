@@ -526,7 +526,7 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const values = data.flatMap((point) => Object.values(point.values));
+    const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
