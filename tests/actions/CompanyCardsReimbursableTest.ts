@@ -37,13 +37,13 @@ describe('actions/CompanyCards setFeedReimbursable', () => {
     });
 
     it('sends the selected value for the feed-owning account', () => {
-        // Given an API write that we can inspect
+        // Given a mocked API write so feed ownership can be checked independently of Onyx updates
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-        // When an admin selects a new reimbursable setting
+        // When default_yes changes to force_yes to exercise a change between distinct rules
         setFeedReimbursable(POLICY_ID, FEED, DOMAIN_ACCOUNT_ID, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES);
 
-        // Then the selected value is sent for the account that owns the feed
+        // Then the request targets the feed-owning account so the correct feed is updated
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.SET_FEED_REIMBURSABLE,
             {policyID: POLICY_ID, bankName: FEED, domainAccountID: DOMAIN_ACCOUNT_ID, forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES},
@@ -53,23 +53,23 @@ describe('actions/CompanyCards setFeedReimbursable', () => {
     });
 
     it('shows the new value as pending until the request completes', async () => {
-        // Given a request that hasn't completed yet
+        // Given a paused request so optimistic state can be checked before the server responds
         mockFetch.pause();
 
-        // When an admin selects a new reimbursable setting
+        // When default_yes changes to force_yes to exercise a change between distinct rules
         setFeedReimbursable(POLICY_ID, FEED, DOMAIN_ACCOUNT_ID, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES);
         await waitForBatchedUpdates();
 
-        // Then the new value shows right away, marked as pending
+        // Then the new rule is available before confirmation, with pending feedback for the unsaved change
         let feedSettings = await getFeedSettings();
         expect(feedSettings?.forceReimbursable).toBe(CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES);
         expect(feedSettings?.pendingFields?.forceReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-        // When the request succeeds
+        // When the request resumes successfully to complete the optimistic update
         await mockFetch.resume();
         await waitForBatchedUpdates();
 
-        // Then the new value stays and is no longer pending
+        // Then success preserves the chosen rule without leaving stale pending or error feedback
         feedSettings = await getFeedSettings();
         expect(feedSettings?.forceReimbursable).toBe(CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES);
         expect(feedSettings?.pendingFields?.forceReimbursable).toBeUndefined();
@@ -77,14 +77,14 @@ describe('actions/CompanyCards setFeedReimbursable', () => {
     });
 
     it('restores the previous value and shows an error when the request fails', async () => {
-        // Given a request that will fail
+        // Given a failed response to exercise rollback of an existing setting
         mockFetch.fail();
 
-        // When an admin selects a new reimbursable setting
+        // When default_yes changes to force_yes to exercise a change between distinct rules
         setFeedReimbursable(POLICY_ID, FEED, DOMAIN_ACCOUNT_ID, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES);
         await waitForBatchedUpdates();
 
-        // Then the previous value is restored, no longer pending, with an error the admin can see
+        // Then failure restores the original rule rather than leaving an unsaved rule active
         const feedSettings = await getFeedSettings();
         expect(feedSettings?.forceReimbursable).toBe(CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES);
         expect(feedSettings?.pendingFields?.forceReimbursable).toBeUndefined();
@@ -92,15 +92,15 @@ describe('actions/CompanyCards setFeedReimbursable', () => {
     });
 
     it('removes the optimistic value when the feed had no previous setting and the request fails', async () => {
-        // Given a feed without a stored setting and a request that will fail
+        // Given an unset rule so rollback must remove the optimistic value rather than restore an explicit rule
         await Onyx.set(domainMemberKey, {settings: {companyCards: {[FEED]: {}}}});
         mockFetch.fail();
 
-        // When an admin selects a new reimbursable setting
+        // When saving default_no fails after an optimistic update
         setFeedReimbursable(POLICY_ID, FEED, DOMAIN_ACCOUNT_ID, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO, undefined);
         await waitForBatchedUpdates();
 
-        // Then the feed goes back to having no stored setting
+        // Then rollback preserves the absence of a stored rule while retaining failure feedback
         const feedSettings = await getFeedSettings();
         expect(feedSettings?.forceReimbursable).toBeUndefined();
         expect(Object.keys(feedSettings?.errorFields?.forceReimbursable ?? {})).toHaveLength(1);

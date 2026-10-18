@@ -153,7 +153,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
-    /** Specifies if the expenses on this card should be force reimbursable */
+    /** Whether transactions from this feed are always reimbursable, always non-reimbursable, or use an editable default */
     forceReimbursable?: FeedReimbursable;
 
     /** The id of the domain the feed relates to */

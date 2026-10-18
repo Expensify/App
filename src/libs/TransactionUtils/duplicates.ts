@@ -396,12 +396,9 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // When the kept transaction is a managed card the reimbursable review step is hidden and the card's own
-                // imported value (which a feed's Reimbursable setting may have set to true) is preserved. We gate on the selected (kept) transaction rather
-                // than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
-                // may be the cash expense) while the kept transaction is the managed card, so gating on the reviewing
-                // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
-                // would instead wrongly convert a kept cash expense to non-reimbursable.
+                // A feed can import reimbursable card transactions, so managed cards must not always be forced to false.
+                // Use the kept transaction to avoid restoring the review step when navigating back through a cash expense's thread.
+                // Checking any managed card in the duplicates could instead overwrite a kept cash expense's value.
                 const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
                 if (isManagedCardTransaction(selectedTransaction)) {
                     keep[fieldName] = selectedTransaction?.[keys[0]] ?? selectedTransaction?.[keys[1]] ?? false;

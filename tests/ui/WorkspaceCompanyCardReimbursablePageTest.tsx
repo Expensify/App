@@ -75,7 +75,7 @@ function renderPageWithStoredValue(forceReimbursable: FeedReimbursable | undefin
     );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the props captured from the mocked SelectionList
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the mock captures only the selection props exercised by these tests
 const getListProps = () => jest.mocked(SelectionList).mock.lastCall?.[0] as unknown as MockSelectionListProps;
 
 const getSelectedValue = () => getListProps().data.find((item) => item.isSelected)?.value;
@@ -86,48 +86,48 @@ describe('WorkspaceCompanyCardReimbursablePage', () => {
     });
 
     it('selects Always non-reimbursable when the feed has no stored setting', () => {
-        // Given a feed without a stored reimbursable setting
+        // Given an unset rule to check compatibility with feeds that have no explicit setting
         renderPageWithStoredValue(undefined);
 
-        // Then the default force_no option is selected
+        // Then force_no preserves the non-reimbursable behavior of an unset rule
         expect(getSelectedValue()).toBe(CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO);
     });
 
     it('does not rewrite a legacy none value when the admin saves without changing it', () => {
-        // Given a feed with the legacy none value
+        // Given legacy none to check compatibility with the current selectable rules
         renderPageWithStoredValue(CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE);
 
-        // Then it shows as Non-reimbursable
+        // Then default_no represents legacy none without requiring a stored-value migration
         expect(getSelectedValue()).toBe(CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO);
 
-        // When the admin saves without picking another option
+        // When saving without a new selection to exercise the legacy no-change case
         act(() => getListProps().confirmButtonOptions.onConfirm());
 
-        // Then the stored value is left alone
+        // Then no save is requested, preserving the stored none value
         expect(setFeedReimbursable).not.toHaveBeenCalled();
     });
 
     it('does not save when the admin re-selects the current option', () => {
-        // Given a feed without a stored reimbursable setting
+        // Given an unset rule to check compatibility with feeds that have no explicit setting
         renderPageWithStoredValue(undefined);
 
-        // When the admin re-selects the effective option and saves
+        // When re-selecting force_no to check that an equivalent selection is not treated as a change
         act(() => getListProps().onSelectRow({value: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO, isSelected: true}));
         act(() => getListProps().confirmButtonOptions.onConfirm());
 
-        // Then nothing is written
+        // Then no save is requested because the effective setting has not changed
         expect(setFeedReimbursable).not.toHaveBeenCalled();
     });
 
     it('saves the selected value when the admin changes a legacy none value', () => {
-        // Given a feed with the legacy none value
+        // Given legacy none to check compatibility with the current selectable rules
         renderPageWithStoredValue(CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE);
 
-        // When the admin picks another option and saves
+        // When selecting default_yes to make a real change from the effective legacy rule
         act(() => getListProps().onSelectRow({value: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES, isSelected: false}));
         act(() => getListProps().confirmButtonOptions.onConfirm());
 
-        // Then the chosen value is saved, keeping the stored legacy value for rollback
+        // Then rollback receives the original none value so a failed save can restore it exactly
         expect(setFeedReimbursable).toHaveBeenCalledWith(
             POLICY_ID,
             FEED,

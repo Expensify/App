@@ -65,7 +65,7 @@ function WorkspaceCompanyCardReimbursablePage({
     };
 
     const saveAndGoBack = () => {
-        // Don't rewrite the stored value (including legacy `none`) unless the admin picked a different option
+        // Comparing effective settings avoids replacing legacy `none` or an unset value when the admin makes no change.
         if (feed && selectedValue && selectedValue !== currentValue) {
             setFeedReimbursable(policyID, feed, domainOrWorkspaceAccountID, selectedValue, storedValue);
         }

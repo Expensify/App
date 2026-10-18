@@ -5199,7 +5199,7 @@ describe('ReportActionsUtils', () => {
                 feedName: 'Visa Commercial',
                 forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES,
             };
-            // Simulate a server value outside the FeedReimbursable union without casting the fixture
+            // Server data can contain unknown rules despite the static type, so exercise the fallback with an unknown previous rule
             Object.assign(originalMessage, {previousForceReimbursable: 'unexpected_value'});
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,

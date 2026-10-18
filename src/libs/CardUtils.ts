@@ -2568,9 +2568,9 @@ function isSelectableFeedReimbursable(value: unknown): value is SelectableFeedRe
 }
 
 /**
- * Returns the reimbursable rule a company card feed effectively applies.
- * A missing value behaves as force_no and the legacy `none` value behaves as default_no.
- * Returns undefined for values we don't recognize, since server data isn't validated by types.
+ * Normalizes unset and legacy settings so they match the options available to admins.
+ * Undefined or an empty string means `force_no`, and legacy `none` means `default_no`.
+ * Unknown server values return undefined to avoid displaying an incorrect setting.
  */
 function getEffectiveFeedReimbursable(value: string | undefined): SelectableFeedReimbursable | undefined {
     if (!value) {
