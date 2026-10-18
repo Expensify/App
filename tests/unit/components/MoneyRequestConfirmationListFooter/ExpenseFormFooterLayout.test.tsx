@@ -6,10 +6,11 @@ import ExpenseFormFooterLayout from '@components/MoneyRequestConfirmationListFoo
 import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import Text from '@components/Text';
 
+import {isRecord} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
 
 import type {ComponentType, ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -93,8 +94,11 @@ function renderLayout({receiptOptions = noReceiptOptions, hasParticipantSection 
     );
 }
 
-function getViewStyles(): ViewStyle[] {
-    return screen.UNSAFE_getAllByType(View).map((view) => StyleSheet.flatten(view.props.style as StyleProp<ViewStyle>) ?? {});
+function getViewStyles() {
+    return screen
+        .UNSAFE_getAllByType(View)
+        .map((view) => StyleSheet.flatten<unknown>(view.props.style))
+        .filter(isRecord);
 }
 
 function getDividers() {
