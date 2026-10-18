@@ -3,6 +3,7 @@ import finishCloudflareSignInFromURL from '@libs/CloudflareAccess/finishSignInFr
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -105,10 +106,13 @@ export default function () {
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
             ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
+            ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
         ],
     });
 
     cleanupPreMountedDraftReports();
+
+    ReceiptStorage.sweepLeftovers();
 
     // The carousel's sibling list belongs to the screen that seeded it, and that ownership lives in module state
     // which dies with the JS runtime. A list that survives in storage is therefore orphaned the moment the app

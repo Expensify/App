@@ -31,6 +31,16 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
+// The multi-level tags subtitle is rendered with RenderHTML, which can't build its tree under Jest.
+jest.mock('react-native-render-html', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View: MockView} = require('react-native');
+    return {
+        RenderHTMLConfigProvider: ({children}: {children: React.ReactNode}) => children,
+        RenderHTMLSource: () => <MockView />,
+    };
+});
+
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
@@ -73,6 +83,75 @@ const tags = {
         },
     },
 };
+
+// Levels are imported in Charlie, Bravo, Alpha order, which is the reverse of alphabetical order.
+const MULTI_LEVEL_TAG_NAMES = ['Charlie', 'Bravo', 'Alpha'];
+
+const multiLevelTags = {
+    Charlie: {
+        name: 'Charlie',
+        required: false,
+        orderWeight: 0,
+        tags: {
+            C1: {name: 'C1', enabled: true},
+        },
+    },
+    Bravo: {
+        name: 'Bravo',
+        required: false,
+        orderWeight: 1,
+        tags: {
+            B1: {name: 'B1', enabled: true},
+            B2: {name: 'B2', enabled: true},
+        },
+    },
+    Alpha: {
+        name: 'Alpha',
+        required: false,
+        orderWeight: 2,
+        tags: {
+            A1: {name: 'A1', enabled: true},
+            A2: {name: 'A2', enabled: true},
+            A3: {name: 'A3', enabled: true},
+        },
+    },
+};
+
+const mockLayout = (shouldUseNarrowLayout: boolean) => {
+    jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+        createMock<ResponsiveLayoutResult>({
+            isSmallScreenWidth: shouldUseNarrowLayout,
+            shouldUseNarrowLayout,
+        }),
+    );
+};
+
+const renderMultiLevelTagsPage = async () => {
+    await TestHelper.signInWithTestUser();
+
+    const policy = {
+        ...LHNTestUtils.getFakePolicy(),
+        role: CONST.POLICY.ROLE.ADMIN,
+        areTagsEnabled: true,
+        hasMultipleTagLists: true,
+    };
+
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, multiLevelTags);
+    });
+
+    const result = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+    await waitForBatchedUpdatesWithAct();
+
+    await waitFor(() => {
+        expect(screen.getByText('Alpha')).toBeOnTheScreen();
+    });
+
+    return result;
+};
+
+const getRenderedTagLevelNames = () => screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((element) => element.children.filter((child) => typeof child === 'string').join(''));
 
 describe('WorkspaceTags', () => {
     beforeAll(() => {
@@ -194,5 +273,45 @@ describe('WorkspaceTags', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    describe('multi-level tags', () => {
+        it('keeps the imported level order and disables sorting on wide layouts', async () => {
+            // Given a wide layout and independent multi-level tags imported as Charlie, Bravo, Alpha
+            mockLayout(false);
+
+            // When the tags page renders
+            const {unmount} = await renderMultiLevelTagsPage();
+
+            // Then the levels stay in import order instead of being sorted alphabetically
+            expect(getRenderedTagLevelNames()).toEqual(MULTI_LEVEL_TAG_NAMES);
+
+            // And the Name and Count headers can't be pressed to re-sort the levels
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.name'))).toBeDisabled();
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.count'))).toBeDisabled();
+
+            // And the Display button is hidden because no column can be sorted
+            expect(screen.queryByText(TestHelper.translateLocal('search.display.label'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('keeps the imported level order and hides the Display button on narrow layouts', async () => {
+            // Given a narrow layout, where the Display button is the only sort control
+            mockLayout(true);
+
+            // When the tags page renders independent multi-level tags imported as Charlie, Bravo, Alpha
+            const {unmount} = await renderMultiLevelTagsPage();
+
+            // Then the levels stay in import order
+            expect(getRenderedTagLevelNames()).toEqual(MULTI_LEVEL_TAG_NAMES);
+
+            // And the Display button is hidden, so the levels can't be re-sorted
+            expect(screen.queryByLabelText(TestHelper.translateLocal('search.display.label'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });
