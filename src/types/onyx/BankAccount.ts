@@ -113,6 +113,9 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
+
+    /** Errors keyed by the field they belong to */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** Record of bank accounts, indexed by bankAccountID */
