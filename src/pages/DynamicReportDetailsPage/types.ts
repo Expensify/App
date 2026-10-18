@@ -1,27 +1,10 @@
 import type useDeleteTransactions from '@hooks/useDeleteTransactions';
 import type useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 
-import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-
-type DynamicReportDetailsPageMenuItem = {
-    key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    isAnonymousAction: boolean;
-    action: () => void;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    subtitle?: number;
-    shouldShowRightIcon?: boolean;
-    subtitleStyle?: StyleProp<ViewStyle>;
-};
 
 const CASES = {
     DEFAULT: 'default',
@@ -62,4 +45,4 @@ type ReportDetailsRequestData = {
 };
 
 export {CASES};
-export type {CaseID, DynamicReportDetailsPageMenuItem, ReportDetailsRequestData};
+export type {CaseID, ReportDetailsRequestData};

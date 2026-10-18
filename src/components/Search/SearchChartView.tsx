@@ -1,25 +1,31 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartComparison, SearchChartModel} from './buildChartSeries';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import getInProgressBucketLabel from './getInProgressBucketLabel';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -39,8 +45,17 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether pressing a bar, point or slice opens Search filtered to it */
+    shouldDrillDownOnPress?: boolean;
+
+    /** Whether a line chart with a single point is drawn as a bar */
+    shouldShowSinglePointAsBar?: boolean;
+
+    /** Rows the chart is compared against, drawn as a second series */
+    comparison?: ChartComparison;
+
     /** Renders the details of the plotted groups below the chart */
-    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+    renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
@@ -50,17 +65,44 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+function SearchChartView({
+    queryJSON,
+    view,
+    groupBy,
+    data,
+    isLoading,
+    shouldShowGroupLabels = true,
+    shouldDrillDownOnPress = true,
+    shouldShowSinglePointAsBar = false,
+    comparison,
+    renderDetails,
+    chartContainerStyle,
+}: SearchChartViewProps) {
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals});
+    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const isSinglePointBar = shouldShowSinglePointAsBar && data.length === 1;
+    const {series, rows} = buildChartSeries({
+        data,
+        comparison: isSinglePointBar ? undefined : comparison,
+        view,
+        getLabel,
+        getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
+        getCurrencyDecimals,
+        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+    });
     const points = rows.map((row) => row.point);
 
-    const handleItemPress = (index: number) => {
+    // On narrow layout, a single step spanning the whole axis labels only the first and last points
+    const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
+
+    const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
         if (!item || !queryJSON) {
             return;
@@ -73,6 +115,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
         }
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
+
+    const onItemPress = shouldDrillDownOnPress ? handleItemPress : undefined;
 
     const firstItem = data.at(0);
     const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
@@ -87,18 +131,30 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
         [CONST.SEARCH.VIEW.BAR]: (
             <BarChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                onBarPress={onItemPress}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
             />
         ),
-        [CONST.SEARCH.VIEW.LINE]: (
+        [CONST.SEARCH.VIEW.LINE]: isSinglePointBar ? (
+            <BarChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onBarPress={onItemPress}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+            />
+        ) : (
             <LineChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onPointPress={(dataPoint, index) => handleItemPress(index)}
+                onPointPress={onItemPress}
+                labelSteps={labelSteps}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />
@@ -106,8 +162,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                onSlicePress={onItemPress}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}
@@ -118,7 +175,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
     return (
         <>
             <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
-            {renderDetails?.(rows)}
+            {renderDetails?.({series, rows})}
         </>
     );
 }

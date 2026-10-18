@@ -15,6 +15,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -44,6 +45,7 @@ import {
     isChatThread,
     isDefaultRoom,
     isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isThreadMemberProtectedByParentReport,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -135,6 +137,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
@@ -221,7 +224,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                isThreadMemberProtectedByParentReport(parentReport, accountID);
 
             result.push({
                 keyForList: String(accountID),
@@ -248,6 +252,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         isPolicyExpenseChat,
         localeCompare,
         openRoomMemberDetails,
+        parentReport,
         participants,
         personalDetails,
         policy,
@@ -335,7 +340,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-    const tableHeaderComponent = <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>;
+    const tableHeaderComponent = <View style={pageGutter}>{headerButtons}</View>;
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {

@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -82,6 +83,7 @@ jest.mock('@libs/actions/Policy/Member', () => {
 });
 
 const saveFastEditApprovalWorkflowMock = jest.mocked(saveFastEditApprovalWorkflow);
+const addMembersToWorkspaceMock = jest.mocked(addMembersToWorkspace);
 const goBackMock = jest.mocked(Navigation.goBack);
 const navigateMock = jest.mocked(Navigation.navigate);
 
@@ -203,6 +205,24 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
         const [params] = saveFastEditApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(params?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
         expect(navigateMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps the invited member out of the fast-edit save when a different approver was explicitly selected', async () => {
+        // Given a "+N more" edit where the admin explicitly assigns Dana to Alice instead of the edited workflow's approver, Carol
+        await seedHandOff({isFastEdit: true});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${POLICY_ID}`, ALICE_EMAIL);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the admin sends the invite
+        await renderAndPressInvite(NO_NESTED_BACK_TO);
+
+        // Then the invite assigns Dana to Alice while the fast-edit save leaves Dana out so it cannot reassign them to Carol
+        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-1)).toBe(ALICE_EMAIL);
+        expect(saveFastEditApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+        const [params] = saveFastEditApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(params?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
     });
 
     it('returns to the Edit page without saving when the invite came from the Edit page', async () => {
