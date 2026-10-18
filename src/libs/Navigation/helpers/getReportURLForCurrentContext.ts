@@ -8,6 +8,7 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
+// Static part of the search report path (everything before the first route param), used to detect sibling search-report routes.
 const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SEARCH_REPORT.route.indexOf(':'));
 
 /**
@@ -52,6 +53,8 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
             }
         }
 
+        // When paging between sibling expenses in the RHP, the stored backTo points at the previous expense.
+        // Return to the expense currently shown instead, so going back reopens the same report rather than a sibling.
         if (backToRoute?.startsWith(SEARCH_REPORT_ROUTE_PREFIX) && activeRoute.startsWith(SEARCH_REPORT_ROUTE_PREFIX)) {
             backToRoute = activeRoute;
         }
