@@ -217,15 +217,22 @@ function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Trans
     return '';
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
+function getCategoryTaxDetails(
+    category: string,
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    currency?: string,
+) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     const customUnitRateID = isDistanceRequest(transaction) ? (getRateID(transaction) ?? '') : undefined;
+    const rateTaxCode = customUnitRateID === undefined ? undefined : getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
     // Distance skips the category rule in two cases. Tax tracking being off for distance rates hides the Tax field, so
     // a value written there would be invisible. A rate carrying its own tax rate wins over the rule, because vehicle
-    // types coded to the same category can each reclaim at a different rate.
+    // types coded to the same category can each reclaim at a different rate. A rate pointing at a tax the user can no
+    // longer pick counts as having none, which matches how getDistanceRateTaxUpdates resolves the same rate.
     const shouldSkipDistanceTax =
-        customUnitRateID !== undefined &&
-        (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || !!getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID);
+        customUnitRateID !== undefined && (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || (!!rateTaxCode && isSelectableTaxCode(policy, rateTaxCode)));
     if (!taxRules || taxRules?.length === 0 || shouldSkipDistanceTax) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
@@ -237,7 +244,7 @@ function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transact
         return {categoryTaxCode: taxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction));
     const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
     let categoryTaxAmount;

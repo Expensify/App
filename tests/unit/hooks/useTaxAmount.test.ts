@@ -22,6 +22,7 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
 }));
 
 let mockCategoryTaxDetails: {categoryTaxCode: string | undefined; categoryTaxAmount: number | undefined; categoryTaxValue: string | undefined};
+let mockHasTaxRateWithMatchingValue: boolean;
 
 jest.mock('@libs/TransactionUtils', () => ({
     calculateTaxAmount: (taxPercentage: string, taxableAmount: number) => {
@@ -31,7 +32,7 @@ jest.mock('@libs/TransactionUtils', () => ({
     getCategoryTaxDetails: () => mockCategoryTaxDetails,
     getDefaultTaxCode: () => 'tax_default',
     getTaxValue: () => '10%',
-    hasTaxRateWithMatchingValue: () => false,
+    hasTaxRateWithMatchingValue: () => mockHasTaxRateWithMatchingValue,
 }));
 
 type Params = Parameters<typeof useTaxAmount>[0];
@@ -67,6 +68,7 @@ describe('useTaxAmount', () => {
         mockGetCommuterExclusionDisplayData.mockReturnValue(null);
         mockGetTaxableAmount.mockReturnValue(100);
         mockCategoryTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+        mockHasTaxRateWithMatchingValue = false;
     });
 
     it('returns the default tax code and value from policy resolution', () => {
@@ -169,5 +171,18 @@ describe('useTaxAmount', () => {
 
         // Then the category rule outranks the workspace default, so the confirmation page opens on the rule's rate
         expect(result.current.defaultTaxCode).toBe('tax_category');
+    });
+
+    it('keeps the workspace default when the user picks it over the category rule rate', () => {
+        // Given a category rule that resolves to its own tax code, and a user who picked the workspace default instead
+        mockCategoryTaxDetails = {categoryTaxCode: 'tax_category', categoryTaxAmount: 100, categoryTaxValue: '5%'};
+        mockHasTaxRateWithMatchingValue = true;
+        const transaction = {...baseTransaction, taxCode: 'tax_default'};
+
+        // When the hook decides whether that selection survives
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction}));
+
+        // Then it is kept, because the selection is compared against the rule's rate rather than the workspace default
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(true);
     });
 });

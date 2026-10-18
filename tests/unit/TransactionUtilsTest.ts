@@ -409,10 +409,17 @@ describe('TransactionUtils', () => {
         describe('distance expenses', () => {
             const distanceRateID = 'DISTANCE_RATE_ID';
 
-            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string): Policy {
+            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
                 return {
                     ...createRandomPolicy(0),
-                    taxRates: CONST.DEFAULT_TAX,
+                    taxRates: {
+                        ...CONST.DEFAULT_TAX,
+                        taxes: {
+                            ...CONST.DEFAULT_TAX.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_2: {name: 'Tax Rate 2', value: '8%', isDisabled: isRateTaxDisabled},
+                        },
+                    },
                     rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
                     customUnits: {
                         DISTANCE_CUSTOM_UNIT: {
@@ -475,6 +482,19 @@ describe('TransactionUtils', () => {
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
                 expect(categoryTaxValue).toBe(undefined);
+            });
+
+            it('should apply the category rule when the rate points at a tax rate that was disabled', () => {
+                // Given a distance rate that still points at a tax rate the admin has since disabled
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2', true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rate counts as having no tax rate, so the category rule applies no matter which of the two the user picked first
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
             });
         });
 

@@ -69,7 +69,11 @@ function useTaxAmount({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultTaxCode = categoryTaxCode || workspaceDefaultTaxCode;
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
-    const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    // Resolved the same way as defaultTaxCode, otherwise picking the workspace default while a category rule is active
+    // reads as "no selection" and the rule's rate is written straight back over it.
+    const {categoryTaxCode: previousCategoryTaxCode} = getCategoryTaxDetails(transaction?.category ?? '', transaction, policy, getCurrencyDecimals, previousTransactionCurrency);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const previousDefaultTaxCode = previousCategoryTaxCode || getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     const commuterExclusionData = isDistanceRequest
