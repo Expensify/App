@@ -5283,7 +5283,7 @@ describe('actions/IOU/ReportWorkflow', () => {
         it('reads the duplicate violation from the passed argument and not from the global Onyx collection', async () => {
             // Given Onyx holds a duplicate violation for the approved report's transaction
             const {policy, approvedReport, approvedTransaction} = await setUpChatWithApprovedAndOutstandingReports();
-            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${approvedTransaction.transactionID}`;
+            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${approvedTransaction.transactionID}` as const;
             await Onyx.merge(violationsKey, [duplicatedViolation]);
             await waitForBatchedUpdates();
 
