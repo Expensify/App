@@ -210,12 +210,6 @@
                     "placeholder": "",
                     "errorMessage": ""
                 },
-                "companyName": {
-                    "label": "Company Name",
-                    "validator": ".*",
-                    "placeholder": "",
-                    "errorMessage": ""
-                },
                 "addressZipCode": {
                     "label": "Zip Code",
                     "validator": ".+",

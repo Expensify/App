@@ -1,7 +1,6 @@
 import CONST from '@src/CONST';
 
 import Log from './Log';
-import ConvertGpsPointsTo2DArray from './migrations/ConvertGpsPointsTo2DArray';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
 import RenameLegacySageIntacctExportDate from './migrations/RenameLegacySageIntacctExportDate';
@@ -21,7 +20,6 @@ export default function () {
 
         // Add all migrations to an array so they are executed in order
         const migrationPromises: Array<() => Promise<void>> = [
-            ConvertGpsPointsTo2DArray,
             MoveFilesOutOfDocuments,
             ReplaceShouldUseStagingServerWithActiveServer,
             MoveSearchQueryByHashToSnapshots,
