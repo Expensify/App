@@ -106,8 +106,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: Remove optional (?) once getNavigationUrlOnMoneyRequestDelete passes currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
@@ -358,7 +357,8 @@ function getNavigationUrlOnMoneyRequestDelete(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isSingleTransactionView = false,
+    isSingleTransactionView: boolean | undefined,
+    currentUserAccountID: number,
 ): Route | undefined {
     if (!transactionID) {
         return undefined;
@@ -371,6 +371,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
     });
 
     // Determine which report to navigate back to
@@ -457,6 +458,7 @@ function cleanUpMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        currentUserAccountID,
     );
     // build Onyx data
 
@@ -875,6 +877,7 @@ function deleteMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        currentUserAccountID,
     );
 
     // STEP 2: Build Onyx data

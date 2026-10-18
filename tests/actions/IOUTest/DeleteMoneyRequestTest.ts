@@ -1,4 +1,4 @@
-import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -2569,10 +2569,65 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Given the same setup, but the deleting user is not the whisper's target
             // When they delete the other expense
-            const notTargeted = await deleteAs(WHISPER_TARGET_ACCOUNT_ID + 1, 72000);
+            const nonTarget = await deleteAs(WHISPER_TARGET_ACCOUNT_ID + 1, 72000);
 
             // Then the whisper is invisible to them and the older comment is tracked instead
-            expect(notTargeted.lastVisibleActionCreated).toBe(notTargeted.olderComment.created);
+            expect(nonTarget.lastVisibleActionCreated).toBe(nonTarget.olderComment.created);
+        });
+    });
+
+    describe('getNavigationUrlOnMoneyRequestDelete', () => {
+        it("resolves the IOU report's last visible action for the given current user", async () => {
+            const CHAT_REPORT_ID = '73001';
+            const IOU_REPORT_ID = '73002';
+            const DELETED_TRANSACTION_ID = '73003';
+            const REMAINING_TRANSACTION_ID = '73004';
+            const CURRENT_USER_ACCOUNT_ID = 919;
+
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(73005),
+                reportActionID: '73005',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: DELETED_TRANSACTION_ID, amount: 100, currency: CONST.CURRENCY.USD, IOUReportID: IOU_REPORT_ID},
+            };
+            const chatReport: Report = {...createRandomReport(73001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...createRandomReport(73002, undefined),
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+                currency: CONST.CURRENCY.USD,
+                total: -200,
+            };
+
+            // Given an expense report that keeps another expense after this one is deleted, so its last visible action gets recomputed
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${DELETED_TRANSACTION_ID}`, {
+                ...createRandomTransaction(73003),
+                transactionID: DELETED_TRANSACTION_ID,
+                reportID: IOU_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${REMAINING_TRANSACTION_ID}`, {
+                ...createRandomTransaction(73004),
+                transactionID: REMAINING_TRANSACTION_ID,
+                reportID: IOU_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {[deletedIOUAction.reportActionID]: deletedIOUAction});
+            await waitForBatchedUpdates();
+            const getLastVisibleActionSpy = jest.spyOn(require('@libs/ReportActionsUtils'), 'getLastVisibleAction');
+
+            // When the navigation URL is calculated for the current user
+            getNavigationUrlOnMoneyRequestDelete(DELETED_TRANSACTION_ID, deletedIOUAction, undefined, iouReport, chatReport, false, getCurrencyDecimalsLocal, false, CURRENT_USER_ACCOUNT_ID);
+
+            // Then the last visible action is resolved with that user's whisper visibility instead of the session fallback
+            expect(getLastVisibleActionSpy).toHaveBeenCalledWith(IOU_REPORT_ID, expect.anything(), expect.anything(), undefined, undefined, CURRENT_USER_ACCOUNT_ID);
+            getLastVisibleActionSpy.mockRestore();
         });
     });
 });
