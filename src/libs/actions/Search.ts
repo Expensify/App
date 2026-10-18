@@ -792,6 +792,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations: allViolations,
     });
 }
 
