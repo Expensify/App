@@ -140,8 +140,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
-            one: `1 泊 • 1 泊あたり ${nightlyRate}`,
-            other: `${count} 泊 • 1 泊あたり ${nightlyRate}`,
+            one: `1 泊 • 1泊あたり ${nightlyRate}`,
+            other: `${count} 泊 • 1泊あたり ${nightlyRate}`,
         }),
         phone: '電話',
         phoneNumber: '電話番号',
