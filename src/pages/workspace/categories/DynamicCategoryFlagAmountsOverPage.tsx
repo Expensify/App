@@ -1,7 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -80,7 +80,7 @@ function DynamicCategoryFlagAmountsOverPage({
                 testID="DynamicCategoryFlagAmountsOverPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.categoryRules.flagAmountsOver')}
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
