@@ -252,6 +252,7 @@ import {
     getCardName,
     getCategory,
     getConvertedAmount,
+    getConvertedTaxAmount,
     getCurrency,
     getDescription,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
@@ -846,6 +847,7 @@ type TransactionDetails = {
     odometerStart?: number;
     odometerEnd?: number;
     convertedAmount: number;
+    convertedTaxAmount?: number;
     gpsCoordinates?: string;
 };
 
@@ -5687,6 +5689,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
