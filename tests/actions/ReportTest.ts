@@ -11214,6 +11214,69 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('resolveActionableReportMentionWhisper', () => {
+        it("resolves the report's restored last action from the resolving user's own whisper visibility", async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const WHISPER_TARGET_ACCOUNT_ID = 999;
+
+            const resolveAs = async (currentUserAccountID: number, idBase: number) => {
+                const reportID = `${idBase}`;
+                const olderComment = {
+                    reportActionID: `${idBase + 1}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-10-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                } as OnyxTypes.ReportAction;
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                const otherWhisper = {
+                    reportActionID: `${idBase + 2}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    created: '2026-10-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                } as OnyxTypes.ReportAction;
+                const reportMentionWhisper = {
+                    reportActionID: `${idBase + 3}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                    created: '2026-10-01 13:00:00.000',
+                    message: [{html: 'Mentioned #room', text: 'Mentioned #room', type: 'COMMENT'}],
+                    originalMessage: {whisperedTo: [currentUserAccountID]},
+                } as OnyxTypes.ReportAction;
+                const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [otherWhisper.reportActionID]: otherWhisper,
+                    [reportMentionWhisper.reportActionID]: reportMentionWhisper,
+                });
+                await waitForBatchedUpdates();
+
+                // When the report mention whisper is dismissed by the given user
+                Report.resolveActionableReportMentionWhisper(report, reportMentionWhisper, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
+                await waitForBatchedUpdates();
+
+                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
+            };
+
+            // Given a report whose newest action after the report mention whisper is another whisper aimed at one account
+            const targeted = await resolveAs(WHISPER_TARGET_ACCOUNT_ID, 99100);
+
+            // Then that account sees the other whisper as the report's last action
+            expect(targeted.lastVisibleActionCreated).toBe(targeted.otherWhisper.created);
+
+            // Given the same setup resolved by an account the other whisper does not target
+            const other = await resolveAs(WHISPER_TARGET_ACCOUNT_ID + 1, 99200);
+
+            // Then the other whisper is invisible to them and the older comment is the report's last action
+            expect(other.lastVisibleActionCreated).toBe(other.olderComment.created);
+        });
+    });
+
     describe('resolveActionableMentionWhisper', () => {
         it('should optimistically add invited users to report.participants when resolution is INVITE', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();

@@ -6711,6 +6711,7 @@ function resolveActionableReportMentionWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     isReportArchived: boolean | undefined,
+    currentUserAccountID: number,
 ) {
     const reportId = report?.reportID;
     if (!reportAction || !reportId) {
@@ -6725,7 +6726,7 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions, currentUserAccountID);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report.lastMessageText,
