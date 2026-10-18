@@ -347,7 +347,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     }, [conciergeChat, delegateAccountID, introSelected?.joinWorkspace, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
 
     useEffect(() => {
-        if (joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+        // The Join Workspace flow handles empty results above, including completion when a name is already saved.
+        if (isJoiningCompanyWorkspace || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
             return;
         }
 
@@ -360,7 +361,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             automaticJoiningEnabled: false,
             policyType: defaultPolicy.type,
         });
-    }, [joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
+    }, [isJoiningCompanyWorkspace, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
 
     const skipJoiningWorkspaces = () => {
         setOnboardingErrorMessage(null);
