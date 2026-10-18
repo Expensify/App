@@ -351,6 +351,9 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+
+    /** Smallest height a dropdown popover shrinks to before it stops being usable */
+    POPOVER_DROPDOWN_MIN_USABLE_HEIGHT: 200,
     POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
@@ -4173,6 +4176,15 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_BANK_ACCOUNT_ID: 'reimbursementBankAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        POSTING_MODE: 'postingMode',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {
@@ -4941,6 +4953,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS: 'preventPayoutNonReimbursableReports',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         PROHIBITED_EXPENSES: {
@@ -8332,6 +8345,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8346,6 +8360,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
             POLICY_ID: 'policyID',
             ACTION: 'action',
             HAS: 'has',
@@ -8425,6 +8440,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'any-approval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8436,6 +8452,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
             ACTION: 'action',
             HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
@@ -9322,14 +9339,6 @@ const CONST = {
     // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
     // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
     SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
-
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
@@ -10555,10 +10564,6 @@ const CONST = {
         FEATURE_TRAINING: {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
-        },
-        AI_FEATURES_PROMO_MODAL: {
-            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
-            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
         },
     },
 

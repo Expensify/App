@@ -96,7 +96,6 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
         'ValidateLogin',
         'Dynamic_MigratedUserWelcomeModal_Root',
         'Dynamic_SubmitPlanWelcomeModal_Root',
-        'Dynamic_AIFeaturesPromoModal_Root',
         'Money_Request_Step_Scan',
         'Members_Move_To_Group',
         'Workspace_Members_Role',
