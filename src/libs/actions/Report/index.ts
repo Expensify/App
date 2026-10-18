@@ -5989,7 +5989,7 @@ function optimisticReportLastData(
     canUserPerformWriteAction?: boolean,
     isReportArchived?: boolean,
 ) {
-    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
+    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions, currentUserAccountID).lastMessageText ?? '';
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions, undefined, undefined, currentUserAccountID);
     return {
         lastMessageText,

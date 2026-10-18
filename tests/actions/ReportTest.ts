@@ -12592,16 +12592,15 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
         });
 
-        // `lastMessageText` is resolved by a separate helper that still reads the signed-in account, so only the
-        // action-derived fields are asserted here.
         it('should point the last visible action at the whisper when the user is the one it targets', () => {
             // Given a report whose newest action is a whisper aimed at the user
             // When the optimistic last-report data is built for that user
             const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID, {}, true, false);
 
-            // Then the action fields describe the whisper
+            // Then the action fields and the message text describe the whisper
             expect(result.lastVisibleActionCreated).toBe(whisper.created);
             expect(result.lastActorAccountID).toBe(WHISPER_TARGET_ACCOUNT_ID);
+            expect(result.lastMessageText).not.toBe('Older comment');
         });
 
         it('should skip the whisper and point at the older comment when it targets somebody else', () => {
@@ -12609,9 +12608,10 @@ describe('actions/Report', () => {
             // When the optimistic last-report data is built for that account
             const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID + 1, {}, true, false);
 
-            // Then the whisper is invisible and the action fields describe the older comment
+            // Then the whisper is invisible and the action fields and the message text describe the older comment
             expect(result.lastVisibleActionCreated).toBe(comment.created);
             expect(result.lastActorAccountID).toBe(COMMENT_ACTOR_ACCOUNT_ID);
+            expect(result.lastMessageText).toBe('Older comment');
         });
     });
 
