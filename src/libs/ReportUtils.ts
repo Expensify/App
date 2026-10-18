@@ -7097,9 +7097,11 @@ function getModifiedExpenseOriginalMessage(
     // We only want to display a tax amount update system message when tax amount is updated by user.
     // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
     if ('taxAmount' in transactionChanges && !(didAmountOrCurrencyChange || didTaxCodeChange)) {
-        // Store the tax amounts with the stored sign, like the server does, so the message can convert them for display
+        // Store the tax amounts with the stored sign, like the server does, so the message can convert them for display.
+        // Unreported expenses store the tax with the opposite sign too, like expense reports do.
+        const isTaxAmountStoredWithOppositeSign = isFromExpenseReport || oldTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         originalMessage.oldTaxAmount = oldTransaction?.taxAmount;
-        originalMessage.taxAmount = isFromExpenseReport && transactionChanges?.taxAmount ? -transactionChanges.taxAmount : transactionChanges?.taxAmount;
+        originalMessage.taxAmount = isTaxAmountStoredWithOppositeSign && transactionChanges?.taxAmount ? -transactionChanges.taxAmount : transactionChanges?.taxAmount;
         originalMessage.currency = getCurrency(oldTransaction);
     }
 

@@ -1392,7 +1392,7 @@ describe('MergeTransactionUtils', () => {
             // When we get updated values for merchant field
             const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
 
-            // Then it should include merchant plus all distance-specific fields
+            // Then it should include merchant plus all distance-specific fields, with the tax in the same displayed sign as the amount
             expect(result).toEqual({
                 merchant: 'New Distance Merchant',
                 amount: -2500,
@@ -1412,7 +1412,7 @@ describe('MergeTransactionUtils', () => {
                 taxCode: 'id_TAX_RATE_1',
                 taxValue: '5%',
                 taxName: '5%',
-                taxAmount: 125,
+                taxAmount: -125,
             });
         });
     });
