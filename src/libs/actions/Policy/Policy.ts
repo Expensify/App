@@ -79,6 +79,7 @@ import type {
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
+    SetPolicyPreventPayoutNonReimbursableReportsParams,
 } from '@libs/API/parameters';
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
@@ -94,6 +95,7 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -116,7 +118,7 @@ import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import {buildTaskData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
+import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -4943,7 +4945,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     }
 }
 
-function enablePolicyHR(policyID: string, enabled: boolean) {
+function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4986,12 +4988,12 @@ function enablePolicyHR(policyID: string, enabled: boolean) {
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
     }
 }
 
-function enablePolicyRecruiting(policyID: string, enabled: boolean) {
+function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5034,12 +5036,12 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean) {
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
     }
 }
 
-function enablePolicyMCP(policyID: string, enabled: boolean) {
+function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5082,12 +5084,12 @@ function enablePolicyMCP(policyID: string, enabled: boolean) {
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
     }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5130,9 +5132,35 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
     }
+}
+
+type ConnectionFeatureName =
+    | typeof CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED;
+
+const ENABLE_CONNECTION_FEATURE = {
+    [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: enablePolicyConnections,
+    [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: enablePolicyHR,
+    [CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED]: enablePolicyRecruiting,
+    [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: enablePolicyReceiptPartners,
+    [CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED]: enablePolicyMCP,
+} as const;
+
+/**
+ * The Connections page has no feature toggles, so connecting an integration from it turns the integration's feature on.
+ * The user stays on the page they connected from.
+ */
+function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
+    if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
+        return;
+    }
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
 
 /** Save the preferred export method for a policy */
@@ -7419,6 +7447,71 @@ function setPolicyPreventSelfApproval(
 }
 
 /**
+ * Call the API to control whether non-reimbursable reports can be marked as paid
+ * @param policyID - ID of the policy to update
+ * @param preventPayoutNonReimbursableReports - Whether non-reimbursable reports can be marked as paid. Set to true to prevent payout, false to allow it.
+ * @param currentPreventPayoutNonReimbursableReports - current value of preventPayoutNonReimbursableReports
+ */
+function setPolicyPreventPayoutNonReimbursableReports(policyID: string, preventPayoutNonReimbursableReports: boolean, currentPreventPayoutNonReimbursableReports: boolean | undefined) {
+    if (preventPayoutNonReimbursableReports === currentPreventPayoutNonReimbursableReports) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                preventPayoutNonReimbursableReports,
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: null,
+                },
+                errorFields: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                preventPayoutNonReimbursableReports: currentPreventPayoutNonReimbursableReports ?? null,
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: null,
+                },
+                errorFields: {
+                    preventPayoutNonReimbursableReports: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: SetPolicyPreventPayoutNonReimbursableReportsParams = {
+        policyID,
+        enabled: preventPayoutNonReimbursableReports,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
  * Call the API to apply automatic approval limit for the given policy
  * @param policyID - id of the policy to apply the limit to
  * @param limit - max amount for auto-approval of the reports in the given policy
@@ -7922,7 +8015,23 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
 /**
  * Validates user account and returns a list of accessible policies.
  */
-function getAccessiblePolicies(validateCode?: string) {
+/**
+ * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
+ * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
+ * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
+ * the command has actually succeeded - an invalid validate code must leave the task open. See
+ * getOnboardingTaskCompletionOnSuccessData.
+ */
+function getAccessiblePolicies(
+    validateCode?: string,
+    validateEmailTaskReport?: OnyxEntry<Report>,
+    validateEmailTaskParentReport?: OnyxEntry<Report>,
+    isValidateEmailTaskParentReportArchived?: boolean,
+    validateEmailTaskHasOutstandingChildTask?: boolean,
+    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+): string {
+    const requestID = rand64();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7930,17 +8039,19 @@ function getAccessiblePolicies(validateCode?: string) {
             value: {
                 loading: true,
                 errors: null,
+                requestID,
             },
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
                 errors: null,
+                requestID,
             },
         },
     ];
@@ -7951,13 +8062,30 @@ function getAccessiblePolicies(validateCode?: string) {
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
+                requestID,
             },
         },
     ];
 
+    let completedTaskReportActionID: string | undefined;
+    if (validateEmailTaskReport && currentUserAccountID) {
+        const validateEmailTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
+            validateEmailTaskReport,
+            validateEmailTaskParentReport,
+            isValidateEmailTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            validateEmailTaskHasOutstandingChildTask ?? false,
+            validateEmailTaskParentReportAction,
+        );
+        successData.push(...validateEmailTaskCompletion.successData);
+        completedTaskReportActionID = validateEmailTaskCompletion.completedTaskReportActionID;
+    }
+
     const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
 
-    API.write(command, validateCode ? {validateCode} : null, {optimisticData, successData, failureData});
+    API.write(command, validateCode ? {validateCode, completedTaskReportActionID} : null, {optimisticData, successData, failureData});
+
+    return requestID;
 }
 
 /**
@@ -8112,6 +8240,7 @@ export {
     enablePolicyRecruiting,
     enablePolicyMCP,
     enablePolicyReceiptPartners,
+    enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,
     enablePolicyTaxes,
@@ -8156,6 +8285,7 @@ export {
     clearQBDErrorField,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyPreventPayoutNonReimbursableReports,
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalRate,
     setPolicyAutoReimbursementLimit,
