@@ -1,4 +1,4 @@
-import {setHasRadio} from '@libs/NetworkState';
+import type NetworkState = require('@libs/NetworkState');
 import type ReportNameUtils = require('@libs/ReportNameUtils');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
@@ -820,16 +820,13 @@ describe('reportAttributes compute — policy change code flow', () => {
     describe('isOffline', () => {
         const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
 
-        afterEach(() => {
-            setHasRadio(true);
-        });
-
         it.each([
             ['online', true, false],
             ['offline', false, true],
         ])('forwards the current network state to generateReportAttributes when %s', (_, hasRadio, expectedIsOffline) => {
-            // Given the device network state
-            setHasRadio(hasRadio);
+            // Given the device network state. NetworkState is required here rather than imported because beforeEach resets the module
+            // registry, so only this instance is the one the freshly required reportAttributes config reads from.
+            jest.requireActual<typeof NetworkState>('@libs/NetworkState').setHasRadio(hasRadio);
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
             generateReportAttributes.mockClear();
 
