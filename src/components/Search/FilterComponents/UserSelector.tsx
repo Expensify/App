@@ -45,7 +45,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [pagination, setPagination] = useState({hasMore: false, nextCursor: '', isLoadingMore: false});
-    const [serverScopedLogins, setServerScopedLogins] = useState<string[]>([]);
+    const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
     const requestSeqRef = useRef(0);
 
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
@@ -67,6 +67,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
 
     const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
     const policyIDs = selectedPolicies ? selectedPolicies.map((policy) => policy.id).join(',') : '';
+    const serverScopedLogins = serverScopedLoginsByPolicy.policyIDs === policyIDs ? serverScopedLoginsByPolicy.logins : [];
 
     // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
     // the server for those workspaces' reports (such as removed members). Users that were already selected when the
@@ -133,7 +134,10 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                     return;
                 }
                 if (policyIDs && logins.length > 0) {
-                    setServerScopedLogins((prev) => Array.from(new Set([...prev, ...logins])));
+                    setServerScopedLoginsByPolicy((prev) => ({
+                        policyIDs,
+                        logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
+                    }));
                 }
                 setPagination({hasMore, nextCursor, isLoadingMore: false});
             })
@@ -159,7 +163,10 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                     return;
                 }
                 if (policyIDs && logins.length > 0) {
-                    setServerScopedLogins((prev) => Array.from(new Set([...prev, ...logins])));
+                    setServerScopedLoginsByPolicy((prev) => ({
+                        policyIDs,
+                        logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
+                    }));
                 }
                 setPagination({hasMore, nextCursor, isLoadingMore: false});
             })
