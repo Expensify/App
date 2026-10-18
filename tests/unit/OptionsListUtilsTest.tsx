@@ -6919,8 +6919,8 @@ describe('OptionsListUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     participants: {
                         [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     },
                 };
 
