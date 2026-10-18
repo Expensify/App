@@ -135,8 +135,16 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
             }
 
             return (
-                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived)
+                getParentNavigationSubtitle(
+                    report,
+                    policy,
+                    conciergeReportID,
+                    translate,
+                    formatPhoneNumber,
+                    derivedParentReportName,
+                    isParentReportArchived,
+                    currentUserPersonalDetails.accountID,
+                ).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived)
             );
         }
 
@@ -145,6 +153,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
         report,
         policy,
         currentUserPersonalDetails.login,
+        currentUserPersonalDetails.accountID,
         isReport,
         isReportArchived,
         isParentReportArchived,
