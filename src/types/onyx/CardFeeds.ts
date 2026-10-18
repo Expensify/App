@@ -139,7 +139,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
     errors?: OnyxCommon.Errors;
 }>;
@@ -170,7 +170,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
     errors?: OnyxCommon.Errors;
 }>;
