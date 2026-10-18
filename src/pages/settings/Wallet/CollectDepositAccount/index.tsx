@@ -1,4 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -55,7 +57,7 @@ function CollectDepositAccount() {
 
     const goBack = () => {
         clearDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack();
     };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
@@ -112,24 +114,28 @@ function CollectDepositAccount() {
             shouldEnableMaxHeight
             testID="CollectDepositAccount"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            ) : (
-                <CurrentPage
-                    isEditing={isEditing}
-                    onNext={handleNextPage}
-                    onMove={moveTo}
-                    formValues={formValues}
-                    fieldsMap={fieldsMap}
-                    fieldsType={fieldsType}
-                />
-            )}
+            <CollapsibleHeaderOnKeyboardGroup>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                </CollapsibleHeaderOnKeyboardGroupMember>
+                {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <CurrentPage
+                        isEditing={isEditing}
+                        onNext={handleNextPage}
+                        onMove={moveTo}
+                        formValues={formValues}
+                        fieldsMap={fieldsMap}
+                        fieldsType={fieldsType}
+                    />
+                )}
+            </CollapsibleHeaderOnKeyboardGroup>
         </ScreenWrapper>
     );
 }

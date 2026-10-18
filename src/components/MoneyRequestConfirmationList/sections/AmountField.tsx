@@ -9,7 +9,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestAmount,
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestAmount,
+    setMoneyRequestCurrency,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
@@ -260,7 +267,13 @@ function AmountField({
         const updatedAmount = parsedAmount ?? amount;
 
         buildAndSaveSplitShares(updatedAmount, value);
-        persistMainDraftTotal(updatedAmount, value);
+
+        // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
+        if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
+            setMoneyRequestCurrency(transactionID, value);
+        } else {
+            persistMainDraftTotal(updatedAmount, value);
+        }
 
         if (isMovingTransactionFromTrackExpense(action)) {
             const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;

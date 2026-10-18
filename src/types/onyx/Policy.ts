@@ -336,6 +336,9 @@ type MergeConnectionLastSync = ConnectionLastSync & {
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
+
+    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
+    isConfigurationError?: boolean;
 };
 
 /**
@@ -2157,6 +2160,9 @@ type DualEntrySync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountID: string;
 
+    /** Expense account the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountID?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 
@@ -2785,8 +2791,8 @@ type ZohoBooksSync = {
  */
 type ZohoBooksConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** The internalID of the selected organization in Zoho Books */
-        organizationID: string;
+        /** Selected Zoho Books organization. The backend stores this as subsidiaryID, matching the other connectors. */
+        subsidiaryID: string;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;
@@ -3028,6 +3034,9 @@ type BusinessCentralExport = {
 
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether reports dated in a closed accounting period are exported to the next open period */
+    exportToNextOpenPeriod: boolean;
 };
 
 /**
@@ -3036,7 +3045,30 @@ type BusinessCentralExport = {
 type BusinessCentralAutoSync = {
     /** Whether automatic synchronization is enabled */
     enabled: boolean;
+
+    /** ID of the daily job that runs the automatic synchronization, null while it is disabled */
+    jobID?: string | null;
 };
+
+/**
+ * Settings for syncing payments made in Expensify back to Business Central.
+ */
+type BusinessCentralSync = {
+    /** Whether reimbursed expense reports are marked as paid in Business Central */
+    syncReimbursedReports: boolean;
+
+    /** ID of the Business Central bank account employee reimbursements are paid from */
+    reimbursementBankAccountID: string;
+
+    /** Whether Expensify Card settlements are synced to Business Central */
+    syncExpensifyCardSettlements: boolean;
+
+    /** ID of the Business Central bank account Expensify Card settlements are paid from */
+    settlementsBankAccountID: string;
+};
+
+/** Payment sync setting that holds a Business Central bank account ID */
+type BusinessCentralBankAccountSettingName = keyof Pick<BusinessCentralSync, 'reimbursementBankAccountID' | 'settlementsBankAccountID'>;
 
 /**
  * Connection config for Business Central.
@@ -3067,13 +3099,16 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
+        /** Payment sync settings */
+        sync?: BusinessCentralSync;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -3125,6 +3160,9 @@ type MergeHRGroup = {
 type MergeHRConnectionData = {
     /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
     groups?: MergeHRGroup[];
+
+    /** IDs of every group the HR system has, including ones missing a name/type and so absent from `groups`. Used to tell a deleted group apart from one that just can't render. */
+    allGroupIDs?: string[];
 };
 
 /** Merge HR connection config */
@@ -3427,6 +3465,21 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
     isOfficeWorkArrangement?: boolean;
+}>;
+
+/** An office location of a workspace */
+type OfficeLocation = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Nickname of the office */
+    name: string;
+
+    /** Address of the office */
+    address: CompanyAddress;
+
+    /** Whether this is the workspace's default office. At most one office is the default, and while none is, the company address is. */
+    isDefault?: boolean;
+
+    /** Errors from the last change to the office */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Prohibited expense types */
@@ -3756,6 +3809,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         preventSelfApproval?: boolean;
 
+        /** When enabled, non-reimbursable reports cannot be marked as paid */
+        preventPayoutNonReimbursableReports?: boolean;
+
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
@@ -4001,6 +4057,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Commuter exclusion configuration applied to distance expenses on this workspace */
         commuterExclusions?: CommuterExclusions;
 
+        /** Offices of the workspace, keyed by officeID */
+        officeLocations?: Record<string, OfficeLocation>;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -4181,6 +4240,7 @@ export type {
     Subrate,
     ProhibitedExpenses,
     CommuterExclusions,
+    OfficeLocation,
     NetSuiteConnectionData,
     MergeApprovalMode,
     MergeHRConnectionConfig,
@@ -4229,6 +4289,8 @@ export type {
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
     BusinessCentralExport,
+    BusinessCentralSync,
+    BusinessCentralBankAccountSettingName,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
 
