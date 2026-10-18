@@ -122,6 +122,9 @@ type UseDateSegmentInputResult = {
     /** Called once focus has left the field altogether rather than moved between segments */
     onFieldBlur: () => void;
 
+    /** Called when a date is picked from the calendar, which the segments follow whether or not it changes the date */
+    onDateSelected: (isoDate: string) => void;
+
     /** Called when the field's clear button empties it, so the segments start again rather than being left behind */
     onClear: () => void;
 };
@@ -373,10 +376,21 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         enterSegment(getAdjacentSegmentName(name, 1));
     };
 
-    // Every keystroke is prevented, so this only runs for text the user pasted in
+    // Every keystroke is prevented, so this only runs for text the user pasted or cut
     const handleChangeText = (name: DateSegmentName, text: string) => {
+        const shownValue = getSegmentDisplay(segments, name);
+
+        // Cutting takes the digits out of the input itself rather than through a keystroke, so text going missing is
+        // the only report of it. Without this the segment would be put straight back as the field redraws.
+        if (text.length < shownValue.length) {
+            setIsAllSelected(false);
+            setShouldOverwrite(false);
+            applySegments({...segments, [name]: text});
+            return;
+        }
+
         // The input reports its whole value, so what the user pasted is whatever the segment was not already showing
-        const pastedText = getPastedText(name, getSegmentDisplay(segments, name), text, isAllSelected);
+        const pastedText = getPastedText(name, shownValue, text, isAllSelected);
 
         // A paste over the whole date replaces it, while one into a single segment merges into what is already there
         const baseSegments = isAllSelected ? EMPTY_SEGMENTS : segments;
@@ -419,6 +433,18 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         setSegments(seededSegments);
         assertViewDate(getViewDateFromSegments(seededSegments, new Date(), minDate, maxDate));
         setIsEditing(true);
+    };
+
+    /**
+     * The calendar settling the date has to reach the segments even when it repeats the date they already report. A
+     * segment the user has taken a digit out of reports no date at all, so the committed value never changes and
+     * nothing else would tell the field to catch up.
+     */
+    const handleDateSelected = (isoDate: string) => {
+        forgetHistory();
+        setIsAllSelected(false);
+        setHasInvalidEntry(false);
+        setSegments(getSegmentsFromISODate(isoDate));
     };
 
     const handleFieldBlur = () => {
@@ -467,6 +493,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             hasIncompleteEntry: false,
             getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPointerDown: () => {}}),
             onFieldBlur: () => {},
+            onDateSelected: () => {},
             onClear: () => {},
         };
     }
@@ -541,6 +568,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             onPointerDown: () => setIsAllSelected(false),
         }),
         onFieldBlur: handleFieldBlur,
+        onDateSelected: handleDateSelected,
         onClear: handleClear,
     };
 }

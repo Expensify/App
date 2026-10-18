@@ -341,6 +341,13 @@ describe('DateInputMaskUtils', () => {
             expect(getPastedText('year', '1990', '881990', true)).toBe('88');
         });
 
+        it('replaces the whole date with a paste that starts with the digits it lands beside', () => {
+            // Given the whole date selected, with the caret resting after the year's own digits
+            // When a date beginning with that same year is pasted
+            // Then the year is not read as part of what was pasted, which would shift every segment along
+            expect(getPastedText('year', '2002', '20022002-12-02', true)).toBe('2002-12-02');
+        });
+
         it('reads a paste into an empty segment', () => {
             expect(getPastedText('year', '', '1998', false)).toBe('1998');
             expect(getPastedText('year', '', '88', false)).toBe('88');

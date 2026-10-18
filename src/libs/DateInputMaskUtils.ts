@@ -380,6 +380,17 @@ function getInsertion(previousValue: string, nextValue: string): {text: string; 
  * own, or lands over a selection is a value rather than an edit of the one that was there.
  */
 function getPastedText(name: DateSegmentName, previousValue: string, nextValue: string, isReplacingWholeDate: boolean): string {
+    // Selecting the whole date leaves the first segment's own digits unselected, so the paste arrives beside them and
+    // what was pasted is whatever sits on the other side. Reading it as an edit of those digits instead can split it
+    // in the wrong place, since a pasted date often starts with the very digits it is replacing.
+    if (isReplacingWholeDate) {
+        if (nextValue.startsWith(previousValue)) {
+            return nextValue.slice(previousValue.length);
+        }
+
+        return nextValue.endsWith(previousValue) ? nextValue.slice(0, nextValue.length - previousValue.length) : nextValue;
+    }
+
     const insertion = getInsertion(previousValue, nextValue);
 
     if (!insertion) {
@@ -388,7 +399,7 @@ function getPastedText(name: DateSegmentName, previousValue: string, nextValue: 
 
     const segmentLength = getSegmentLength(name);
 
-    if (isReplacingWholeDate || insertion.text.length >= segmentLength || !DIGITS_ONLY_REGEX.test(insertion.text)) {
+    if (insertion.text.length >= segmentLength || !DIGITS_ONLY_REGEX.test(insertion.text)) {
         return insertion.text;
     }
 
