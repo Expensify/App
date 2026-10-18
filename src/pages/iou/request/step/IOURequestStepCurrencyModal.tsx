@@ -13,6 +13,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef, RefObject} from 'react';
+import type {View} from 'react-native';
+
 import React from 'react';
 
 type CurrencyPickerProps = {
@@ -25,9 +28,16 @@ type CurrencyPickerProps = {
     onInputChange?: (value: string, key?: string) => void;
 
     excludeCurrencies?: string[];
+
+    /**
+     * The button that opens the picker. Passing it returns focus to that button when the picker closes. The picker's
+     * own ScreenWrapper focus trap blurs the button before the modal's trap can capture it, and the new focus
+     * management only restores text inputs, so without this a keyboard user is dropped back at the top of the form.
+     */
+    launcherRef?: RefObject<ComponentRef<typeof View> | null>;
 };
 
-function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
+function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, launcherRef, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
@@ -44,6 +54,8 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
             onClose={hidePickerModal}
             onModalHide={hidePickerModal}
             shouldEnableNewFocusManagement
+            shouldReturnFocus={!!launcherRef}
+            launcherRef={launcherRef}
             onBackdropPress={Navigation.dismissModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
