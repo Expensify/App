@@ -109,14 +109,26 @@ function AnnualSavingsTooltip() {
 
     return (
         <Tooltip
-            maxWidth={280}
+            minWidth={360}
+            maxWidth={360}
             shouldForceRenderingBelow
             renderTooltipContentKey={[String(!!adminsChatReportID)]}
+            wrapperStyle={[
+                styles.pv4,
+                styles.ph4,
+                {
+                    backgroundColor: theme.appBG,
+                    borderWidth: 1,
+                    borderColor: theme.border,
+                    borderRadius: variables.componentBorderRadiusLarge,
+                    boxShadow: theme.shadow,
+                },
+            ]}
             renderTooltipContent={() => (
-                <View>
-                    <Text style={[styles.textStrong, styles.mb1]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
+                <View style={styles.gap2}>
+                    <Text style={[styles.textStrong, styles.themeTextColor]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
                     <Text style={styles.textLabelSupporting}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                    <View style={[styles.renderHTML, styles.mt2]}>
+                    <View style={styles.renderHTML}>
                         <RenderHTML
                             html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                             onLinkPress={(_event, href) => handleLinkPress(href)}
