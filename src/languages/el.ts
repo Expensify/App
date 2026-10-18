@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Λήψη αποδείξεων',
         }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
+        shareReport: 'Κοινοποιήστε την αναφορά',
+        reportShared: 'Η αναφορά κοινοποιήθηκε',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -1025,6 +1027,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addBankAccount: {
                 title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
+            },
+            addDepositAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λαμβάνετε πληρωμές',
             },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
@@ -7964,7 +7969,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     toggleTitle: 'Γραφεία',
                     allSelected: 'Όλα τα γραφεία',
                 },
-                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+                enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
@@ -8835,6 +8840,8 @@ ${reportName}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Μεταβείτε στις [περισσότερες δυνατότητες](${moreFeaturesLink}) και ενεργοποιήστε το ${featureName} για να ξεκλειδώσετε αυτήν τη λειτουργία.`,
+                preventPayoutNonReimbursableReportsTitle: 'Αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένων',
+                preventPayoutNonReimbursableReportsSubtitle: 'Να μην επιτρέπεται στους διαχειριστές να σημειώνουν μη επιστρέψιμες αναφορές ως πληρωμένες.',
             },
             agentsPromoBanner: {
                 title: 'Δεν βλέπετε τον κανόνα που χρειάζεστε; Προσθέστε έναν εκπρόσωπο',
@@ -10166,6 +10173,8 @@ ${reportName}`,
             `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -10423,6 +10432,7 @@ ${reportName}`,
             past: 'Παρελθόν',
             submitted: 'Υποβλήθηκε',
             approved: 'Εγκρίθηκε',
+            anyApproval: 'Οποιαδήποτε έγκριση',
             firstApprover: 'Πρώτος εγκρίνων',
             firstApproved: 'Πρώτη έγκριση',
             paidBy: 'Πληρώθηκε από',
@@ -11461,6 +11471,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'έγινε αντιστοίχιση μιας απόδειξης με αυτή τη συναλλαγή',
+        mergedExpenseDeleted: 'συγχώνευσε έξοδα και μετέφερε ένα στα Διαγραμμένα',
     },
     subscription: {
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',
@@ -11704,6 +11715,9 @@ ${reportName}`,
                 refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
+            billedTo: 'Χρέωση σε',
+            viewReceipt: 'Προβολή απόδειξης',
+            viewInvoice: 'Προβολή τιμολογίου',
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
@@ -12250,22 +12264,6 @@ ${reportName}`,
             buildReports: 'Δημιουργήστε αναφορές εξόδων σε δευτερόλεπτα',
             categorize: 'Κατηγοριοποιήστε τα έξοδά σας',
             inviteBoss: 'Προσκαλέστε το/τη διευθυντή/ρια σας όταν είστε έτοιμοι',
-        },
-    },
-    aiFeaturesPromoModal: {
-        subtitle: 'Νέο στο Concierge AI',
-        confirmText: 'Πάμε!',
-        spendAnalysis: {
-            title: 'Διαδραστική ανάλυση δαπανών',
-            description: `<muted-text>Το Concierge εμφανίζει πληροφορίες για τις μηνιαίες δαπάνες και σας επιτρέπει να εξερευνήσετε τις λεπτομέρειες πίσω από κάθε αριθμό. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Γνωρίστε τον νέο σας βοηθό εξόδων',
-            description: `<muted-text>Συνομιλήστε με το Concierge για να δημιουργείτε και να ενημερώνετε δαπάνες, απευθείας στην εφαρμογή ή μέσω email ή μηνύματος κειμένου. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Μάθετε περισσότερα</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Δημιουργήστε τους δικούς σας πράκτορες',
-            description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
         },
     },
     productMarketingWindow: {
