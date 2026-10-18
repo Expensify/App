@@ -41,6 +41,7 @@ import {
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
+    resolveLastActionContext,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
 import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
@@ -503,6 +504,40 @@ describe('ReportAlternateTextUtils', () => {
         it('should return the plain last message for a report preview in a workspace chat', () => {
             const report = makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat'});
             expect(getAlternateText({report, lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW), lastMessageTextFromReport: 'owes $1.00'})).toBe('owes $1.00');
+        });
+    });
+
+    describe('resolveLastActionContext', () => {
+        it("resolves the last action from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '77001';
+            const WHISPER_TARGET_ACCOUNT_ID = 959;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {reportActionID: '77002', reportID: REPORT_ID, created: '2024-01-01 10:00:00.000'});
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '77003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last action context is resolved for a given user
+            const getLastActionIDFor = (currentUserAccountID: number) => resolveLastActionContext(report, false, undefined, currentUserAccountID).lastAction?.reportActionID;
+
+            // Then the whisper's target gets the whisper as the last action
+            expect(getLastActionIDFor(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.reportActionID);
+
+            // Then anyone else cannot see the whisper, so the older comment is the last action
+            expect(getLastActionIDFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.reportActionID);
         });
     });
 

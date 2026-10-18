@@ -293,7 +293,13 @@ function getAlternateText(
     if (showChatPreviewLine && !forcePolicyName) {
         if (report) {
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
-            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(
+                report,
+                isReportArchived,
+                visibleReportActionsData,
+                currentUserAccountID,
+                oneTransactionThreadReportID,
+            );
             return getReportAlternateText({
                 report,
                 lastAction,
