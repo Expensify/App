@@ -5142,6 +5142,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             type: CONST.VIOLATION_TYPES.VIOLATION,
         };
 
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Type-only reference to API.write for the spy below, not an API call.
         let writeSpy: jest.SpiedFunction<typeof API.write>;
 
         beforeEach(() => {
