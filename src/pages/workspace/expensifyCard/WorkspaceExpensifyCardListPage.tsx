@@ -106,7 +106,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const isBankAccountVerified = !cardOnWaitlist;
+    // The waitlist is for the workspace account and must not block an already-provisioned domain feed.
+    const isBankAccountVerified = !cardOnWaitlist || (!!policy?.policyAccountID && fundID !== policy.policyAccountID);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
