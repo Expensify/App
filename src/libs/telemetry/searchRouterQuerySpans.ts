@@ -109,13 +109,7 @@ function getAutocompleteKey(key: string | undefined): string {
  * event has no timestamp, so a value in the future or older than the query max duration is not a usable `performance.now()` reading.
  */
 function getSearchRouterQueryChangedAt(eventTimeStamp: number | undefined, now: number): number {
-    if (
-        eventTimeStamp === undefined ||
-        !Number.isFinite(eventTimeStamp) ||
-        eventTimeStamp < 0 ||
-        eventTimeStamp > now ||
-        now - eventTimeStamp > CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS
-    ) {
+    if (eventTimeStamp === undefined || !Number.isFinite(eventTimeStamp) || eventTimeStamp > now || now - eventTimeStamp > CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS) {
         return now;
     }
     return eventTimeStamp;

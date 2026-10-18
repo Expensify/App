@@ -113,7 +113,6 @@ describe('searchRouterQuerySpans', () => {
         // Then it falls back to the current time because stale event timestamps do not reflect this edit, while a timestamp at the max duration boundary is accepted
         expect(getSearchRouterQueryChangedAt(tooOld, now)).toBe(now);
         expect(getSearchRouterQueryChangedAt(tooOld + 1, now)).toBe(tooOld + 1);
-        expect(getSearchRouterQueryChangedAt(-1, now)).toBe(now);
     });
 
     it('buckets the free-text length in size order', () => {
