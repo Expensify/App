@@ -22,6 +22,8 @@ let mockVisibility: Visibility = {
     isTestToolsRouteFocused: false,
 };
 let mockIsOffline = true;
+let mockShouldUseNarrowLayout = true;
+let testToolsStackMountCount = 0;
 
 jest.mock('@hooks/useRequire2FAOverlayVisibility', () => ({
     __esModule: true,
@@ -100,8 +102,23 @@ jest.mock('@hooks/useKeyboardShortcut', () => ({
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}),
 }));
+
+jest.mock('@hooks/useSafeAreaInsets', () => ({
+    __esModule: true,
+    default: () => ({top: 0, right: 0, bottom: 0, left: 0}),
+}));
+
+// Jest resolves the iOS helper, which never lifts. This follows Platform.OS at call time so one suite can cover web and Android too.
+jest.mock('@libs/Navigation/helpers/shouldLiftTestToolsAboveRequire2FA', () => {
+    const {Platform: RNPlatform} = require('react-native');
+
+    return {
+        __esModule: true,
+        default: (isRequire2FAOverlayVisible: boolean) => isRequire2FAOverlayVisible && RNPlatform.OS !== 'ios',
+    };
+});
 
 jest.mock('@hooks/useIsAuthenticated', () => ({
     __esModule: true,
@@ -198,6 +215,9 @@ jest.mock('@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator
     const {NavigationContext, NavigationRouteContext} = require('@react-navigation/native');
 
     function Navigator({children}: {children: React.ReactNode}) {
+        ReactActual.useEffect(() => {
+            testToolsStackMountCount += 1;
+        }, []);
         return ReactActual.createElement(View, {testID: 'test-tools-stack'}, children);
     }
 
@@ -249,22 +269,40 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
             isTestToolsRouteFocused: false,
         };
         mockIsOffline = true;
+        mockShouldUseNarrowLayout = true;
     });
 
-    it('shows the offline banner outside the covering overlay while required 2FA is visible', () => {
-        // Given required 2FA is visible and the user is offline, the ScreenWrapper banner is covered by the overlay.
+    it('shows the offline banner inside the overlay on a narrow screen and opens test tools from a four-finger tap', () => {
+        // Given required 2FA is visible on a phone and the user is offline. The overlay covers the ScreenWrapper banner and its four-finger handler.
 
-        // When the overlay renders its own banner above that layer.
+        // When the overlay renders its own banner in the column, and the user taps with four fingers.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
-        // Then the user can still see they are offline, and the banner is not trapped inside the overlay.
+        // Then the banner is visible without covering the buttons, and the overlay itself handles the four-finger tap.
         const overlay = screen.getByTestId('RequireTwoFactorAuthenticationOverlay');
         expect(overlay).toBeOnTheScreen();
-        expect(screen.getByTestId('RequireTwoFactorOfflineBanner')).toBeOnTheScreen();
-        expect(screen.getByText('You appear to be offline.')).toBeOnTheScreen();
-        expect(within(overlay).queryByText('You appear to be offline.')).toBeNull();
+        expect(within(overlay).getByTestId('RequireTwoFactorOfflineBanner')).toBeOnTheScreen();
+        expect(within(overlay).getByText('You appear to be offline.')).toBeOnTheScreen();
+        const fourTouches = {nativeEvent: {touches: [{}, {}, {}, {}]}, touchHistory: {numberActiveTouches: 4}};
+        const oneTouch = {nativeEvent: {touches: [{}]}, touchHistory: {numberActiveTouches: 1}};
+        expect(overlay.props.onStartShouldSetResponderCapture(fourTouches)).toBe(true);
+        expect(overlay.props.onStartShouldSetResponderCapture(oneTouch)).toBe(false);
+        overlay.props.onResponderRelease({touchHistory: {numberActiveTouches: 0}});
+        expect(jest.requireMock<jest.Mock>('@userActions/TestTool').default).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId('focus-trap-active')).toBeOnTheScreen();
         expect(screen.getByTestId('enable-2fa-enter-shortcut')).toBeOnTheScreen();
+    });
+
+    it('hides the offline banner on a wide layout', () => {
+        // Given required 2FA is visible on a wide screen, where ScreenWrapper does not show an offline indicator.
+        mockShouldUseNarrowLayout = false;
+
+        // When the overlay renders.
+        render(<RequireTwoFactorAuthenticationOverlay />);
+
+        // Then it does not add a full-width banner of its own.
+        expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
+        expect(screen.queryByTestId('RequireTwoFactorOfflineBanner')).toBeNull();
     });
 
     it('hides the banner when the overlay is not showing', () => {
@@ -321,6 +359,8 @@ describe('TestToolsModalNavigator portal', () => {
             isTestToolsRouteFocused: false,
         };
         mockFocusedRouteName = 'TestToolsModal_Root';
+        mockShouldUseNarrowLayout = true;
+        testToolsStackMountCount = 0;
         Platform.OS = originalOS;
     });
 
@@ -393,6 +433,29 @@ describe('TestToolsModalNavigator portal', () => {
         const portal = screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`);
 
         expect(within(portal).getByText('TestToolsModal_Root')).toBeOnTheScreen();
+        expect(within(portal).getByTestId('test-tools-portal-backdrop')).toBeOnTheScreen();
+    });
+
+    it('keeps the stack mounted when required 2FA appears while test tools are open', () => {
+        // Given test tools are already open on web, before the required-2FA flag arrives.
+        Platform.OS = 'web';
+        mockVisibility = {
+            isRequire2FAOverlayVisible: false,
+            isTestToolsRouteFocused: true,
+        };
+        const view = render(<TestToolsModalNavigator />);
+        const mountsAfterOpen = testToolsStackMountCount;
+
+        // When required 2FA becomes visible.
+        mockVisibility = {
+            isRequire2FAOverlayVisible: true,
+            isTestToolsRouteFocused: true,
+        };
+        view.rerender(<TestToolsModalNavigator />);
+
+        // Then the stack stays mounted and the focused screen moves into the portal.
+        expect(testToolsStackMountCount).toBe(mountsAfterOpen);
+        expect(screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`)).toBeOnTheScreen();
     });
 
     it('keeps test tools inside the iOS modal while required 2FA is showing', () => {
@@ -409,6 +472,7 @@ describe('TestToolsModalNavigator portal', () => {
 
         // Then they stay in the navigator, where the modal can show them, and nothing is portaled behind it.
         expect(screen.queryByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`)).toBeNull();
+        expect(screen.queryByTestId('test-tools-portal-backdrop')).toBeNull();
         expect(screen.getByTestId('test-tools-page')).toBeOnTheScreen();
     });
 });

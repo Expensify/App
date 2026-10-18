@@ -8,9 +8,11 @@ import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useRequire2FAOverlayVisibility, {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import shouldLiftTestToolsAboveRequire2FA from '@libs/Navigation/helpers/shouldLiftTestToolsAboveRequire2FA';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
@@ -25,10 +27,12 @@ import type {ComponentRef, ComponentType, MouseEvent, ReactNode} from 'react';
 import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
 import {CardAnimationContext} from '@react-navigation/stack';
-import React, {useCallback, useContext, useRef} from 'react';
-import {Platform, View} from 'react-native';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import Overlay from './Overlay';
+import TestToolsLiftContext from './TestToolsLiftContext';
+import TestToolsPortalBackdrop from './TestToolsPortalBackdrop';
 
 const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList>();
 
@@ -36,13 +40,21 @@ type TestToolsRouteName = keyof TestToolsModalModalNavigatorParamList;
 
 type TestToolsModalFrameProps = {
     children: ReactNode;
+
+    /** Keep the stack in this same slot, without painting the sheet. Used while the focused screen is portaled. */
+    isPassThrough?: boolean;
+
+    /** This frame is the copy above the required-2FA overlay, so it needs its own dim and safe-area inset. */
+    isPortaled?: boolean;
 };
 
-function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
+function TestToolsModalFrame({children, isPassThrough = false, isPortaled = false}: TestToolsModalFrameProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {left, right} = useSafeAreaInsets();
     const outerViewRef = useRef<ComponentRef<typeof View>>(null);
     const isAuthenticated = useIsAuthenticated();
+    const showChrome = !isPassThrough;
 
     const handleOuterClick = useCallback(() => {
         // Release focus from any focused element before closing the modal
@@ -56,33 +68,40 @@ function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
         e.stopPropagation();
     }, []);
 
-    return (
-        <NoDropZone>
-            <Overlay />
-            <PressableWithoutFeedback
-                ref={outerViewRef}
-                onPress={handleOuterClick}
-                sentryLabel="TestToolsModalNavigator-Dismiss"
-                style={[styles.flex1, styles.alignItemsCenter, styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
-                accessible={false}
-            >
-                <FocusTrapForScreens>
-                    <View
-                        onStartShouldSetResponder={() => true}
-                        onClick={handleInnerClick}
-                        style={styles.getTestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
-                    >
-                        {children}
-                    </View>
-                </FocusTrapForScreens>
-            </PressableWithoutFeedback>
-        </NoDropZone>
-    );
-}
+    const portaledInsetStyle = useMemo(() => (isPortaled ? {paddingLeft: left, paddingRight: right} : undefined), [isPortaled, left, right]);
 
-// iOS already draws this navigator above the overlay. Android's transparent modal stays inside the stack, under it, and web paints the overlay after the stack.
-function shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible: boolean): boolean {
-    return isRequire2FAOverlayVisible && Platform.OS !== 'ios';
+    return (
+        <View style={[styles.flex1, portaledInsetStyle]}>
+            <NoDropZone>
+                <View
+                    pointerEvents="none"
+                    style={showChrome ? StyleSheet.absoluteFill : styles.dNone}
+                >
+                    {isPortaled && <TestToolsPortalBackdrop />}
+                    <Overlay />
+                </View>
+                <PressableWithoutFeedback
+                    ref={outerViewRef}
+                    onPress={showChrome ? handleOuterClick : undefined}
+                    pointerEvents={showChrome ? 'auto' : 'box-none'}
+                    sentryLabel="TestToolsModalNavigator-Dismiss"
+                    style={[styles.flex1, showChrome && styles.alignItemsCenter, showChrome && styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
+                    accessible={false}
+                >
+                    <FocusTrapForScreens focusTrapSettings={showChrome ? undefined : {active: false}}>
+                        <View
+                            onStartShouldSetResponder={showChrome ? () => true : undefined}
+                            onClick={showChrome ? handleInnerClick : undefined}
+                            pointerEvents={showChrome ? 'auto' : 'box-none'}
+                            style={showChrome ? styles.getTestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated) : styles.flex1}
+                        >
+                            {children}
+                        </View>
+                    </FocusTrapForScreens>
+                </PressableWithoutFeedback>
+            </NoDropZone>
+        </View>
+    );
 }
 
 /**
@@ -95,13 +114,12 @@ function shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible: boolean)
  */
 function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: ComponentType<PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>>) {
     function Require2FAPortaledTestToolsScreen(props: PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>) {
-        const {isRequire2FAOverlayVisible} = useRequire2FAOverlayVisibility();
+        const {shouldLift, cardAnimation} = useContext(TestToolsLiftContext);
         const navigation = useContext(NavigationContext);
         const route = useContext(NavigationRouteContext);
-        const cardAnimation = useContext(CardAnimationContext);
         const isFocused = useIsFocused();
 
-        if (!shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible)) {
+        if (!shouldLift) {
             return <Screen {...props} />;
         }
 
@@ -111,10 +129,11 @@ function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: Comp
         }
 
         const screenFrame = (
-            <TestToolsModalFrame>
+            <TestToolsModalFrame isPortaled>
                 <Screen {...props} />
             </TestToolsModalFrame>
         );
+        // The nested screen's card is a push, not the modal fade. Keep the root modal's animation on the dim.
         const frame = cardAnimation ? <CardAnimationContext.Provider value={cardAnimation}>{screenFrame}</CardAnimationContext.Provider> : screenFrame;
 
         return (
@@ -134,34 +153,28 @@ const PortaledTestToolsServerPage = withRequire2FAPortal(TestToolsServerPage);
 
 function TestToolsModalNavigator() {
     const {isRequire2FAOverlayVisible} = useRequire2FAOverlayVisibility();
+    const shouldLift = shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible);
+    const cardAnimation = useContext(CardAnimationContext);
+    const lift = useMemo(() => ({shouldLift, cardAnimation}), [shouldLift, cardAnimation]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
-    const stack = (
-        <Stack.Navigator
-            screenOptions={{
-                headerShown: false,
-                // The root screen paints the dim. A default opaque screen here is the white sheet that covers the tools after the native modal transition.
-                native: {contentStyle: {backgroundColor: 'transparent'}},
-            }}
-        >
-            <Stack.Screen
-                name={SCREENS.TEST_TOOLS_MODAL.ROOT}
-                component={PortaledTestToolsModalPage}
-            />
-            <Stack.Screen
-                name={SCREENS.TEST_TOOLS_MODAL.SERVER}
-                component={PortaledTestToolsServerPage}
-            />
-        </Stack.Navigator>
+    return (
+        <TestToolsLiftContext.Provider value={lift}>
+            <TestToolsModalFrame isPassThrough={shouldLift}>
+                <Stack.Navigator screenOptions={{headerShown: false}}>
+                    <Stack.Screen
+                        name={SCREENS.TEST_TOOLS_MODAL.ROOT}
+                        component={PortaledTestToolsModalPage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.TEST_TOOLS_MODAL.SERVER}
+                        component={PortaledTestToolsServerPage}
+                    />
+                </Stack.Navigator>
+            </TestToolsModalFrame>
+        </TestToolsLiftContext.Provider>
     );
-
-    // See shouldLiftTestToolsAboveRequire2FA. iOS keeps the screen in this stack.
-    if (shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible)) {
-        return stack;
-    }
-
-    return <TestToolsModalFrame>{stack}</TestToolsModalFrame>;
 }
 
 export default TestToolsModalNavigator;

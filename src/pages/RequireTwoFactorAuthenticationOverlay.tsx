@@ -11,7 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRequire2FAOverlayVisibility from '@hooks/useRequire2FAOverlayVisibility';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSignOut from '@hooks/useSignOut';
+import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
@@ -54,6 +56,8 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const testToolsTapResponder = useTestToolsTapResponder();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // OfflineIndicator is a fixed-height row. Safe-area padding has to live on the container around it,
@@ -125,6 +129,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                 <View
                     style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
                     testID="RequireTwoFactorAuthenticationOverlay"
+                    {...testToolsTapResponder}
                 >
                     <View style={[styles.flex1, styles.appBG]}>
                         <View style={styles.twoFARequiredContainer}>
@@ -162,19 +167,16 @@ function RequireTwoFactorAuthenticationOverlay() {
                             </View>
                         </View>
                     </View>
+                    {shouldUseNarrowLayout && isOffline && (
+                        <View
+                            style={[styles.appBG, offlineBannerSafeAreaStyle]}
+                            testID="RequireTwoFactorOfflineBanner"
+                        >
+                            <OfflineIndicator style={styles.pl5} />
+                        </View>
+                    )}
                 </View>
             </FocusTrapForModal>
-            <View
-                pointerEvents="box-none"
-                style={[StyleSheet.absoluteFill, styles.twoFARequiredOfflineBanner]}
-                testID="RequireTwoFactorOfflineBanner"
-            >
-                {isOffline && (
-                    <View style={[styles.stickToBottom, styles.appBG, offlineBannerSafeAreaStyle]}>
-                        <OfflineIndicator style={styles.pl5} />
-                    </View>
-                )}
-            </View>
         </>
     );
 }
