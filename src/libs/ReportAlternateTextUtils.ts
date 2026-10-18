@@ -275,8 +275,6 @@ const deprecatedLastReportActions: ReportActions = {};
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
-let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
 // the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
@@ -286,12 +284,9 @@ Onyx.connectWithoutView({
         if (!actions) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedAllReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted report actions objects
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        for (const reportActions of Object.entries(deprecatedAllReportActions)) {
+        for (const reportActions of Object.entries(actions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
                 continue;
