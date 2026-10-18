@@ -11135,16 +11135,8 @@ ${reportName}`,
         },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
-            subscriptionType: 'サブスクリプションタイプ',
-            memberCount: ({count}: {count: number}) => ({
-                one: `${count}人`,
-                other: `${count}人`,
-            }),
-            sizeNotSet: `<muted-text>今サブスクリプション規模を設定しない場合、最初の月のアクティブメンバー数に基づいて自動的に設定します。<a href="${CONST.PRICING}">詳細を見る</a></muted-text>`,
-            expensifyCodeApplied: 'Expensifyコード適用済み',
-            addExpensifyCode: 'Expensifyコードを追加',
-            saveWithAnnualSubscription: '年間サブスクリプションで節約',
-            extraSeats: 'アクティブメンバーがサブスクリプション規模を超えた場合、追加の席を加えます。',
+            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
+                `サブスクリプションタイプ: ${subscriptionType}、サブスクリプション規模: ${subscriptionSize}${expensifyCode ? `、Expensifyコード: ${expensifyCode}` : ''}、自動更新: ${autoRenew}、年間席数の自動増加: ${autoIncrease}`,
             none: 'なし',
             on: 'オン',
             off: 'オフ',

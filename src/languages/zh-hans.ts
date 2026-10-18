@@ -10841,16 +10841,8 @@ ${reportName}`,
         },
         subscriptionSettings: {
             title: '订阅设置',
-            subscriptionType: '订阅类型',
-            memberCount: ({count}: {count: number}) => ({
-                one: `${count} 位成员`,
-                other: `${count} 位成员`,
-            }),
-            sizeNotSet: `<muted-text>如果您现在不设置订阅规模，我们将根据第一个月的活跃成员数自动设置。<a href="${CONST.PRICING}">了解更多</a></muted-text>`,
-            expensifyCodeApplied: '已应用 Expensify 代码',
-            addExpensifyCode: '添加 Expensify 代码',
-            saveWithAnnualSubscription: '使用年度订阅节省费用',
-            extraSeats: '当活跃成员超过订阅规模时，我们会添加额外席位。',
+            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
+                `订阅类型：${subscriptionType}，订阅规模：${subscriptionSize}${expensifyCode ? `，Expensify代码：${expensifyCode}` : ''}，自动续订：${autoRenew}，年度席位自动增加：${autoIncrease}`,
             none: '无',
             on: '开在',
             off: '关关闭',

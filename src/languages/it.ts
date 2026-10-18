@@ -11299,16 +11299,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
-            subscriptionType: 'Tipo di abbonamento',
-            memberCount: ({count}: {count: number}) => ({
-                one: '1 membro',
-                other: `${count} membri`,
-            }),
-            sizeNotSet: `<muted-text>Se non imposti ora la dimensione dell'abbonamento, la imposteremo automaticamente in base ai membri attivi del primo mese. <a href="${CONST.PRICING}">Scopri di più</a></muted-text>`,
-            expensifyCodeApplied: 'Codice Expensify applicato',
-            addExpensifyCode: 'Aggiungi codice Expensify',
-            saveWithAnnualSubscription: 'Risparmia con un abbonamento annuale',
-            extraSeats: 'Aggiungeremo posti extra quando i membri attivi superano la dimensione del tuo abbonamento.',
+            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
+                `Tipo di abbonamento: ${subscriptionType}, Dimensione abbonamento: ${subscriptionSize}${expensifyCode ? `, Codice Expensify: ${expensifyCode}` : ''}, Rinnovo automatico: ${autoRenew}, Aumento automatico dei posti annuali: ${autoIncrease}`,
             none: 'nessuno',
             on: 'attivo',
             off: 'disattivato',

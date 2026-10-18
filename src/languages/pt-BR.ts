@@ -11254,16 +11254,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
-            subscriptionType: 'Tipo de assinatura',
-            memberCount: ({count}: {count: number}) => ({
-                one: `${count} membro`,
-                other: `${count} membros`,
-            }),
-            sizeNotSet: `<muted-text>Se você não definir o tamanho da assinatura agora, vamos defini-lo automaticamente com base nos membros ativos do primeiro mês. <a href="${CONST.PRICING}">Saiba mais</a></muted-text>`,
-            expensifyCodeApplied: 'Código Expensify aplicado',
-            addExpensifyCode: 'Adicionar código Expensify',
-            saveWithAnnualSubscription: 'Economize com uma assinatura anual',
-            extraSeats: 'Vamos adicionar assentos extras quando os membros ativos excederem o tamanho da sua assinatura.',
+            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
+                `Tipo de assinatura: ${subscriptionType}, Tamanho da assinatura: ${subscriptionSize}${expensifyCode ? `, Código Expensify: ${expensifyCode}` : ''}, Renovação automática: ${autoRenew}, Aumento automático de assentos anuais: ${autoIncrease}`,
             none: 'nenhum',
             on: 'ativado',
             off: 'desligado',

@@ -11260,16 +11260,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
-            subscriptionType: 'Abonnementstype',
-            memberCount: ({count}: {count: number}) => ({
-                one: '1 lid',
-                other: `${count} leden`,
-            }),
-            sizeNotSet: `<muted-text>Als je je abonnementsgrootte nu niet instelt, stellen we die automatisch in op basis van het aantal actieve leden in je eerste maand. <a href="${CONST.PRICING}">Meer informatie</a></muted-text>`,
-            expensifyCodeApplied: 'Expensify-code toegepast',
-            addExpensifyCode: 'Expensify-code toevoegen',
-            saveWithAnnualSubscription: 'Bespaar met een jaarabonnement',
-            extraSeats: 'We voegen extra plaatsen toe wanneer actieve leden je abonnementsgrootte overschrijden.',
+            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
+                `Abonnementstype: ${subscriptionType}, Abonnementsomvang: ${subscriptionSize}${expensifyCode ? `, Expensify-code: ${expensifyCode}` : ''}, Automatisch verlengen: ${autoRenew}, Automatisch jaarlijkse seats verhogen: ${autoIncrease}`,
             none: 'geen',
             on: 'aan',
             off: 'uit',
