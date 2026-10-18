@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} from '@libs/actions/BankAccounts';
 import {openPlaidBankLogin} from '@libs/actions/Plaid';
 import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import Navigation from '@navigation/Navigation';
@@ -36,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -60,8 +61,9 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
 
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
-    const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
-    const isSuccess = !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
+    const isWrongAccountError = !isEmptyObject(getLatestErrorField(bankAccount, CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD));
+    const isSuccess =
+        !bankAccount?.isLoading && !latestErrorMessage && !isWrongAccountError && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     useEffect(() => {
         openPlaidBankLogin(false, bankAccountID);
