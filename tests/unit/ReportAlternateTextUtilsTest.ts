@@ -298,6 +298,40 @@ describe('ReportAlternateTextUtils', () => {
             expect(result).toBe('Mystery Person');
         });
 
+        it("should resolve the last actor from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '75001';
+            const WHISPER_TARGET_ACCOUNT_ID = 939;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {reportActionID: '75002', reportID: REPORT_ID, created: '2024-01-01 10:00:00.000'});
+            /** Newer than `olderComment`, written by Bob, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '75003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                actorAccountID: 2,
+                person: [{type: 'TEXT', style: 'strong', text: 'Bob Boron'}],
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper from Bob aimed at one account, and whose older comment is from Alice
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last actor is resolved without a precomputed last action
+            const getActorFor = (currentUserAccountID: number) => getLastActorDisplayNameFromLastVisibleActions(report, null, currentUserAccountID, PERSONAL_DETAILS, false, translateLocal);
+
+            // Then the whisper's target sees Bob as the last actor
+            expect(getActorFor(WHISPER_TARGET_ACCOUNT_ID)).toBe('Bob');
+
+            // Then anyone else cannot see the whisper, so Alice is the last actor
+            expect(getActorFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Alice');
+        });
+
         it('should fall back to the passed lastActorDetails when there is no last action', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(makeReport(), PERSONAL_DETAILS[2] ?? null, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, false, translateLocal);
             expect(result).toBe('Bob');

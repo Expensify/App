@@ -457,7 +457,9 @@ function getLastActorDisplayNameFromLastVisibleActions(
 ): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const lastReportAction = lastAction ?? getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
+    const lastReportAction =
+        lastAction ??
+        getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID, currentUserAccountIDParam);
 
     if (lastReportAction) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

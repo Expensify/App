@@ -292,7 +292,6 @@ function getAlternateText(
     const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
     if (showChatPreviewLine && !forcePolicyName) {
         if (report) {
-            const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
             const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
             return getReportAlternateText({
@@ -316,7 +315,7 @@ function getAlternateText(
                 // combines one-transaction reports with their thread and drops the IOU action the report preview needs.
                 oneTransactionThreadReportID,
                 lastOriginalAction: lastActions?.[report.reportID],
-                currentUserAccountID: resolvedCurrentUserAccountID,
+                currentUserAccountID,
                 currentUserLogin: currentUserLogin ?? '',
                 isTrackIntentUser,
                 translate: translateFn,
