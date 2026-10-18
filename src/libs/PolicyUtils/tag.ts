@@ -254,10 +254,11 @@ function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined
 }
 
 /**
- * Escape colon from tag name
+ * Escape colon from tag name. Colons that are already escaped are left as-is to match the backend,
+ * otherwise `\:` would become `\\:`, which is read as an escaped backslash followed by a tag level separator.
  */
 function escapeTagName(tag: string) {
-    return tag?.replaceAll(CONST.COLON, '\\:');
+    return tag?.replaceAll(/(?<!\\):/g, '\\:');
 }
 
 /**
