@@ -226,6 +226,27 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show the work email in a domain-controlled error that reaches the purpose page', async () => {
+        // Given a domain-controlled merge error left behind by the work email step, with the email still in the form
+        const workEmail = 'tester@applause.expensifail.com';
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
+        });
+
+        // When the purpose page renders that error
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message names the work email instead of "undefined", because the key interpolates the email
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail))).toBeOnTheScreen();
+        expect(screen.queryByText(/undefined is a domain controlled login/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should navigate to personal details page when user selects EMPLOYER and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 

@@ -64,6 +64,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     distanceDraftData: DistanceDraftData;
     delegateAccountID: number | undefined;
     participantsPolicyTags: ParticipantsPolicyTags;
+    reportTransactions: Transaction[];
 };
 
 /** Hook implementing the distance-request submission path (CreateDistanceRequest) for the expense confirmation screen. */
@@ -99,6 +100,7 @@ function useDistanceSubmission({
     distanceDraftData,
     delegateAccountID,
     participantsPolicyTags,
+    reportTransactions,
 }: UseDistanceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -120,6 +122,7 @@ function useDistanceSubmission({
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
@@ -145,6 +148,7 @@ function useDistanceSubmission({
             getCurrencyDecimals,
             writeBarrier,
             report,
+            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -199,6 +203,7 @@ function useDistanceSubmission({
             formatPhoneNumber,
             participantsPolicyTags,
             rules,
+            reusableDistanceRoutes,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
