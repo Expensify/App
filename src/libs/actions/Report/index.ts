@@ -8314,9 +8314,14 @@ function buildOptimisticChangePolicyData({
         });
 
         // Update the expense chat report
-        const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
-            [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
-        })?.lastMessageText;
+        const lastMessageText = getLastVisibleMessage(
+            oldWorkspaceChatReportID,
+            isReportLastVisibleArchived,
+            {
+                [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
+            },
+            currentUserAccountID,
+        )?.lastMessageText;
         const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
             [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
         })?.lastVisibleActionCreated;

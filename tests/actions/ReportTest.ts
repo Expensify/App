@@ -5989,6 +5989,79 @@ describe('actions/Report', () => {
             expect(failureTransaction?.value?.convertedAmount).toBe(transaction.convertedAmount);
         });
 
+        it("resolves the old workspace chat's last message from the current user's own whisper visibility", async () => {
+            const OLD_CHAT_REPORT_ID = 'oldChat79001';
+            const PREVIEW_ACTION_ID = '79002';
+            const WHISPER_TARGET_ACCOUNT_ID = 979;
+
+            const olderComment = {
+                reportActionID: '79003',
+                reportID: OLD_CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            } as OnyxTypes.ReportAction;
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = {
+                reportActionID: '79004',
+                reportID: OLD_CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as OnyxTypes.ReportAction;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(79005, undefined),
+                reportID: '79005',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                parentReportID: OLD_CHAT_REPORT_ID,
+                parentReportActionID: PREVIEW_ACTION_ID,
+            };
+
+            // Given an expense report moving out of a workspace chat whose newest remaining action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OLD_CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            const getOldChatLastMessageFor = (currentUserAccountID: number) => {
+                // When the change-policy data is built for the given user
+                const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                    report,
+                    getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    delegateAccountID: undefined,
+                    parentReport: undefined,
+                    policy: createRandomPolicy(79006),
+                    currentUserAccountID,
+                    currentUserEmail: '',
+                    ownerLogin: undefined,
+                    managerLogin: '',
+                    hasViolationsParam: false,
+                    isASAPSubmitBetaEnabled: true,
+                    isReportLastVisibleArchived: undefined,
+                    reportPreviewAction: undefined,
+                    isTrackIntentUser: false,
+                    reportTransactions: [],
+                });
+                const oldChatUpdate = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${OLD_CHAT_REPORT_ID}`);
+                const value: unknown = oldChatUpdate?.value;
+                if (!value || typeof value !== 'object' || !('lastMessageText' in value)) {
+                    return undefined;
+                }
+                return value.lastMessageText;
+            };
+
+            // Then the whisper's target gets the whisper, not the older comment, as the old chat's last message
+            expect(getOldChatLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+
+            // Then anyone else cannot see the whisper, so the older comment is the old chat's last message
+            expect(getOldChatLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+        });
+
         it('should NOT clear convertedAmount when source and destination currencies are the same', async () => {
             const reportID = 'testReport789';
             const transactionID = 'testTransaction012';
