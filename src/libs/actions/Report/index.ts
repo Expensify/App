@@ -3204,17 +3204,25 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 
     const lastReadTime = getDBTimeWithSkew();
 
-    // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
-    // user created. `openReport` clears it on a return trip or a refresh.
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    // Automatic reads preserve the divider for the current visit; explicit mark-as-read commands clear it.
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
+                ...(shouldResetUnreadMarker && {manuallyMarkedUnreadReportActionID: null}),
             },
         },
     ];
+
+    if (shouldResetUnreadMarker) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {manuallyMarkedUnreadTime: null},
+        });
+    }
 
     const parameters: ReadNewestActionParams = {
         reportID,

@@ -1,4 +1,4 @@
-import {canReportActionTriggerUnreadMarker, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionUnread, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -129,7 +129,7 @@ function useUnreadMarker({
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
         const visibleAction = visibleIndex >= 0 ? sortedVisibleReportActions.at(visibleIndex) : undefined;
-        if (visibleAction && canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)) {
+        if (visibleAction && isReportActionUnread(visibleAction, unreadMarkerTime) && canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
