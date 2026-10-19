@@ -13,11 +13,11 @@ type UseColumnResizeParams = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
-    /** Gap between columns, so handles can be centred in it. */
+    /** Gap between columns, which handles span. */
     columnGap: number;
 };
 
-type ColumnResizeHandleDOMProps = React.HTMLAttributes<HTMLDivElement>;
+type ColumnResizeHandleDOMProps = React.ComponentPropsWithRef<'div'>;
 
 type ColumnResizeController = {
     /** Element holding the width custom properties. The header and rows inherit them, so one write repaints all. */

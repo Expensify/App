@@ -129,7 +129,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
-import {linkingConfig} from './Navigation/linkingConfig';
+import linkingPrefixes from './Navigation/linkingConfig/prefixes';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
@@ -155,6 +155,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasReadOnlyAllReportsAccess,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
@@ -1024,8 +1025,7 @@ type GetPolicyNameBaseParams = {
     reports?: Report[];
 };
 
-// TODO: We'll remove the optional (?) modifier from the unavailableTranslation parameter once https://github.com/Expensify/App/issues/66430 is completed.
-type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation?: string});
+type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation: string});
 
 type GetReportStatusParams = {
     stateNum?: number;
@@ -1246,7 +1246,6 @@ Onyx.connect({
 });
 
 let hiddenTranslation = '';
-let unavailableTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
@@ -1255,7 +1254,6 @@ Onyx.connect({
             return;
         }
         hiddenTranslation = translateLocal('common.hidden');
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
     },
 });
 
@@ -1413,10 +1411,13 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 
 /**
  * Get the policy name from a given report
+ *
+ * Callers pass their own `unavailableTranslation` (the "Unavailable workspace" copy) for the case where no policy resolves, unless they
+ * pass `returnEmptyIfNotFound`. Builders that persist their output pass the English literal, everything else passes `translate('workspace.common.unavailable')`.
  */
 function getPolicyName(params: GetPolicyNameParams): string {
     const {report, policy, policies, reports} = params;
-    const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
+    const noPolicyFound = params.returnEmptyIfNotFound ? '' : params.unavailableTranslation;
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     // A caller that explicitly passes `policy` (e.g. a draft workspace's policy from getReportOption) can resolve a name
@@ -2880,6 +2881,17 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
 }
 
 /**
+ * Checks if a thread member is the sender or receiver of the thread's parent IOU report.
+ * They keep access through the IOU report, so removing them from the thread doesn't stick.
+ */
+function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Report>, accountID: number | undefined): boolean {
+    if (!parentReport || accountID === undefined || !isIOUReport(parentReport)) {
+        return false;
+    }
+    return accountID === parentReport.ownerAccountID || accountID === parentReport.managerID;
+}
+
+/**
  * Checks if a report aligns its action list to the top (transaction threads, money request / invoice reports).
  */
 function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
@@ -3350,9 +3362,12 @@ function canIOUBePaid(
     const isReportFinished = (isApproved || isClosed) && !iouReport?.isWaitingOnBankAccount;
     const isIOU = isIOUReport(iouReport);
     const canShowMarkedAsPaidForNegativeAmount = onlyShowPayElsewhere && reimbursableSpend < 0;
-    // Nothing is left to reimburse, e.g. the expenses cancel out, so the report can only be marked as paid to close it out
-    const canShowMarkedAsPaidForZeroReimbursableSpend = onlyShowPayElsewhere && hasSettledZeroReimbursableSpend(spendBreakdown, iouReport, transactions);
-    const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+
+    // Nothing is left to reimburse, e.g. the expenses cancel out or not reimbursable, so the report can only be marked as paid to close it out
+    const canShowMarkedAsPaidForZeroReimbursableSpend =
+        onlyShowPayElsewhere &&
+        (nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, iouReport, transactions)) &&
+        !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions));
 
     if (isIOU && canPay && !iouSettled && reimbursableSpend > 0) {
         return true;
@@ -3368,7 +3383,7 @@ function canIOUBePaid(
         canPay &&
         isReportFinished &&
         !iouSettled &&
-        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || canShowMarkedAsPaidForZeroReimbursableSpend || isOnlyNonReimbursablePayElsewhere) &&
+        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || canShowMarkedAsPaidForZeroReimbursableSpend) &&
         !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isReportPayAtEnd &&
@@ -5853,7 +5868,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
     const isManager = isReportManager(report);
     const isSubmitter = isReportOwner(report);
-    const isReportAuditor = isAuditor(report);
     const isIOUType = isIOUReport(report);
     const isInvoiceType = isInvoiceReport(report);
     const isExpenseType = isExpenseReport(report);
@@ -5866,7 +5880,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     }
 
     if (isInvoiceType) {
-        return isOpen && !isReportAuditor;
+        return isOpen && !hasReadOnlyAllReportsAccess(reportPolicy);
     }
 
     if (isExpenseType) {
@@ -6850,10 +6864,18 @@ function getReportPreviewReportActionMessage(
     const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
-    const policyName = getPolicyName({report: parentReport ?? report, policy});
+    // Like the rest of this function, the workspace and participant fallbacks below are the raw English copy: this message is stored on a
+    // report action and read back by every viewer, so it must not follow the locale of whoever happened to build it. These mirror
+    // `workspace.common.unavailable` and `common.hidden` in `src/languages/en.ts`, and ReportUtilsTest asserts they do not drift from them.
+    const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: 'Unavailable workspace'});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        : getDisplayNameForParticipant({
+              accountID: report.managerID,
+              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              hiddenTranslation: 'Hidden',
+          });
 
     const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
@@ -6910,7 +6932,12 @@ function getReportPreviewReportActionMessage(
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+                : getDisplayNameForParticipant({
+                      accountID: payerAccountID,
+                      shouldUseShortForm: true,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: 'Hidden',
+                  });
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -6943,7 +6970,13 @@ function getReportPreviewReportActionMessage(
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const submitterDisplayName =
+            getDisplayNameForParticipant({
+                accountID: report.ownerAccountID,
+                shouldUseShortForm: true,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                hiddenTranslation: 'Hidden',
+            }) ?? '';
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
@@ -6972,13 +7005,18 @@ function getReportPreviewReportActionMessage(
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({
+                      accountID: lastActorID,
+                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: 'Hidden',
+                  })
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
     }
 
     if (containsNonReimbursable) {
-        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: 'Hidden'}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
     return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
@@ -8054,7 +8092,8 @@ function buildOptimisticExpenseReport({
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
-    const policyName = getPolicyName({report});
+    // The report name below is stored in English (see the `reportName` comment), so its workspace fallback is the raw English copy too.
+    const policyName = getPolicyName({report, unavailableTranslation: 'Unavailable workspace'});
     const formattedTotal = convertToDisplayStringEnLocale(storedTotal, currency, getCurrencyDecimals);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policyReal = getPolicy(policyID);
@@ -11392,7 +11431,7 @@ function getRouteFromLink(url: string | null): string {
     // Get the reportID from URL
     let route = url;
     const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
-    for (const prefix of linkingConfig.prefixes) {
+    for (const prefix of linkingPrefixes) {
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
@@ -12346,6 +12385,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isEmpty(policy) &&
         hasParticipantInArray(report, deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : []) &&
         !isAuditor(report) &&
+        !hasReadOnlyAllReportsAccess(policy) &&
         !isPolicyGuest(policy)
     );
 }
@@ -14096,6 +14136,16 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
+/**
+ * Whether the current user can email the report to someone. The submitter, the approver and workspace admins can once the report is submitted.
+ */
+function canShareReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
+    if (!isExpenseReport(report) || isOpenReport(report)) {
+        return false;
+    }
+    return isCurrentUserSubmitter(report, currentUserAccountID) || report?.managerID === currentUserAccountID || isPolicyAdmin(policy);
+}
+
 function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return '';
@@ -15455,6 +15505,7 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
+    isThreadMemberProtectedByParentReport,
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
@@ -15504,6 +15555,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
     canBeExported,
+    canShareReport,
     isExported,
     hasExpensifyGuidesEmails,
     hasExportError,
