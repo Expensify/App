@@ -319,6 +319,12 @@ type OnboardingMessagesWithoutManageTeam = Omit<OnboardingMessages, 'onboardingM
     onboardingMessages: Omit<OnboardingMessages['onboardingMessages'], typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM>;
 };
 
+/**
+ * Used by `ReportUtils` instead of `OnboardingFlow.getOnboardingMessages()`, because importing `OnboardingFlow` would create an import cycle.
+ * It builds the messages without onboarding data, so it also skips the module-level Onyx read that `getOnboardingMessages()` relies on.
+ * Only the Manage team message uses onboarding data, so the return type leaves that message out.
+ * If another message starts using onboarding data, leave it out here too.
+ */
 function buildOnboardingMessagesWithoutManageTeam(locale?: Locale): OnboardingMessagesWithoutManageTeam {
     return buildOnboardingMessages(undefined, locale);
 }
