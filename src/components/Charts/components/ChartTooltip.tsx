@@ -113,10 +113,10 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
     }, [isShown, isFocused, onDismiss]);
 
     const dismissOnWindowResize = useEffectEvent(() => {
-        if (!isShown) {
+        if (!isShown || !onDismiss) {
             return;
         }
-        onDismiss?.();
+        onDismiss();
     });
 
     // A pinned tooltip is hidden when the window is resized (e.g. on rotation)
