@@ -109,12 +109,14 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
                                 onPressOut={() => {
-                                    if (timerRef.current) {
-                                        clearInterval(timerRef.current);
-                                        timerRef.current = null;
+                                    ControlSelection.unblock();
+
+                                    if (!timerRef.current) {
+                                        return;
                                     }
 
-                                    ControlSelection.unblock();
+                                    clearInterval(timerRef.current);
+                                    timerRef.current = null;
                                     longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => {
