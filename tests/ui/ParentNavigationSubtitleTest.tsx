@@ -1,14 +1,22 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import type {RouteProp} from '@react-navigation/native';
 
 import React from 'react';
 
+import type Report from '../../src/types/onyx/Report';
+
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
+import CONST from '../../src/CONST';
 import NAVIGATORS from '../../src/NAVIGATORS';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import ROUTES from '../../src/ROUTES';
 import SCREENS from '../../src/SCREENS';
 import createMock from '../utils/createMock';
 
@@ -33,6 +41,16 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isReportActionVisible: jest.fn(() => false),
 }));
 
+jest.mock('@libs/ReportUtils', () => {
+    const actualReportUtils = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
+    return {
+        ...actualReportUtils,
+        getPolicyExpenseChat: jest.fn(),
+    };
+});
+
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
+
 const mockUseRootNavigationState = jest.fn();
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
@@ -41,6 +59,7 @@ jest.mock('@hooks/useRootNavigationState', () => ({
 
 type AnyRoute = RouteProp<Record<string, Record<string, unknown> | undefined>, string>;
 const mockUseRoute = jest.fn<AnyRoute, []>();
+const mockUseOnyx = jest.mocked(useOnyx);
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
@@ -300,5 +319,72 @@ describe('ParentNavigationSubtitle', () => {
 
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalled();
+    });
+
+    it('opens the policy expense chat from a parentless bill subtitle', () => {
+        const billReportID = 'bill-report';
+        const policyExpenseChatID = 'policy-expense-chat';
+        const ownerAccountID = 123;
+        const policyID = 'policy-id';
+        const billReport = createMock<Report>({
+            reportID: billReportID,
+            type: CONST.REPORT.TYPE.BILL,
+            ownerAccountID,
+            policyID,
+            hasParentAccess: undefined,
+        });
+        const policyExpenseChat = createMock<Report>({reportID: policyExpenseChatID});
+
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${billReportID}`) {
+                return [billReport, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(policyExpenseChat);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+
+        render(
+            <ParentNavigationSubtitle
+                parentNavigationSubtitleData={{reportName: "bob's expenses", workspaceName: "Receiver's Workspace"}}
+                reportID={billReportID}
+            />,
+        );
+
+        fireEvent(screen.getByTestId('parent-navigation-subtitle-link'), 'press', {
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            nativeEvent: {},
+        });
+
+        expect(getPolicyExpenseChat).toHaveBeenCalledWith(ownerAccountID, policyID);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatID));
+    });
+
+    it('renders the parentless bill subtitle as text when its policy expense chat is unavailable', () => {
+        const billReportID = 'bill-report';
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${billReportID}`) {
+                const billReport = createMock<Report>({
+                    reportID: billReportID,
+                    type: CONST.REPORT.TYPE.BILL,
+                    hasParentAccess: undefined,
+                });
+                return [billReport, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(undefined);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+
+        render(
+            <ParentNavigationSubtitle
+                parentNavigationSubtitleData={{reportName: "bob's expenses", workspaceName: "Receiver's Workspace"}}
+                reportID={billReportID}
+            />,
+        );
+
+        expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
+        expect(screen.getByText("bob's expenses")).toBeTruthy();
     });
 });
