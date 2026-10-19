@@ -77,6 +77,7 @@ const defaultReportMetadata = {
 
 const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
+    isCreatingSupportTicket: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
@@ -129,6 +130,7 @@ function ReportFetchHandler() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const isPendingReportCreation = !!reportLoadingState.isCreatingSupportTicket;
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -190,9 +192,8 @@ function ReportFetchHandler() {
 
         // isPendingCreationFromRoute means reportIDFromRoute is a client-generated ID that doesn't exist
         // on the server yet. Calling openReport for it would 403 and show the not-found page instead.
-        // Once the real submit creates the report under this ID, reportOnyx?.reportID becomes truthy
-        // and normal fetching resumes.
-        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
+        // Wait until the report exists locally and is no longer optimistic before fetching it.
+        if (isPendingCreationFromRoute && (!reportOnyx?.reportID || isPendingReportCreation)) {
             return;
         }
 
@@ -388,15 +389,16 @@ function ReportFetchHandler() {
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
-    // isPendingCreation is only needed before the report exists. Clear it from the route params once it
+    // isPendingCreation is only needed before the report exists on the server. Clear it from the route params once it
     // does, so a copied URL, restored navigation state, or reload doesn't carry the stale flag and skip
-    // fetching again later.
+    // fetching again later. A support-ticket request is lost on reload, so its RAM-only guard also resets
+    // and lets OpenReport discover whether the server created the ticket.
     useEffect(() => {
-        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID || isPendingReportCreation) {
             return;
         }
         navigation.setParams({isPendingCreation: undefined});
-    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, isPendingReportCreation, navigation]);
 
     // A restored or shared route can carry isPendingCreation with no submit behind it. The owning submit writes the
     // report row within the dismiss transition budget (about 2s) after this screen gains focus, so a focused screen

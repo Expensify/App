@@ -78,6 +78,7 @@ function TaskListItem<TItem extends ListItem>({
     return (
         <ListItemComposed
             item={item}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
