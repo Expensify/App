@@ -73,6 +73,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
+    const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -258,7 +259,6 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                         }}
                     >
                         <InputWrapper
-                            key={shouldAutoGrowPromptInput ? 'autoGrow' : 'fixedHeight'}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
                             label={translate('addAgentPage.instructions')}
@@ -269,8 +269,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             onKeyPress={submitFormOnModEnter}
                             defaultValue={defaultPrompt}
                             multiline
-                            autoGrowHeight={shouldAutoGrowPromptInput}
-                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                            // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
+                            autoGrowHeight={Platform.OS !== 'web'}
+                            maxAutoGrowHeight={isInLandscapeMode ? landscapePromptHeight : PROMPT_MAX_AUTO_GROW_HEIGHT}
                             containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
                             touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
                             inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}

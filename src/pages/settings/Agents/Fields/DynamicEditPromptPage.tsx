@@ -47,6 +47,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
+    const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const formRef = useRef<FormRef>(null);
@@ -126,7 +127,6 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                         }}
                     >
                         <InputWrapper
-                            key={shouldAutoGrowPromptInput ? 'autoGrow' : 'fixedHeight'}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
                             label={translate('editAgentPage.instructions')}
@@ -136,8 +136,9 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                             excludedMarkdownStyles={['mentionReport']}
                             defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                             multiline
-                            autoGrowHeight={shouldAutoGrowPromptInput}
-                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                            // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
+                            autoGrowHeight={Platform.OS !== 'web'}
+                            maxAutoGrowHeight={isInLandscapeMode ? landscapePromptHeight : PROMPT_MAX_AUTO_GROW_HEIGHT}
                             containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
                             touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
                             inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}

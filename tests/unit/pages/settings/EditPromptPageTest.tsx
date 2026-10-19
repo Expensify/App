@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -11,8 +12,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {Platform} from 'react-native';
 
 import createMock from '../../../utils/createMock';
+
+const mockPromptMount = jest.fn();
+
+jest.mock('@hooks/useIsInLandscapeMode', () => jest.fn(() => false));
 
 jest.mock('@userActions/Agent', () => ({
     updateAgentPrompt: jest.fn(),
@@ -76,7 +82,11 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 
 jest.mock('@components/Form/InputWrapper', () => {
+    const {useEffect} = jest.requireActual<typeof React>('react');
     function MockInputWrapper({inputID, defaultValue}: {inputID: string; defaultValue?: string}) {
+        useEffect(() => {
+            mockPromptMount();
+        }, []);
         return `${inputID}::${defaultValue ?? ''}`;
     }
     return MockInputWrapper;
@@ -96,6 +106,31 @@ describe('EditPromptPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+    });
+
+    it('keeps the prompt mounted when rotating on native', () => {
+        // Given a native prompt editor in portrait, remounting would discard the input's focus and selection.
+        const platform = jest.replaceProperty(Platform, 'OS', 'ios');
+        const mockLandscape = jest.mocked(useIsInLandscapeMode);
+        mockLandscape.mockReturnValue(false);
+        const page = (
+            <EditPromptPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />
+        );
+        const {rerender} = render(page);
+        expect(mockPromptMount).toHaveBeenCalledTimes(1);
+
+        // When the device rotates to landscape and back while the editor is open.
+        mockLandscape.mockReturnValue(true);
+        rerender(React.cloneElement(page));
+        mockLandscape.mockReturnValue(false);
+        rerender(React.cloneElement(page));
+
+        // Then the original input survives both layout changes, preserving native editing state.
+        expect(mockPromptMount).toHaveBeenCalledTimes(1);
+        platform.restore();
     });
 
     it('renders page title', () => {
