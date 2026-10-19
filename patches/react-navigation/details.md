@@ -91,7 +91,7 @@
 - Reason: Remounts the native tab host when the set of hidden routes changes. Turning the Insights beta on or off swaps which route has `tabBarItemHidden` (see the hidden-tab-items patch), so one `Tabs.Screen` is removed from the host and another is inserted. Android does not remove a native tab in place (see the stable-native-tab-identity patch), so the host was left with a stale tab and its selected tab pointing at it, and the app crashed when the host was shown again. With this patch the `Tabs.Host` key includes the hidden route names, so a change replaces the whole host with a fresh one that has the right tabs. The beta rarely changes, so remounting the tab contents then is acceptable. **Remove this patch** together with the stable-native-tab-identity patch, once react-native-screens removes Android tabs correctly.
 - Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
 - E/App issue: [#104280](https://github.com/Expensify/App/issues/104280)
-- PR Introducing Patch: TBD
+- PR Introducing Patch: [#104327](https://github.com/Expensify/App/pull/104327)
 - PR Updating Patch: N/A
 
 ### Removed patches
