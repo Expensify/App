@@ -67,8 +67,7 @@ type DynamicAddAgentPageContentProps = {
 
 function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
-    const policyID = route.params?.policyID;
-    const policy = usePolicy(policyID);
+    const policy = usePolicy(route.params.policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -164,17 +163,17 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         let optimisticPersonalDetailPromise: Promise<void> | undefined;
         let backToAgentsListRoute: Route | undefined;
 
-        if (policyID) {
+        if (policy) {
             const result = uploadedAvatar?.uri
-                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
-                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID());
+                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
+                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID());
             optimisticReportID = result.optimisticReportID;
             optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
-            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
+            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policy.id);
         } else {
             const result = uploadedAvatar?.uri
-                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
+                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined);
             optimisticReportID = result.optimisticReportID;
             optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
             backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
@@ -276,7 +275,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    {!!policyID && (
+                    {!!policy && (
                         <View style={[styles.mhn5]}>
                             <InputWrapper
                                 InputComponent={ValuePicker}

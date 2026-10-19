@@ -160,7 +160,6 @@ function createAgent(
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
-    policyID?: string,
 ) {
     const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
         currentUserAccountID,
@@ -175,7 +174,7 @@ function createAgent(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
+        {firstName, prompt, customExpensifyAvatarID, file, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
@@ -186,7 +185,7 @@ function createCompanyAgent(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
-    policyID: string,
+    policy: Policy,
     role: string,
     firstName?: string,
     customExpensifyAvatarID?: string,
@@ -204,7 +203,7 @@ function createCompanyAgent(
 
     write(
         WRITE_COMMANDS.CREATE_COMPANY_AGENT,
-        {prompt, policyID, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
+        {prompt, policyID: policy.id, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
