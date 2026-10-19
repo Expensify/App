@@ -21,7 +21,7 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
     },
 }));
 
-let mockCategoryTaxDetails: {categoryTaxCode: string | undefined; categoryTaxAmount: number | undefined; categoryTaxValue: string | undefined};
+let mockCategoryTaxCode: string | undefined;
 let mockHasTaxRateWithMatchingValue: boolean;
 
 jest.mock('@libs/TransactionUtils', () => ({
@@ -29,7 +29,7 @@ jest.mock('@libs/TransactionUtils', () => ({
         const pct = Number.parseFloat(String(taxPercentage).replace('%', '')) || 0;
         return (taxableAmount * pct) / 100;
     },
-    getCategoryTaxDetails: () => mockCategoryTaxDetails,
+    getCategoryTaxCode: () => mockCategoryTaxCode,
     getDefaultTaxCode: () => 'tax_default',
     getTaxValue: () => '10%',
     hasTaxRateWithMatchingValue: () => mockHasTaxRateWithMatchingValue,
@@ -67,7 +67,7 @@ describe('useTaxAmount', () => {
         mockConvertToDistanceInMeters.mockImplementation((distance: number) => distance);
         mockGetCommuterExclusionDisplayData.mockReturnValue(null);
         mockGetTaxableAmount.mockReturnValue(100);
-        mockCategoryTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+        mockCategoryTaxCode = undefined;
         mockHasTaxRateWithMatchingValue = false;
     });
 
@@ -164,7 +164,7 @@ describe('useTaxAmount', () => {
 
     it('prefers the tax rate from the category rule over the workspace default', () => {
         // Given a category whose tax rule resolves to a tax code of its own
-        mockCategoryTaxDetails = {categoryTaxCode: 'tax_category', categoryTaxAmount: 100, categoryTaxValue: '5%'};
+        mockCategoryTaxCode = 'tax_category';
 
         // When the hook resolves the default tax code
         const {result} = renderHook(() => useTaxAmount(baseParams));
@@ -175,7 +175,7 @@ describe('useTaxAmount', () => {
 
     it('keeps the workspace default when the user picks it over the category rule rate', () => {
         // Given a category rule that resolves to its own tax code, and a user who picked the workspace default instead
-        mockCategoryTaxDetails = {categoryTaxCode: 'tax_category', categoryTaxAmount: 100, categoryTaxValue: '5%'};
+        mockCategoryTaxCode = 'tax_category';
         mockHasTaxRateWithMatchingValue = true;
         const transaction = {...baseTransaction, taxCode: 'tax_default'};
 

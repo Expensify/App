@@ -2,7 +2,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateTaxAmount, getCategoryTaxDetails, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCategoryTaxCode, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -64,14 +64,13 @@ function useTaxAmount({
     const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
-    const {categoryTaxCode} = getCategoryTaxDetails(transaction?.category ?? '', transaction, policy, getCurrencyDecimals);
-    // We use || instead of ?? because the category helper can return an empty string, which should also fall back to the workspace default.
+    // We use || instead of ?? because the category rule can resolve to an empty string.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const defaultTaxCode = categoryTaxCode || workspaceDefaultTaxCode;
+    const defaultTaxCode = getCategoryTaxCode(transaction?.category ?? '', transaction, policy) || workspaceDefaultTaxCode;
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
     // Resolved the same way as defaultTaxCode, otherwise picking the workspace default while a category rule is active
     // reads as "no selection" and the rule's rate is written straight back over it.
-    const {categoryTaxCode: previousCategoryTaxCode} = getCategoryTaxDetails(transaction?.category ?? '', transaction, policy, getCurrencyDecimals, previousTransactionCurrency);
+    const previousCategoryTaxCode = getCategoryTaxCode(transaction?.category ?? '', transaction, policy, previousTransactionCurrency);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const previousDefaultTaxCode = previousCategoryTaxCode || getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;

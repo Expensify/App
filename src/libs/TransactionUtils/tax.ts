@@ -44,6 +44,15 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 /**
+ * Whether a distance rate carries a tax rate the user can still pick. Disabling a tax rate leaves the rate pointing at
+ * it, so a rate the user can no longer pick is treated the same as a rate that never had one.
+ */
+function hasSelectableRateTaxCode(policy: OnyxEntry<Policy>, customUnitRateID: string): boolean {
+    const rateTaxCode = getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
+    return isSelectableTaxCode(policy, rateTaxCode);
+}
+
+/**
  * Gets the tax code based on the type of transaction and selected currency.
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
@@ -55,17 +64,13 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
         // Therefore, to correctly determine the tax code for the selected rate, we must use the newly selected distance rate's customUnitRateID (newCustomUnitRateID)
         // instead of relying on the transaction's current customUnitRateID.
         const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
-        const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         const customUnit = getDistanceRateCustomUnit(policy);
-        const rateTaxCode = customUnitRate?.attributes?.taxRateExternalID;
-        // Disabling a tax rate leaves the distance rate still pointing at it, so a rate the user can no longer pick is
-        // treated the same as a missing one, and the policy default is only used while it is selectable.
-        const isRateTaxCodeUnusable = !!rateTaxCode && !isSelectableTaxCode(policy, rateTaxCode);
-        if ((!rateTaxCode || isRateTaxCodeUnusable) && customUnit?.attributes?.taxEnabled) {
+        if (!hasSelectableRateTaxCode(policy, customUnitRateID)) {
+            // The policy default is only used while it is selectable itself.
             const defaultExternalID = policy?.taxRates?.defaultExternalID;
-            return isSelectableTaxCode(policy, defaultExternalID) ? defaultExternalID : undefined;
+            return customUnit?.attributes?.taxEnabled && isSelectableTaxCode(policy, defaultExternalID) ? defaultExternalID : undefined;
         }
-        return isRateTaxCodeUnusable ? undefined : rateTaxCode;
+        return getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
     }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -113,16 +118,12 @@ function getDistanceRateTaxUpdates(
     distanceUnit?: Unit,
     category?: string,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    // getDefaultTaxCode already returns the rate's own tax code when it is still selectable, and falls back to the policy
-    // default when it is empty, disabled, or pending delete.
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    const rateTaxCode = getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
     // A rate's own tax rate wins over a category rule, because vehicle types coded to the same category can each
-    // reclaim at a different rate. A rate without one falls through to the category rule, then the workspace default.
-    const hasUsableRateTaxCode = !!rateTaxCode && isSelectableTaxCode(policy, rateTaxCode);
+    // reclaim at a different rate.
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax) ?? [];
-    const categoryTaxCode = hasUsableRateTaxCode ? undefined : getCategoryDefaultTaxRate(taxRules, category ?? transaction?.category ?? '', defaultTaxCode);
-    // We use || instead of ?? because the category rule can resolve to an empty string, which should also fall back to the default tax code.
+    const categoryTaxCode = hasSelectableRateTaxCode(policy, customUnitRateID) ? undefined : getCategoryDefaultTaxRate(taxRules, category ?? transaction?.category ?? '', defaultTaxCode);
+    // We use || instead of ?? because the category rule can resolve to an empty string.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxCode = categoryTaxCode || defaultTaxCode;
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
@@ -217,6 +218,29 @@ function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Trans
     return '';
 }
 
+/**
+ * Resolves the tax code an expense defaults to once the policy's category tax rules are applied, or undefined when no
+ * rule can apply.
+ */
+function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency?: string): string | undefined {
+    const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
+    if (!taxRules || taxRules.length === 0) {
+        return undefined;
+    }
+
+    if (isDistanceRequest(transaction)) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        // Tax tracking being off for distance rates hides the Tax field, so a value written there would be invisible,
+        // and a rate carrying its own tax rate outranks the rule.
+        if (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
+            return undefined;
+        }
+        return getCategoryDefaultTaxRate(taxRules, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '');
+    }
+
+    return getCategoryDefaultTaxRate(taxRules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
+}
+
 function getCategoryTaxDetails(
     category: string,
     transaction: OnyxEntry<Transaction>,
@@ -224,29 +248,19 @@ function getCategoryTaxDetails(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     currency?: string,
 ) {
-    const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    const customUnitRateID = isDistanceRequest(transaction) ? (getRateID(transaction) ?? '') : undefined;
-    const rateTaxCode = customUnitRateID === undefined ? undefined : getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
-    // Distance skips the category rule in two cases. Tax tracking being off for distance rates hides the Tax field, so
-    // a value written there would be invisible. A rate carrying its own tax rate wins over the rule, because vehicle
-    // types coded to the same category can each reclaim at a different rate. A rate pointing at a tax the user can no
-    // longer pick counts as having none, which matches how getDistanceRateTaxUpdates resolves the same rate.
-    const shouldSkipDistanceTax =
-        customUnitRateID !== undefined && (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || (!!rateTaxCode && isSelectableTaxCode(policy, rateTaxCode)));
-    if (!taxRules || taxRules?.length === 0 || shouldSkipDistanceTax) {
+    const categoryTaxCode = getCategoryTaxCode(category, transaction, policy, currency);
+    if (!categoryTaxCode) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
 
     // Distance tax is charged on the taxable portion of the mileage rate rather than the full amount, so reuse the
     // rate-aware calculation instead of taxing the expense amount.
-    if (customUnitRateID !== undefined) {
-        const {taxCode, taxAmount, taxValue} = getDistanceRateTaxUpdates(policy, transaction, customUnitRateID, getCurrencyDecimals, undefined, category);
+    if (isDistanceRequest(transaction)) {
+        const {taxCode, taxAmount, taxValue} = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction) ?? '', getCurrencyDecimals, undefined, category);
         return {categoryTaxCode: taxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction));
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
-    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
+    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode);
     let categoryTaxAmount;
 
     if (categoryTaxPercentage) {
@@ -259,6 +273,7 @@ function getCategoryTaxDetails(
 export {
     calculateTaxAmount,
     getCalculatedTaxAmount,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,

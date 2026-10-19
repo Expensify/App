@@ -479,9 +479,9 @@ describe('TransactionUtils', () => {
                 );
 
                 // Then the category rule is skipped, because the rate's own tax rate takes precedence over it
-                expect(categoryTaxCode).toBe(undefined);
-                expect(categoryTaxAmount).toBe(undefined);
-                expect(categoryTaxValue).toBe(undefined);
+                expect(categoryTaxCode).toBeUndefined();
+                expect(categoryTaxAmount).toBeUndefined();
+                expect(categoryTaxValue).toBeUndefined();
             });
 
             it('should apply the category rule when the rate points at a tax rate that was disabled', () => {
