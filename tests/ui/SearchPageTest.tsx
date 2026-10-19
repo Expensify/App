@@ -88,9 +88,10 @@ jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(() => Promise.resolve(200)),
 }));
 
+const mockIsNavigationFocused = jest.fn(() => true);
 jest.mock('@react-navigation/core', () => ({
     ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
-    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: mockIsNavigationFocused})),
 }));
 
 type ListProps = {onEndReached?: () => void; onViewableItemsChanged?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
@@ -311,6 +312,7 @@ describe('SearchPageNarrow', () => {
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
+        mockIsNavigationFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
         listProps.onViewableItemsChanged = undefined;
         listProps.onSelectRow = undefined;
@@ -532,6 +534,35 @@ describe('SearchPageNarrow', () => {
 
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
     });
+
+    it('renders the loading skeleton once a page mounted in the background is shown without results', async () => {
+        // Given a snapshot whose first response has not arrived yet
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: true,
+                    hasMoreResults: false,
+                    hasResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+                },
+            });
+        });
+
+        // When the page mounts unfocused, as native tab bars mount Spend at startup, and is then shown
+        mockIsNavigationFocused.mockReturnValue(false);
+        const renderedPage = renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the page keeps its loading skeleton instead of mounting Search with no results to show
+        expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
+    });
+
     it('does not repeat the first page the page-level setup already requested', async () => {
         // Given a query with no snapshot yet, so the page-level setup owns the first request
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);

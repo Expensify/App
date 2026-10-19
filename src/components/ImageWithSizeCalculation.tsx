@@ -79,6 +79,7 @@ function ImageWithSizeCalculation({
     };
 
     return (
+        // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
@@ -98,6 +99,7 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             previewUri={previewUri}
+            shouldShowTimeoutNotice={false}
         />
     );
 }

@@ -22,6 +22,7 @@ const SCREENS = {
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
+    BILLING_RECEIPT: 'BillingReceipt',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -142,13 +143,13 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
-            NEW: 'Settings_Agents_New',
-            ADD: 'Settings_Agents_Add',
-            ADD_AVATAR: 'Settings_Agents_Add_Avatar',
-            EDIT: 'Settings_Agents_Edit',
-            EDIT_NAME: 'Settings_Agents_Edit_Name',
-            EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
-            EDIT_AVATAR: 'Settings_Agents_Edit_Avatar',
+            DYNAMIC_NEW: 'Dynamic_Settings_Agents_New',
+            DYNAMIC_ADD: 'Dynamic_Settings_Agents_Add',
+            DYNAMIC_ADD_AVATAR: 'Dynamic_Settings_Agents_Add_Avatar',
+            DYNAMIC_EDIT: 'Dynamic_Settings_Agents_Edit',
+            DYNAMIC_EDIT_NAME: 'Dynamic_Settings_Agents_Edit_Name',
+            DYNAMIC_EDIT_PROMPT: 'Dynamic_Settings_Agents_Edit_Prompt',
+            DYNAMIC_EDIT_AVATAR: 'Dynamic_Settings_Agents_Edit_Avatar',
         },
 
         RULES: {
@@ -510,6 +511,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
         DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
         DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
+        DYNAMIC_SHARE_REPORT: 'Dynamic_Report_Details_Share_Report',
     },
 
     REPORT_CHANGE_WORKSPACE: {
@@ -776,6 +778,10 @@ const SCREENS = {
             BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Business_Central_Export_Company_Card_Account',
             BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: 'Policy_Accounting_Business_Central_Export_Default_Vendor',
             BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: 'Policy_Accounting_Business_Central_Export_Payment_Method',
+            BUSINESS_CENTRAL_ADVANCED: 'Policy_Accounting_Business_Central_Advanced',
+            BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'Policy_Accounting_Business_Central_Accounting_Method',
+            BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: 'Policy_Accounting_Business_Central_Advanced_Posting_Mode',
+            BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: 'Policy_Accounting_Business_Central_Bank_Account_Selector',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
@@ -858,6 +864,7 @@ const SCREENS = {
         DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE: 'Dynamic_Invoice_Fields_Initial_List_Value',
         INVOICE_FIELDS_TYPE_SELECTOR: 'Workspace_InvoiceFields_TypeSelector',
         MEMBERS: 'Workspace_Members',
+        AGENTS: 'Workspace_Agents',
         ROOMS: 'Workspace_Rooms',
         ROOM_CREATE: 'Workspace_Room_Create',
         MEMBERS_IMPORT: 'Members_Import',
@@ -1127,10 +1134,6 @@ const SCREENS = {
 
     SUBMIT_PLAN_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
-    },
-
-    AI_FEATURES_PROMO_MODAL: {
-        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_DEMO: {

@@ -203,6 +203,7 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
+    isThreadMemberProtectedByParentReport,
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
@@ -1861,6 +1862,61 @@ describe('ReportUtils', () => {
                 },
             };
             expect(hasReceiptError(transaction)).toBe(false);
+        });
+    });
+
+    describe('isThreadMemberProtectedByParentReport', () => {
+        const senderAccountID = 1;
+        const receiverAccountID = 2;
+        const invitedAccountID = 3;
+        const iouReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: senderAccountID,
+            managerID: receiverAccountID,
+        };
+
+        it('should protect the sender and receiver of the parent IOU report', () => {
+            // Given an IOU report where the sender owns the report and the receiver manages it
+            // When checking whether they can be removed from one of the report's expense threads
+            // Then both are protected, because they keep access through the IOU report and would be added back
+            expect(isThreadMemberProtectedByParentReport(iouReport, senderAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(iouReport, receiverAccountID)).toBe(true);
+        });
+
+        it('should not protect a member who was invited into the thread', () => {
+            // Given an IOU report that the invited member isn't part of
+            // When checking whether the invited member can be removed from an expense thread
+            // Then they aren't protected, so removing invited members keeps working
+            expect(isThreadMemberProtectedByParentReport(iouReport, invitedAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the parent is not an IOU report', () => {
+            // Given an expense, invoice, and chat report with the same submitter and manager
+            const expenseReport: Report = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const invoiceReport: Report = {...iouReport, type: CONST.REPORT.TYPE.INVOICE};
+            const chatReport: Report = {...iouReport, type: CONST.REPORT.TYPE.CHAT};
+
+            // When checking whether the submitter or manager can be removed from one of their threads
+            // Then nobody is protected, because only IOU report threads are in scope, so the existing room member rules still apply
+            expect(isThreadMemberProtectedByParentReport(expenseReport, senderAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, receiverAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(invoiceReport, senderAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(chatReport, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the parent report is missing', () => {
+            // Given a thread whose parent report isn't loaded
+            // When checking whether a member can be removed from the thread
+            // Then nobody is protected, so the existing room member rules still apply
+            expect(isThreadMemberProtectedByParentReport(undefined, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the accountID is missing', () => {
+            // Given an IOU report with a sender and a receiver
+            // When checking a member whose accountID is unknown
+            // Then they aren't protected, so an unknown member can't match a missing ownerAccountID or managerID
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined)).toBe(false);
         });
     });
 
@@ -13832,6 +13888,44 @@ describe('ReportUtils', () => {
             // Then it cannot be edited
             expect(result).toBeFalsy();
         });
+
+        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
+            // Given a policy room the current user belongs to, in a workspace where they only have read access to all reports
+            const report: Report = {
+                ...createRandomReport(40003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the description can be edited
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canEditReportDescription(report, {...policy, type: CONST.POLICY.TYPE.CORPORATE, role}, isReportArchived.current);
+
+            // Then it cannot be edited, because effective chat write access doesn't include room administration
+            expect(result).toBeFalsy();
+        });
+    });
+
+    describe('canEditReportPolicy for roles with read-only access to all reports', () => {
+        it.each([
+            [CONST.POLICY.ROLE.AUDITOR, false],
+            [CONST.POLICY.ROLE.PAYMENTS_ADMIN, false],
+            [CONST.POLICY.ROLE.ADMIN, true],
+        ])('should handle an open invoice report for a %s', (role, expected) => {
+            // Given an open invoice report in a workspace where the current user has the role
+            const invoiceReport: Report = {
+                ...createRandomReport(40004, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When it's checked if the report's workspace can be changed
+            const result = canEditReportPolicy(invoiceReport, {...policy, type: CONST.POLICY.TYPE.CORPORATE, role});
+
+            // Then only a role that can administer reports may change it
+            expect(result).toBe(expected);
+        });
     });
 
     describe('isDeprecatedGroupDM', () => {
@@ -16864,20 +16958,22 @@ describe('ReportUtils', () => {
             expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
         });
 
-        it('decodes the backTo parameter only once so a nested backTo stays encoded', () => {
+        it('returns to the current expense when its backTo points to a sibling expense', () => {
             // Given an expense RHP opened from search and then paged through twice with the carousel arrows, so each press nested the previous route in backTo
             const reportID = '333';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const firstExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: 'search?q=type:expense'});
             const secondExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '2', anchorTransactionID: '20', backTo: firstExpenseRoute});
-            mockGetActiveRoute.mockReturnValue(ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: secondExpenseRoute}));
+            const currentExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: secondExpenseRoute});
+            mockGetActiveRoute.mockReturnValue(currentExpenseRoute);
             const getQuery = (route: string) => new URLSearchParams(route.slice(route.indexOf('?') + 1));
 
             // When building the report link from that RHP
             const url = getReportURLForCurrentContext(reportID);
 
-            // Then the link's backTo is the previous expense route as-is, so its own backTo stays a single query key; a duplicate key would be parsed as an array and crash the RHP on back
-            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: secondExpenseRoute})}`);
+            // Then the link's backTo is the expense currently shown, not the sibling stored in its backTo, so going back from the report reopens the same expense
+            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: currentExpenseRoute})}`);
+            // And its own backTo stays a single query key; a duplicate key would be parsed as an array and crash the RHP on back
             expect(getQuery(getQuery(url).get('backTo') ?? '').getAll('backTo')).toHaveLength(1);
         });
 
