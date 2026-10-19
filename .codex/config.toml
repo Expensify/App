@@ -1,0 +1,11 @@
+[mcp_servers.playwright]
+command = "npx"
+args = [
+    "@playwright/mcp@latest",
+    "--isolated",
+    "--output-dir",
+    ".playwright-output",
+]
+
+[mcp_servers.sentry]
+url = "https://mcp.sentry.dev/mcp"
