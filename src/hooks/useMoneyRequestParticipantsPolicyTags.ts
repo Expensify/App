@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import type {OptionData} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ParticipantsPolicyTags, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
@@ -19,6 +20,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from './useCurrencyList';
 import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
     dateFnsLocale: DateFnsLocale | undefined;
@@ -52,6 +54,7 @@ function useMoneyRequestParticipantsPolicyTags({
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
     const {convertToDisplayString} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const transactionThreadIDs: Record<string, string | undefined> = useSortedReportActionsData()?.transactionThreadIDs ?? CONST.EMPTY_OBJECT;
     const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
         report,
@@ -65,6 +68,7 @@ function useMoneyRequestParticipantsPolicyTags({
         translate,
         convertToDisplayString,
         dateFnsLocale,
+        transactionThreadIDs,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

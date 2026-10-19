@@ -801,6 +801,7 @@ describe('MoneyRequest', () => {
             formatPhoneNumber,
             delegateAccountID: undefined,
             participants: getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID: 1,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1731,6 +1732,7 @@ describe('MoneyRequest', () => {
 
         it('should return participants when conciergeReportID is undefined', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1749,6 +1751,7 @@ describe('MoneyRequest', () => {
 
         it('should return participants when conciergeReportID is provided', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1767,6 +1770,7 @@ describe('MoneyRequest', () => {
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1788,6 +1792,7 @@ describe('MoneyRequest', () => {
 
         it('should return participants with privateIsArchived passed through', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1810,6 +1815,7 @@ describe('MoneyRequest', () => {
                 participants: {},
             };
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: dmReport,
                 policy: fakePolicy,
@@ -1828,6 +1834,7 @@ describe('MoneyRequest', () => {
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1848,6 +1855,7 @@ describe('MoneyRequest', () => {
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,
@@ -1868,6 +1876,7 @@ describe('MoneyRequest', () => {
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
             const participants = getMoneyRequestParticipantOptions({
+                transactionThreadIDs: {},
                 currentUserAccountID,
                 report: fakeReport,
                 policy: fakePolicy,

@@ -16,6 +16,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -220,6 +221,7 @@ function IOURequestStepAmount({
     };
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const transactionThreadIDs = useSortedReportActionsData()?.transactionThreadIDs;
     const [personalDetails] = useAllPersonalDetails();
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -246,6 +248,7 @@ function IOURequestStepAmount({
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,
+                  transactionThreadIDs,
               });
     });
     const participant = participants.at(0);

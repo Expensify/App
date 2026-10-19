@@ -26,6 +26,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -144,6 +145,7 @@ function IOURequestStepConfirmationContent({
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const transactionThreadIDs = useSortedReportActionsData()?.transactionThreadIDs;
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -292,6 +294,7 @@ function IOURequestStepConfirmationContent({
                           rules,
                           // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
                           pendingDeleteMemberAccountIDs: undefined,
+                          transactionThreadIDs,
                       });
             }) ?? [],
         [
@@ -309,6 +312,7 @@ function IOURequestStepConfirmationContent({
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
             rules,
+            transactionThreadIDs,
         ],
     );
 
