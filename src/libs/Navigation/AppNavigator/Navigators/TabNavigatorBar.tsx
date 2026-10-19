@@ -3,6 +3,8 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
+import useIsFloatingTabBarHiddenForKeyboard from '@hooks/useIsFloatingTabBarHiddenForKeyboard';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -28,6 +30,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const isMobileWebLandscape = useIsMobileWebLandscape();
+    const isCoveredByKeyboard = useIsFloatingTabBarHiddenForKeyboard(isMobileWebLandscape);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
@@ -61,7 +65,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
 
-    const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
+    const isHidden = shouldHide || isCoveredByKeyboard || (shouldApplyDelay && animationDoneKey !== stateKey);
 
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.

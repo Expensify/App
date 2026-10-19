@@ -235,6 +235,7 @@ function WorkspacesListPage() {
         <WorkspaceListHeaderContent
             activeTabKey="workspaces"
             headerButton={headerButton}
+            scrollHeaderWithTable
         />
     );
 

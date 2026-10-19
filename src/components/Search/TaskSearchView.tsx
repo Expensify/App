@@ -44,6 +44,7 @@ function TaskSearchView({
     newTransactions,
     onSelectRow,
     ListFooterComponent,
+    ListHeaderComponent,
     onEndReached,
     onLayout,
     onScroll,
@@ -127,6 +128,7 @@ function TaskSearchView({
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={ListFooterComponent}
+                ListHeaderComponent={ListHeaderComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}

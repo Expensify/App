@@ -8,6 +8,10 @@ function isTabletScreen(): boolean {
     return Math.min(window.screen.width, window.screen.height) >= TABLET_MIN_SCREEN_DIMENSION;
 }
 
+/**
+ * Whether this is a phone browser — the only environment that can ever be in "mobile web landscape". Decided once at
+ * load so that code which only matters there can be skipped everywhere else without a per-render or per-event check.
+ */
 const isMobilePhoneWeb = isMobile() && !isTabletScreen();
 
 const screenShortSide = Math.min(window.screen.width, window.screen.height);
@@ -35,3 +39,4 @@ function isInLandscapeMode(windowWidth: number = getViewportWidth(), windowHeigh
 }
 
 export default isInLandscapeMode;
+export {isMobilePhoneWeb};

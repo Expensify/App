@@ -16,8 +16,10 @@ import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useShouldHideHeaderForKeyboard from '@hooks/useShouldHideHeaderForKeyboard';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -105,6 +107,9 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const shouldHideHeaderForKeyboard = useShouldHideHeaderForKeyboard();
+    // The header shrinks to the intrinsic height of its back button and title on mobile web in landscape.
+    const shouldUseCompactHeaderBar = useIsMobileWebLandscape();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
@@ -206,11 +211,19 @@ function HeaderWithBackButton({
         shouldSetModalVisibility,
     ]);
 
+    // An overlay header is drawn on top of the content and already costs no layout space, so there is nothing for it
+    // to give back. Everything else yields its height for as long as the keyboard needs it.
+    if (shouldHideHeaderForKeyboard && !shouldOverlay) {
+        return null;
+    }
+
     return (
         <View
             style={[
                 styles.headerBar,
                 contentHeaderHeightStyle,
+                // Listed after the height for the current screen size so it wins for every header size.
+                shouldUseCompactHeaderBar && styles.headerBarCompact,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,

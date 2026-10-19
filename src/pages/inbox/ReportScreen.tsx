@@ -35,6 +35,7 @@ import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
+import CollapsibleHeaderOnScroll from './report/CollapsibleHeaderOnScroll';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
@@ -129,9 +130,13 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>
                                         {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
-                                        <CollapsibleHeaderOnKeyboard>
-                                            <ReportHeader />
-                                        </CollapsibleHeaderOnKeyboard>
+                                        {/* The two collapsing wrappers never fight over the same node: the keyboard one is a
+                                            no-op on web, the scroll one is a no-op on native. */}
+                                        <CollapsibleHeaderOnScroll>
+                                            <CollapsibleHeaderOnKeyboard>
+                                                <ReportHeader />
+                                            </CollapsibleHeaderOnKeyboard>
+                                        </CollapsibleHeaderOnScroll>
                                         <OfflineWithFeedback
                                             pendingAction={reportPendingAction}
                                             errors={reportErrors}

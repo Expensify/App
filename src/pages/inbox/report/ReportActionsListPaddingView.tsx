@@ -1,3 +1,4 @@
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,11 +24,16 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
     const reportActionsListFSClass = FS.getChatFSClass(report);
 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    // Shorter report header and compose row on mobile web in landscape, where vertical space is scarce.
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
+    // The gap between the last message and the compose box is the first thing to go when vertical space is scarce —
+    // see useIsMobileWebLandscape.
+    const shouldSeparateListFromComposer = !canShowRecipientLocalTime && !hideComposer && !shouldUseCompactChrome;
 
     return (
         <View
-            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+            style={[styles.flex1, shouldSeparateListFromComposer ? styles.pb4 : {}]}
             fsClass={reportActionsListFSClass}
         >
             {children}

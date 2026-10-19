@@ -18,6 +18,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -134,6 +135,14 @@ type SearchProps = {
     isMobileSelectionModeEnabled: boolean;
     onContentReady?: () => void;
 
+    /**
+     * The page header, rendered as the list's own header so it scrolls away with the rows and a drag starting on it
+     * scrolls the list. Set only where the page does not pin the header above the content — see
+     * useIsMobileWebLandscape. Every branch that renders something other than the list has to render it too,
+     * otherwise the screen would lose its header entirely in that state.
+     */
+    listHeader?: React.JSX.Element;
+
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
@@ -152,6 +161,7 @@ function Search({
     onSortPressedCallback,
     onContentReady,
     onDestinationVisible,
+    listHeader,
 }: SearchProps) {
     const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
@@ -159,6 +169,7 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!hasFilterBars);
     const styles = useThemeStyles();
     const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
@@ -1281,33 +1292,44 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
-    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+    const listContainerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : styles.mt3;
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                onLayout={onSkeletonLayout}
-                containerStyle={listContainerStyle}
-            />
+            <>
+                {listHeader}
+                <SearchRowSkeleton
+                    shouldAnimate
+                    onLayout={onSkeletonLayout}
+                    containerStyle={listContainerStyle}
+                />
+            </>
         );
     }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
-        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+        return (
+            <>
+                {listHeader}
+                <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>
+            </>
+        );
     }
 
     if (hasUnresolvedErrors) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={listContainerStyle}
-            />
+            <>
+                {listHeader}
+                <SearchRowSkeleton
+                    shouldAnimate
+                    containerStyle={listContainerStyle}
+                />
+            </>
         );
     }
 
@@ -1360,14 +1382,17 @@ function Search({
             },
         } as const;
         return (
-            <View style={[listContainerStyle, styles.flex1]}>
-                <FullPageErrorView
-                    shouldShow
-                    containerStyle={styles.searchBlockingErrorViewContainer}
-                    subtitleStyle={styles.textSupporting}
-                    {...errorViewByKind[failureKind]}
-                />
-            </View>
+            <>
+                {listHeader}
+                <View style={[listContainerStyle, styles.flex1]}>
+                    <FullPageErrorView
+                        shouldShow
+                        containerStyle={styles.searchBlockingErrorViewContainer}
+                        subtitleStyle={styles.textSupporting}
+                        {...errorViewByKind[failureKind]}
+                    />
+                </View>
+            </>
         );
     }
     // Guard: don't render the empty view while the data is transiently empty.
@@ -1392,7 +1417,8 @@ function Search({
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
-                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                    contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
+                    listHeader={listHeader}
                 />
             </View>
         );
@@ -1431,6 +1457,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
+                    {listHeader}
                     <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
@@ -1524,6 +1551,7 @@ function Search({
         onViewableItemsChanged,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
+        ListHeaderComponent: listHeader,
         onLayout,
         isMobileSelectionModeEnabled,
         newTransactions,

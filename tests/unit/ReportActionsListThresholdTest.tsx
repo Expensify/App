@@ -22,6 +22,7 @@ import type {RefObject} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -30,7 +31,16 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const THRESHOLD = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
-type ScrollEvent = {nativeEvent: {contentOffset: {y: number}}};
+// Mirrors a real scroll event: RN and RN-web both report the content and viewport sizes alongside the offset, and
+// the scroll handler derives the list's scroll range from them.
+type ScrollEvent = {nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}};
+
+const CONTENT_HEIGHT = 5000;
+const VIEWPORT_HEIGHT = 800;
+
+function scrollEvent(y: number): ScrollEvent {
+    return {nativeEvent: {contentOffset: {y}, contentSize: {height: CONTENT_HEIGHT}, layoutMeasurement: {height: VIEWPORT_HEIGHT}}};
+}
 type CapturedListProps = {
     maintainVisibleContentPosition?: {disabled: boolean};
     onScroll?: (event: ScrollEvent) => void;
@@ -95,7 +105,14 @@ const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibl
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag.
 function buildActionListContextValue(initialOffset: number) {
     const scrollOffsetRef: RefObject<number> = {current: initialOffset};
-    return {scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef,
+        scrollOffsetSV: makeMutable(initialOffset),
+        maxScrollOffsetSV: makeMutable(0),
+        getScrollOffset: () => scrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 async function renderList(initialOffset: number) {
@@ -166,12 +183,12 @@ describe('ReportActionsList hasScrolledOverThreshold', () => {
         expect(isMvcpEnabled()).toBe(false);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: THRESHOLD + 50}}});
+            capturedListProps.onScroll?.(scrollEvent(THRESHOLD + 50));
         });
         expect(isMvcpEnabled()).toBe(true);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: 0}}});
+            capturedListProps.onScroll?.(scrollEvent(0));
         });
         expect(isMvcpEnabled()).toBe(false);
     });
