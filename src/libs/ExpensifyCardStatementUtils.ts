@@ -195,9 +195,15 @@ function getExpensifyCardStatementSelection(
     // A statement covers one feed, so group the selected settlements by feed (fundID, not feedCountry: one program can
     // have several feeds). Group before checking exportability so a selection spanning more than one feed still trips
     // the multi-feed message, even when the user is not an admin of one of those feeds. A settlement with no fundID
-    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed.
+    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed. A cash back credit
+    // carries domainAccountID instead of fundID and joins that feed's settlements, otherwise it is a feed of its own.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
+    const cashBackGroups: SearchWithdrawalIDGroup[] = [];
     for (const settlementGroup of selectedSettlementGroups) {
+        if (settlementGroup.isCashBack) {
+            cashBackGroups.push(settlementGroup);
+            continue;
+        }
         const feedKey = settlementGroup.fundID !== undefined ? `fund_${settlementGroup.fundID}` : `entry_${settlementGroup.entryID}`;
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
@@ -212,6 +218,24 @@ function getExpensifyCardStatementSelection(
             fundID: settlementGroup.fundID,
             entryIDs: [settlementGroup.entryID],
             canExportStatement: !!settlementGroup.canExportStatement,
+        });
+    }
+
+    // Settlements go first so a feed's country and exportability always come from a settlement when one is selected.
+    for (const cashBackGroup of cashBackGroups) {
+        const feedKey = cashBackGroup.domainAccountID !== undefined ? `fund_${cashBackGroup.domainAccountID}` : `entry_${cashBackGroup.entryID}`;
+        const existingFeed = feedsByKey.get(feedKey);
+        if (existingFeed) {
+            existingFeed.entryIDs.push(cashBackGroup.entryID);
+            continue;
+        }
+
+        feedsByKey.set(feedKey, {
+            policyID: scopedPolicyID,
+            feedCountry: cashBackGroup.feedCountry,
+            fundID: cashBackGroup.domainAccountID,
+            entryIDs: [cashBackGroup.entryID],
+            canExportStatement: !!cashBackGroup.canExportStatement,
         });
     }
 
