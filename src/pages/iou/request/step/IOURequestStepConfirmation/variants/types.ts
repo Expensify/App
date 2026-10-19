@@ -55,6 +55,9 @@ type ConfirmationSubmissionParams = {
     isUnreported: boolean;
     isPolicyExpenseChat: boolean;
 
+    /** "Submit to my employer" into a draft Submit workspace, which goes through trackExpense so the workspace is created with it. */
+    isSubmittingExpenseToDraftWorkspace: boolean;
+
     // Onyx values
     draftTransactionIDs: string[] | undefined;
     privateIsArchivedMap: Record<string, boolean | undefined>;
@@ -73,17 +76,10 @@ type ConfirmationSubmissionParams = {
     submitLock: SubmitLock;
 };
 
-/** The fields every submission variant reads, whatever its path. */
-type ConfirmationSubmissionCoreField = 'transaction' | 'report' | 'currentUserPersonalDetails' | 'submitLock';
-
-/**
- * What the page hands to whichever submission-path variant it renders. The page builds one full
- * `ConfirmationSubmissionParams`; each variant lists the extra fields its hook needs in `TExtraField`, so its props
- * show exactly what that path depends on.
- */
-type ConfirmationVariantProps<TExtraField extends keyof ConfirmationSubmissionParams = never> = {
-    /** The core fields plus the extras this variant declared. */
-    submissionParams: Pick<ConfirmationSubmissionParams, ConfirmationSubmissionCoreField | TExtraField>;
+/** What the page hands to whichever submission-path variant it renders. */
+type ConfirmationVariantProps = {
+    /** Everything the submission hooks read. Each variant picks only what its own hook needs. */
+    submissionParams: ConfirmationSubmissionParams;
 
     /** Orchestrator props; the variant supplies `createTransaction` from its own submission hook. */
     orchestratorProps: Omit<SubmitExpenseOrchestratorProps, 'createTransaction' | 'children'>;

@@ -236,6 +236,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         isSharingTrackExpense: false,
         isUnreported: false,
         isPolicyExpenseChat: false,
+        isSubmittingExpenseToDraftWorkspace: false,
         draftTransactionIDs: [DRAFT_ID],
         privateIsArchivedMap: {},
         submitLock: submitLockResult.current,
