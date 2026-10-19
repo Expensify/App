@@ -4,7 +4,7 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -275,7 +275,7 @@ type WiseBusinessOnboarding = {
     /** Business page answers */
     business?: {
         companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
-        industryCategories: string[];
+        industryCategories: Array<TupleToUnion<typeof CONST.WISE.INDUSTRY_CATEGORIES>>;
         description: string;
     };
 
