@@ -19,7 +19,6 @@ import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {resolveOptimisticSplitChatReportID, startSplitBill} from '@libs/actions/IOU/Split';
@@ -116,7 +115,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-    const transactionThreadIDs: Record<string, string | undefined> = useSortedReportActionsData()?.transactionThreadIDs ?? CONST.EMPTY_OBJECT;
 
     const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -131,7 +129,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         translate,
         convertToDisplayString,
         dateFnsLocale,
-        transactionThreadIDs,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

@@ -613,8 +613,6 @@ type GetReportOptionParams = {
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
     pendingDeleteMemberAccountIDs: string[] | undefined;
-    /** Optional until buildReportParticipants threads it through (tracked in https://github.com/Expensify/App/issues/66381). */
-    transactionThreadIDs?: Record<string, string | undefined>;
 };
 
 /**
@@ -633,7 +631,6 @@ function getReportOption({
     rules,
     policyTags,
     pendingDeleteMemberAccountIDs,
-    transactionThreadIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -660,7 +657,9 @@ function getReportOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
-        transactionThreadIDs,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
+        // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
     });

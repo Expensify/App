@@ -74,7 +74,6 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
             translate,
             convertToDisplayString: mockConvertToDisplayString,
             dateFnsLocale: undefined,
-            transactionThreadIDs: {},
         });
     });
 

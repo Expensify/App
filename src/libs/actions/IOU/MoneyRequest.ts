@@ -287,7 +287,6 @@ type GetMoneyRequestParticipantOptionsParams = {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
-    transactionThreadIDs: Record<string, string | undefined>;
 };
 
 function getMoneyRequestParticipantOptions({
@@ -303,7 +302,6 @@ function getMoneyRequestParticipantOptions({
     translate,
     convertToDisplayString,
     dateFnsLocale,
-    transactionThreadIDs,
 }: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
@@ -327,7 +325,6 @@ function getMoneyRequestParticipantOptions({
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,
-                  transactionThreadIDs,
               });
     });
 }
