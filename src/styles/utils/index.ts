@@ -570,7 +570,7 @@ function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscape
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextColorStyle {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -1231,7 +1231,7 @@ function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
 /**
  * Returns color style
  */
-function getColorStyle(color: string): TextColorStyle {
+function getColorStyle(color: ColorValue): TextColorStyle {
     return {color};
 }
 
