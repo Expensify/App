@@ -50,7 +50,6 @@ function DatePicker({
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
     wrapperStyle,
-    onBlur,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
@@ -250,7 +249,6 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
-                    onBlur={onBlur}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
