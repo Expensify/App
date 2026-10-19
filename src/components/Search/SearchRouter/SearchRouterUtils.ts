@@ -49,8 +49,8 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
 
     if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
         const params = maybeReportRoute.params;
-        const reportID = params && 'reportID' in params ? params.reportID : undefined;
-        return {contextualReportID: typeof reportID === 'string' ? reportID : undefined, isSearchRouterScreen};
+        const contextualReportID = params && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : undefined;
+        return {contextualReportID, isSearchRouterScreen};
     }
     return {contextualReportID: undefined, isSearchRouterScreen};
 }
