@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -12,7 +14,6 @@ type LocalNotificationData = {
 
 type LocalNotificationModule = {
     showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined) => void;
-    showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
 };
@@ -26,6 +27,7 @@ type LocalNotificationModifiedExpenseParams = {
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
     derivedMovedFromReportName: string | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

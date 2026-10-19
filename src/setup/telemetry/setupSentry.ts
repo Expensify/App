@@ -4,6 +4,7 @@ import {
     browserProfilingIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
     navigationIntegration,
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
@@ -27,12 +28,12 @@ import makeDebugTransport from './debugTransport';
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
- * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
- * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
- * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
- * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
+ * noise filters read the `third_party_code` tag `thirdPartyErrorFilterIntegration` writes. Moved ahead of it, a
+ * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
+ * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
@@ -71,6 +72,14 @@ function setupSentry(): void {
             // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
             // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
             /^ConstraintError: Key already exists in the object store/,
+            // Calls into the WKWebView message bridge an in-app browser injected into the page, which then tore the
+            // bridge down (https://github.com/Expensify/App/issues/100268, Sentry APP-8WS). We ship no
+            // `webkit.messageHandlers` call anywhere in the org, so any error naming one was thrown by injected code
+            // we cannot act on. Filtering on the message rather than the frames is what works here: WebKit withholds
+            // the URL of an injected script, so `denyUrls` and `thirdPartyErrorFilterIntegration` have nothing to
+            // match. The trailing dot keeps this to a real property access into the bridge, so an unrelated error
+            // that merely names the bridge in prose still reports.
+            /webkit\.messageHandlers\./,
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
@@ -86,7 +95,7 @@ function setupSentry(): void {
             profilingOptions: {
                 // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
                 // This option replaces `profilesSampleRate`
-                profileSessionSampleRate: 0.1,
+                profileSessionSampleRate: 0.5,
                 lifecycle: 'trace',
             },
         },

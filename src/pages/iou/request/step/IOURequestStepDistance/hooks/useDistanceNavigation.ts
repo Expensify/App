@@ -8,6 +8,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
@@ -18,7 +19,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Beta, IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -101,9 +102,6 @@ type UseDistanceNavigationParams = {
     /** Resolved policy from `usePolicyForMovingExpenses` — the workspace a new report should land in. */
     policyForMovingExpenses: OnyxEntry<Policy>;
 
-    /** Enabled betas — passed through to downstream API calls. */
-    betas: OnyxEntry<Beta[]>;
-
     /** Recently-used waypoints — passed through so the next screen can suggest them. */
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 
@@ -136,7 +134,6 @@ function useDistanceNavigation({
     translate,
     selfDMReport,
     policyForMovingExpenses,
-    betas,
     recentWaypoints,
     introSelected,
 }: UseDistanceNavigationParams): () => void {
@@ -158,6 +155,8 @@ function useDistanceNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -187,6 +186,7 @@ function useDistanceNavigation({
             iouType,
             action,
             report,
+            moneyRequestReportTransactions,
             isDraftChatReport: !!reportDraft,
             policy,
             transaction,
@@ -214,7 +214,6 @@ function useDistanceNavigation({
             isOffline,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
             recentWaypoints,
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
@@ -232,6 +231,7 @@ function useDistanceNavigation({
             participants,
             participantsPolicyTags,
             rules,
+            reusableDistanceRoutes,
         });
     };
 }

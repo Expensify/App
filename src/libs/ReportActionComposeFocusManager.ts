@@ -2,7 +2,7 @@ import type {ComposerRef} from '@components/Composer/types';
 
 import SCREENS from '@src/SCREENS';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput} from 'react-native';
 
 import {findFocusedRoute} from '@react-navigation/native';
@@ -24,7 +24,7 @@ const editComposerRef = React.createRef<ComposerRef>();
 /**
  * There can be 2 composers present at the same time. This ref is for the side panel.
  */
-const sidePanelComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const sidePanelComposerRef: RefObject<ComponentRef<typeof TextInput> | null> = React.createRef<ComponentRef<typeof TextInput>>();
 
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed

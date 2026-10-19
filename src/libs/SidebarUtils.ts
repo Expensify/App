@@ -80,7 +80,6 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
-    isWorkspaceTaskReport,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -188,7 +187,15 @@ function shouldDisplayReportInLHN({
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
+    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(
+        report,
+        chatReport,
+        doesReportHaveViolations,
+        transactionViolations,
+        transactions,
+        isOffline,
+        reportAttributes,
+    );
     const isReportInAccessible = report?.errorFields?.notFound;
     if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
         return {shouldDisplay: false};
@@ -233,6 +240,7 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
@@ -240,6 +248,40 @@ function shouldDisplayReportInLHN({
     });
 
     return {shouldDisplay};
+}
+
+/** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
+let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
+
+/** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
+let lastBuildCurrentReportId: string | undefined;
+
+/** The LHN state of the report that just became focused, captured before the rebuild that force-includes it. */
+let lhnUnreadStateBeforeFocus: {reportID: string; state: LHNUnreadState} | undefined;
+
+type LHNUnreadState = 'unread' | 'notBold' | 'notListed';
+
+function readLHNUnreadState(reportID: string): LHNUnreadState {
+    const displayedReport = lastReportsToDisplayInLHN?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!displayedReport) {
+        return 'notListed';
+    }
+    return displayedReport.isUnreadReport ? 'unread' : 'notBold';
+}
+
+function rememberLHNUnreadStateBeforeFocus(currentReportId: string | undefined) {
+    if (currentReportId === lastBuildCurrentReportId) {
+        return;
+    }
+    lastBuildCurrentReportId = currentReportId;
+    lhnUnreadStateBeforeFocus = currentReportId && lastReportsToDisplayInLHN ? {reportID: currentReportId, state: readLHNUnreadState(currentReportId)} : undefined;
+}
+
+function getLHNUnreadState(reportID: string): LHNUnreadState {
+    if (lhnUnreadStateBeforeFocus?.reportID === reportID) {
+        return lhnUnreadStateBeforeFocus.state;
+    }
+    return readLHNUnreadState(reportID);
 }
 
 function getReportsToDisplayInLHN({
@@ -273,6 +315,8 @@ function getReportsToDisplayInLHN({
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
@@ -305,12 +349,13 @@ function getReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
             reportsToDisplay[reportID] =
                 requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
         }
     }
 
+    lastReportsToDisplayInLHN = reportsToDisplay;
     return reportsToDisplay;
 }
 
@@ -351,6 +396,8 @@ function updateReportsToDisplayInLHN({
     conciergeReportID,
     guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
     const getMutableCopy = (): ReportsToDisplayInLHN => {
@@ -394,7 +441,7 @@ function updateReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
@@ -416,7 +463,8 @@ function updateReportsToDisplayInLHN({
         }
     }
 
-    return displayedReportsCopy ?? displayedReports;
+    lastReportsToDisplayInLHN = displayedReportsCopy ?? displayedReports;
+    return lastReportsToDisplayInLHN;
 }
 /**
  * Categorizes reports into their respective LHN groups
@@ -808,12 +856,7 @@ function getOptionData({
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
-    // For tasks, the header resolves the parent action via chatReportID (not parentReportID).
-    // When chatReportID is absent (offline/nested tasks), the action can't be resolved — treat as "no action".
-    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
-    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
-    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.actionBadge = reportAttributes?.actionBadge;
@@ -825,9 +868,8 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
-    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived) && !!report.lastActorAccountID;
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted is already excluded here.
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty);
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -885,12 +927,15 @@ function getOptionData({
         personalDetails,
         policy,
         invoiceReceiverPolicy,
+        reportMetadata,
+        participantPersonalDetailListExcludeCurrentUser,
         policyTags,
         isReportArchived,
         privateIsArchived: !!reportNameValuePairs?.private_isArchived,
         conciergeReportID,
         reportAttributesDerived,
         visibleReportActionsData,
+        oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,
@@ -975,10 +1020,9 @@ function getOptionData({
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
-function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean): boolean {
-    // The `lastActorAccountID` guard matches getOptionData: it keeps chats whose only visible message was
-    // deleted out of the Unread tab even though isUnread() can still be true (lastVisibleActionCreated isn't reset).
-    return isUnread(report, undefined, isReportArchived) && !!report.lastActorAccountID && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
+    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
@@ -1048,6 +1092,8 @@ function getInboxTabSummary(
         hasStaleUnreadReport,
     };
 }
+
+export {getLHNUnreadState};
 
 // Exported for unit testing only. Do not use directly in production code.
 export {

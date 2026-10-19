@@ -6,6 +6,7 @@ import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/Men
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
+import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 
 import variables from '@styles/variables';
 
@@ -20,8 +22,8 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {PropsWithChildren} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ComponentRef, PropsWithChildren} from 'react';
+import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -35,28 +37,71 @@ type MenuItemRootProps = PropsWithChildren &
         isDisabled?: boolean;
 
         /**
-         * Pre-computed accessibility label. When provided, `Root` uses it directly instead of
-         * deriving the label from registered `Title`/`Description` children. Presets that know
-         * their text statically should pass it.
+         * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
+         * from the text leaves. Announcements such as "opens in a new tab" are still appended.
+         * Presets that know their text statically should pass it.
          */
         accessibilityLabel?: string;
+
+        /**
+         * Styles layered on top of the row's own, e.g. to give it a bordered container. Applied
+         * before the hover/press background so the row keeps its interaction feedback.
+         */
+        style?: StyleProp<ViewStyle>;
+
+        /** Whether explicitly marked child text can start native browser text selection */
+        shouldAllowTextSelection?: boolean;
+
+        /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
+        accessibilityState?: AccessibilityState;
+
+        /**
+         * Whether the row is one element for screen readers. Turn it off for a row without `onPress` whose
+         * buttons must stay reachable, since an accessible parent hides its children on iOS.
+         */
+        shouldBeAccessible?: boolean;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel}: MenuItemRootProps) {
+function MenuItemRoot({
+    children,
+    onPress,
+    isDisabled = false,
+    sentryLabel,
+    testID,
+    accessibilityLabel,
+    style,
+    shouldAllowTextSelection = false,
+    accessibilityState,
+    shouldBeAccessible = true,
+}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
+    const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
+    const {
+        didTouchStartOnCopyableText,
+        handleCopyableTextRowPressIn,
+        isPressStartOnCopyableText,
+        markMouseDownOnCopyableText,
+        markTouchStartOnCopyableText,
+        shouldSuppressCopyableTextRowLongPress,
+        shouldSuppressCopyableTextRowPress,
+    } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
-    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
     const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !isInteractive) {
+            return;
+        }
+
+        if (shouldSuppressCopyableTextRowPress(shouldEnableTextSelection)) {
             return;
         }
 
@@ -73,19 +118,38 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
 
     // Left undefined when no sub-component wants it, so the web keeps its native context menu on a plain row
     const onSecondaryInteractionAction = registeredSecondaryInteraction
-        ? (event: GestureResponderEvent | MouseEvent) => registeredSecondaryInteraction(event, pressableRef.current)
+        ? (event: GestureResponderEvent | MouseEvent) => {
+              if (shouldEnableTextSelection && (shouldSuppressCopyableTextRowLongPress() || isPressStartOnCopyableText(event))) {
+                  return;
+              }
+              registeredSecondaryInteraction(event, pressableRef.current);
+          }
         : undefined;
 
     return (
-        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
+        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
-                        // A long press on a touch device starts a text selection under the context menu the row is about to open, so block it while the press lasts
-                        onPressIn={() => !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                        onMouseDown={(event) => {
+                            markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
+                        }}
+                        onTouchStart={(event) => {
+                            markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
+                        }}
+                        shouldAllowTextSelection={shouldEnableTextSelection}
+                        preventDefaultContextMenu={(event) => !shouldEnableTextSelection || !isPressStartOnCopyableText(event)}
+                        onPressIn={() =>
+                            handleCopyableTextRowPressIn({
+                                shouldEnableTextSelection,
+                                shouldBlockSelection: !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen(),
+                            })
+                        }
                         onPressOut={ControlSelection.unblock}
-                        onSecondaryInteraction={onSecondaryInteractionAction}
+                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
@@ -93,6 +157,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
+                                style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
@@ -101,15 +166,16 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         disabled={isDisabled}
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
+                        accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
-                        accessible
+                        accessibilityState={accessibilityState}
+                        accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
                         testID={testID}
                     >
                         {({pressed}) => (
-                            <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
+                            <MenuItemAccessibilityContext.Provider value={accessibilityRegistries}>
                                 <MenuItemSecondaryInteractionContext.Provider value={registerSecondaryInteraction}>
                                     <MenuItemInteractionContext.Provider
                                         value={{

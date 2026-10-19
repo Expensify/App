@@ -1,4 +1,4 @@
-import {useNumericEditingController} from '@components/NumericEditingController';
+import {useDetachedSignEditingController} from '@components/NumericEditingController';
 import type {NumericEditingRef} from '@components/NumericEditingController';
 import ScrollView from '@components/ScrollView';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -14,15 +14,6 @@ import {useImperativeHandle, useRef} from 'react';
 import type {NumericInputActionsContextValue, NumericInputStateContextValue} from './context/types';
 
 import {NumericInputActionsContext, NumericInputStateContext} from './context';
-
-/** The composed input displays the magnitude because the sign is rendered separately. */
-const getMagnitude = (canonicalValue: string, allowNegative: boolean) => (allowNegative && canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue);
-
-/** Preserves the sign that is rendered outside the text input while the magnitude is edited. Clearing the display text also clears the sign. */
-const getSignedValue = (displayText: string, previousCanonicalValue: string, allowNegative: boolean) => {
-    const shouldPreserveNegativeSign = allowNegative && displayText && !displayText.startsWith('-') && previousCanonicalValue.startsWith('-');
-    return shouldPreserveNegativeSign ? `-${displayText}` : displayText;
-};
 
 type NumericInputProps = {
     /** Canonical value shared by composed primitives. Only an empty value resets editing state. */
@@ -59,40 +50,14 @@ type NumericInputProps = {
 function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, style, scrollViewStyle, children}: NumericInputProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
-    const controller = useNumericEditingController({
-        value,
-        onInputChange,
-        allowNegative,
-        decimals,
-        maxLength,
-        toDisplayText: (canonicalValue) => getMagnitude(canonicalValue, allowNegative),
-        toCanonicalValue: (displayText, previousCanonicalValue) => getSignedValue(displayText, previousCanonicalValue, allowNegative),
-    });
+
+    const controller = useDetachedSignEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
     useImperativeHandle(ref, () => ({
         clearSelection: controller.clearSelection,
         getNumber: controller.getNumber,
         updateNumber: controller.updateNumber,
     }));
-
-    // The displayed magnitude does not change when the sign toggles, so the selection remains valid.
-    const toggleSign = () => {
-        if (!allowNegative) {
-            return;
-        }
-
-        const currentValue = controller.getNumber();
-        controller.setCanonicalValue(currentValue.startsWith('-') ? currentValue.slice(1) : `-${currentValue}`);
-    };
-
-    const clearSign = () => {
-        const currentValue = controller.getNumber();
-        if (!currentValue.startsWith('-')) {
-            return;
-        }
-
-        controller.setCanonicalValue(currentValue.slice(1));
-    };
 
     const focusInput = () => {
         if (isTextInputFocused(inputRef)) {
@@ -105,7 +70,7 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
     const stateContextValue: NumericInputStateContextValue = {
         value: controller.value,
         formattedNumber: controller.formattedNumber,
-        isNegative: allowNegative && controller.value.startsWith('-'),
+        isNegative: controller.isNegative,
         selection: controller.selection,
         allowNegative,
         errorText,
@@ -115,8 +80,8 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
     const actionsContextValue: NumericInputActionsContextValue = {
         setNumber: controller.setNumber,
         clearSelection: controller.clearSelection,
-        toggleSign,
-        clearSign,
+        toggleSign: controller.toggleSign,
+        deleteSignBeforeCaret: controller.deleteSignBeforeCaret,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
         focusInput,

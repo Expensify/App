@@ -7,7 +7,6 @@
 
 import UIKit
 import React
-import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import Firebase
 internal import Expo
@@ -46,6 +45,9 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
 
+  /// Read back by `SceneDelegate`, which starts React Native once a scene exists.
+  var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
     SentryNativeSDKManager.shared.initialize()
@@ -63,12 +65,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-    factory.startReactNative(
-      withModuleName: "NewExpensify",
-      in: window,
-      launchOptions: launchOptions
-    )
+    // No scene exists yet: `SceneDelegate` owns the window, the RN surface and the boot splash,
+    // and picks the factory up from here.
+    self.launchOptions = launchOptions
+
     // Configure firebase
     FirebaseApp.configure()
 
@@ -77,10 +77,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     RCTI18nUtil.sharedInstance().forceRTL(false)
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-
-    if let rootView = self.window?.rootViewController?.view as? RCTRootView {
-        RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
-    }
 
     // Define UNUserNotificationCenter
     let center = UNUserNotificationCenter.current()
@@ -117,6 +113,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     }
   }
 
+  // UIKit routes links to `SceneDelegate`, which calls back into these so `RCTLinkingManager`,
+  // Expo subscribers and any `UIApplicationDelegate` swizzling all see the same events.
   override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
       return RCTLinkingManager.application(application, open: url, options: options)
   }

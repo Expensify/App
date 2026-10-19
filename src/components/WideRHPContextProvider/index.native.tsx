@@ -17,9 +17,6 @@ const animatedReceiptPaneRHPWidth = new Animated.Value(0);
 const animatedWideRHPWidth = new Animated.Value(0);
 const animatedSuperWideRHPWidth = new Animated.Value(0);
 
-const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(0);
-const modalStackOverlayWideRHPPositionLeft = new Animated.Value(0);
-
 const expandedRHPProgress = new Animated.Value(0);
 
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
@@ -47,8 +44,6 @@ export {
     animatedSuperWideRHPWidth,
     animatedWideRHPWidth,
     expandedRHPProgress,
-    modalStackOverlaySuperWideRHPPositionLeft,
-    modalStackOverlayWideRHPPositionLeft,
     secondOverlayRHPOnSuperWideRHPProgress,
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,

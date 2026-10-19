@@ -52,6 +52,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
@@ -65,6 +68,7 @@ withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+declined = "declined"i { return "declined"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
@@ -79,6 +83,9 @@ policyID
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
+anyApproval
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
@@ -105,6 +112,7 @@ columns = "columns"i {
   return "columns";
 }
 view = "view"i {return "view"}
+compare = "compare"i {return "compare"}
 
 // Value transformation rules
 values
@@ -187,7 +195,8 @@ groupQuarter            = "group-quarter"i &wordBoundary            { return "gr
 
 
 operator "operator"
-  = (":" / "=") { return "eq"; }
+  = "*:" { return "contains"; }
+  / (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
@@ -197,7 +206,7 @@ operator "operator"
 filterOperator
   = o:operator {
       if (nameOperator) {
-        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+        expectingNestedQuote = (o === "eq" || o === "contains");
       }
       isColumnsContext = false;
       return o;
@@ -248,3 +257,8 @@ validClosingCondition
 wordBoundary
   = [ \t\n\r\xA0,]  // whitespace or comma
   / !.              // or end of input
+
+// Spend footer display selections. Root keys, not filters: they change what the footer shows, never which rows match.
+footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
+footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
+footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }

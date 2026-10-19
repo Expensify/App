@@ -1,5 +1,6 @@
 import Section from '@components/Section';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,7 +15,7 @@ import WorkspaceRow from './WorkspaceRow';
 type WorkspaceSectionProps = {
     title: string;
 
-    /** Workspaces to list, in the order the policy diff returned them. Nothing is rendered when empty. */
+    /** Workspaces to list, sorted alphabetically by the name they display. Nothing is rendered when empty. */
     policyIDs: string[];
 
     policies: OnyxCollection<Policy>;
@@ -22,10 +23,19 @@ type WorkspaceSectionProps = {
 
 function WorkspaceSection({title, policyIDs, policies}: WorkspaceSectionProps) {
     const styles = useThemeStyles();
+    const {translate, localeCompare} = useLocalize();
 
     if (policyIDs.length === 0) {
         return null;
     }
+
+    const workspaces = policyIDs
+        .map((policyID) => {
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            // A workspace missing from Onyx is not available to the current user and is listed as such
+            return {policyID, avatarURL: policy?.avatarURL, title: policy?.name ?? translate('workspace.common.unavailable')};
+        })
+        .sort((firstWorkspace, secondWorkspace) => localeCompare(firstWorkspace.title, secondWorkspace.title));
 
     return (
         <Section
@@ -33,12 +43,13 @@ function WorkspaceSection({title, policyIDs, policies}: WorkspaceSectionProps) {
             titleStyles={[styles.sectionTitle, styles.ph5, styles.w100, styles.borderBottom]}
             containerStyles={[styles.p0, styles.mh0, styles.mt5]}
         >
-            {policyIDs.map((policyID, index) => (
+            {workspaces.map((workspace, index) => (
                 <WorkspaceRow
-                    key={policyID}
-                    policyID={policyID}
-                    policy={policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]}
-                    shouldShowSeparator={index < policyIDs.length - 1}
+                    key={workspace.policyID}
+                    policyID={workspace.policyID}
+                    title={workspace.title}
+                    avatarURL={workspace.avatarURL}
+                    shouldShowSeparator={index < workspaces.length - 1}
                 />
             ))}
         </Section>

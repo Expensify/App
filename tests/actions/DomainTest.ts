@@ -607,7 +607,7 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -616,7 +616,10 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
+                            value: {
+                                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                                adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -626,11 +629,11 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {memberErrors: {[targetEmail]: null}},
+                            value: {memberErrors: {[targetEmail]: null}, adminshipRequesterErrors: {[accountID]: null}},
                         }),
                     ]),
                     failureData: expect.arrayContaining([
@@ -646,7 +649,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                     ]),
                 },
@@ -660,13 +663,73 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const domainName = 'test.com';
             const targetEmail = 'user@test.com';
+            const accountID = 456;
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
                 {domain: domainName, targetEmail, overrideProcessingReports: true, domainAccountID},
                 expect.any(Object),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('closeUserAccount - marks the adminship request for deletion and drops it only once the close lands', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainName = 'test.com';
+            const targetEmail = 'user@test.com';
+            const accountID = 456;
+
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                }),
+            );
+
+            // The request entry is never removed optimistically, so there is nothing to restore on failure
+            const requestersUpdate = expect.objectContaining({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment
+                value: expect.objectContaining({domain_adminRequesters: expect.anything()}),
+            });
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    optimisticData: expect.not.arrayContaining([requestersUpdate]),
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    failureData: expect.not.arrayContaining([requestersUpdate]),
+                }),
             );
 
             apiWriteSpy.mockRestore();
@@ -698,7 +761,7 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, previousDelegate: undefined}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, clearAfter: null, previousDelegate: undefined, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -712,7 +775,7 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -771,6 +834,46 @@ describe('actions/Domain', () => {
         });
     });
 
+    describe('setDomainVacationDelegate with clearAfter', () => {
+        it('sends clearAfter and keeps the old one for rollback', () => {
+            // Given a domain member whose delegate already clears on a date
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainMemberAccountID = 456;
+            const vacationer = 'vacationer@test.com';
+            const clearAfter = '2026-10-02 06:59:59';
+            const vacationDelegate: BaseVacationDelegate = {delegate: 'old@test.com', creator: 'admin@test.com', clearAfter: '2026-09-30 06:59:59'};
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
+
+            // When the admin saves a new delegate with a new clear after datetime
+            setDomainVacationDelegate(domainAccountID, domainMemberAccountID, 'admin@test.com', vacationer, 'new@test.com', vacationDelegate, clearAfter);
+
+            // Then the backend gets the datetime to clear the delegate at, and the old datetime is kept so dismissing an error can restore it
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
+                expect.objectContaining({vacationDelegateEmail: 'new@test.com', clearAfter}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: expect.objectContaining({
+                                    delegate: 'new@test.com',
+                                    clearAfter,
+                                    previousDelegate: 'old@test.com',
+                                    previousClearAfter: '2026-09-30 06:59:59',
+                                }),
+                            },
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
     describe('deleteDomainVacationDelegate', () => {
         it('deleteDomainVacationDelegate - sends DELETE_VACATION_DELEGATE request with correct data', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -790,7 +893,9 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, previousDelegate: vacationDelegate.delegate}},
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, clearAfter: null, previousDelegate: vacationDelegate.delegate, previousClearAfter: null},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

@@ -1,10 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumericField, {useNumericFieldActions, useNumericFieldState} from '@components/NumericField';
 import type {NumericFieldRef} from '@components/NumericField';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
@@ -12,6 +9,11 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+jest.mock('@hooks/useLocalize', () => () => ({
+    fromLocaleDigit: (digit: string) => digit,
+    toLocaleDigit: (digit: string) => digit,
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -26,7 +28,7 @@ type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumericFieldState();
-    const {setNumber} = useNumericFieldActions();
+    const {setNumber, toggleSign} = useNumericFieldActions();
 
     return (
         <View>
@@ -50,25 +52,31 @@ function ContextReadout() {
                     setNumber('99');
                 }}
             />
+            <PressableWithFeedback
+                accessibilityLabel="Toggle sign"
+                accessibilityRole="button"
+                testID="ctx-toggleSign"
+                onPress={() => {
+                    toggleSign();
+                }}
+            />
         </View>
     );
 }
 
-function renderWithProviders(children: React.ReactNode) {
-    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
-}
-
 describe('NumericField', () => {
     const onInputChange = jest.fn();
-    const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) =>
-        renderWithProviders(
-            <NumericField
-                onInputChange={onInputChange}
-                {...props}
-            >
-                {children}
-            </NumericField>,
-        );
+
+    const wrapNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) => (
+        <NumericField
+            onInputChange={onInputChange}
+            {...props}
+        >
+            {children}
+        </NumericField>
+    );
+
+    const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) => render(wrapNumericField(props, children));
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -119,16 +127,7 @@ describe('NumericField', () => {
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with an empty value
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value=""
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: ''}));
 
             // Then the editing state resets
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
@@ -141,16 +140,7 @@ describe('NumericField', () => {
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with value "20"
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value="20"
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: '20'}));
 
             // Then the editing state keeps the current value; external pushes must use the imperative ref
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
@@ -163,16 +153,7 @@ describe('NumericField', () => {
             fireEvent.press(screen.getByTestId('ctx-setNumber'));
 
             // When the parent rerenders with the same external value "10"
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value="10"
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: '10'}));
 
             // Then the local edit is preserved
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
@@ -219,6 +200,37 @@ describe('NumericField', () => {
             expect(onInputChange).toHaveBeenNthCalledWith(1, '7');
             expect(onInputChange).toHaveBeenNthCalledWith(2, '99');
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
+        });
+
+        it('does nothing when toggleSign is called and allowNegative is false', () => {
+            // Given a NumericField with negative input disabled
+            renderNumericField({value: '10', allowNegative: false});
+
+            // When toggleSign is called
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value remains unchanged and onInputChange is not called
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('toggles sign when toggleSign is called and allowNegative is true', () => {
+            // Given a NumericField with negative input enabled
+            renderNumericField({value: '10', allowNegative: true});
+
+            // When toggleSign is called
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value is negated and onInputChange is notified
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('-10');
+            expect(onInputChange).toHaveBeenCalledWith('-10');
+
+            // When toggleSign is called again
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value becomes positive again
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+            expect(onInputChange).toHaveBeenCalledWith('10');
         });
     });
 });

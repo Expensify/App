@@ -39,21 +39,23 @@ function SearchEditMultipleTagPage() {
     const selectedTransactions = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
     const commonDependentTag = getCommonDependentTag(selectedTransactions);
     const draftTag = draftTransaction?.tag;
-    const transactionTag = draftTag === undefined ? (commonDependentTag ?? '') : draftTag;
-    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+
+    // Only prefill dependent tags. Their child tags need the selected parent.
+    // Leave independent tag lists empty until the user selects a tag.
+    const autoSelectedTag = hasDependentTags ? (commonDependentTag ?? '') : '';
+    const transactionTag = draftTag === undefined ? autoSelectedTag : draftTag;
+    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
 
     const tagListName = getTagList(policyTags, tagListIndex).name;
     const headerTitle = tagListName || translate('common.tag');
 
     const saveTag = (item: Partial<OptionData>) => {
         const selectedTagName = item.searchText ?? '';
-        // Tapping the value already committed in this draft means the user is clearing the level.
-        // getUpdatedTransactionTag resolves the same thing internally for the displayed tag, but the
-        // intent has to be resolved again here because apply time replays each recorded intent with an
-        // empty currentTag. A raw tag name would read as a fresh selection there and re-add the level
-        // the user just cleared, so record an empty value to carry the clear through.
+
+        // Tapping the value that's already set on this level clears it.
         const isDeselecting = selectedTagName === currentTag;
+        const recordedTagChanges = draftTransaction?.bulkEditTagChanges ?? {};
 
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
@@ -65,14 +67,15 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
-        // Record the per-level edit intent. For dependent tags, editing this level invalidates every
-        // deeper (child) level, so drop any child intents previously recorded in the same draft. The
-        // draft is merged, so without this a stale child edit would be replayed after this parent change
-        // at apply time and re-add a child that no longer belongs under the newly selected parent, even
-        // though the displayed updatedTag above already cleared it. Independent tags keep every level.
-        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? '' : selectedTagName};
+        // If the user picks and then removes a tag before saving, do not save a change.
+        // Otherwise, remove the tag.
+        const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
+        const deselectValue = isUndoingOwnPick ? null : '';
+        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
+
+        // For dependent tags, changing a level makes the deeper ones stale, so clear any child intents still in the draft before they get replayed.
         if (hasDependentTags) {
-            for (const recordedIndex of Object.keys(draftTransaction?.bulkEditTagChanges ?? {})) {
+            for (const recordedIndex of Object.keys(recordedTagChanges)) {
                 if (Number(recordedIndex) <= tagListIndex) {
                     continue;
                 }
@@ -81,8 +84,7 @@ function SearchEditMultipleTagPage() {
         }
 
         updateBulkEditDraftTransaction({
-            // Keep the flattened tag for the summary display, and record the per-level edit intent so
-            // apply time can merge it into each transaction's own tag instead of overwriting all levels.
+            // tag is only for display here, bulkEditTagChanges is what drives the save.
             tag: updatedTag,
             bulkEditTagChanges,
         });

@@ -7,7 +7,7 @@ import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -35,7 +35,11 @@ Onyx.connectWithoutView({
  * Marks every unread report as read. Pass `reportIDs` to limit it to a subset, e.g. only the reports listed under one
  * Inbox tab; when omitted, every unread report is marked read.
  */
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>, reportIDs?: string[]) {
+function markAllMessagesAsRead(
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>,
+    reportIDs: string[] | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+) {
     if (isAnonymousUser()) {
         return;
     }
@@ -60,7 +64,7 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-        if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        if (!isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributesDerived?.[report.reportID]?.isEmpty)) {
             continue;
         }
 

@@ -4,9 +4,10 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 
@@ -33,7 +34,10 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     textStyles?: StyleProp<TextStyle>;
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
-    childRefs: RefObject<RNText[]>;
+    childRefs: RefObject<Array<ComponentRef<typeof RNText>>>;
+
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
 function DisplayNamesTooltipItem({
@@ -46,6 +50,7 @@ function DisplayNamesTooltipItem({
     textStyles = [],
     childRefs = {current: []},
     forwardedFSClass,
+    isSelectable = false,
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
@@ -72,6 +77,8 @@ function DisplayNamesTooltipItem({
                 }}
                 style={[textStyles, styles.pre]}
                 fsClass={forwardedFSClass}
+                selectable={isSelectable}
+                dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
             >
                 {displayName}
             </Text>

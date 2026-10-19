@@ -140,6 +140,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
@@ -174,6 +175,7 @@ function filterOutRangesWithCorrectValue(
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
     const receiptTypeList = userFriendlyReceiptTypeList;
+    const transactionStatusList = userFriendlyTransactionStatusList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
     const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
@@ -185,6 +187,8 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+    const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
+    const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
@@ -210,13 +214,20 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY:
             return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT:
+            return footerCountList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL:
+            return footerTotalList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
+            return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
@@ -240,10 +251,12 @@ function filterOutRangesWithCorrectValue(
             return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:

@@ -2,10 +2,10 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +29,8 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -46,6 +48,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
     const billPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
+    const fxExpenseAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.fxExpenseAccountCode);
     const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
     const settlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.settlementsBankAccountID);
     const syncTravelInvoicingSettlements = rilletConfig?.sync?.syncTravelInvoicingSettlements ?? true;
@@ -94,16 +98,20 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 isToggleTriggered={shouldAnimateAutoSyncAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={translate(`workspace.rillet.accountingMethods.values.${accountingMethod}`)}
-                        description={translate('workspace.rillet.accountingMethods.label')}
-                        hintText={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)}
-                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined)}
-                        shouldShowRightIcon
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
-                    />
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined))}
+                    >
+                        <MenuItemField.Row
+                            name={translate('workspace.rillet.accountingMethods.label')}
+                            value={translate(`workspace.rillet.accountingMethods.values.${accountingMethod}`)}
+                        >
+                            {areSettingsInErrorFields([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText message={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)} />
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
@@ -134,6 +142,19 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         )}
                     </MenuItemField>
                 </OfflineWithFeedback>
+                {canConfigureCurrencyConversionFees && (
+                    <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
+                        <MenuItemField
+                            name={translate('workspace.rillet.fxExpenseAccount.label')}
+                            onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT.getRoute(policyID)) : undefined)}
+                            value={fxExpenseAccount ? `${fxExpenseAccount.code} ${fxExpenseAccount.name}` : undefined}
+                        >
+                            {areSettingsInErrorFields([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
+                    </OfflineWithFeedback>
+                )}
             </Accordion>
             {isExpensifyCardsEnabled && (
                 <>

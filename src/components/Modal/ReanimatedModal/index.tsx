@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 
 import noop from 'lodash/noop';
@@ -68,7 +69,7 @@ function ReanimatedModal({
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
-    const containerRef = useRef<View | null>(null);
+    const containerRef = useRef<ComponentRef<typeof View> | null>(null);
 
     const styles = useThemeStyles();
 

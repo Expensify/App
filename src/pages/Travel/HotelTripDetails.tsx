@@ -74,11 +74,10 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 />
             )}
             {!!cancellationText && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.hotelDetails.cancellation')}
-                    title={cancellationText}
-                    interactive={false}
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate('travel.hotelDetails.cancellation')}
+                    value={cancellationText}
+                    numberOfLinesValue={2}
                 />
             )}
             {!!confirmationNumber && (
@@ -90,24 +89,22 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 </MenuItemField>
             )}
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.hotelDetails.guest')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.hotelDetails.guest')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

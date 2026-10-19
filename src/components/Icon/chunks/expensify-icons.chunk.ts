@@ -1,6 +1,7 @@
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
+import ApplePayMark from '@assets/images/apple-pay-mark.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
@@ -69,6 +70,7 @@ import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
+import Contactless from '@assets/images/contactless.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
@@ -136,7 +138,6 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
-import BusinessCentralSquare from '@assets/images/integrationicons/business-central-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
@@ -150,6 +151,7 @@ import SageIntacctExport from '@assets/images/integrationicons/export/sage-intac
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
+import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -164,6 +166,7 @@ import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
+import ZohoBooksSquare from '@assets/images/integrationicons/zoho-books-icon-square.svg';
 import InvoiceBookmark from '@assets/images/invoice-bookmark.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -294,8 +297,9 @@ import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
-// These icons are React components because they have
+// These icons are React components. BusinessCentralSquare needs gradient ids unique to each rendered copy, and the map icons have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import BusinessCentralSquare from '@components/Icon/BusinessCentralSquare';
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
 import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
@@ -540,6 +544,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -604,7 +609,10 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    ApplePayMark,
+    Contactless,
     CampfireSquare,
+    ZohoBooksSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

@@ -1,6 +1,6 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildOptimisticFixIssueNextStep, shouldShowDynamicExternalWorkflowApproveErrorNextStep, getReportNextStep} from '@libs/NextStepUtils';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isArchivedPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -12,12 +12,14 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {loginSelector} from '@selectors/PersonalDetails';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -27,7 +29,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -61,6 +63,11 @@ function useOptimisticNextStep(reportID: string | undefined) {
         rules,
     });
 
+    // Archived workspaces always show the change workspace next step, so skip the fix-issue overrides below
+    if (isArchivedPolicy(policy)) {
+        return optimisticNextStep;
+    }
+
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
             const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
@@ -75,10 +82,15 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
+            const gbrResult = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: moneyRequestReport,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: allTransactionViolations,
+                isReportArchived: isArchivedReport,
+            });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
-            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed, isCurrentUserTheApprover)) {
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         }

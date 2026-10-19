@@ -70,5 +70,13 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
         .sort((a, b) => a - b);
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, reportNameValuePairsArchivedSelector};
+function getConciergeFeedbackForReportActionID(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined {
+    return reportNameValuePairs?.conciergeFeedbackForReportActionID;
+}
+
+function latestCalendlyCallSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) {
+    return reportNameValuePairs?.calendlyCalls?.at(-1);
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, getConciergeFeedbackForReportActionID, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

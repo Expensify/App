@@ -1,3 +1,4 @@
+import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {navigateToDetailsPage} from '@libs/ReportUtils';
 
@@ -6,8 +7,12 @@ import type {Report} from '@src/types/onyx';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
-    getActiveRoute: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Permissions');
@@ -36,7 +41,7 @@ const conciergeChat: Report = {
 
 describe('navigateToDetailsPage', () => {
     const mockNavigate = jest.mocked(Navigation.navigate);
-    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    const mockGetActiveRoute = jest.mocked(getActiveRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();

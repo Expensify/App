@@ -28,6 +28,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
+import type {ComponentRef} from 'react';
+
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -67,7 +69,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
-    const submitButton = useRef<View>(null);
+    const submitButton = useRef<ComponentRef<typeof View>>(null);
 
     useEffect(() => {
         submitButton.current?.focus();

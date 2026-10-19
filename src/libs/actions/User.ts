@@ -86,7 +86,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// This value is used in the handler for a RECONNECT_APP Pusher event (anonymous users), so it's not possible to use useOnyx().
+// This value is used in the handler for a RECONNECT_APP Pusher event, so it's not possible to use useOnyx().
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -178,7 +178,7 @@ function clearRevokeError(loginKey: string) {
 /**
  * Attempt to close the user's account
  */
-function closeAccount(reason: string) {
+function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
@@ -186,7 +186,7 @@ function closeAccount(reason: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-            value: {isLoading: true},
+            value: {isLoading: true, errors: null},
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
@@ -197,17 +197,18 @@ function closeAccount(reason: string) {
         },
     ];
 
-    const parameters: CloseAccountParams = {message: reason};
+    const parameters: CloseAccountParams = {message: reason, validateCode};
 
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
+    }).then((response) => {
+        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
+        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
         HybridAppModule.signOutFromOldDot();
-    }
+    });
 }
 
 /**
@@ -306,6 +307,38 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
         optimisticData,
         failureData,
     });
+}
+
+/**
+ * Request to remove the current user's email from the suppression list.
+ * The backend derives the email from the session, so no params are sent. A backend failure still returns 200, so the
+ * caller decides success vs failure by re-reading `hasEmailDeliveryFailure` once `isUnblockingEmail` clears.
+ */
+function requestEmailUnblock() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: true},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+    // The failure surface is the ConfirmModal driven by hasEmailDeliveryFailure, so we deliberately do not write to account.errors here.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.USER_UNBLOCK_EMAIL, null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -508,7 +541,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {
                 [loginKey]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
+                        // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod', 0),
                     },
                 },
             },
@@ -695,6 +729,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     currentUserAccountID: number,
     currentUserEmail: string,
     topmostOneTransactionThreadReportID: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -715,6 +750,7 @@ function triggerNotifications<TKey extends OnyxKey>(
                     topmostOneTransactionThreadReportID,
                     currentUserAccountID,
                     currentUserEmail,
+                    formatPhoneNumber,
                     reportAttributes?.[reportID]?.reportName,
                     derivedMovedFromReportName,
                 );
@@ -832,6 +868,7 @@ function subscribeToUserEvents(
     currentUserAccountID: number,
     currentUserEmail: string,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
@@ -840,6 +877,26 @@ function subscribeToUserEvents(
     }
 
     PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
+
+    // Temporary labels bypass the reliable update stream, but wait for the current API response so an older snapshot cannot overwrite them.
+    // Keep events in arrival order even when they wait on different queued requests.
+    let processingStatusEventsPromise = Promise.resolve();
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        processingStatusEventsPromise = processingStatusEventsPromise
+            .then(() => SequentialQueue.getCurrentRequest())
+            .then(() => {
+                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
+                    return;
+                }
+
+                return Onyx.update(pushJSON.updates);
+            })
+            .catch((error: unknown) => {
+                Log.alert('[subscribeToUserEvents] Applying Agent Zero processing status failed', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+    });
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
@@ -894,7 +951,7 @@ function subscribeToUserEvents(
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), formatPhoneNumber, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -906,14 +963,12 @@ function subscribeToUserEvents(
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        // Anonymous public-room sessions already have report actions from OpenReport. A full ReconnectApp
-        // uses setCollection and clears them, which flashes the loading skeleton until GetNewerActions
-        // refills. Pass lastUpdateID so reconnect stays incremental for anonymous users (#97847).
-        if (isAnonymousUser()) {
-            reconnectApp(lastUpdateIDAppliedToClient);
-        } else {
-            reconnectApp();
-        }
+        // This event is broadcast on the account-wide channel, so every signed-in device receives it, not only
+        // the one whose updateID is missing. A full ReconnectApp uses setCollection and clears report actions the
+        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally. It
+        // still returns full data when it can't serve that range, and we fall back to a full reconnect when the
+        // client has no lastUpdateID yet.
+        reconnectApp(lastUpdateIDAppliedToClient);
         return Promise.resolve();
     });
 }
@@ -1957,6 +2012,7 @@ export {
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
+    requestEmailUnblock,
     deleteContactMethod,
     clearContactMethodErrors,
     clearContactMethod,

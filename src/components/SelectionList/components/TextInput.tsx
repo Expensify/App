@@ -38,6 +38,9 @@ type TextInputProps = {
     /** Callback function called when the text input is submitted */
     onSubmit?: () => void;
 
+    /** Lets a list clear its focused row on press, so plain Enter in the search input reaches the confirm button instead of toggling a row */
+    onPress?: () => void;
+
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
@@ -59,6 +62,7 @@ function TextInput({
     isLoading = false,
     dataLength,
     onSubmit,
+    onPress,
     onKeyPress,
     onFocusChange,
     shouldShowLoadingPlaceholder,
@@ -170,8 +174,10 @@ function TextInput({
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}
+                    onPress={onPress}
                     submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoading}
+                    shouldHideClearButton={false}
                     testID="selection-list-text-input"
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}
