@@ -3298,7 +3298,11 @@ describe('actions/IOU/TrackExpense', () => {
                     transactionThread: undefined,
                 });
                 const chatReportUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
-                return (chatReportUpdate?.value as Partial<Report> | undefined)?.lastVisibleActionCreated;
+                const value: unknown = chatReportUpdate?.value;
+                if (!value || typeof value !== 'object' || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return value.lastVisibleActionCreated;
             };
 
             // Then the whisper's target sees the whisper as the newest action
