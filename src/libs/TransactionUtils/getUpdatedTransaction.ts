@@ -31,6 +31,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
 import {
+    getAmount,
     getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
@@ -409,8 +410,12 @@ function getUpdatedTransaction({
         if (transactionChanges.category || isSplitTransaction) {
             const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
             if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+                // The category tax is calculated from the absolute amount, so give it the sign of the displayed amount,
+                // then store it with the opposite sign on expense reports and unreported expenses, the same as the amount.
+                const isNegativeAmount = getAmount(transaction, isFromExpenseReport, isUnReportedExpense) < 0;
+                const displayedCategoryTaxAmount = isNegativeAmount ? -categoryTaxAmount : categoryTaxAmount;
                 updatedTransaction.taxCode = categoryTaxCode;
-                updatedTransaction.taxAmount = categoryTaxAmount;
+                updatedTransaction.taxAmount = isFromExpenseReport || isUnReportedExpense ? -displayedCategoryTaxAmount : displayedCategoryTaxAmount;
                 updatedTransaction.taxValue = categoryTaxValue;
             }
         }

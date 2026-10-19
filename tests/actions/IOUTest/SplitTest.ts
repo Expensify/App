@@ -11169,6 +11169,69 @@ describe('updateSplitExpenseField', () => {
         expect(updatedDraft?.comment?.splitsStartDate).toBeFalsy();
         expect(updatedDraft?.comment?.splitsEndDate).toBeFalsy();
     });
+
+    it.each([
+        // The tax rate step writes the draft tax with the opposite sign of the split amount
+        {name: 'a negative split after changing its tax rate', splitAmount: -1000, draftTaxAmount: 48, expectedTaxAmount: -48},
+        // A draft that only had another field edited keeps the tax sign copied from the split
+        {name: 'a positive split after editing another field', splitAmount: 1000, draftTaxAmount: 48, expectedTaxAmount: 48},
+        {name: 'a negative split after editing another field', splitAmount: -1000, draftTaxAmount: -48, expectedTaxAmount: -48},
+    ])('should keep the split tax sign the same as the split amount for $name', async ({splitAmount, draftTaxAmount, expectedTaxAmount}) => {
+        const originalTransactionID = 'orig-tax-sign';
+        const splitExpenseTransactionID = 'split-tax-sign';
+        const expenseReportID = 'expense-report-tax-sign';
+
+        // Given an expense on an expense report that is being split
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE});
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -splitAmount * 2,
+            currency: 'USD',
+            merchant: '',
+            comment: {},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+
+        const originalTransactionDraft: Transaction = {
+            transactionID: 'draft-orig-tax-sign',
+            amount: splitAmount * 2,
+            currency: 'USD',
+            merchant: '',
+            comment: {
+                originalTransactionID,
+                splitExpenses: [{transactionID: splitExpenseTransactionID, amount: splitAmount, created: '2024-01-01', taxCode: 'id_TAX_RATE_1', taxValue: '5%'}],
+            },
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+        await waitForBatchedUpdates();
+
+        // And the edited split draft holds a 5% tax in whichever sign convention its last edit wrote
+        const splitExpenseDraftTransaction: Transaction = {
+            transactionID: 'draft-split-tax-sign',
+            amount: splitAmount,
+            currency: 'USD',
+            merchant: '',
+            comment: {originalTransactionID},
+            created: '2024-01-01',
+            reportID: expenseReportID,
+            taxCode: 'id_TAX_RATE_1',
+            taxValue: '5%',
+            taxAmount: draftTaxAmount,
+        };
+
+        // When the split is saved
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the split tax has the same sign as the split amount, as every other split tax calculation does
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const updatedSplit = updatedDraft?.comment?.splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+        expect(updatedSplit?.taxAmount).toBe(expectedTaxAmount);
+    });
 });
 
 describe('createDistanceRequest', () => {

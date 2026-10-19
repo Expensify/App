@@ -612,6 +612,36 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxValue).toBe('5%');
         });
 
+        it.each([
+            {name: 'a positive expense on an expense report', storedAmount: -100, reportID: '1', isFromExpenseReport: true, expectedTaxAmount: -5},
+            {name: 'a negative expense on an expense report', storedAmount: 100, reportID: '1', isFromExpenseReport: true, expectedTaxAmount: 5},
+            {name: 'a positive unreported expense', storedAmount: -100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, isFromExpenseReport: false, expectedTaxAmount: -5},
+            {name: 'a negative unreported expense', storedAmount: 100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, isFromExpenseReport: false, expectedTaxAmount: 5},
+        ])('should store the category tax with the same sign as the stored amount for $name', ({storedAmount, reportID, isFromExpenseReport, expectedTaxAmount}) => {
+            // Given a policy with a tax expense rule for a category, and an expense stored with the opposite sign of what is displayed
+            const category = 'Advertising';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction({amount: storedAmount, reportID});
+
+            // When the category is set to the one with the rule
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport,
+                policy: fakePolicy,
+                transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax is stored with the same sign as the amount, so it displays with the sign of the displayed amount
+            expect(updatedTransaction.taxAmount).toBe(expectedTaxAmount);
+        });
+
         it('should keep the existing tax when clearing the category on a server backed edit', () => {
             // Given an expense carrying the tax of a category that has its own rule
             const category = 'Advertising';
