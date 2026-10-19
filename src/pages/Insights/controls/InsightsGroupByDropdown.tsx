@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_GROUP_BY_OPTIONS} from '@pages/Insights/insightsFilters';
+import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
 
 import variables from '@styles/variables';
 
@@ -21,14 +21,17 @@ type InsightsGroupByDropdownProps = {
     /** Time bucket the headline chart aggregates into */
     groupBy: InsightsFilters['groupBy'];
 
+    /** Options that fit the date range */
+    options: Array<InsightsFilters['groupBy']>;
+
     onChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const items: Array<SingleSelectItem<InsightsFilters['groupBy']>> = INSIGHTS_GROUP_BY_OPTIONS.map((option) => ({
+    const items: Array<SingleSelectItem<InsightsFilters['groupBy']>> = options.map((option) => ({
         text: translate(`search.filters.groupBy.${option}`),
         value: option,
     }));
