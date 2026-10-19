@@ -116,6 +116,9 @@ type IsExportActionOptions = {
 
     /** Needed to skip archived reports, which the backend never returns as exportable */
     reportNameValuePairs?: ReportNameValuePairs;
+
+    /** Needed for the cash-basis carve-out on card-only reports; Search snapshot rows aren't reliably in Onyx */
+    reportTransactions?: Transaction[];
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
@@ -347,9 +350,9 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
 
-    // Cash basis only exports once the report is paid, so approval alone leaves nothing to export
+    // Cash basis holds back only reimbursable spend, so a card-only approved or closed report can still export
     if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
-        return isReportReimbursed;
+        return isReportReimbursed || ((isReportApproved || isReportClosed) && hasOnlyNonReimbursableTransactions(report.reportID, options?.reportTransactions));
     }
 
     if (isReportApproved || isReportReimbursed || isReportClosed) {
@@ -602,7 +605,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs})) {
+    if (isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs, reportTransactions})) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

@@ -4,9 +4,12 @@ import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction,
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 import {
     arePaymentsEnabled,
     canMemberWrite,
+    getIntegrationAccountingMethod,
     getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -199,7 +202,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -224,6 +227,10 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
 
     if (report.isWaitingOnBankAccount) {
         return false;
+    }
+
+    if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
+        return isReimbursed || ((isApproved || isClosed) && hasOnlyNonReimbursableTransactions(report.reportID, transactions));
     }
 
     return isApproved || isReimbursed || isClosed;
@@ -294,7 +301,7 @@ function getReportPreviewAction({
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy)) {
+    if (canExport(report, currentUserLogin, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

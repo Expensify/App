@@ -2165,7 +2165,13 @@ function getActions(
 
     const policy = getPolicyFromKey(data, report);
     const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs: reportNVP});
+    let allReportTransactions: OnyxTypes.Transaction[];
+    if (isReportEntry(key)) {
+        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
+    } else {
+        allReportTransactions = transaction ? [transaction] : [];
+    }
+    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs: reportNVP, reportTransactions: allReportTransactions});
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
@@ -2188,12 +2194,6 @@ function getActions(
     }
 
     const allActions: SearchTransactionAction[] = [];
-    let allReportTransactions: OnyxTypes.Transaction[];
-    if (isReportEntry(key)) {
-        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
-    } else {
-        allReportTransactions = transaction ? [transaction] : [];
-    }
 
     const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
