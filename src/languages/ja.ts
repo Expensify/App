@@ -1165,7 +1165,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
-        compare: {label: '比較', previousPeriod: '前の期間', average: '平均'},
+        compare: {
+            label: '比較',
+            previousPeriod: '前の期間',
+            average: '平均',
+            increase: (percentage: string) => `${percentage} 増加`,
+            decrease: (percentage: string) => `${percentage} 減少`,
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2796,6 +2802,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
         },
+        wiseGlobalReimbursementsIntro: {title: 'グローバル払い戻しを設定しますか？', subtitle: '世界中のメンバーに現地通貨で支払えます。', getStarted: '使い始める'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
@@ -4062,6 +4069,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             formLabel: 'PDFを表示',
         },
         attachmentNotFound: '添付ファイルが見つかりません',
+        loadTimedOut: 'この画像の読み込みに時間がかかりすぎています。',
         retry: '再試行',
     },
     messages: {
@@ -9091,6 +9099,50 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
             noPaymentMethodsFound: '支払方法が見つかりません',
             noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
+            advanced: {
+                autoSyncDescription: 'Dynamics 365 Business Central と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+                accountingMethods: {
+                    label: 'エクスポート方法',
+                    description: '経費をいつエクスポートするか選択します。',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認後にエクスポートされます',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
+                    },
+                },
+                postingMode: {
+                    label: '転記モード',
+                    description: '仕訳を自動で転記するか、先に手動で確認するかを選択します。',
+                    note: '注: Expensify は、Business Central の Expensify Setup ページで選択した一般仕訳帳バッチ内の未転記の仕訳をすべて転記します。Expensify が作成したものだけではありません。Expensify 専用のバッチを使用してください。',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: '作成して転記',
+                            description: 'エクスポート時に仕訳を総勘定元帳へ自動で転記します',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: '作成のみ',
+                            description: 'エクスポート後に Dynamics 365 Business Central で仕訳を手動で転記します',
+                        },
+                    },
+                },
+                autoCreateEntities: '従業員/取引先を自動作成',
+                exportToNextOpenPeriod: '次の未締め期間にエクスポート',
+                exportToNextOpenPeriodDescription: 'レポートの日付が Dynamics 365 Business Central の締め済み期間にある場合、次の未締め期間にエクスポートします。',
+                syncReimbursedReports: '精算済みレポートを同期',
+                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この口座に支払伝票が作成されます。',
+                reimbursementBankAccount: {
+                    label: '請求支払用口座',
+                    description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。',
+                },
+                syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
+                settlementsBankAccount: {
+                    label: 'Expensify カードの決済口座',
+                    description: '精算に使う口座を選択してください。選択された口座で、Dynamics 365 Business Central に支払いを作成します。',
+                },
+            },
             accountsDescription: 'Dynamics 365 Business Central の勘定科目はカテゴリとしてインポートされます。',
             dimensionsImportAsTags: 'すべての Dynamics 365 Business Central のディメンションがタグとしてインポートされます',
             customers: '顧客',

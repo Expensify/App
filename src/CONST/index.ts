@@ -351,6 +351,9 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+
+    /** Smallest height a dropdown popover shrinks to before it stops being usable */
+    POPOVER_DROPDOWN_MIN_USABLE_HEIGHT: 200,
     POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
@@ -2385,6 +2388,10 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        /** A load that started but has sent no progress event for this long is stalled (see useImageLoadStall) */
+        IMAGE_LOAD_STALL_TIMEOUT: 15000,
+        /** Budget for a load with no progress events at all (web <img>, no Content-Length): a ceiling, not a failure claim */
+        IMAGE_LOAD_CEILING_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
@@ -4173,6 +4180,15 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_BANK_ACCOUNT_ID: 'reimbursementBankAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        POSTING_MODE: 'postingMode',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {
@@ -4617,6 +4633,10 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
     },
 
     LOCALES,
@@ -9657,6 +9677,9 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        IMAGE_LOAD: {
+            RETRY_BUTTON: 'ImageLoadTimeoutNotice-RetryButton',
         },
         MODAL: {
             DISMISS_DIALOG: 'Modal-DismissDialog',

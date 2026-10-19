@@ -605,6 +605,15 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
     UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
     UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING: 'UpdateBusinessCentralProjectsMapping',
+    UPDATE_BUSINESS_CENTRAL_AUTO_SYNC: 'UpdateBusinessCentralAutoSync',
+    UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'UpdateBusinessCentralAccountingMethod',
+    UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateBusinessCentralExportToNextOpenPeriod',
+    UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS: 'UpdateBusinessCentralSyncReimbursedReports',
+    UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT: 'UpdateBusinessCentralReimbursementBankAccount',
+    UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateBusinessCentralSyncExpensifyCardSettlements',
+    UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT: 'UpdateBusinessCentralSettlementsBankAccount',
+    UPDATE_BUSINESS_CENTRAL_POSTING_MODE: 'UpdateBusinessCentralPostingMode',
+    UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES: 'UpdateBusinessCentralAutoCreateEntities',
     CONNECT_POLICY_TO_CAMPFIRE: 'ConnectPolicyToCampfire',
     UPDATE_CAMPFIRE_SUBSIDIARY: 'UpdateCampfireSubsidiary',
     UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
@@ -1361,6 +1370,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC]: Parameters.UpdateBusinessCentralAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD]: Parameters.UpdateBusinessCentralAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateBusinessCentralExportToNextOpenPeriodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateBusinessCentralSyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT]: Parameters.UpdateBusinessCentralReimbursementBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateBusinessCentralSyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT]: Parameters.UpdateBusinessCentralSettlementsBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_POSTING_MODE]: Parameters.UpdateBusinessCentralPostingModeParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES]: Parameters.UpdateBusinessCentralAutoCreateEntitiesParams;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_CAMPFIRE]: Parameters.ConnectPolicyToCampfireParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SUBSIDIARY]: Parameters.UpdateCampfireSubsidiaryParams;
@@ -1721,6 +1739,7 @@ const READ_COMMANDS = {
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
     OPEN_PROFILE_PAGE: 'OpenProfilePage',
+    OPEN_RECIPIENT_PICKER: 'OpenRecipientPicker',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1846,6 +1865,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_PROFILE_PAGE]: null;
+    [READ_COMMANDS.OPEN_RECIPIENT_PICKER]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

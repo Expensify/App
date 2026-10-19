@@ -45,10 +45,16 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's own query */
     snapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the typical amounts */
+    /** The chart's query for the previous period */
+    previousPeriodQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the previous period */
+    previousPeriodSnapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's query for the average amounts */
     averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
 
-    /** The snapshot stored under the chart's query for the typical amounts */
+    /** The snapshot stored under the chart's query for the average amounts */
     averageSnapshot: OnyxEntry<SearchResults>;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -61,17 +67,29 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
+function InsightsChartWidget({
+    chart,
+    queryJSON,
+    snapshot,
+    previousPeriodQueryJSON,
+    previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
+    filters,
+    onRetry,
+    onGroupByChange,
+}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
 
@@ -139,7 +157,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, aver
                 <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}

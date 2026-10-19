@@ -57,6 +57,8 @@ function renderWidget() {
                 chart={CHART}
                 queryJSON={QUERY}
                 snapshot={undefined}
+                previousPeriodQueryJSON={undefined}
+                previousPeriodSnapshot={undefined}
                 averageQueryJSON={undefined}
                 averageSnapshot={undefined}
                 filters={FILTERS}
