@@ -1,10 +1,12 @@
 import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -142,6 +144,36 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
+    if (!allReportActions) {
+        return undefined;
+    }
+
+    const result: Record<string, true> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
+            result[reportID] = true;
+        }
+    }
+    return result;
+}
+
+type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
+
+type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
+
+/** Strips the reply counters, which change on every reply in the thread, so components that only show the parent message don't re-render for each reply. */
+function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): ReportActionWithoutThreadReplyCounters | undefined {
+    const parentReportAction = getParentReportActionSelector(parentReportActions, parentReportActionID);
+    if (!parentReportAction) {
+        return undefined;
+    }
+    const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs, ...parentReportActionWithoutThreadReplies} = parentReportAction;
+    return parentReportActionWithoutThreadReplies;
+}
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
@@ -150,6 +182,8 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
+    getParentReportActionWithoutThreadRepliesSelector,
 };
-export type {NewestReportAction};
+export type {NewestReportAction, ReportActionWithoutThreadReplyCounters};

@@ -285,6 +285,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportDetailsPage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareCodePage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareReportPage').default,
 });
 
 const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
@@ -344,8 +345,6 @@ const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosS
 });
 
 const CategoriesModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCreateCategoryPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicEditCategoryPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
@@ -356,7 +355,6 @@ const CategoriesModalStackNavigator = createModalStackNavigator({
 });
 
 const TagsModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default,
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceEditTagsPage').default,
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsOptionsPage').default,
@@ -444,6 +442,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
+    [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsAccountingPage').default,
+    [SCREENS.WORKSPACE.CONNECTIONS_HR]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsHRPage').default,
+    [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsRecruitingPage').default,
+    [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsReceiptPartnersPage').default,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default,
     [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/ServerPage').default,
@@ -511,13 +513,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UpdatePersonalBankAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
-    [SCREENS.SETTINGS.AGENTS.NEW]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/NewAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.ADD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/AddAgentAvatarPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/EditAgentPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditNamePage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditPromptPage').default),
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditAgentAvatarPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicNewAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicAddAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicAddAgentAvatarPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/DynamicEditAgentPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditNamePage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditPromptPage').default),
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/DynamicEditAgentAvatarPage').default),
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
@@ -542,12 +544,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetTimePage').default,
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegatePage').default,
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateFormPage').default,
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegatePage').default,
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateMissingWorkspacesPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/ExpensifyCodePage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage/PaymentDetailsPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettings').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default,
@@ -576,6 +580,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
     [SCREENS.WORKSPACE.NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceNamePage').default,
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOfficeLocationAddPage').default,
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOfficeLocationEditPage').default,
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewDescriptionPage').default,
     [SCREENS.WORKSPACE.CLIENT_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewClientIDPage').default,
     [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewSharePage').default,
@@ -598,10 +604,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditCategoryTaxRulePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewAddressPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceOverviewPlanTypePage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportCategoriesPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportedCategoriesPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicSpendCategorySelectorPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicDefaultCategorySelectorPage').default,
     [SCREENS.WORKSPACE.UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/upgrade/WorkspaceUpgradePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/DynamicWorkspaceDowngradePage').default,
@@ -648,7 +652,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportMultiLevelTagsSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportedTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportedMultiLevelTagsPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicTagSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceViewTagsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceEditTagsPage').default,
@@ -1065,6 +1068,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralDefaultVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralPaymentMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAccountingMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralPostingModeSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralBankAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1310,7 +1321,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
     [SCREENS.DOMAIN.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberDetailsPage').default,
     [SCREENS.DOMAIN.RESET_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/DomainResetPage').default,
-    [SCREENS.DOMAIN.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegatePage').default,
+    [SCREENS.DOMAIN.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegateFormPage').default,
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegatePage').default,
     [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersSettingsPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,

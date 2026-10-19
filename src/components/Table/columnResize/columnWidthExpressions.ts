@@ -12,6 +12,12 @@ const RESIZE_INDICATOR_HEIGHT_VARIABLE = '--table-resize-indicator-height';
 /** Opacity of a handle's line, set on that handle so hovering never re-renders the table. */
 const RESIZE_INDICATOR_OPACITY_VARIABLE = '--table-resize-indicator-opacity';
 
+/** `1` while the pointer is over a handle's heading cell, `0` otherwise. The grip shows while this is set and the line isn't. */
+const RESIZE_GRIP_HOVER_VARIABLE = '--table-resize-grip-hover';
+
+/** Marks a handle's line, so a reveal can grow it out of the grip. */
+const RESIZE_INDICATOR_DATA_ATTRIBUTE = 'data-resize-indicator';
+
 /** Marks the header row and the data rows, so the line can find where the table's rows start and end. */
 const TABLE_ROW_DATA_SET = {tableRow: true};
 
@@ -42,6 +48,8 @@ function getColumnsWidthExpression(columnWidthValues: string[], chromeWidth: num
 }
 
 export {
+    RESIZE_GRIP_HOVER_VARIABLE,
+    RESIZE_INDICATOR_DATA_ATTRIBUTE,
     RESIZE_INDICATOR_HEIGHT_VARIABLE,
     RESIZE_INDICATOR_OPACITY_VARIABLE,
     RESIZE_INDICATOR_TOP_VARIABLE,

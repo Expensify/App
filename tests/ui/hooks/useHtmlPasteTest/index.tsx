@@ -21,20 +21,68 @@ jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
     return jest.requireActual('@hooks/useHtmlPaste/index.ts');
 });
 
+const originalRangeGeometryDescriptor = Object.getOwnPropertyDescriptor(Range.prototype, 'getBoundingClientRect');
+let didInstallRangeGeometry = false;
+
+beforeAll(() => {
+    if (typeof Range.prototype.getBoundingClientRect === 'function') {
+        return;
+    }
+
+    Object.defineProperty(Range.prototype, 'getBoundingClientRect', {
+        configurable: true,
+        writable: true,
+        value: (): DOMRect => ({
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            right: 0,
+            bottom: 0,
+            x: 0,
+            y: 0,
+            toJSON: () => {},
+        }),
+    });
+    didInstallRangeGeometry = true;
+});
+
+afterAll(() => {
+    if (!didInstallRangeGeometry) {
+        return;
+    }
+
+    if (originalRangeGeometryDescriptor) {
+        Object.defineProperty(Range.prototype, 'getBoundingClientRect', originalRangeGeometryDescriptor);
+    } else {
+        Reflect.deleteProperty(Range.prototype, 'getBoundingClientRect');
+    }
+});
+
 describe('useHtmlPaste - handlePastePlainText', () => {
     let textInputRef: RefObject<(HTMLDivElement & Pick<TextInput, 'isFocused'>) | null>;
     let textInputElement: HTMLDivElement;
 
-    const createMockClipboardEvent = (text: string): ClipboardEvent => {
-        return createMock<ClipboardEvent>({
-            clipboardData: {
-                getData: (type: string) => (type === 'text/plain' ? text : ''),
-                files: [],
-                items: [],
-                types: ['text/plain'],
+    /**
+     * Creates a paste event with plain-text and optional HTML clipboard data.
+     *
+     * @param text Plain-text clipboard content.
+     * @param html HTML clipboard content.
+     * @returns A paste event containing the requested clipboard data.
+     */
+    const createMockClipboardEvent = (text: string, html = ''): ClipboardEvent => {
+        const clipboardData = createMock<DataTransfer>({
+            getData: (type: string) => {
+                if (type === 'text/html') {
+                    return html;
+                }
+                return type === 'text/plain' ? text : '';
             },
-            preventDefault: jest.fn(),
+            files: [],
+            items: [],
+            types: html ? ['text/html', 'text/plain'] : ['text/plain'],
         });
+        return Object.assign(new Event('paste', {bubbles: true, cancelable: true}), {clipboardData});
     };
 
     const mockWindowSelection = (selectedText: string) => {
@@ -57,20 +105,6 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         textInputElement.textContent = '';
         document.body.appendChild(textInputElement);
         textInputRef = {current: Object.assign(textInputElement, {isFocused: () => true})};
-
-        if (!Range.prototype.getBoundingClientRect) {
-            Range.prototype.getBoundingClientRect = () => ({
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0,
-                right: 0,
-                bottom: 0,
-                x: 0,
-                y: 0,
-                toJSON: () => {},
-            });
-        }
     });
 
     afterEach(() => {
@@ -155,6 +189,137 @@ describe('useHtmlPaste - handlePastePlainText', () => {
             expect(textInputElement.textContent).toBe(textWithTrailingWhitespace);
             expect(textInputElement.textContent?.endsWith('   ')).toBe(true);
         }
+    });
+
+    it('uses the Slack emoji shortcode metadata while preserving surrounding HTML formatting', async () => {
+        // Given a Slack emoji image is followed by bold text, so changing the image must not remove the surrounding formatting.
+        const html = '<p>Normal Text. <img data-stringify-emoji=":tada:" alt=":smile:" src="https://a.slack-edge.com/emoji.png"> <strong>Bold</strong></p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Slack HTML is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then the shortcode and bold Markdown remain because only the recognized emoji image should change.
+        expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
+    });
+
+    it('preserves multiple Slack emoji shortcodes, spacing, and surrounding formatting', async () => {
+        // Given Slack HTML mixes supported and custom emoji images with formatting, so removing the Safari fallback must preserve the desktop paste behavior.
+        const html =
+            '<p><img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/tada.png"> <img data-stringify-emoji=":thankyou_pink:" alt=":thankyou_pink:" src="https://a.slack-edge.com/custom.png"><img data-stringify-emoji=":smile:" alt=":smile:" src="https://a.slack-edge.com/smile.png"> <strong>Bold</strong> <em>Italic</em> <a href="https://example.com">Link</a> <code>:smile:</code></p><pre>:tada:</pre>';
+        const event = createMockClipboardEvent(':tada: :thankyou_pink::smile: Bold Italic Link :smile:\n:tada:', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the complete Slack message is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then every emoji image becomes its exact shortcode and the existing spacing and Markdown survive for the Composer pipeline to process.
+        expect(textInputRef.current?.textContent).toBe(':tada: :thankyou_pink::smile: *Bold* _Italic_ [Link](https://example.com) `:smile:`\n```\n:tada:\n```');
+    });
+
+    it('preserves the original Safari formatting HTML when there are no emoji images', async () => {
+        // Given Safari HTML has nested formatting and non-breaking spaces but no emoji images, so the emoji handling must leave it alone.
+        const html =
+            '<head><meta charset="UTF-8"></head><b style="font-weight: 700;">Bold text,<span class="Apple-converted-space">\u00A0</span></b><b style="font-weight: 700;"><i style="font-style: italic;">Bold and Italic text,<span class="Apple-converted-space">\u00A0</span></i></b><i style="font-style: italic;">Normal Italic text.</i>';
+        const event = createMockClipboardEvent('Bold text,\u00A0Bold and Italic text,\u00A0Normal Italic text.', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Safari HTML is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then its Markdown stays unchanged because parsing a paste without emoji images must not create a new formatting regression.
+        expect(textInputRef.current?.textContent).toBe('*Bold text,**_Bold and Italic text,\u00A0_*_Normal Italic text._');
+    });
+
+    it('replaces a Slack emoji without changing surrounding Safari formatting HTML', async () => {
+        // Given a Slack emoji appears beside Safari-specific formatting, so replacing the image must not serialize and alter the rest of the HTML.
+        const html =
+            '<head><meta charset="UTF-8"></head><img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <b style="font-weight: 700;">Bold text,<span class="Apple-converted-space">\u00A0</span></b><i style="font-style: italic;">Italic text.</i>';
+        const event = createMockClipboardEvent(':tada: Bold text,\u00A0Italic text.', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the mixed Slack and Safari HTML is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then the emoji becomes a shortcode while the original formatting boundaries stay intact.
+        expect(textInputRef.current?.textContent).toBe(':tada: *Bold text,*_Italic text._');
+    });
+
+    it('replaces only the recognized emoji when a normal image appears first', async () => {
+        // Given a normal photo comes before a Slack emoji image, so Slack detection must not turn the photo into an emoji.
+        const html = '<p><img src="https://example.com/photo.png" alt="Photo"> <img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"></p>';
+        const event = createMockClipboardEvent('Photo :tada:', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the mixed image HTML is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then the photo remains Markdown image content and only the Slack emoji becomes a shortcode.
+        expect(textInputRef.current?.textContent).toBe('![Photo](https://example.com/photo.png) :tada:');
+    });
+
+    it('falls back to image alt when only the emoji type metadata is available', async () => {
+        // Given a legacy Slack emoji image has its type metadata but no explicit shortcode metadata, so the alt text is the only safe fallback.
+        const html = '<p>Normal Text. <img data-stringify-type="emoji" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <strong>Bold</strong></p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the legacy Slack HTML is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then the fallback shortcode is used because older clipboard data still needs to avoid broken image Markdown.
+        expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
+    });
+
+    it('does not replace blob images without Slack emoji metadata', async () => {
+        // Given a blob image has an emoji-shaped filename but no Slack metadata, so its filename must not classify it as an emoji.
+        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the blob image is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then it remains an image because neither the blob URL nor the emoji-shaped alt proves it is a Slack emoji.
+        expect(textInputRef.current?.textContent).toBe('Normal Text. ![1f389@2x.png](blob:https://new.expensify.com/123) Bold');
+    });
+
+    it('does not replace normal images whose alt text is an emoji shortcode', async () => {
+        // Given a normal web image has an emoji-like alt value but no Slack metadata, so alt text alone must not classify it as a Slack emoji.
+        const html = '<p>Copy image below:</p><img src="https://example.com/image.png" alt=":smile:">';
+        const event = createMockClipboardEvent('Copy image below:', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the normal image is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then it stays an image because converting it would corrupt ordinary image pastes with emoji-looking alt text.
+        expect(textInputRef.current?.textContent).toBe('Copy image below:\n![:smile:](https://example.com/image.png)');
     });
 });
 
