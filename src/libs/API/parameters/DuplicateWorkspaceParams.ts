@@ -14,7 +14,7 @@ type DuplicateWorkspaceParams = {
     announceChatReportActionID: string;
     perDiemCustomUnitID: string;
     distanceCustomUnitID: string;
-    customUnitRateID: string;
+    optimisticRateIDs: string;
     file?: FileObject;
 };
 

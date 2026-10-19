@@ -9,6 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -419,20 +420,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: true,
-                    reports: true,
-                    connections: true,
-                    categories: true,
-                    tags: true,
-                    taxes: true,
-                    perDiem: true,
-                    reimbursements: true,
-                    expenses: true,
-                    distance: true,
-                    invoices: true,
-                    exportLayouts: true,
-                },
+                parts: ['members', 'reports', 'accounting', 'categories', 'tags', 'taxes', 'perDiem', 'rules', 'distanceRates', 'invoices', 'workflows'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -610,20 +598,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: true,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -679,23 +654,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: true,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                    overview: true,
-                    travel: true,
-                    codingRules: true,
-                },
+                parts: ['taxes', 'overview', 'currency', 'travel', 'codingRules'] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
                 personalDetailsByLogins: {},
@@ -762,21 +721,7 @@ describe('actions/Policy', () => {
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
                 personalDetailsByLogins: {},
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                    codingRules: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
             });
@@ -825,20 +770,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Welcome to the workspace',
-                parts: {
-                    people: true,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins,
             };
@@ -879,20 +811,7 @@ describe('actions/Policy', () => {
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
                 file,
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -929,20 +848,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -980,7 +886,7 @@ describe('actions/Policy', () => {
             expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
-        it('duplicate workspace with distance rates clones all source rates in optimistic data with the default rebound to the API-known rate ID', async () => {
+        it('duplicate workspace with distance rates gives every rate a new ID and sends the map to the server', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
 
             const sourceDistanceUnitID = 'srcDistUnit';
@@ -1012,20 +918,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: true,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['distanceRates'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -1033,7 +926,7 @@ describe('actions/Policy', () => {
             // Pause the API call so successData (which clears the optimistic source rate IDs) does not
             // run yet — this lets us inspect the optimistic state the user sees offline.
             mockFetch.pause();
-            Policy.duplicateWorkspace(fakePolicy, options);
+            const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
             const duplicatePolicy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1053,31 +946,18 @@ describe('actions/Policy', () => {
             }
             // The duplicated unit's customUnitID should differ from the source's (fresh ID).
             expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
-            // Both rates should be present in optimistic data: the extra rate keeps its source ID,
-            // and the default is rebound to a fresh API-known customUnitRateID.
-            const rateKeys = Object.keys(distanceUnit.rates);
-            expect(rateKeys).toContain(sourceExtraRateID);
-            expect(rateKeys).not.toContain(sourceDefaultRateID);
-            expect(rateKeys).toHaveLength(2);
-            // The Default Rate should be the one picked by getDefaultDistanceRate (lowest enabled index).
-            const defaultRate = Object.values(distanceUnit.rates)
-                .filter((rate) => rate.enabled !== false)
-                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-                .at(0);
-            expect(defaultRate?.name).toBe('Default Rate');
-            expect(defaultRate?.rate).toBe(72.5);
-            // The default rate's customUnitRateID matches its dictionary key (rebound).
-            expect(defaultRate?.customUnitRateID).not.toBe(sourceDefaultRateID);
-            const defaultRateID = defaultRate?.customUnitRateID;
-            if (!defaultRateID) {
-                throw new Error('Expected default rate to have a customUnitRateID');
-            }
-            expect(distanceUnit.rates[defaultRateID]).toBe(defaultRate);
+            // Both rates are copied under new IDs, and the server gets the same IDs keyed by source rate ID.
+            const rates = Object.values(distanceUnit.rates);
+            const newDefaultRateID = rates.find((rate) => rate.name === 'Default Rate')?.customUnitRateID;
+            const newExtraRateID = rates.find((rate) => rate.name === 'Extra Rate')?.customUnitRateID;
+            expect(rates).toHaveLength(2);
+            expect(newDefaultRateID).not.toBe(sourceDefaultRateID);
+            expect(newExtraRateID).not.toBe(sourceExtraRateID);
+            expect(JSON.parse(params.optimisticRateIDs)).toEqual({[sourceDefaultRateID]: newDefaultRateID, [sourceExtraRateID]: newExtraRateID});
 
             // Resume the mocked fetch so the API call resolves; the duplicated workspace's optimistic
             // rates remain visible until a Pusher response (not mocked here) repopulates them with
-            // the server's rate set. We rely on the server preserving the source's non-default rate
-            // IDs in the duplicate, so the optimistic state and the eventual server state line up.
+            // the server's rate set, which uses the IDs sent in optimisticRateIDs.
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
         });
