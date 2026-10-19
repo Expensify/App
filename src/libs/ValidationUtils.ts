@@ -850,7 +850,10 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
-type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+type MerchantValidationError =
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.INVALID}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG; byteLength: number};
 
 /**
  * Copy for a merchant validation error on the merchant form.
@@ -859,11 +862,11 @@ function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantV
     // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
     // eslint-disable-next-line default-case
     switch (error.type) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
-        case 'invalidValue':
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
             return translate('iou.error.invalidMerchant');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
             return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
     }
 }
@@ -875,14 +878,14 @@ function getMerchantError(merchant: string | undefined, isMerchantRequired: bool
     const trimmedMerchant = merchant?.trim() ?? '';
 
     if (isMerchantRequired && !trimmedMerchant) {
-        return {type: 'required'};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.REQUIRED};
     }
     if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
-        return {type: 'invalidValue'};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.INVALID};
     }
     const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
     if (!isLengthValid) {
-        return {type: 'tooLong', byteLength};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.TOO_LONG, byteLength};
     }
     return undefined;
 }
