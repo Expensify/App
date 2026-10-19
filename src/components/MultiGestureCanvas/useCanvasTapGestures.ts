@@ -142,8 +142,6 @@ const useCanvasTapGestures = ({
         maxDistance: 20,
         simultaneousWith: panGesture,
         onTouchesDown: (evt) => {
-            'worklet';
-
             if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
@@ -151,8 +149,6 @@ const useCanvasTapGestures = ({
             GestureStateManager.fail(evt.handlerTag);
         },
         onDeactivate: (evt) => {
-            'worklet';
-
             const triggerScaleChangedEvent = () => {
                 'worklet';
 
@@ -181,13 +177,9 @@ const useCanvasTapGestures = ({
         requireToFail: [doubleTapGesture, panGesture],
         simultaneousWith: panGesture,
         onBegin: () => {
-            'worklet';
-
             stopAnimation();
         },
         onFinalize: (evt) => {
-            'worklet';
-
             if (evt.canceled || onTap === undefined) {
                 return;
             }

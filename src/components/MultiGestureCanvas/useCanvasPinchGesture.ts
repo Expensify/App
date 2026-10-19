@@ -121,8 +121,6 @@ const useCanvasPinchGesture = ({
         enabled: pinchEnabled,
         simultaneousWith,
         onTouchesDown: (evt) => {
-            'worklet';
-
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
                 return;
@@ -141,8 +139,6 @@ const useCanvasPinchGesture = ({
             pinchOrigin.y.set(adjustedFocal.y);
         },
         onUpdate: (evt) => {
-            'worklet';
-
             // Disable the pinch gesture if one finger is released,
             // to prevent the content from shaking/jumping
             if (evt.numberOfPointers !== 2) {

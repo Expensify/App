@@ -155,7 +155,7 @@ function AttachmentCarouselView({
         [cellWidth],
     );
 
-    /** Pan gesture handing swiping through attachments on touch screen devices */
+    /** Pan gesture handling swiping through attachments on touch screen devices */
     const pan = usePanGesture({
         enabled: canUseTouchScreen,
         onUpdate: ({translationX}) => {
