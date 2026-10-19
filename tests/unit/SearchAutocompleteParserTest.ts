@@ -342,6 +342,21 @@ const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> 
             ],
         },
     },
+    {
+        query: 'type:expense -merchant*:Uber',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'type:expense category*:travel',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
 ];
 
 const limitAutocompleteTests: Array<{query: string; expected: ExpectedAutocompleteParserResult; description: string}> = [
@@ -772,6 +787,48 @@ const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutoco
         },
         description: 'Negates multiple from and has values',
     },
+    {
+        query: 'anyApproval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 12,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 12, length: 10}],
+        },
+        description: 'anyApproval date filter provides autocomplete',
+    },
+    {
+        query: 'anyApproval:',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: '',
+                negated: false,
+                start: 12,
+                length: 0,
+            },
+            ranges: [],
+        },
+        description: 'anyApproval with an empty value still identifies the filter key',
+    },
+    {
+        query: 'any-approval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 13,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 13, length: 10}],
+        },
+        description: 'any-approval user-friendly alias maps to anyApproval',
+    },
 ];
 
 describe('autocomplete parser', () => {
@@ -784,8 +841,12 @@ describe('autocomplete parser', () => {
 
 describe('autocomplete parser - name field continuation detection', () => {
     test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
+        // Given a partially typed search query, possibly using a user-friendly alias or an empty filter value
+
+        // When the autocomplete parser processes it
         const result: unknown = parse(query);
 
+        // Then the active filter key/value and highlighted ranges are identified so the right suggestions can be shown
         expect(result).toEqual(expected);
     });
 });
