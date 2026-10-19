@@ -64,8 +64,8 @@ type UseConnectedAccountingIntegrationOptions = {
     /** Style applied to the settings rows, which the Accounting page lays out as cards */
     menuItemWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
 /**
@@ -236,8 +236,12 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                     if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
                         return;
                     }
-                    onDisconnectConfirmed?.();
-                    removePolicyConnection(policy, connectedIntegration);
+                    const disconnect = () => removePolicyConnection(policy, connectedIntegration);
+                    if (onDisconnectConfirmed) {
+                        onDisconnectConfirmed(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,
