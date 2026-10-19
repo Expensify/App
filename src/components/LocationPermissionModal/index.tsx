@@ -107,9 +107,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
                 prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+                shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
                     resetFlowState();
                 },
                 isConfirmLoading: false,
