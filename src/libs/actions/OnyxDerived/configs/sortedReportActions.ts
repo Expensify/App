@@ -65,12 +65,24 @@ export default createOnyxDerivedValueConfig({
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
 
+            const reportIDsToRecompute = new Set<string>();
             for (const reportActionsKey of Object.keys(reportActionsUpdates)) {
                 const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                if (!reportID) {
-                    continue;
+                if (reportID) {
+                    reportIDsToRecompute.add(reportID);
                 }
+            }
 
+            // A one-transaction report's actions are combined with its transaction thread's actions, so a change that only
+            // touches the thread must also recompute the parent, otherwise the parent's sortedActions/lastActions go stale.
+            for (const [parentReportID, transactionThreadReportID] of Object.entries(currentValue.transactionThreadIDs)) {
+                if (transactionThreadReportID && reportIDsToRecompute.has(transactionThreadReportID)) {
+                    reportIDsToRecompute.add(parentReportID);
+                }
+            }
+
+            for (const reportID of reportIDsToRecompute) {
+                const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
                 const actions = allReportActions[reportActionsKey];
                 if (!actions) {
                     delete sortedActions[reportID];

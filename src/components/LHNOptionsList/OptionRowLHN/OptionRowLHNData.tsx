@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getLastOriginalReportAction, getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
+import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {SortedReportActionsDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ViewStyle} from 'react-native';
@@ -87,6 +87,9 @@ function OptionRowLHNData({
     );
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
 
+    const lastOriginalActionSelector = useCallback((data: SortedReportActionsDerivedValue | undefined) => data?.lastActions?.[reportID], [reportID]);
+    const [lastOriginalAction] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: lastOriginalActionSelector});
+
     // Per-item NVP subscription instead of collection-level subscription in parent
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
 
@@ -104,13 +107,6 @@ function OptionRowLHNData({
         }
         return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
     }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
-
-    // The unfiltered last action, combined with the one-transaction thread the same way getOptionData resolves it
-    const isSelfDMReport = fullReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    const lastOriginalAction = useMemo(
-        () => getLastOriginalReportAction(reportActions, reportAttributes?.oneTransactionThreadReportID, transactionThreadReportActions, isSelfDMReport),
-        [reportActions, reportAttributes?.oneTransactionThreadReportID, transactionThreadReportActions, isSelfDMReport],
-    );
 
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
