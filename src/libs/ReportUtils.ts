@@ -1214,17 +1214,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePair = value;
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -2585,7 +2574,7 @@ function findLastAccessedReport(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
-    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
+    const reportNameValuePairsCollection = reportNameValuePairs;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
 
     if (openOnAdminRoom) {
@@ -3440,6 +3429,7 @@ function getBadgeFromIOUReport(
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
+    isChatReportArchived = false,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3448,10 +3438,6 @@ function getBadgeFromIOUReport(
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
-
-    // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -3516,6 +3502,7 @@ function getIOUReportActionWithBadge(
     allViolations: OnyxCollection<TransactionViolations> | undefined,
     allReports?: OnyxCollection<Report>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
+    isChatReportArchived = false,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -3553,7 +3540,18 @@ function getIOUReportActionWithBadge(
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions, allViolations);
+        const badge = getBadgeFromIOUReport(
+            iouReport,
+            chatReport,
+            policy,
+            reportMetadata,
+            invoiceReceiverPolicy,
+            currentUserLogin,
+            currentUserAccountID,
+            iouReportActions,
+            allViolations,
+            isChatReportArchived,
+        );
         if (!badge) {
             continue;
         }
@@ -3574,15 +3572,11 @@ function hasOutstandingChildRequest(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchived = false,
 ) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(chatReport.policyID);
-
-    // Tech debt: reading from the module-level allReportNameValuePair cache is deprecated — the chat report's archived
-    // state should be threaded down from this function's callers (useReportIsArchived in components) instead.
-    // TODO: https://github.com/Expensify/App/issues/66422
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
 
     const excludedReportIDSet = new Set<string>();
     if (typeof iouReportOrIDorArray === 'string') {
@@ -5122,6 +5116,7 @@ function getReasonAndReportActionThatRequiresAttention({
         transactionViolations,
         reports,
         allReportActionsParam ?? allReportActions,
+        isReportArchived,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -5158,6 +5153,7 @@ function getReasonAndReportActionThatRequiresAttention({
                 currentUserAccountID,
                 reportActions,
                 transactionViolations,
+                isReportArchived,
             );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,

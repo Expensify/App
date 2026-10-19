@@ -6557,13 +6557,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Then the invoice is payable, so the PAY badge is returned
             expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
 
-            // When the chat report is archived in Onyx — getBadgeFromIOUReport resolves the archived state itself
-            // because its callers don't thread it down yet (see the TODO for issue 66518)
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            await waitForBatchedUpdates();
-
+            // When the chat report is archived
             // Then no badge is returned because the archived chat blocks paying the invoice
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined)).toBeUndefined();
+            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, true)).toBeUndefined();
         });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {
