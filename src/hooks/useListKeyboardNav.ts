@@ -54,7 +54,7 @@ function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({
             setHasBeenFocused(true);
             setHasFocus(true);
             const target = event.target;
-            if (target && 'id' in target && typeof target.id === 'string' && target.id) {
+            if (isHTMLElement(target) && target.id) {
                 const index = itemKeysRef.current.indexOf(target.id);
                 if (index >= 0) {
                     setFocusedIndex(index);

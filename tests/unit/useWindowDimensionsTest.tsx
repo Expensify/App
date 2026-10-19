@@ -23,20 +23,10 @@ const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia')
 const initialHeight = window.visualViewport?.height ?? window.innerHeight;
 let mockViewport: ScaledSize = {width: 390, height: initialHeight, scale: 1, fontScale: 1};
 let mockIsWebKit = true;
-jest.unmock('react-native');
 jest.mock('@libs/Browser', () => ({isMobile: () => true, isMobileWebKit: () => mockIsWebKit}));
 
-const ReactNativeRuntime = jest.requireActual<typeof ReactNative>('react-native');
-// Mock only the viewport producer after the preset has initialized its RN module.
-const originalViewportHook = Object.getOwnPropertyDescriptor(ReactNativeRuntime, 'useWindowDimensions');
-Object.defineProperty(ReactNativeRuntime, 'useWindowDimensions', {configurable: true, get: () => () => mockViewport});
+const ReactNativeRuntime = jest.requireMock<typeof ReactNative>('react-native');
 const useWindowDimensions = jest.requireActual<typeof WindowDimensionsModule>('@hooks/useWindowDimensions/index.ts').default;
-afterAll(() => {
-    if (!originalViewportHook) {
-        return;
-    }
-    Object.defineProperty(ReactNativeRuntime, 'useWindowDimensions', originalViewportHook);
-});
 
 /** Mirrors the production provider's ref mutations so render-time lock ordering remains observable. */
 function createFullscreenContexts(isFullScreen: boolean) {
@@ -68,7 +58,9 @@ beforeEach(() => {
     mockViewport = {width: 390, height: initialHeight, scale: 1, fontScale: 1};
     mockIsWebKit = true;
     jest.useFakeTimers();
-    jest.spyOn(Dimensions, 'get').mockReturnValue({width: 390, height: initialHeight, scale: 1, fontScale: 1});
+    jest.spyOn(ReactNativeRuntime, 'useWindowDimensions').mockImplementation(() => mockViewport);
+    // Keep the physical screen above the height breakpoint so width expectations do not depend on the browser environment.
+    jest.spyOn(Dimensions, 'get').mockReturnValue({width: 390, height: 900, scale: 1, fontScale: 1});
     Object.defineProperty(window, 'matchMedia', {configurable: true, writable: true, value: jest.fn<MediaQueryList, [string]>(() => createMock<MediaQueryList>({matches: true}))});
 });
 afterEach(() => {
@@ -133,7 +125,7 @@ describe('useWindowDimensions', () => {
         const nonInput = document.createElement('button');
         const text = document.createTextNode('text');
         document.body.append(nonInput, text);
-        // When focus moves outside keyboard-producing elements, including a event without a target, no cache update applies.
+        // When focus moves outside keyboard-producing elements, including an event without a target, no cache update applies.
         act(() => {
             nonInput.dispatchEvent(new FocusEvent('focusout', {bubbles: true}));
             text.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
@@ -168,12 +160,62 @@ describe('useWindowDimensions', () => {
     });
 
     it.each([
-        variables.extraSmallMobileResponsiveWidthBreakpoint,
-        variables.mobileResponsiveWidthBreakpoint,
-        variables.mobileResponsiveWidthBreakpoint + 1,
-        variables.tabletResponsiveWidthBreakpoint,
-        variables.tabletResponsiveWidthBreakpoint + 1,
-    ])('keeps responsive width thresholds at %s', (width) => {
+        {
+            width: variables.extraSmallMobileResponsiveWidthBreakpoint,
+            expectedResponsiveLayout: {
+                isSmallScreenWidth: true,
+                isExtraSmallScreenHeight: false,
+                isExtraSmallScreenWidth: true,
+                isMediumScreenWidth: false,
+                isLargeScreenWidth: false,
+                isSmallScreen: true,
+            },
+        },
+        {
+            width: variables.mobileResponsiveWidthBreakpoint,
+            expectedResponsiveLayout: {
+                isSmallScreenWidth: true,
+                isExtraSmallScreenHeight: false,
+                isExtraSmallScreenWidth: false,
+                isMediumScreenWidth: false,
+                isLargeScreenWidth: false,
+                isSmallScreen: true,
+            },
+        },
+        {
+            width: variables.mobileResponsiveWidthBreakpoint + 1,
+            expectedResponsiveLayout: {
+                isSmallScreenWidth: false,
+                isExtraSmallScreenHeight: false,
+                isExtraSmallScreenWidth: false,
+                isMediumScreenWidth: true,
+                isLargeScreenWidth: false,
+                isSmallScreen: false,
+            },
+        },
+        {
+            width: variables.tabletResponsiveWidthBreakpoint,
+            expectedResponsiveLayout: {
+                isSmallScreenWidth: false,
+                isExtraSmallScreenHeight: false,
+                isExtraSmallScreenWidth: false,
+                isMediumScreenWidth: true,
+                isLargeScreenWidth: false,
+                isSmallScreen: false,
+            },
+        },
+        {
+            width: variables.tabletResponsiveWidthBreakpoint + 1,
+            expectedResponsiveLayout: {
+                isSmallScreenWidth: false,
+                isExtraSmallScreenHeight: false,
+                isExtraSmallScreenWidth: false,
+                isMediumScreenWidth: false,
+                isLargeScreenWidth: true,
+                isSmallScreen: false,
+            },
+        },
+    ])('keeps responsive width thresholds at $width', ({width, expectedResponsiveLayout}) => {
         // Given a breakpoint-adjacent viewport, equality belongs to the smaller width category.
         mockViewport = {...mockViewport, width, height: 900};
         const fullscreen = createFullscreenContexts(true);
@@ -184,14 +226,7 @@ describe('useWindowDimensions', () => {
         expect(fullscreen.lock).toHaveBeenCalledWith({
             windowWidth: width,
             windowHeight: 900,
-            responsiveLayoutResults: {
-                isSmallScreenWidth: width <= variables.mobileResponsiveWidthBreakpoint,
-                isExtraSmallScreenHeight: initialHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint,
-                isExtraSmallScreenWidth: width <= variables.extraSmallMobileResponsiveWidthBreakpoint,
-                isMediumScreenWidth: width > variables.mobileResponsiveWidthBreakpoint && width <= variables.tabletResponsiveWidthBreakpoint,
-                isLargeScreenWidth: width > variables.tabletResponsiveWidthBreakpoint,
-                isSmallScreen: Math.min(width, 900) <= variables.mobileResponsiveWidthBreakpoint,
-            },
+            responsiveLayoutResults: expectedResponsiveLayout,
         });
         expect(result.current).toMatchObject({windowWidth: width, windowHeight: 900});
     });

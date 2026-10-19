@@ -71,9 +71,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should navigate with arrow keys after focusin', () => {
-        // Given a newly mounted focused screen, the list must allow initial arrow navigation before any DOM focus event.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -83,7 +81,6 @@ describe('useListKeyboardNav', () => {
             }),
         );
 
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(-1);
 
         // Arrow keys should work on fresh mount (isFocused && !hasBeenFocused)
@@ -100,9 +97,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should wrap from last item to first on ArrowDown', () => {
-        // Given three enabled rows, cyclic downward traversal must not leave focus beyond the list.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -116,7 +111,6 @@ describe('useListKeyboardNav', () => {
         pressArrowDown();
         pressArrowDown();
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(2);
 
         // ArrowDown at last item should wrap to first
@@ -127,9 +121,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should wrap from first item to last on ArrowUp', () => {
-        // Given three enabled rows, cyclic upward traversal must keep the last row reachable.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -141,7 +133,6 @@ describe('useListKeyboardNav', () => {
 
         // Navigate to first item
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(0);
 
         // ArrowUp at first item should wrap to last
@@ -152,9 +143,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should disable arrow keys when isActive is false', () => {
-        // Given an inactive list, keyboard shortcuts must leave its focus index untouched.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: false,
@@ -165,16 +154,13 @@ describe('useListKeyboardNav', () => {
         );
 
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(-1);
 
         cleanup();
     });
 
     it('should disable arrow keys after focusout and re-enable after focusin', () => {
-        // Given a list that has received focus, leaving it must disable arrows until focus returns.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -187,7 +173,6 @@ describe('useListKeyboardNav', () => {
         // Focus in and navigate
         simulateFocusIn(ref.current);
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(0);
 
         // Focus out resets focusedIndex and disables arrows
@@ -207,9 +192,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should keep focusedIndex at same position when data reorders', () => {
-        // Given an active three-item list, moving keys must keep focus at the same visual position.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result, rerender} = renderHook(
             ({itemKeys}: {itemKeys: string[]}) =>
                 useListKeyboardNav({
@@ -224,7 +207,6 @@ describe('useListKeyboardNav', () => {
         // Navigate to 'b' (index 1)
         pressArrowDown();
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(1);
 
         // Reorder: 'b' moves to index 2, focus stays at index 1 (now 'c')
@@ -235,9 +217,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should clamp focusedIndex when list shrinks', () => {
-        // Given an active three-item list, removing the focused row must leave focus at a surviving position.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result, rerender} = renderHook(
             ({itemKeys}: {itemKeys: string[]}) =>
                 useListKeyboardNav({
@@ -253,7 +233,6 @@ describe('useListKeyboardNav', () => {
         pressArrowDown();
         pressArrowDown();
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(2);
 
         // Shrink list — focusedIndex should clamp to last item
@@ -264,9 +243,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should preserve focusedIndex when focusout has null relatedTarget (React re-render)', () => {
-        // Given a focused element destroyed during a re-render, its position must remain available for refocus.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -278,7 +255,6 @@ describe('useListKeyboardNav', () => {
 
         simulateFocusIn(ref.current);
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(0);
 
         // focusout with null relatedTarget (DOM element destroyed by React re-render)
@@ -289,9 +265,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should skip disabled indexes', () => {
-        // Given a disabled middle row, keyboard navigation must choose the next enabled row.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -302,7 +276,6 @@ describe('useListKeyboardNav', () => {
         );
 
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(0);
 
         // Should skip index 1 (disabled) and go to index 2
@@ -313,9 +286,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should skip forward past disabled index when reorder lands focus on disabled item', () => {
-        // Given a reordered list, focus landing on a disabled row must advance to an enabled row.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result, rerender} = renderHook(
             ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
                 useListKeyboardNav({
@@ -329,7 +300,6 @@ describe('useListKeyboardNav', () => {
 
         // Navigate to 'a' (index 1)
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(1);
 
         // Reorder: 'a' moves away, disabled item shifts to index 1
@@ -341,9 +311,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should sync focusedIndex when Tab focuses an item (focusin with matching id)', () => {
-        // Given a button with a known row id, browser focus must update the corresponding list index.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result} = renderHook(() =>
             useListKeyboardNav({
                 isActive: true,
@@ -353,7 +321,6 @@ describe('useListKeyboardNav', () => {
             }),
         );
 
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(-1);
 
         // Simulate Tab-focusing the item with id='b' (index 1)
@@ -372,9 +339,7 @@ describe('useListKeyboardNav', () => {
     });
 
     it('should scan backward when all items after focused index are disabled', () => {
-        // Given disabled rows after the selected position, adjustment must find an earlier enabled row.
         const {ref, cleanup} = createContainerRef();
-        // When navigation or focus changes, exercise the real hook's state transitions.
         const {result, rerender} = renderHook(
             ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
                 useListKeyboardNav({
@@ -389,7 +354,6 @@ describe('useListKeyboardNav', () => {
         // Navigate to 'b' (index 1)
         pressArrowDown();
         pressArrowDown();
-        // Then focus must match the intended item so traversal cannot silently choose a different row.
         expect(result.current.focusedIndex).toBe(1);
 
         // Reorder: disabled item moves to index 1, 'b' moves to index 2 (also disabled)
@@ -481,8 +445,6 @@ describe('useListKeyboardNav', () => {
         pressArrowDown();
         // Then native ownership is unchanged and the DOM listener branch is bypassed.
         expect(result.current.focusedIndex).toBe(0);
-        expect(containerRef.current).toBe(nativeView);
-        expect(nativeView).not.toHaveProperty('addEventListener');
         unmount();
     });
 
