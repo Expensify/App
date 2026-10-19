@@ -98,7 +98,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
             onApprove={onApprove}
             anchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             moneyRequestReport={iouReport}
             transactions={transactions}
