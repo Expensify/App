@@ -679,6 +679,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_TAG_APPROVER: 'SetPolicyTagApprover',
     SAVE_SEARCH: 'SaveSearch',
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
+    SAVE_SEARCH_FILTERS: 'SaveSearchFilters',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
     CONFIGURE_TRAVEL_BILLING_FOR_POLICY: 'ConfigureTravelBillingForPolicy',
@@ -1521,6 +1522,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetCardReconciliationBankAccountParams;
     [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SaveSearchParams;
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
+    [WRITE_COMMANDS.SAVE_SEARCH_FILTERS]: Parameters.SaveSearchFiltersParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
     [WRITE_COMMANDS.CONFIGURE_TRAVEL_BILLING_FOR_POLICY]: Parameters.ConfigureTravelBillingForPolicyParams;
