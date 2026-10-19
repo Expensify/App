@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
+import {getLastOriginalReportAction, getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
@@ -105,6 +105,13 @@ function OptionRowLHNData({
         return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
     }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
 
+    // The unfiltered last action, combined with the one-transaction thread the same way getOptionData resolves it
+    const isSelfDMReport = fullReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
+    const lastOriginalAction = useMemo(
+        () => getLastOriginalReportAction(reportActions, reportAttributes?.oneTransactionThreadReportID, transactionThreadReportActions, isSelfDMReport),
+        [reportActions, reportAttributes?.oneTransactionThreadReportID, transactionThreadReportActions, isSelfDMReport],
+    );
+
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
 
@@ -161,6 +168,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         card,
         lastAction,
+        lastOriginalAction,
         translate,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,

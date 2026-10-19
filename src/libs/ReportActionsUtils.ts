@@ -1705,6 +1705,23 @@ function withDEWRoutedActionsArray(reportActions: ReportAction[]): ReportAction[
     });
 }
 
+/**
+ * Returns the newest report action of a report without any visibility filtering. For a one-transaction report,
+ * the transaction thread's actions are combined in first, so the result matches the LHN's combined action list.
+ */
+function getLastOriginalReportAction(
+    reportActions: OnyxEntry<ReportActions>,
+    transactionThreadReportID: string | undefined,
+    transactionThreadReportActions: OnyxEntry<ReportActions>,
+    isSelfDM: boolean,
+): ReportAction | undefined {
+    const sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(Object.values(reportActions ?? {})), true);
+    if (!transactionThreadReportID) {
+        return sortedReportActions.at(0);
+    }
+    return getCombinedReportActions(sortedReportActions, transactionThreadReportID, Object.values(transactionThreadReportActions ?? {}), isSelfDM).at(0);
+}
+
 function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportActions> {
     return Object.entries(reportActions ?? {}).reduce((acc, value) => {
         const [reportActionID, reportAction] = value;
@@ -5481,6 +5498,7 @@ export {
     getExpenseCreationIOUActionForTransactionID,
     getExpenseCreationTransactionID,
     getIOUReportIDFromReportActionPreview,
+    getLastOriginalReportAction,
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
