@@ -27,7 +27,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {primaryLoginSelector} from '@src/selectors/Account';
+import {isTravelOptedOutSelector, primaryLoginSelector} from '@src/selectors/Account';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -83,7 +83,7 @@ function QuickCreationActionsBar() {
 
     const shouldShowBookTravel = !!travelEnabledPolicy;
 
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isBlockedFromSpotnanaTravel] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isTravelReady = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) {

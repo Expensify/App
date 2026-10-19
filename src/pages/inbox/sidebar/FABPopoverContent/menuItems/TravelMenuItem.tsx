@@ -1,7 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,7 +12,7 @@ import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {primaryLoginSelector} from '@src/selectors/Account';
+import {isTravelOptedOutSelector, primaryLoginSelector} from '@src/selectors/Account';
 import {emailSelector} from '@src/selectors/Session';
 
 import {Str} from 'expensify-common';
@@ -24,13 +23,12 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 function TravelMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isBlockedFromSpotnanaTravel] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isVisible = isWorkspaceProvisionedForTravel(activePolicy?.travelSettings);
 

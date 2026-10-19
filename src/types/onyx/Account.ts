@@ -201,6 +201,9 @@ type Account = {
     /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
     isFromInternalDomain?: boolean;
 
+    /** Whether the user's company has opted out of Expensify Travel, so travel entry points show the company booking policy message instead */
+    isTravelOptedOut?: boolean;
+
     /** Whether this account can start a supportal session */
     canSupportLogin?: boolean;
 
