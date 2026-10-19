@@ -48,8 +48,8 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
-    }, [isWiseReimbursementsBetaEnabled]);
+        goBackToWallet();
+    }, [isWiseReimbursementsBetaEnabled, goBackToWallet]);
 
     if (isLoadingOnyxValue(bankAccountListMetadata) || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator />;
