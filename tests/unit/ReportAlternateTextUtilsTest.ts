@@ -495,8 +495,8 @@ describe('ReportAlternateTextUtils', () => {
 
         it('only uses the parent report actions when the report has no one-transaction thread', () => {
             // Given the caller has no one-transaction thread for the report (e.g. the derived value has no entry for it)
-            // When the last action context is resolved with an empty thread ID
-            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, '');
+            // When the last action context is resolved without a thread ID
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, undefined);
 
             // Then only the parent's own actions are considered, because the thread ID is no longer read from a module-level cache
             expect(lastAction?.reportActionID).toBe(parentComment.reportActionID);
