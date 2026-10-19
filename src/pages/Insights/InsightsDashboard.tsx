@@ -1,6 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
@@ -119,12 +120,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
     if (isEmptyState) {
         return (
-            <ScrollView
-                {...scrollProps}
-                addBottomSafeAreaPadding
-            >
-                {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
-            </ScrollView>
+            <TabRootScrollViewMarker>
+                <ScrollView
+                    {...scrollProps}
+                    addBottomSafeAreaPadding
+                >
+                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                </ScrollView>
+            </TabRootScrollViewMarker>
         );
     }
 
@@ -132,47 +135,49 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
 
     return (
-        <ScrollView
-            style={styles.insightsDashboardScrollView}
-            onScroll={triggerScrollEvent}
-            {...scrollProps}
-            addBottomSafeAreaPadding
-        >
-            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                <InsightsChartWidget
-                    chart={headlineChart.chart}
-                    queryJSON={headlineChart.queryJSON}
-                    snapshot={headlineChart.snapshot}
-                    averageQueryJSON={headlineChart.averageQueryJSON}
-                    averageSnapshot={headlineChart.averageSnapshot}
-                    filters={filters}
-                    onRetry={onRetry}
-                    onGroupByChange={onGroupByChange}
-                />
-                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                    {columns.map((columnCharts, columnIndex) => (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                            key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                        >
-                            {columnCharts.map(({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}) => (
-                                <InsightsChartWidget
-                                    key={chart.graphKey}
-                                    chart={chart}
-                                    queryJSON={queryJSON}
-                                    snapshot={snapshot}
-                                    averageQueryJSON={averageQueryJSON}
-                                    averageSnapshot={averageSnapshot}
-                                    filters={filters}
-                                    onRetry={onRetry}
-                                />
-                            ))}
-                        </View>
-                    ))}
+        <TabRootScrollViewMarker>
+            <ScrollView
+                style={styles.insightsDashboardScrollView}
+                onScroll={triggerScrollEvent}
+                {...scrollProps}
+                addBottomSafeAreaPadding
+            >
+                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                    <InsightsChartWidget
+                        chart={headlineChart.chart}
+                        queryJSON={headlineChart.queryJSON}
+                        snapshot={headlineChart.snapshot}
+                        averageQueryJSON={headlineChart.averageQueryJSON}
+                        averageSnapshot={headlineChart.averageSnapshot}
+                        filters={filters}
+                        onRetry={onRetry}
+                        onGroupByChange={onGroupByChange}
+                    />
+                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
+                        {columns.map((columnCharts, columnIndex) => (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                                key={columnIndex}
+                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                            >
+                                {columnCharts.map(({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}) => (
+                                    <InsightsChartWidget
+                                        key={chart.graphKey}
+                                        chart={chart}
+                                        queryJSON={queryJSON}
+                                        snapshot={snapshot}
+                                        averageQueryJSON={averageQueryJSON}
+                                        averageSnapshot={averageSnapshot}
+                                        filters={filters}
+                                        onRetry={onRetry}
+                                    />
+                                ))}
+                            </View>
+                        ))}
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </TabRootScrollViewMarker>
     );
 }
 
