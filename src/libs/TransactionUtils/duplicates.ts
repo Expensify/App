@@ -396,7 +396,7 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // A feed can import reimbursable card transactions, so managed cards must not always be forced to false.
+                // Preserve the imported reimbursable value because company card feeds can be configured as reimbursable.
                 // Use the kept transaction to avoid restoring the review step when navigating back through a cash expense's thread.
                 // Checking any managed card in the duplicates could instead overwrite a kept cash expense's value.
                 const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
