@@ -12972,7 +12972,19 @@ function canJoinChat(
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isReportArchived = false): boolean {
+function canLeaveChat(
+    report: OnyxEntry<Report>,
+    parentReport: OnyxEntry<Report>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    isReportArchived = false,
+): boolean {
+    // A track expense thread can't be rejoined (see canJoinChat), so it can't be left either
+    if (isTrackExpenseReportNew(report, parentReport, parentReportAction)) {
+        return false;
+    }
+
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
