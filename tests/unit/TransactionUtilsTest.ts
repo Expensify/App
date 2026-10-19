@@ -2036,6 +2036,66 @@ describe('TransactionUtils', () => {
             expect(displayTransaction?.modifiedMerchant).toBeUndefined();
         });
 
+        it.each([
+            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50'},
+            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50'},
+        ])('keeps the full amount when switching from $fromLocale to $toLocale after a manual distance edit', ({fromLocale, toLocale, savedRateText}) => {
+            // Given a saved expense whose manual distance edit left an old base merchant and a rounded commuter amount
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 541,
+                modifiedAmount: -2,
+                currency: CONST.CURRENCY.USD,
+                modifiedCurrency: CONST.CURRENCY.USD,
+                merchant: `10.82 mi @ ${savedRateText} / mi`,
+                modifiedMerchant: `0.03 mi @ ${savedRateText} / mi`,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'custom',
+                        quantity: 1.03,
+                        reimbursableDistance: 0.03,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const customRatePolicy: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: 50}},
+                    },
+                },
+            };
+            const currentLocale = jest.spyOn(IntlStore, 'getCurrentLocale');
+
+            // When Self DM renders the saved transaction before and after switching languages
+            currentLocale.mockReturnValue(fromLocale);
+            const originalDisplay = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: customRatePolicy,
+                translate: (path, ...parameters) => translateWithLocale(fromLocale, path, ...parameters),
+                getCurrencySymbol: () => '$',
+            });
+            currentLocale.mockReturnValue(toLocale);
+            const translatedDisplay = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: customRatePolicy,
+                translate: (path, ...parameters) => translateWithLocale(toLocale, path, ...parameters),
+                getCurrencySymbol: () => '$',
+            });
+            currentLocale.mockRestore();
+
+            // Then both locales use the selected rate, not a ratio of the already rounded two cents
+            expect(originalDisplay?.amount).toBe(-52);
+            expect(translatedDisplay?.amount).toBe(-52);
+        });
+
         it('keeps the saved transaction when the rate currency has the same symbol', () => {
             // Given a saved CNY distance expense whose current policy rate uses JPY, which shares the same currency symbol
             const transaction = generateTransaction({

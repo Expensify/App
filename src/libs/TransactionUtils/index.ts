@@ -333,7 +333,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
             translate,
             getCurrencySymbol,
         });
-        if (storedReducedMerchant !== merchantAtCurrentRate) {
+        // Rate values use a locale-dependent decimal separator, while the saved merchant keeps the locale used at edit time.
+        if (storedReducedMerchant.replaceAll(',', '.') !== merchantAtCurrentRate.replaceAll(',', '.')) {
             return restoreSavedReducedValues();
         }
     }
