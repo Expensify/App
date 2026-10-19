@@ -67,7 +67,7 @@ import {
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {getExpenseReportIDs, isTransactionGroupListItemType, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -91,6 +91,7 @@ import type {
     ReportActions,
     Rule,
     SaveSearch,
+    SearchResults,
     SearchTagFilterItem,
     Transaction,
     TransactionViolations,
@@ -122,7 +123,7 @@ import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
-    data: [];
+    data: SearchResults['data'];
     search: {
         offset: number;
         hasMoreResults: boolean;
@@ -379,6 +380,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                iouReportTransactions: allReportTransactions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -624,6 +626,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    iouReportTransactions: Transaction[];
 };
 
 function getPayActionCallback({
@@ -654,6 +657,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    iouReportTransactions,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -686,6 +690,7 @@ function getPayActionCallback({
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
+        iouReportTransactions,
         introSelected,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
@@ -1253,7 +1258,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * columns to a backend-supported date sort.
  */
 function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
-    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
               ...queryJSONWithoutFlatFilters,
@@ -1267,7 +1272,7 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
               ),
           }
         : queryJSONWithoutFlatFilters;
-    return {backendQueryJSON, limit, exactMatchFilterKeys};
+    return {backendQueryJSON, limit};
 }
 
 function search({
@@ -1352,7 +1357,7 @@ function search({
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
-    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1363,7 +1368,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
+    const jsonQuery = serializeQueryJSONForBackend(query);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1399,7 +1404,9 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
-                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
+                // To-do responses list the other collections first and the snapshot last.
+                const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
@@ -1414,6 +1421,15 @@ function search({
                     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
                         Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
                     );
+                }
+
+                // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.
+                if (searchKey && TODO_SEARCH_KEYS.has(searchKey) && result?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    const countedReportIDs = getExpenseReportIDs(response?.data ?? {});
+                    const clearRecord = shouldCalculateTotals ? Onyx.merge(snapshotKey, {search: {countedReportIDs: null}}) : Promise.resolve();
+                    clearRecord
+                        .then(() => Onyx.merge(snapshotKey, {search: {countedReportIDs}}))
+                        .catch((error: unknown) => Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}));
                 }
 
                 if (shouldUpdateLastSearchParams) {
@@ -1542,15 +1558,12 @@ function getFooterConvertedAmounts({
 
     // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
     // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
-    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
-    const jsonQuery = serializeQueryJSONForBackend(
-        {
-            ...backendQueryJSON,
-            searchKey,
-            filters: backendQueryJSON.filters ?? null,
-        },
-        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
-    );
+    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...backendQueryJSON,
+        searchKey,
+        filters: backendQueryJSON.filters ?? null,
+    });
 
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,

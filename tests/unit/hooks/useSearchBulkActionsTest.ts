@@ -6,7 +6,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +19,7 @@ import createMock from '../../utils/createMock';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
+const mockExportSearchItemsToCSV = jest.mocked(exportSearchItemsToCSV);
 const mockGetExportTemplates = jest.mocked(getExportTemplates);
 const mockUnholdRequest = jest.mocked(unholdRequest);
 
@@ -106,6 +107,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -168,7 +175,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
-let mockCurrentSearchResults: {search: {type: string}; data: Record<string, unknown>} | undefined;
+let mockCurrentSearchResults: {search: {type: string}; data?: Record<string, unknown>} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -373,6 +380,38 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportPayload?.jsonQuery).not.toContain('group_123');
     });
 
+    it('exports a selected merchant group with an exact merchant match', async () => {
+        // Given a merchant-grouped search where the user ticked the "Amazon" group, so its loaded child is stamped with the group key
+        const merchantGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({groupKey: merchantGroupKey, isSelectedViaGroup: true})};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                [merchantGroupKey]: {merchant: 'Amazon', count: 3, total: 300, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // When the user exports the current view of that group selection
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        // Then the backend receives the merchant filter as `eq`, because a `contains` match on "Amazon" would also
+        // export "Amazon Marketplace" expenses that are not in the selected group
+        const [exportPayload] = mockExportSearchItemsToCSV.mock.calls.at(-1) ?? [];
+        expect(exportPayload?.isGroupExport).toBe(true);
+        expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}","left":"${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}","right":"Amazon"`);
+        expect(exportPayload?.jsonQuery).not.toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}"`);
+    });
+
     it('preserves excluded group negations when the query already filters the grouped field', async () => {
         const firstExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
         const secondExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456` as const;
@@ -513,6 +552,35 @@ describe('useSearchBulkActions - CSV export flow', () => {
             key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'report2'}],
         });
+    });
+
+    it('does not crash when selected reports remain while the snapshot has no data', async () => {
+        // Given a report is still selected while a new search's snapshot only has `search` (its optimistic loading state),
+        // because the selection is cleared from an effect that runs after this render
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+        ];
+        mockCurrentSearchResults = {search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}};
+
+        // When the bulk actions are created for an expense-report search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the hook renders its options instead of throwing, and Merge stays hidden until the results load
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS)).toBe(false);
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {
@@ -658,7 +726,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(mockUnholdRequest).toHaveBeenCalledTimes(2);
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
-            expect(result.current.isOfflineModalVisible).toBe(false);
+            expect(mockShowDecisionModal).not.toHaveBeenCalled();
         });
     });
 });

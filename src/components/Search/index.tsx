@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -155,6 +156,7 @@ function Search({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -222,6 +224,8 @@ function Search({
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    // Live to-do pages load without totals. A response with totals restarts the counted reports, so a later page would drop page 1's.
+    const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
@@ -1026,7 +1030,7 @@ function Search({
                     queryJSON,
                     searchKey: currentSearchKey,
                     offset: nextOffset,
-                    shouldCalculateTotals,
+                    shouldCalculateTotals: shouldCalculateNextPageTotals,
                     prevReportsLength: filteredDataLength,
                     isLoading: false,
                 });
@@ -1052,7 +1056,7 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset: nextOffset,
-            shouldCalculateTotals,
+            shouldCalculateTotals: shouldCalculateNextPageTotals,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
@@ -1079,7 +1083,7 @@ function Search({
         handleSearch,
         queryJSON,
         currentSearchKey,
-        shouldCalculateTotals,
+        shouldCalculateNextPageTotals,
         filteredDataLength,
     ]);
 
@@ -1438,7 +1442,7 @@ function Search({
             <SearchScopeProvider>
                 <Animated.ScrollView
                     style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
+                    {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
