@@ -28,7 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useRef} from 'react';
+import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -232,28 +232,37 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
+    // Rows pass these handlers down, so they keep one identity and read the latest edit params when called.
+    // Otherwise every write to the policy or the other data above would re-render the whole row.
+    const getEditParamsRef = useRef(getEditParams);
+    const personalOutputCurrencyRef = useRef(personalPolicy?.outputCurrency);
+    useEffect(() => {
+        getEditParamsRef.current = getEditParams;
+        personalOutputCurrencyRef.current = personalPolicy?.outputCurrency;
+    });
+
     const onEditDate = (newDate: string) => {
-        editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
+        editTransactionDateInline(getEditParamsRef.current(), newDate, personalOutputCurrencyRef.current);
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantInline(getEditParams(), newMerchant);
+        editTransactionMerchantInline(getEditParamsRef.current(), newMerchant);
     };
 
     const onEditDescription = (newDescription: string) => {
-        editTransactionDescriptionInline(getEditParams(), newDescription);
+        editTransactionDescriptionInline(getEditParamsRef.current(), newDescription);
     };
 
     const onEditCategory = (newCategory: string) => {
-        editTransactionCategoryInline(getEditParams(), newCategory);
+        editTransactionCategoryInline(getEditParamsRef.current(), newCategory);
     };
 
     const onEditAmount = (newAmount: number) => {
-        editTransactionAmountInline(getEditParams(), newAmount);
+        editTransactionAmountInline(getEditParamsRef.current(), newAmount);
     };
 
     const onEditTag = (newTag: string) => {
-        editTransactionTagInline(getEditParams(), newTag);
+        editTransactionTagInline(getEditParamsRef.current(), newTag);
     };
 
     return {
