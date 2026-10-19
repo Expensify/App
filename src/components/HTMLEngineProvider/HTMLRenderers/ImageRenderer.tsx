@@ -83,6 +83,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={cachedPreviewSource ?? processedPreviewSource}
+            recyclingKey={isAttachmentOrReceipt ? attachmentID : undefined}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}

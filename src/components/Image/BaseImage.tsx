@@ -13,7 +13,7 @@ import React, {useCallback, useContext, useEffect} from 'react';
 
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProps) {
+function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}: BaseImageProps) {
     const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 
