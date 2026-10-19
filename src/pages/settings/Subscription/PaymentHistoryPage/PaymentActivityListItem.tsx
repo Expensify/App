@@ -13,7 +13,7 @@ function PaymentActivityListItem<TItem extends ListItem>(props: ListItemProps<TI
         <BareUserListItem
             {...props}
             pressableStyle={[styles.mh5, styles.highlightBG, props.isLastItem ? styles.tableBottomRadius : styles.borderBottom]}
-            wrapperStyle={styles.ph4}
+            wrapperStyle={[styles.ph4, styles.pv1]}
             shouldDisableHoverStyle
         />
     );

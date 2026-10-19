@@ -184,7 +184,7 @@ function TextInput({
                     shouldInterceptSwipe={shouldInterceptSwipe ?? false}
                     // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the input stays
                     // the compact 34px size on web/desktop even inside the RHP/narrow pane, and only grows to 46px on mobile.
-                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    touchableInputWrapperStyle={[isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper, style?.inputWrapperStyle]}
                     textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
                     inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
                 />

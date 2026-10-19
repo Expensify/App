@@ -180,7 +180,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                 </MenuItem.Root>
             )}
             <Text
-                style={[styles.textLabelSupporting, styles.ph5, styles.pt4, styles.pb3]}
+                style={[styles.textLabelSupporting, styles.ph5, styles.pv2, styles.mb3]}
                 accessibilityRole={CONST.ROLE.HEADER}
             >
                 {translate('subscription.paymentHistory.activity')}
@@ -198,7 +198,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
         );
     } else if (sortedActiveUsers.length > 0) {
         activityHeader = (
-            <View style={[styles.mh5, styles.ph4, styles.pv3, styles.highlightBG, styles.tableTopRadius, styles.borderBottom]}>
+            <View style={[styles.mh5, styles.ph4, styles.h9, styles.justifyContentCenter, styles.highlightBG, styles.tableTopRadius, styles.borderBottom]}>
                 <Text
                     variant="micro"
                     style={[styles.textSupporting, styles.userSelectText]}
@@ -233,6 +233,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                         headerMessage: debouncedSearchTerm && !sortedActiveUsers.length ? translate('common.noResultsFound') : '',
                         disableAutoFocus: true,
                         shouldBeInsideList: true,
+                        style: {inputWrapperStyle: styles.h11},
                     }}
                     shouldShowListEmptyContent={false}
                     showScrollIndicator

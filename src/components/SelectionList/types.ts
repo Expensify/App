@@ -200,6 +200,9 @@ type TextInputOptions = {
         /** Styles for the text input container */
         containerStyle?: StyleProp<ViewStyle>;
 
+        /** Styles for the text input wrapper, e.g. to override the default height */
+        inputWrapperStyle?: StyleProp<ViewStyle>;
+
         /** Styles for the header message container */
         headerMessageStyle?: StyleProp<ViewStyle>;
     };
