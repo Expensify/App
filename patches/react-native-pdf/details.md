@@ -93,4 +93,4 @@
 
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1050, https://github.com/wonday/react-native-pdf/issues/1049
 - E/App issue: https://github.com/Expensify/App/issues/103207
-- PR introducing patch: -
+- PR introducing patch: https://github.com/Expensify/App/pull/103781
