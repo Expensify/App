@@ -89,6 +89,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: accountLockSelector(accountID)});
     const [isUnlockRequested] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: unlockRequestedSelector(accountID)});
+    const unlockAccountPendingAction = domainPendingActions?.member?.[accountID]?.unlockAccount;
     const lockDomainError = getLatestError(domainErrors?.memberErrors?.[accountID]?.lockAccountErrors);
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 
@@ -137,7 +138,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     );
 
     const showUnlockAccountModal = () => {
-        if (!isUnlockRequested) {
+        // Don't send another request while one is already queued or has been received
+        if (!isUnlockRequested && !unlockAccountPendingAction) {
             requestUnlockAccount(accountID, domainAccountID, domainName);
         }
         showConfirmModal({
@@ -217,6 +219,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     <OfflineWithFeedback
                         key="UnlockAccount"
                         errorRowStyles={styles.mh5}
+                        pendingAction={unlockAccountPendingAction}
                         errors={getLatestError(domainErrors?.memberErrors?.[accountID]?.unlockAccountErrors)}
                         onClose={() => clearUnlockAccountError(domainAccountID, accountID)}
                     >

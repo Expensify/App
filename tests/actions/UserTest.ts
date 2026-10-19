@@ -1009,10 +1009,10 @@ describe('actions/User', () => {
             UserActions.requestUnlockAccount(accountID);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID}, {optimisticData: [], failureData: []});
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID}, {optimisticData: [], successData: [], failureData: []});
         });
 
-        it('should mark the unlock as requested optimistically and roll it back on failure when called from a domain', async () => {
+        it('should only mark the unlock as requested once the server receives it when called from a domain', async () => {
             // Given a domain admin requesting an unlock for a locked domain member
             const accountID = 123456;
             const domainAccountID = 200;
@@ -1028,20 +1028,36 @@ describe('actions/User', () => {
 
             const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
             const optimisticData = onyxData?.optimisticData ?? [];
+            const successData = onyxData?.successData ?? [];
             const failureData = onyxData?.failureData ?? [];
+            const pendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`;
 
-            // Then the member is optimistically marked as having a pending unlock request so the UI can reflect it
-            expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
+            // Then the queued request is only marked with a pending action, so offline it doesn't look like the server received it
+            expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toBeUndefined();
+            expect(optimisticData.find((update) => update.key === pendingActionsKey)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            });
+
+            // Then a successful request marks the member as having a pending unlock request and clears the pending action
+            expect(successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
                 value: {[userUnlockRequestedKey]: true},
             });
-
-            // Then a failed request reverts the pending state so the admin can try again
-            expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
+            expect(successData.find((update) => update.key === pendingActionsKey)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                value: {[userUnlockRequestedKey]: false},
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: null}}},
+            });
+
+            // Then a failed request clears the pending action so the admin can try again
+            expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toBeUndefined();
+            expect(failureData.find((update) => update.key === pendingActionsKey)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: null}}},
             });
 
             // Then a failed request surfaces an error on the member
