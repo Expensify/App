@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -141,5 +141,43 @@ describe('DynamicTwoFactorAuthPage', () => {
 
         // Then a second EnableTwoFactorAuth request is not sent
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries Toggle after a failed request once the page is focused again', async () => {
+        // Given a fresh setup whose first EnableTwoFactorAuth request has not returned codes
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+        await waitForBatchedUpdatesWithAct();
+        const {rerender} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+
+        // When that request fails, then the page loses and regains focus
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        mockUseIsFocused.mockReturnValue(false);
+        rerender(
+            <OnyxListItemProvider>
+                <DynamicTwoFactorAuthPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        mockUseIsFocused.mockReturnValue(true);
+        rerender(
+            <OnyxListItemProvider>
+                <DynamicTwoFactorAuthPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the failed request is retried, because the guard resets once loading ends without codes
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(2);
     });
 });

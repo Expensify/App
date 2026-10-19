@@ -32,7 +32,7 @@ describe('TwoFactorAuthActions', () => {
         await waitForBatchedUpdates();
 
         // When the user leaves the flow before 2FA is enabled
-        clearTwoFactorAuthData(true);
+        clearTwoFactorAuthData(false, true);
         await waitForBatchedUpdates();
 
         // Then the secret and codes stay so reopening setup does not mint a new secret
@@ -54,8 +54,8 @@ describe('TwoFactorAuthActions', () => {
         });
         await waitForBatchedUpdates();
 
-        // When the flow is dismissed
-        clearTwoFactorAuthData(true);
+        // When the flow is dismissed after 2FA is enabled
+        clearTwoFactorAuthData(true, true);
         await waitForBatchedUpdates();
 
         // Then the setup data is cleared

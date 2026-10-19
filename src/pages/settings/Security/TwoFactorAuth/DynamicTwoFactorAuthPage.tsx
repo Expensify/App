@@ -70,6 +70,17 @@ function DynamicTwoFactorAuthPage() {
 
     const recoveryCodes = account?.recoveryCodes;
 
+    // A failed EnableTwoFactorAuth leaves no codes. Clear the guard only after that request has
+    // finished, so the next focus can retry without firing a second request while one is in flight.
+    const wasEnableRequestLoadingRef = useRef(false);
+    useEffect(() => {
+        const isLoading = !!account?.isLoading;
+        if (wasEnableRequestLoadingRef.current && !isLoading && !account?.recoveryCodes) {
+            hasRequestedEnableRef.current = false;
+        }
+        wasEnableRequestLoadingRef.current = isLoading;
+    }, [account?.isLoading, account?.recoveryCodes]);
+
     useEffect(() => {
         if (!isUserValidated) {
             Navigation.isNavigationReady().then(() => {
@@ -114,7 +125,7 @@ function DynamicTwoFactorAuthPage() {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            onBackButtonPress={() => quitAndNavigateBack(backPath)}
+            onBackButtonPress={() => quitAndNavigateBack(is2FAEnabled, backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (

@@ -886,11 +886,13 @@ describe('Session', () => {
             expect(accountSuccess.value.recoveryCodes).toBeNull();
             expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
 
+            // And a failed code drops the saved codes so reopening setup can fetch a fresh secret, while the QR stays for a retry
             const accountFailure = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
             if (!isAccountMergeUpdate(accountFailure)) {
                 throw new Error('Expected a typed account failure update');
             }
-            expect(accountFailure.value).not.toHaveProperty('recoveryCodes');
+            expect(accountFailure.value.recoveryCodes).toBeNull();
+            expect(accountFailure.value).not.toHaveProperty('twoFactorAuthSecretKey');
 
             makeRequestSpy.mockRestore();
         });
