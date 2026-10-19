@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
-import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
+import {CHART_GESTURE_TOUCH_ACTION, TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
@@ -127,6 +127,8 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     // Hover gesture
     const hoverGesture = useHoverGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
         onBegin: (e) => {
             'worklet';
 
@@ -159,6 +161,8 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     // Tap gesture for click/tap navigation
     const tapGesture = useTapGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
         onFinalize: onTapFinalize,
         onDeactivate: (e) => {
             'worklet';

@@ -12,6 +12,14 @@ import useTouchPinnedTooltip from './useTouchPinnedTooltip';
 const TOOLTIP_BAR_GAP = 8;
 
 /**
+ * On web, Gesture Handler 3.3 resets a gesture's touch-action every time its hook config changes, which drops the
+ * GestureDetector's touchAction="pan-y" and blocks page scrolling from the chart, so the chart gestures set it themselves.
+ * Fixed upstream in 3.4.0 (https://github.com/software-mansion/react-native-gesture-handler/pull/4522), remove this
+ * together with the touchAction entries in the chart gesture configs after upgrading.
+ */
+const CHART_GESTURE_TOUCH_ACTION = 'pan-y';
+
+/**
  * Arguments passed to the checkIsOver callback for hit-testing
  */
 type HitTestArgs = {
@@ -372,6 +380,8 @@ function useChartInteractions({
      * the plot area and would drop events from the label area.
      */
     const hoverGesture = useHoverGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
         onBegin: (e) => {
             'worklet';
 
@@ -422,6 +432,8 @@ function useChartInteractions({
      * Disabled when there is neither handlePress nor touch pinning, so the chart only reacts to hover.
      */
     const tapGesture = useTapGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
         enabled: !!handlePress || shouldPinTooltipOnTouch,
         onFinalize: onTapFinalize,
         onDeactivate: (e) => {
@@ -511,5 +523,5 @@ function useChartInteractions({
     };
 }
 
-export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP};
+export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP, CHART_GESTURE_TOUCH_ACTION};
 export type {HitTestArgs, ResolveTargetIndexArgs};
