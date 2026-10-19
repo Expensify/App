@@ -751,6 +751,9 @@ function getReportDisplayOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
+        // so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
     });
