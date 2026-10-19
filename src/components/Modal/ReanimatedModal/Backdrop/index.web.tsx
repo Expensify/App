@@ -1,5 +1,5 @@
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
-import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import {easing, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useLocalize from '@hooks/useLocalize';
@@ -9,9 +9,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function Backdrop({
     style,
@@ -25,13 +25,15 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = useMemo(() => {
-        if (!backdropOpacity) {
+    const progress = useSharedValue(0);
+
+    useEffect(() => {
+        if (!isBackdropVisible) {
+            progress.set(0);
             return;
         }
-        const FadeIn = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity));
-        return FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
-    }, [animationInTiming, backdropOpacity]);
+        progress.set(withTiming(1, {duration: animationInTiming, easing, reduceMotion: ReduceMotion.Never}));
+    }, [animationInTiming, isBackdropVisible, progress]);
 
     const Exiting = useMemo(() => {
         if (!backdropOpacity) {
@@ -41,12 +43,9 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }, [animationOutTiming, backdropOpacity]);
 
-    const backdropStyle = useMemo(
-        () => ({
-            opacity: backdropOpacity,
-        }),
-        [backdropOpacity],
-    );
+    // Instead of an entering keyframe: on web, Reanimated hides the element until the keyframe starts and can delete the keyframe
+    // before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good
+    const backdropStyle = useAnimatedStyle(() => ({opacity: progress.get() * backdropOpacity}));
 
     if (!customBackdrop) {
         return (
@@ -61,7 +60,6 @@ function Backdrop({
                 {isBackdropVisible && (
                     <Animated.View
                         style={[styles.modalBackdrop, backdropStyle, style]}
-                        entering={Entering}
                         exiting={Exiting}
                     />
                 )}
@@ -75,7 +73,6 @@ function Backdrop({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <Animated.View
-                    entering={Entering}
                     exiting={Exiting}
                     style={[styles.modalBackdrop, backdropStyle, style]}
                 >
