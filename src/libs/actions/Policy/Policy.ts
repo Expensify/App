@@ -3531,7 +3531,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         parts,
         targetPolicyID = generatePolicyID(),
         policyCategories,
-        localCurrency,
         currentUserAccountID,
         currentUserEmail,
         rules,
@@ -3551,12 +3550,9 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName, currentUserAccountID, currentUserEmail);
     const isMemberOptionSelected = parts.includes('members');
     const isCategoriesOptionSelected = parts.includes('categories');
-    const isCurrencyOptionSelected = parts.includes('currency');
-
-    const outputCurrency = isCurrencyOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
-    const {customUnitID: distanceCustomUnitID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
+    const distanceCustomUnitID = generateCustomUnitID();
     const perDiemCustomUnitID = generateCustomUnitID();
 
     // Every copied rate gets a new ID, so the duplicate never shares a rate ID with its source.
