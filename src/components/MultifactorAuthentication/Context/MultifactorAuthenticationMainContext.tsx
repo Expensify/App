@@ -68,6 +68,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {dispatch} = useMultifactorAuthenticationActions();
     const actionControllerRef = useRef<AbortController | undefined>(undefined);
 
+    useEffect(
+        () => () => {
+            actionControllerRef.current?.abort();
+            actionControllerRef.current = undefined;
+        },
+        [state.scenario],
+    );
+
     const biometrics = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
@@ -369,11 +377,19 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             ...payload,
                         },
                         {signal: controller.signal},
-                    );
-
-                    if (actionControllerRef.current === controller) {
+                    ).catch((scenarioActionError: unknown) => {
+                        if (controller.signal.aborted || actionControllerRef.current !== controller) {
+                            return undefined;
+                        }
                         actionControllerRef.current = undefined;
+                        throw scenarioActionError;
+                    });
+
+                    // A canceled action can finish after the next flow has already started.
+                    if (!scenarioAPIResponse || controller.signal.aborted || actionControllerRef.current !== controller) {
+                        return;
                     }
+                    actionControllerRef.current = undefined;
 
                     addMFABreadcrumb(
                         'Scenario action completed',

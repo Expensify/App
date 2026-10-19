@@ -322,6 +322,149 @@ describe('Wallet MFA composed providers', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it.each(['cancel', 'reset'] as const)('ignores an old wallet result after %s and a replacement attempt starts', async (ending) => {
+        // Given the first wallet attempt is still waiting for native provisioning.
+        let finishFirstWallet: ((result: TokenizationStatus) => void) | undefined;
+        let finishSecondWallet: ((result: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet)
+            .mockImplementationOnce(
+                () =>
+                    new Promise((resolve) => {
+                        finishFirstWallet = resolve;
+                    }),
+            )
+            .mockImplementationOnce(
+                () =>
+                    new Promise((resolve) => {
+                        finishSecondWallet = resolve;
+                    }),
+            );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(1));
+        const firstSignal = jest.mocked(handleAddCardToWallet).mock.calls.at(0)?.[3]?.signal;
+
+        // When that flow ends and a replacement starts before the old wallet result arrives.
+        if (ending === 'cancel') {
+            await act(async () => controls.confirmCancel());
+            await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        }
+        await act(async () => actions.dispatch({type: 'RESET'}));
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(2));
+        const secondSignal = jest.mocked(handleAddCardToWallet).mock.calls.at(1)?.[3]?.signal;
+        const replacementState = state;
+        await act(async () => finishFirstWallet?.('success'));
+
+        // Then the old result leaves the replacement untouched, including ownership of its cancellation signal.
+        expect(firstSignal?.aborted).toBe(true);
+        expect(state).toBe(replacementState);
+        expect(secondSignal?.aborted).toBe(false);
+        expect(getPaymentMethods).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        await act(async () => controls.confirmCancel());
+        expect(secondSignal?.aborted).toBe(true);
+        await act(async () => finishSecondWallet?.('canceled'));
+    });
+
+    it('ignores an old scenario rejection after cancellation and replacement', async () => {
+        // Given a transaction action can reject after its flow has already been canceled.
+        let rejectTransaction: ((error: Error) => void) | undefined;
+        let finishWallet: ((result: TokenizationStatus) => void) | undefined;
+        jest.mocked(authorizeTransaction).mockImplementationOnce(
+            () =>
+                new Promise((_resolve, reject) => {
+                    rejectTransaction = reject;
+                }),
+        );
+        jest.mocked(handleAddCardToWallet).mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await act(async () => {
+            await controls.executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: 'transaction'});
+            actions.dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
+        });
+        await waitFor(() => expect(authorizeTransaction).toHaveBeenCalledTimes(1));
+        await act(async () => controls.confirmCancel());
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        await act(async () => actions.dispatch({type: 'RESET'}));
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(1));
+        const replacementState = state;
+
+        // When the old action rejects while the replacement wallet is pending.
+        await act(async () => rejectTransaction?.(new Error('Transaction request failed')));
+
+        // Then the rejection cannot fail the replacement, which can still complete successfully.
+        expect(state).toBe(replacementState);
+        await act(async () => finishWallet?.('success'));
+        await waitFor(() => expect(getPaymentMethods).toHaveBeenCalledTimes(1));
+        expect(state.error).toBeUndefined();
+        expect(state.isAuthorizationComplete).toBe(true);
+    });
+
+    it('still reports an action rejection for the current flow', async () => {
+        // Given an existing scenario action rejects without being canceled or replaced.
+        jest.mocked(authorizeTransaction).mockRejectedValueOnce(new Error('Transaction request failed'));
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+
+        // When the active scenario reaches its action.
+        await act(async () => {
+            await controls.executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {transactionID: 'transaction'});
+            actions.dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
+        });
+
+        // Then normal failure handling still completes the current flow.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.error?.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
+        expect(state.error?.message).toBe('Transaction request failed');
+        expect(state.isAuthorizationComplete).toBe(false);
+    });
+
+    it('aborts a pending wallet action when the provider unmounts', async () => {
+        // Given native wallet work is still pending when its provider goes away.
+        let finishWallet: ((result: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        const view = render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(1));
+        const signal = jest.mocked(handleAddCardToWallet).mock.calls.at(0)?.[3]?.signal;
+
+        // When the provider unmounts before native completion.
+        view.unmount();
+
+        // Then the helper sees cancellation and late success cannot refresh or navigate.
+        expect(signal?.aborted).toBe(true);
+        await act(async () => finishWallet?.('success'));
+        expect(getPaymentMethods).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('preserves an existing scenario-specific cancellation outcome', async () => {
         // Given an existing transaction scenario is waiting for authentication.
         mockBiometrics.authorize.mockImplementation(async () => {});
