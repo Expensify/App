@@ -4,7 +4,22 @@ import type Policy from '@src/types/onyx/Policy';
 
 import createMock from '../../../../../utils/createMock';
 
-function makeNetSuitePolicy(overrides: {verified?: boolean; tokenID?: string; tokenSecret?: string; authType?: 'tba' | 'oauth2'}): Policy {
+type NetSuiteMigrationOverrides = {
+    verified?: boolean;
+    tokenID?: string;
+    tokenSecret?: string;
+    authType?: 'tba' | 'oauth2';
+    shouldIncludeSyncOptions?: boolean;
+    syncTax?: boolean;
+    syncReimbursedReports?: boolean;
+    syncCustomSegments?: boolean;
+    syncCustomLists?: boolean;
+    customSegments?: Array<{segmentName: string; internalID: string; scriptID: string; mapping: 'TAG' | 'REPORT_FIELD' | ''}>;
+    customLists?: Array<{listName: string; internalID: string; transactionFieldID: string; mapping: 'TAG' | 'REPORT_FIELD' | ''}>;
+};
+
+function makeNetSuitePolicy(overrides: NetSuiteMigrationOverrides): Policy {
+    const shouldIncludeSyncOptions = overrides.shouldIncludeSyncOptions ?? true;
     return createMock<Policy>({
         connections: {
             netsuite: {
@@ -12,6 +27,20 @@ function makeNetSuitePolicy(overrides: {verified?: boolean; tokenID?: string; to
                 tokenID: 'tokenID' in overrides ? overrides.tokenID : 'token123',
                 tokenSecret: 'tokenSecret' in overrides ? overrides.tokenSecret : 'secret456',
                 config: overrides.authType !== undefined ? {authType: overrides.authType} : undefined,
+                options: shouldIncludeSyncOptions
+                    ? {
+                          config: {
+                              syncOptions: {
+                                  syncTax: overrides.syncTax ?? false,
+                                  syncReimbursedReports: overrides.syncReimbursedReports ?? false,
+                                  syncCustomSegments: overrides.syncCustomSegments ?? false,
+                                  syncCustomLists: overrides.syncCustomLists ?? false,
+                                  customSegments: overrides.customSegments ?? [],
+                                  customLists: overrides.customLists ?? [],
+                              },
+                          },
+                      }
+                    : undefined,
             },
         },
     });
@@ -104,6 +133,59 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const result = shouldShowNetSuiteOAuthMigrationNudge(undefined);
 
             // Then the nudge should not be shown
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the connection settings are unavailable', () => {
+            // Given a TBA connection whose sync settings are not loaded
+            const policy = makeNetSuitePolicy({shouldIncludeSyncOptions: false});
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+
+            // Then the nudge should not be shown because migration eligibility is unknown
+            expect(result).toBe(false);
+        });
+
+        it.each([
+            ['tax import', {syncTax: true}],
+            ['reimbursed report sync', {syncReimbursedReports: true}],
+            ['custom segment import', {syncCustomSegments: true}],
+            ['custom list import', {syncCustomLists: true}],
+        ] satisfies Array<[string, NetSuiteMigrationOverrides]>)('returns false when %s is enabled', (_settingName, settings) => {
+            // Given a TBA connection with a complex sync setting enabled
+            const policy = makeNetSuitePolicy(settings);
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+
+            // Then the nudge should not be shown during the limited rollout
+            expect(result).toBe(false);
+        });
+
+        it('returns false when custom segments are configured', () => {
+            // Given a TBA connection with a configured custom segment or custom record
+            const policy = makeNetSuitePolicy({
+                customSegments: [{segmentName: 'Region', internalID: '1', scriptID: 'region', mapping: 'TAG'}],
+            });
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+
+            // Then the nudge should not be shown during the limited rollout
+            expect(result).toBe(false);
+        });
+
+        it('returns false when custom lists are configured', () => {
+            // Given a TBA connection with a configured custom list
+            const policy = makeNetSuitePolicy({
+                customLists: [{listName: 'Project', internalID: '2', transactionFieldID: 'project', mapping: 'REPORT_FIELD'}],
+            });
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+
+            // Then the nudge should not be shown during the limited rollout
             expect(result).toBe(false);
         });
     });

@@ -99,7 +99,24 @@ const NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS = 90;
 
 function shouldShowNetSuiteOAuthMigrationNudge(policy?: Policy): boolean {
     const netsuite = policy?.connections?.netsuite;
-    return !!netsuite && netsuite.verified !== false && netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 && !!netsuite.tokenID && !!netsuite.tokenSecret;
+    const syncOptions = netsuite?.options?.config?.syncOptions;
+    const hasComplexSyncConfiguration =
+        !!syncOptions?.syncTax ||
+        !!syncOptions?.syncReimbursedReports ||
+        !!syncOptions?.syncCustomSegments ||
+        !!syncOptions?.customSegments?.length ||
+        !!syncOptions?.syncCustomLists ||
+        !!syncOptions?.customLists?.length;
+
+    return (
+        !!netsuite &&
+        netsuite.verified !== false &&
+        netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 &&
+        !!netsuite.tokenID &&
+        !!netsuite.tokenSecret &&
+        !!syncOptions &&
+        !hasComplexSyncConfiguration
+    );
 }
 
 function getNetSuiteOAuthMigrationSeverity(): NetSuiteOAuthMigrationSeverity {

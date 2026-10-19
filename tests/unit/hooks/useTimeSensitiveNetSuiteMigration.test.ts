@@ -31,6 +31,7 @@ function makeNetSuitePolicy(id: string, nameOverride?: string): Policy {
                 verified: true,
                 tokenID: 'token123',
                 tokenSecret: 'secret456',
+                options: {config: {syncOptions: {}}},
             },
         },
     });
@@ -174,6 +175,7 @@ describe('useTimeSensitiveNetSuiteMigration', () => {
                         tokenID: 'token',
                         tokenSecret: 'secret',
                         config: {authType: 'tba'},
+                        options: {config: {syncOptions: {}}},
                     },
                 },
             });
