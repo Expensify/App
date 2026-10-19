@@ -401,8 +401,7 @@ describe('actions/IOU', () => {
                                     connection.unsubscribe();
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
-                                    // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
-                                    // `undefined`-for-empty-collection shim was removed in Onyx).
+                                    // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
                                     expect(snapshotData).toEqual({});
                                     resolve();
                                 },
@@ -1070,7 +1069,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 if (iouReportID) {
-                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID, false);
+                                    clearAllRelatedReportActionErrors({reportID: iouReportID, reportAction: iouAction ?? null, originalReportID: iouReportID, isOffline: false});
                                 }
                                 resolve();
                             }),

@@ -77,6 +77,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
+    const shouldDisableCompletedOnboardingTaskLink =
+        isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);
+
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -252,7 +255,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             <MenuItemWithTopDescription
                                 shouldRenderAsHTML
                                 description={translate('task.description')}
-                                title={report?.description ?? ''}
+                                title={shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report?.description ?? '') : (report?.description ?? '')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 shouldShowRightIcon={!isDisableInteractive}
                                 disabled={disableState}

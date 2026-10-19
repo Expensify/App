@@ -186,7 +186,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
     const getHeaderSearchMessage = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        return getHeaderMessage(adminsList.length !== 0, false, searchValue, countryCode, false);
+        return getHeaderMessage(translate, adminsList.length !== 0, false, searchValue, countryCode, false);
     };
 
     const headerMessage = getHeaderSearchMessage();
