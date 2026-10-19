@@ -25,6 +25,13 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const isLottie = isIllustrationLottieAnimation(illustration);
+    const flattenedIllustrationStyle = StyleSheet.flatten(illustrationStyle);
+    const flattenedIllustrationWidth = flattenedIllustrationStyle?.width;
+    const flattenedIllustrationHeight = flattenedIllustrationStyle?.height;
+    const webIllustrationWidth =
+        typeof flattenedIllustrationWidth === 'string' || typeof flattenedIllustrationWidth === 'number' ? flattenedIllustrationWidth : styles.confirmationAnimation.width;
+    const webIllustrationHeight =
+        typeof flattenedIllustrationHeight === 'string' || typeof flattenedIllustrationHeight === 'number' ? flattenedIllustrationHeight : styles.confirmationAnimation.height;
 
     if (isReduceMotionEnabled && illustration === LottieAnimations.Fireworks) {
         return (
@@ -36,8 +43,8 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
             </View>
         );
     }
+
     if (isLottie) {
-        const flattenedIllustrationStyle = StyleSheet.flatten(illustrationStyle);
         return (
             <Lottie
                 source={illustration}
@@ -45,12 +52,13 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
                 loop
                 style={[styles.confirmationAnimation, illustrationStyle]}
                 webStyle={{
-                    width: typeof flattenedIllustrationStyle?.width === 'number' ? flattenedIllustrationStyle.width : styles.confirmationAnimation.width,
-                    height: typeof flattenedIllustrationStyle?.height === 'number' ? flattenedIllustrationStyle.height : styles.confirmationAnimation.height,
+                    width: webIllustrationWidth,
+                    height: webIllustrationHeight,
                 }}
             />
         );
     }
+
     return (
         <View style={[styles.confirmationAnimation, illustrationStyle]}>
             <ImageSVG
