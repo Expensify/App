@@ -3143,7 +3143,6 @@ export {
     getCurrentSearchQueryJSON,
     getSearchRootParamsFromRootState,
     getQueryWithoutFilters,
-    getRawFilterListFromQuery,
     isDefaultExpensesQuery,
     isDefaultExpenseReportsQuery,
     sortOptionsWithEmptyValue,

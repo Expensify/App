@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {cancelAllSpans, getSpan} from '@libs/telemetry/activeSpans';
 import {
     beginSearchRouterQuerySession,
@@ -55,6 +56,8 @@ jest.mock('@sentry/react-native', () => ({
     },
     spanToJSON: (span: FakeSpan) => ({data: span.attributes}),
 }));
+
+jest.mock('@libs/Log');
 
 const ROOT = CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY;
 const CANCEL_REASON = CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON;
@@ -395,6 +398,23 @@ describe('searchRouterQuerySpans', () => {
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]).toBe(true);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM);
+    });
+
+    it('measures a query the search parser rejects without logging it', () => {
+        // Given a query the search parser throws on, because the `keyword` value is a list, with private free text next to it
+        const query = 'keyword:a,b secret.person@example.com';
+        const logSpies = [jest.spyOn(Log, 'info'), jest.spyOn(Log, 'alert'), jest.spyOn(Log, 'warn'), jest.spyOn(Log, 'hmmm')];
+
+        // When the whole lifecycle runs
+        startSearchRouterQuerySpan(query);
+        markSearchRouterQueryCommitted(query);
+
+        // Then the query counts as free text in full, and nothing is logged, since server logs would carry the query off the device
+        expect(getRootAttributes()?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.VERY_LONG);
+        for (const spy of logSpies) {
+            expect(spy).not.toHaveBeenCalled();
+            spy.mockRestore();
+        }
     });
 
     it('never puts the query text in any serialized attribute', () => {

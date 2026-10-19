@@ -7,7 +7,7 @@
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 
 import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
-import {getRawFilterListFromQuery} from '@libs/SearchQueryUtils';
+import {parse as parseSearchQuery} from '@libs/SearchParser/searchParser';
 
 import CONST from '@src/CONST';
 
@@ -23,6 +23,12 @@ type SearchRouterQueryLengthBucket = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTE
 type SearchRouterQueryCommitAttributes = {
     localResultCount?: number;
     areOptionsRebuilt?: boolean;
+};
+
+/** The part of a search parser filter that the span attributes are derived from */
+type ParsedQueryFilter = {
+    key: string;
+    value: string | string[];
 };
 
 const SHORT_QUERY_MAX_LENGTH = 2;
@@ -65,6 +71,31 @@ function getQueryWithoutEmptyAutocompleteFilter(query: string, autocomplete: Sea
         tokenStart -= 1;
     }
     return query.slice(0, tokenStart);
+}
+
+function isParsedQueryFilter(filter: unknown): filter is ParsedQueryFilter {
+    if (typeof filter !== 'object' || filter === null || !('key' in filter) || !('value' in filter)) {
+        return false;
+    }
+    const {key, value} = filter;
+    return typeof key === 'string' && (typeof value === 'string' || (Array.isArray(value) && value.every((item) => typeof item === 'string')));
+}
+
+/**
+ * Returns the filters the search parser reads from `query`, or `undefined` when it rejects the query. Parses directly
+ * rather than through `getRawFilterListFromQuery`, whose failure log carries the raw query and is uploaded to the server.
+ */
+function getParsedQueryFilters(query: string): ParsedQueryFilter[] | undefined {
+    let parsedQuery: unknown;
+    try {
+        parsedQuery = parseSearchQuery(query);
+    } catch {
+        return undefined;
+    }
+    if (typeof parsedQuery !== 'object' || parsedQuery === null || !('rawFilterList' in parsedQuery) || !Array.isArray(parsedQuery.rawFilterList)) {
+        return undefined;
+    }
+    return parsedQuery.rawFilterList.filter(isParsedQueryFilter);
 }
 
 function clearActiveQuery() {
@@ -130,9 +161,9 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
     // Unlike the autocomplete parser, the search parser knows every supported key, including the ones the router
     // doesn't autocomplete (`keyword`, `sortBy`, `sortOrder`, `compare`). It returns free text as `keyword` filters,
     // which also covers `keyword:taxi`, the same search as `taxi`. A query it rejects counts as free text in full.
-    const rawFilters = getRawFilterListFromQuery(parsableQuery);
-    const freeText = rawFilters
-        ? rawFilters
+    const parsedFilters = getParsedQueryFilters(parsableQuery);
+    const freeText = parsedFilters
+        ? parsedFilters
               .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)
               .flatMap((filter) => filter.value)
               .join(' ')
@@ -148,7 +179,7 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
         startTime: timestampInSeconds() - elapsedMs / 1000,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]: getSearchRouterQueryLengthBucket([...freeText.trim()].length),
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: !!autocomplete || !!rawFilters?.some((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: !!autocomplete || !!parsedFilters?.some((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
             [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: getAutocompleteKey(autocomplete?.key),
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]: measuredCount,
         },
