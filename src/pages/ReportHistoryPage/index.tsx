@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReportStatusPage} from '@libs/actions/Report';
@@ -26,19 +25,16 @@ import type SCREENS from '@src/SCREENS';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import getMockUpcomingSteps from './getMockUpcomingSteps';
 import getReportHistorySteps from './getReportHistorySteps';
 import ReportHistoryItem from './ReportHistoryItem';
 
 type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>;
 
-function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
+function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [personalDetails] = useAllPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [reportUpcomingSteps] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS}${report.reportID}`);
 
@@ -52,7 +48,7 @@ function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
         currentUserEmail: currentUserPersonalDetails.login,
         reportOwnerAccountID: report.ownerAccountID,
         reportActions,
-        upcomingSteps: reportUpcomingSteps?.steps ?? getMockUpcomingSteps({report, policy, rules, personalDetails}),
+        upcomingSteps: reportUpcomingSteps?.steps ?? [],
         nextStep: report.nextStep,
     });
 
