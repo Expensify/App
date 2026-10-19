@@ -55,6 +55,8 @@ function MergeATSApproverFieldPage({
         isSelected: currentApproverField === value,
     }));
 
+    const approverFieldNames = approverFieldOptions.map((option) => option.text).filter((text): text is string => !!text);
+
     const selectApproverField = (approverField: MergeATSApproverField) => {
         setDraftApproverField(approverField);
         Navigation.goBack();
@@ -73,7 +75,7 @@ function MergeATSApproverFieldPage({
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.recruiting.approverField')} />
                 <View style={styles.flex1}>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approverFieldDescription', providerName)}</Text>
+                    <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approverFieldDescription', providerName, approverFieldNames)}</Text>
                     <SelectionList
                         data={approverFieldOptions}
                         ListItem={SingleSelectListItem}
