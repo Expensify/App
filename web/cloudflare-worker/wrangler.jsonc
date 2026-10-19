@@ -23,21 +23,27 @@
         // Every response needs security headers, and HTML needs a per-request CSP nonce, including SPA navigations.
         "run_worker_first": true,
     },
+    // Files from previous staging builds, served when a tab running an older build requests a file the current build
+    // doesn't have. `wrangler dev` uses an empty local bucket.
+    "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
     "vars": {
         "ENVIRONMENT": "staging",
     },
+    // Routes are managed in Cloudflare, not here: syncing routes needs zone access, and the CI deploy token can only
+    // edit the test-staging and staging Workers.
     "env": {
-        // Serves a staging build on a hostname nobody else uses, so it can be deployed and tested independently.
-        // Its route (test-staging.new.expensify.com/*) is managed in Cloudflare, not here: syncing routes needs zone
-        // access, and the CI deploy token can only edit this Worker.
+        // Serves a staging build on test-staging.new.expensify.com, a hostname nobody else uses.
         "test-staging": {
             "name": "test-staging-new-expensify-assets",
+            "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
             "vars": {
                 "ENVIRONMENT": "staging",
             },
         },
+        // Serves nothing until staging.new.expensify.com/* is routed to this Worker.
         "staging": {
             "name": "staging-new-expensify-assets",
+            "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
             // The Worker runs for every asset, so logging every request would exceed the included Workers Logs volume.
             "observability": {
                 "enabled": true,

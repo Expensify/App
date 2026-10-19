@@ -4123,6 +4123,7 @@ ${amount} pour ${merchant} - ${date}`,
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        loadTimedOut: 'Cette image met trop de temps à se charger.',
         retry: 'Réessayer',
     },
     messages: {
@@ -9296,6 +9297,51 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
             noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            advanced: {
+                autoSyncDescription: 'Synchronisez Dynamics 365 Business Central et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+                accountingMethods: {
+                    label: 'Méthode d’exportation',
+                    description: 'Choisissez quand exporter les dépenses.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’engagement',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois approuvées définitivement',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
+                    },
+                },
+                postingMode: {
+                    label: 'Mode de validation',
+                    description: 'Choisissez si les écritures sont validées automatiquement ou nécessitent d’abord une vérification manuelle.',
+                    note: 'Remarque : Expensify valide chaque journal ouvert dans le lot de journal général que vous avez choisi sur la page Expensify Setup de Business Central, et pas seulement ceux qu’il a créés. Utilisez un lot réservé à Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Créer et valider',
+                            description: 'Valider automatiquement les écritures dans le grand livre lors de l’export',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Créer uniquement',
+                            description: 'Valider manuellement les écritures dans Dynamics 365 Business Central après l’export',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Créer automatiquement des employés/fournisseurs',
+                exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
+                exportToNextOpenPeriodDescription:
+                    'Lorsqu’une note de frais est datée dans une période clôturée de Dynamics 365 Business Central, elle est exportée vers la période ouverte suivante.',
+                syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+                syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+                reimbursementBankAccount: {
+                    label: 'Compte de paiement des factures',
+                    description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+                settlementsBankAccount: {
+                    label: 'Compte de règlement de la Carte Expensify',
+                    description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Vos comptes Dynamics 365 Business Central seront importés en tant que catégories.',
             dimensionsImportAsTags: 'Toutes les dimensions Dynamics 365 Business Central sont importées en tant que tags',
             customers: 'Clients',
@@ -10262,6 +10308,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             posted: 'Publié',
             withdrawn: 'Retiré',
             billable: 'Facturable',
+            rejected: 'Rejeté',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
             sortOrder: {
