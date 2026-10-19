@@ -589,13 +589,14 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+    it('should append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
             parentReportActionID,
         };
 
+        // Given a non-reimbursable expense on a report that has another expense
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
@@ -612,11 +613,48 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense details are rendered
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the Amount description flags it as non-reimbursable, the same as in a single-expense report
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should NOT append "Reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a reimbursable expense on a report that has another expense, so the report-level breakdown is still shown
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Amount description has no reimbursable label
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).not.toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
@@ -653,16 +691,17 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
+    it('should NOT append "Reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
             parentReportActionID,
         };
 
+        // Given a reimbursable expense whose only sibling is pending deletion, while offline
         await setupTestData();
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
                 transactionID: `${transactionID}_sibling`,
                 reportID: expenseReportID,
@@ -678,12 +717,14 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense details are rendered
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the report still counts as multi-expense, so the single-expense "Reimbursable" label is not shown
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).not.toBeOnTheScreen();
         });
     });
 

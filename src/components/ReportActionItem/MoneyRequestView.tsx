@@ -798,8 +798,13 @@ function MoneyRequestView({
         amountHintText = `${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
-    if (isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
-        amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate(isCurrentTransactionReimbursable ? 'iou.reimbursable' : 'iou.nonReimbursable'))}`;
+    const isTransactionOnReport = !!moneyRequestReport?.reportID && transaction?.reportID === moneyRequestReport.reportID;
+    // Flag non-reimbursable expenses on any report so single- and multi-expense reports stay consistent.
+    // "Reimbursable" is only shown for single-expense reports, where it replaces the hidden report-level breakdown.
+    if (isTransactionOnReport && !isCurrentTransactionReimbursable) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
+    } else if (isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.reimbursable'))}`;
     }
 
     // Show the converted tax here since the redundant report-level Tax total is hidden for a single-expense report.
