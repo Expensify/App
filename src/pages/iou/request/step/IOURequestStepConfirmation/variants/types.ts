@@ -20,15 +20,11 @@ type ConfirmationSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
-
-    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
-
-    /** Draft reports, needed to resolve chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) */
     reportDrafts: OnyxCollection<Report>;
 
     // Policy data
@@ -54,8 +50,6 @@ type ConfirmationSubmissionParams = {
     isSharingTrackExpense: boolean;
     isUnreported: boolean;
     isPolicyExpenseChat: boolean;
-
-    /** "Submit to my employer" into a draft Submit workspace, which goes through trackExpense so the workspace is created with it. */
     isSubmittingExpenseToDraftWorkspace: boolean;
 
     // Onyx values
@@ -65,14 +59,8 @@ type ConfirmationSubmissionParams = {
     // Navigation
     backToReport?: string;
 
-    /**
-     * Called once validation has passed and the write is guaranteed to happen. Clear a pre-mount
-     * pre-mount marker here, not earlier - clearing it before validation could pass risks orphaning
-     * the pre-mounted report if validation then bails with no write.
-     */
+    // Submission
     onExpenseWriteWillStart?: () => void;
-
-    /** The page-owned submit lock, shared with the page's destination pre-mount. */
     submitLock: SubmitLock;
 };
 

@@ -12,9 +12,7 @@ import ScanConfirmationList from './variants/ScanConfirmationList';
 import TimeConfirmationList from './variants/TimeConfirmationList';
 
 /**
- * Selects the confirmation list variant for the expense type being confirmed. Invoices and per diem expenses being
- * created never reach it: InvoiceConfirmation and PerDiemConfirmation render their own list directly. A per diem
- * moved off a track expense does come here, and confirms as a plain expense through ManualConfirmationList.
+ * Selects the confirmation list variant for the expense type being confirmed.
  */
 function MoneyRequestConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {transaction, action, isTimeRequest} = props;

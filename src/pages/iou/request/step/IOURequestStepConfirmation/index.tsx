@@ -449,7 +449,6 @@ function IOURequestStepConfirmationContent({
         submitLock,
     };
 
-    // Which API command this confirmation submits through - it decides which variant renders below.
     const submissionPath = resolveSubmissionPath({
         iouType,
         action,
@@ -580,9 +579,6 @@ function IOURequestStepConfirmationContent({
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
 
-    // Submit orchestration (fast-path selection, telemetry, navigation) is handled by the SubmitExpenseOrchestrator
-    // each submission-path variant renders around its confirmation list (see renderConfirmation below).
-
     /**
      * Sets the Receipt object when dragging and dropping a file
      */
@@ -680,19 +676,18 @@ function IOURequestStepConfirmationContent({
     };
 
     const renderConfirmation = () => {
-        if (iouType === CONST.IOU.TYPE.PAY) {
-            return (
-                <PayConfirmation
-                    submissionParams={submissionParams}
-                    listProps={listProps}
-                    destinationReportID={destinationReportID}
-                    optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
-                />
-            );
-        }
-
         const variantProps = {submissionParams, orchestratorProps, listProps};
+
         switch (submissionPath) {
+            case SUBMISSION_PATH.PAY:
+                return (
+                    <PayConfirmation
+                        submissionParams={submissionParams}
+                        listProps={listProps}
+                        destinationReportID={destinationReportID}
+                        optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
+                    />
+                );
             case SUBMISSION_PATH.DISTANCE:
                 return <DistanceConfirmation {...variantProps} />;
             case SUBMISSION_PATH.SPLIT:
