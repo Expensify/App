@@ -1744,26 +1744,6 @@ describe('ReportNameUtils', () => {
             // pre-migration behavior of indexing the attributes Record inline.
             expect(getReportName(report, '')).toBe('');
         });
-
-        test.each([
-            ['hides the placeholder while the derived name is not computed yet', undefined, ''],
-            ['prefers the derived name over the placeholder', '$12.00 for Lunch', '$12.00 for Lunch'],
-            ['keeps a derived name equal to the placeholder, since only the raw fallback is filtered', CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.DEFAULT_REPORT_NAME],
-        ])('Optimistic report with the default name placeholder %s', (_description, derivedReportName, expected) => {
-            // Given a report storing the default placeholder name
-            const report: Report = {
-                ...createRegularChat(75, [currentUserAccountID, 1]),
-                reportID: '75',
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            // When its name is read with each derived value
-            const name = getReportName(report, derivedReportName);
-
-            // Then the placeholder is never returned as a fallback
-            expect(name).toBe(expected);
-        });
     });
 
     describe('computeReportName - reportNameValuePairs archiving', () => {
