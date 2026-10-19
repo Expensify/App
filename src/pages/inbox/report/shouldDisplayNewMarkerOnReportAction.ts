@@ -145,6 +145,9 @@ type GetUnreadMarkerReportActionParams = {
 
     /** The reportActionID the user explicitly marked as unread, if any */
     manuallyMarkedUnreadReportActionID?: string | null;
+
+    /** Explicit unread cursor used when the inbox command ran before the action history was cached */
+    manuallyMarkedUnreadTime?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 
@@ -169,6 +172,7 @@ const getUnreadMarkerReportAction = ({
     isAnonymousUser = false,
     prevUnreadMarkerReportActionID,
     manuallyMarkedUnreadReportActionID,
+    manuallyMarkedUnreadTime,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
@@ -178,12 +182,17 @@ const getUnreadMarkerReportAction = ({
 
     // Drop the manual anchor once the marked action is deleted, otherwise no action would match it and the
     // marker would vanish instead of relocating via the timestamp scan below.
-    const manuallyMarkedUnreadReportActionIndex = manuallyMarkedUnreadReportActionID
+    let manuallyMarkedUnreadReportActionIndex = manuallyMarkedUnreadReportActionID
         ? visibleReportActions.findIndex((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
         : -1;
+    if (!manuallyMarkedUnreadReportActionID && manuallyMarkedUnreadTime && manuallyMarkedUnreadTime === unreadMarkerTime) {
+        // A report can be marked from the inbox before its history is cached. Resolve its unread boundary once loaded.
+        const isManualAnchor = (action: OnyxTypes.ReportAction) => isReportActionUnread(action, unreadMarkerTime) && !shouldHideNewMarker(action, isOffline);
+        manuallyMarkedUnreadReportActionIndex = isReversed ? visibleReportActions.findIndex(isManualAnchor) : visibleReportActions.findLastIndex(isManualAnchor);
+    }
     const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionIndex >= 0 ? visibleReportActions.at(manuallyMarkedUnreadReportActionIndex) : undefined;
     const activeManuallyMarkedUnreadReportActionID =
-        manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
+        manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportAction.reportActionID : null;
 
     if (activeManuallyMarkedUnreadReportActionID) {
         // Anchor by ID so optimistic-to-confirmed timestamp changes and newer arrivals cannot move an explicit manual mark.

@@ -22,6 +22,9 @@ type ReportMetadata = {
     isOptimisticReport?: boolean;
     pendingChatMembers?: PendingChatMember[];
 
+    /** Read cursor set by an explicit unread command, including when the report's actions are not cached. */
+    manuallyMarkedUnreadTime?: string | null;
+
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
