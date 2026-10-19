@@ -1597,8 +1597,6 @@
 "../../src/pages/workspace/categories/DynamicDefaultCategorySelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicEditCategoryPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicExpenseLimitTypeSelectorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/DynamicSpendCategorySelectorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/ImportedCategoriesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1786,7 +1784,6 @@
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/tags/WorkspaceTagsSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/taxes/NamePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/taxes/ValuePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/taxes/WorkspaceCreateTaxPage.tsx"	"no-restricted-imports"	1
