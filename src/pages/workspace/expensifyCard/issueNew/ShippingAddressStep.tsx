@@ -143,6 +143,8 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                 style={[styles.flex1]}
                 submitButtonStyles={[styles.mh5]}
                 validate={validate}
+                // The address inputs are hidden when the cardholder enters their own address, so their values aren't checked
+                allowHTML={selectedOption !== CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS}
                 enabledWhenOffline
                 addBottomSafeAreaPadding
             >
