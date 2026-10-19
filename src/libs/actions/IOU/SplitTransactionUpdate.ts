@@ -212,6 +212,7 @@ function willSplitUpdateEmptyExpenseReport(
     if (activeExpenseReportTransactions.length === 0) {
         return false;
     }
+
     // The original expense leaves the report too: it moves to the split report, or on a reverse split to the remaining split's report.
     const isPartOfThisSplit = (itemTransaction: OnyxEntry<OnyxTypes.Transaction>) =>
         itemTransaction?.transactionID === originalTransactionID || itemTransaction?.comment?.originalTransactionID === originalTransactionID;
@@ -605,6 +606,7 @@ function updateSplitTransactions({
             childOldestFourAccountIDs,
         };
     };
+
     // Optimistically removes an expense report, together with its report preview, once none of its transactions are left in it.
     const pushExpenseReportDeletionToOnyxData = (reportID: string) => {
         const reportToDelete = reportID === expenseReportID ? expenseReport : allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1073,6 +1075,7 @@ function updateSplitTransactions({
                 // For confirmed workspace transactions viewed from selfDM context, we must use the
                 // real workspace reports instead of splitExpense.reportID (which points to selfDM).
                 const existingTransactionThreadID = isConfirmedWorkspaceTransaction ? currentReportAction?.childReportID : undefined;
+
                 // The split stays on its own report. The workspace chat's iouReportID is only its latest open report, which can
                 // belong to another split, so preferring it moved this split there whenever its amount changed.
                 const workspaceExpenseReportID = isConfirmedWorkspaceTransaction ? (splitTransaction?.reportID ?? workspaceChatReport?.iouReportID) : undefined;

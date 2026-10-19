@@ -12162,6 +12162,7 @@ describe('updateSplitTransactions - emptied expense report', () => {
                 comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
             });
         }
+
         // Hold the request so only the optimistic data is applied, as it is while offline
         mockFetch?.pause?.();
         await waitForBatchedUpdates();
@@ -12381,6 +12382,7 @@ describe('updateSplitTransactions - emptied expense reports', () => {
         for (const transaction of extraTransactions) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         }
+
         // Hold the request so only the optimistic data is applied, as it is while offline
         mockFetch?.pause?.();
         await waitForBatchedUpdates();
