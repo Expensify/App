@@ -46,7 +46,7 @@ function getAssignableOfficeLocations(policy: OnyxEntry<Policy>, translate: Loca
         return officeLocations;
     }
 
-    // The company address is the primary office while no office is
+    // The company address is the primary office unless an office location is set as primary
     const companyAddress = {
         officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID,
         name: translate('common.companyAddress'),
