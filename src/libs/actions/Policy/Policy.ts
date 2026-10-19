@@ -5160,6 +5160,11 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
     }
+    // A workspace can't be connected while Connections is off, so there is nothing to fetch. Without this, the open
+    // Connections page would be replaced by a loader. It's set first so the page never sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && isEmptyObject(policy.connections)) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
+    }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
 

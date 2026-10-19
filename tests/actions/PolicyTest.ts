@@ -5803,6 +5803,21 @@ describe('actions/Policy', () => {
             expect(apiWriteSpy).not.toHaveBeenCalled();
             apiWriteSpy.mockRestore();
         });
+
+        it('should mark the connections as fetched when it turns Connections on for a workspace with no connections', async () => {
+            // Given a workspace with Connections off, which means it has no connections to fetch
+            const policy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areConnectionsEnabled: false, connections: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch?.pause?.();
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the open Connections page has nothing to fetch, so it keeps showing instead of a loader
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBe(true);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))?.areConnectionsEnabled).toBe(true);
+        });
     });
 
     describe('enablePolicyTaxes', () => {
