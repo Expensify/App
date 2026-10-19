@@ -168,12 +168,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                     <MenuItem.Row>
                         <MenuItem.Icon src={isInvoice ? expensifyIcons.InvoiceGeneric : expensifyIcons.Receipt} />
                         <MenuItem.Content>
-                            <Text
-                                variant="text"
-                                style={styles.popoverMenuText}
-                            >
-                                {translate(isInvoice ? 'subscription.paymentHistory.viewInvoice' : 'subscription.paymentHistory.viewReceipt')}
-                            </Text>
+                            <MenuItem.Title>{translate(isInvoice ? 'subscription.paymentHistory.viewInvoice' : 'subscription.paymentHistory.viewReceipt')}</MenuItem.Title>
                         </MenuItem.Content>
                         <MenuItem.Chevron />
                     </MenuItem.Row>
