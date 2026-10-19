@@ -12,6 +12,7 @@ import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
+import useTimeSensitiveAddDepositAccount from './hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
@@ -23,6 +24,7 @@ import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscriptionExpiring';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
+import AddDepositAccount from './items/AddDepositAccount';
 import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
@@ -55,6 +57,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
     const {shouldShowAddBankAccount} = useTimeSensitiveAddBankAccount();
+    const {shouldShowAddDepositAccount} = useTimeSensitiveAddDepositAccount();
     const {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
@@ -118,7 +121,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 10. NetSuite connections requiring OAuth 2.0 migration
     // 11. Add home address (commuter exclusions, homeAndOffice method)
     // 12. Add payment card (trial ended, no payment card)
-    // 13. Add bank account for a queued reimbursement
+    // 13. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
     // 14. Enter signer info for global bank accounts
     // 15. Expensify card shipping
     // 16. Expensify card activation
@@ -238,6 +241,9 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Priority 13: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
+    } else if (shouldShowAddDepositAccount) {
+        // Priority 13: Add a deposit account so a workspace with reimbursements enabled can pay the user.
+        items.push(<AddDepositAccount key="add-deposit-account" />);
     }
     // Priority 14: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {

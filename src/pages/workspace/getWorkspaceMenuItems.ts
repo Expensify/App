@@ -3,7 +3,6 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
@@ -23,6 +22,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -122,6 +122,8 @@ type GetWorkspaceMenuItemsParams = {
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;
+    /** Whether the company agents beta is enabled. */
+    isCompanyAgentsBetaEnabled?: boolean;
     /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
     isUnifiedConnectionsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
@@ -142,6 +144,7 @@ function getWorkspaceMenuItems({
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
+    isCompanyAgentsBetaEnabled = false,
     isUnifiedConnectionsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
@@ -248,6 +251,17 @@ function getWorkspaceMenuItems({
         }
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
+
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled) {
+        const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        items.splice(membersItemIndex + 1, 0, {
+            translationKey: 'agentsPage.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

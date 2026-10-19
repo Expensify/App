@@ -148,6 +148,22 @@ describe('useTimeSensitiveNetSuiteMigration', () => {
             // Then the policy is excluded because only admins see the migration nudge
             expect(result.current.netSuiteMigrationPolicies).toEqual([]);
         });
+
+        it('returns an empty array when the policy is pending deletion', async () => {
+            // Given a qualifying policy is being deleted
+            const policy = {
+                ...makeNetSuitePolicy('policy1'),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, policy);
+            await waitForBatchedUpdates();
+
+            // When the hook renders
+            const {result} = renderHook(() => useTimeSensitiveNetSuiteMigration());
+
+            // Then the policy is excluded while deletion is pending
+            expect(result.current.netSuiteMigrationPolicies).toEqual([]);
+        });
     });
 
     describe('when policies qualify', () => {

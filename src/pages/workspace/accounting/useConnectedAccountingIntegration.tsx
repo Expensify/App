@@ -20,7 +20,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -35,6 +34,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -363,7 +363,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !rilletSubsidiaryList?.length
                     ? {}
                     : {
-                          description: translate('workspace.rillet.subsidiary'),
+                          description: translate('workspace.rillet.entity'),
                           iconRight: icons.ArrowRight,
                           title: rilletSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.rillet?.config?.subsidiaryID)?.tradeName ?? '',
                           wrapperStyle: menuItemWrapperStyle,
@@ -382,7 +382,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !dualEntryCompanyList?.length
                     ? {}
                     : {
-                          description: translate('workspace.dualEntry.subsidiary'),
+                          description: translate('workspace.dualEntry.company'),
                           iconRight: icons.ArrowRight,
                           title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: menuItemWrapperStyle,
@@ -401,7 +401,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !campfireSubsidiaryList?.length
                     ? {}
                     : {
-                          description: translate('workspace.campfire.subsidiary'),
+                          description: translate('workspace.campfire.entity'),
                           iconRight: icons.ArrowRight,
                           title: campfireSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.campfire?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: menuItemWrapperStyle,
