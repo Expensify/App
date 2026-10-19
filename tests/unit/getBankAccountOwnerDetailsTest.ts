@@ -9,7 +9,6 @@ import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValue
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {PersonalInfoStepProps, WalletAdditionalDetailsForm} from '@src/types/form/WalletAdditionalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
@@ -311,7 +310,7 @@ describe('getSubstepValues', () => {
         const persistedBefore = {...persistedDetails};
 
         // When the personal step reads values through its production helper.
-        const values: PersonalInfoStepProps = getSubstepValues(INPUT_IDS.PERSONAL_INFO_STEP, draftDetails, persistedDetails);
+        const values: PersonalInfoStepProps = getSubstepValues(draftDetails, persistedDetails);
 
         // Then every field has its matching draft value and neither source nor metadata leaks into the result.
         expect(values).toEqual({
@@ -336,7 +335,7 @@ describe('getSubstepValues', () => {
         const saved: WalletAdditionalDetailsRefactor = {...persistedDetails, addressCity: ''};
 
         // When absent draft fields fall back to saved personal details.
-        const values = getSubstepValues(INPUT_IDS.PERSONAL_INFO_STEP, partialDraft, saved);
+        const values = getSubstepValues(partialDraft, saved);
 
         // Then empty strings are values and each absent field retains its corresponding saved value.
         expect(values).toEqual({
@@ -368,7 +367,7 @@ describe('getSubstepValues', () => {
         expect(persisted).toEqual(persistedDetails);
 
         // When the helper consumes the native absent draft entry alongside the retained saved details.
-        const values = getSubstepValues(INPUT_IDS.PERSONAL_INFO_STEP, draft, persisted);
+        const values = getSubstepValues(draft, persisted);
 
         // Then all personal fields survive without saved error or loading metadata.
         expect(values).toEqual({
@@ -402,7 +401,7 @@ describe('getSubstepValues', () => {
         expect(persisted).toBeUndefined();
 
         // When the helper receives the real missing entries and must supply the complete form contract itself.
-        const values = getSubstepValues(INPUT_IDS.PERSONAL_INFO_STEP, draft, persisted);
+        const values = getSubstepValues(draft, persisted);
 
         // Then every own field exists even without source values.
         expect(values).toEqual({legalFirstName: '', legalLastName: '', dob: '', ssn: '', addressStreet: '', addressCity: '', addressState: '', addressZipCode: '', phoneNumber: ''});
