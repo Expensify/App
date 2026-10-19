@@ -96,6 +96,7 @@ function IOUReportAvatar({reportID, size, backdropColor, containerStyle, horizon
     const delegateDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     // A copilot created the report for its owner. Until the copilot's personal details load, the report reads as the manager's instead.
     const actorAccountID = delegateDetails ? (ownerAccountID ?? reportPreview?.childOwnerAccountID) : (managerAccountID ?? reportPreview?.childManagerAccountID);
+    // A sender of 0 is the unknown account (e.g. before the session loads), so `||` lets the actor stand in for it too.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = senderAccountID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
 
