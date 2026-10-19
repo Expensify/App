@@ -291,9 +291,9 @@ function getGovernmentRateSeries(sourceRateID: string): string {
     return dateSeparatorIndex === -1 ? sourceRateID : sourceRateID.slice(0, dateSeparatorIndex);
 }
 
-/** Whether a government rate is a UK fuel band, whose series carries the band after the country code. */
+/** Whether a government rate is a UK fuel band, whose sourceRateID carries the band between the country code and the date. */
 function isFuelBandGovernmentRate(sourceRateID: string): boolean {
-    return getGovernmentRateSeries(sourceRateID) !== sourceRateID.split('_').at(0);
+    return sourceRateID.split('_').length > 2;
 }
 
 /** The tax reclaimable amount, in currency units, as the distance rate tax reclaimable page shows it. */
