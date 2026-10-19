@@ -14,11 +14,13 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -173,6 +175,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
+                        // Grouped report headers sit inside pressable rows, so their title needs the selection marker too.
+                        isTitleSelectable
                     />
                 </View>
             </View>
@@ -203,7 +207,10 @@ function HeaderFirstRow<TItem extends ListItem>({
                 )}
             </View>
             {isLargeScreenWidth && (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
@@ -279,11 +286,18 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
         rules,
+    });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: snapshotReport?.reportID ?? reportItem.reportID,
+        report: parentReport ?? snapshotReport,
+        policy: parentPolicy,
+        shouldShowMarkAsDoneCopy,
     });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
@@ -301,7 +315,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
-        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -336,6 +349,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            confirmSubmitReportViolations,
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
@@ -355,8 +369,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             isTrackIntentUser,
             allViolations,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
-            bankAccountList,
         });
     };
     return !isLargeScreenWidth ? (

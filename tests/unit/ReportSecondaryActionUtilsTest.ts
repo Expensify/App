@@ -13,7 +13,7 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -110,6 +110,13 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/workflows'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -146,6 +153,7 @@ describe('getSecondaryAction', () => {
         const result = [
             CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.SHARE,
             CONST.REPORT.SECONDARY_ACTIONS.PRINT,
             CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
         ];
@@ -162,6 +170,7 @@ describe('getSecondaryAction', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             }),
         ).toEqual(result);
     });
@@ -186,6 +195,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
@@ -207,6 +217,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -228,6 +239,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -279,6 +291,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
@@ -336,6 +349,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -396,6 +410,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -449,6 +464,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -503,112 +519,10 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
-    });
-
-    describe('CANCEL_PAYMENT for a non-payer admin on a workspace with a connected bank account', () => {
-        const DESIGNATED_PAYER_EMAIL = 'payer@vba-test.com';
-        const WORKSPACE_BANK_ACCOUNT_ID = 1111;
-        const ADMIN_OWN_BANK_ACCOUNT_ID = 2222;
-        const PAY_ACTION_ID = 'pay_action_id';
-
-        // Reimbursement is configured (reimburseYes) and someone else is the reimburser, so `isPayer` is false for
-        // ADMIN_EMAIL and Cancel can only come from the non-payer admin path.
-        const policy = createMock<Policy>({
-            id: POLICY_ID,
-            type: CONST.POLICY.TYPE.CORPORATE,
-            role: CONST.POLICY.ROLE.ADMIN,
-            owner: DESIGNATED_PAYER_EMAIL,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            reimburser: DESIGNATED_PAYER_EMAIL,
-            outputCurrency: CONST.CURRENCY.USD,
-            achAccount: {reimburser: DESIGNATED_PAYER_EMAIL, bankAccountID: WORKSPACE_BANK_ACCOUNT_ID},
-            employeeList: {
-                [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
-                [DESIGNATED_PAYER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
-            },
-        });
-        const report = createMock<Report>({
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            policyID: POLICY_ID,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            total: -10000,
-            isWaitingOnBankAccount: false,
-            // Auth reports the bank reimbursement as still cancellable so the outcome depends on the access gate alone.
-            canCancelReimbursement: true,
-        });
-        const transaction = createMock<Transaction>({reportID: REPORT_ID, amount: 10000});
-
-        function buildPayAction(paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, bankAccountID?: number): ReportAction {
-            return createMock<ReportAction>({
-                reportActionID: PAY_ACTION_ID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: ADMIN_ACCOUNT_ID,
-                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID},
-                created: '2020-01-01 00:00:00.000',
-            });
-        }
-
-        async function getActionsForAdmin(payAction: ReportAction, bankAccountList: BankAccountList) {
-            // beforeEach's Onyx.clear isn't awaited; explicit clear guarantees a clean policy collection for this seed.
-            await Onyx.clear();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[PAY_ACTION_ID]: payAction});
-            await waitForBatchedUpdates();
-
-            return getSecondaryReportActions({
-                currentUserLogin: ADMIN_EMAIL,
-                currentUserAccountID: ADMIN_ACCOUNT_ID,
-                submitterLogin: EMPLOYEE_EMAIL,
-                report,
-                chatReport,
-                reportTransactions: [transaction],
-                originalTransaction: createMock<Transaction>({}),
-                violations: {},
-                bankAccountList,
-                policy,
-                reportActions: [payAction],
-                rules: undefined,
-            });
-        }
-
-        it('includes CANCEL_PAYMENT when the report was marked as paid', async () => {
-            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE), {});
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
-        });
-
-        it('includes CANCEL_PAYMENT when the bank account used to pay is shared with the admin', async () => {
-            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
-                [ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            });
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
-        });
-
-        it('does not include CANCEL_PAYMENT when the bank account used to pay is not shared with the admin', async () => {
-            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
-                [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            });
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
-        });
-
-        it('falls back to the workspace bank account when the pay action does not name one', async () => {
-            const payAction = buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA);
-
-            const withWorkspaceAccount = await getActionsForAdmin(payAction, {
-                [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            });
-            expect(withWorkspaceAccount.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
-
-            const withoutWorkspaceAccount = await getActionsForAdmin(payAction, {});
-            expect(withoutWorkspaceAccount.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
-        });
     });
 
     it('does not include CANCEL_PAYMENT past the NACHA cutoff after a paid-elsewhere payment was cancelled and re-paid via bank', async () => {
@@ -669,6 +583,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -696,6 +611,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
@@ -729,6 +645,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(false);
@@ -756,6 +673,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
@@ -783,6 +701,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(true);
@@ -822,6 +741,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
@@ -856,6 +776,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -891,6 +812,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -930,6 +852,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -973,6 +896,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1018,6 +942,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1061,6 +986,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1114,6 +1040,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1154,6 +1081,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1191,6 +1119,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1228,6 +1157,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1262,6 +1192,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1303,6 +1234,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1351,6 +1283,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1384,6 +1317,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1433,6 +1367,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1469,6 +1404,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1510,6 +1446,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1557,6 +1494,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1599,6 +1537,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1640,6 +1579,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1680,6 +1620,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1724,6 +1665,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -1771,6 +1713,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then APPROVE should not be included because DEW is already processing an approval
@@ -1816,6 +1759,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -1860,6 +1804,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -1903,6 +1848,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1945,6 +1891,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1984,6 +1931,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -2023,6 +1971,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -2059,6 +2008,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -2086,6 +2036,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -2116,6 +2067,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -2145,6 +2097,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -2174,6 +2127,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2204,6 +2158,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2234,6 +2189,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2265,6 +2221,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2297,6 +2254,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -2332,6 +2290,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
@@ -2365,6 +2324,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2438,6 +2398,7 @@ describe('getSecondaryAction', () => {
             ...baseArgs,
             policy: createMock<Policy>(policyData),
             rules: undefined,
+            cardList: undefined,
         });
         expect(resultWithoutArchive.includes(action)).toBe(true);
 
@@ -2445,6 +2406,7 @@ describe('getSecondaryAction', () => {
             ...baseArgs,
             policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'}),
             rules: undefined,
+            cardList: undefined,
         });
         expect(resultWithArchive.includes(action)).toBe(false);
     });
@@ -2490,6 +2452,7 @@ describe('getSecondaryAction', () => {
             },
             isChatReportArchived: true,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(action)).toBe(true);
     });
@@ -2544,6 +2507,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2598,6 +2562,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2651,6 +2616,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2704,6 +2670,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2746,6 +2713,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2799,6 +2767,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2852,6 +2821,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2903,6 +2873,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2942,6 +2913,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2981,6 +2953,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -3020,6 +2993,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -3059,6 +3033,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -3090,6 +3065,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -3121,6 +3097,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -3152,6 +3129,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3184,6 +3162,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -3222,6 +3201,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [reportAction],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3258,6 +3238,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3296,6 +3277,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [reportAction],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -3328,6 +3310,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -3360,6 +3343,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3393,6 +3377,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3429,6 +3414,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3461,6 +3447,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3496,6 +3483,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -3530,6 +3518,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3567,6 +3556,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3612,6 +3602,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -3658,6 +3649,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3719,6 +3711,7 @@ describe('getSecondaryAction', () => {
             policy: oldPolicy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3780,6 +3773,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3841,6 +3835,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3868,6 +3863,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3930,6 +3926,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3996,6 +3993,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -4028,6 +4026,7 @@ describe('getSecondaryAction', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -4075,6 +4074,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4122,6 +4122,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4184,6 +4185,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -4230,6 +4232,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4282,6 +4285,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4325,6 +4329,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -4364,6 +4369,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -4419,6 +4425,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -4463,6 +4470,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4495,6 +4503,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4531,6 +4540,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4578,6 +4588,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
@@ -4610,6 +4621,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4672,6 +4684,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4714,6 +4727,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4761,6 +4775,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4800,6 +4815,7 @@ describe('getSecondaryAction', () => {
             reportActions,
             moveExpenseReportNameValuePairs,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -4839,6 +4855,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -5266,6 +5283,7 @@ describe('getReportAccountingExportActions', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -5302,6 +5320,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 policy,
                 isChatReportArchived: false,
                 rules: undefined,
+                cardList: undefined,
             }),
         ).toEqual(result);
     });
@@ -5333,6 +5352,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -5361,6 +5381,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionThreadReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -5377,6 +5398,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionThreadReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -5404,6 +5426,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -5464,6 +5487,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -5518,6 +5542,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policies,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -5564,6 +5589,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5626,6 +5652,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then the SPLIT option is available
@@ -5673,6 +5700,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5720,6 +5748,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5770,6 +5799,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5800,6 +5830,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5832,6 +5863,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 isChatReportArchived,
                 hasWorkspaceToSubmitTo,
                 rules: undefined,
+                cardList: undefined,
             });
         }
 
@@ -5901,6 +5933,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             grandParentReport: selfDMReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5931,6 +5964,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5964,6 +5998,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportNameValuePairs,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -6000,6 +6035,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -6060,6 +6096,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -6116,6 +6153,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);

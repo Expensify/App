@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
@@ -29,7 +30,6 @@ import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/acti
 import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
-import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -56,7 +56,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
@@ -124,6 +124,7 @@ function SettlementButton({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
@@ -152,12 +153,14 @@ function SettlementButton({
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
-            (canAccessPolicyBankAccount(policy, bankAccountList) &&
-                (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
         !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
@@ -207,7 +210,7 @@ function SettlementButton({
                         return;
                     }
                     pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
-                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
                 });
             }
             return true;

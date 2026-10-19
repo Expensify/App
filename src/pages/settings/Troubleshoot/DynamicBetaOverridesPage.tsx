@@ -15,11 +15,10 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
+import Permissions, {canApplyBetaOverrides} from '@libs/Permissions';
 
 import {clearBetaOverride, clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -37,10 +36,7 @@ function DynamicBetaOverridesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.BETA_OVERRIDES.path);
-    // The environment context starts on production and resolves later, so the build config must agree to avoid a flash
-    // TestFlight is compiled as production, so it still shows the not found view until the native beta check resolves
-    const {isProduction: isResolvedProduction} = useEnvironment();
-    const isProduction = isResolvedProduction && CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
+    const {environment} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -48,7 +44,7 @@ function DynamicBetaOverridesPage() {
 
     // usePermissions applies the overrides, so the value the account has is resolved here without them
     // Skips the overrides on purpose, since the row compares them against the account value
-    const isEnabledOnAccount = (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, undefined);
+    const isEnabledOnAccount = (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, undefined, environment);
 
     // An override that matches the account resolves to the same answer, so it only counts as one while it differs.
     // Undefined betas mean the account values are unknown rather than off, so keep showing the override until they load
@@ -69,7 +65,7 @@ function DynamicBetaOverridesPage() {
             testID={DynamicBetaOverridesPage.displayName}
             includeSafeAreaPaddingBottom
         >
-            <FullPageNotFoundView shouldShow={isProduction}>
+            <FullPageNotFoundView shouldShow={!canApplyBetaOverrides(environment)}>
                 <HeaderWithBackButton
                     title={translate('initialSettingsPage.troubleshoot.betaOverrides')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
