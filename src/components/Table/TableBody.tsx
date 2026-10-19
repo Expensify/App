@@ -150,7 +150,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
-        scrollbarWidth,
         measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
@@ -316,8 +315,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     ) : null;
 
-    // While the columns scroll the column header sits here rather than in FlashList's sticky-row overlay, so the
-    // scroller carries it sideways. Also one copy instead of the overlay's two, so no duplicate to hide from readers.
+    // The column header sits here rather than in FlashList's sticky-row overlay so that the scroller holds it, which keeps
+    // it clear of the scrollbar and carries it sideways. Also one copy instead of the overlay's two, so no duplicate to
+    // hide from readers.
     const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
@@ -421,13 +421,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     isAccessibilityHidden,
                 });
 
-                // The list draws its stuck header as a sibling of the scroller rather than inside it, so the header
-                // spans a width the rows below never get. Holding it off the scrollbar keeps the two edges in line.
-                if (info.target !== 'StickyHeader' || scrollbarWidth === 0) {
-                    return headerElement;
-                }
-
-                return <View style={StyleUtils.getPaddingRight(scrollbarWidth)}>{headerElement}</View>;
+                return headerElement;
             }
             case 'data':
             default: {
