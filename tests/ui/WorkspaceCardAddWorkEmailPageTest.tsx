@@ -8,6 +8,7 @@ import WorkspaceExpensifyCardAddWorkEmailPage from '@pages/workspace/expensifyCa
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 
 type ReactNativeComponents = {
@@ -54,6 +55,7 @@ const mockPrimaryContactMethod = jest.fn(() => 'user@gmail.com');
 const mockIsUserValidated = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useFocusEffect: (effect: () => void) => jest.requireActual<typeof React>('react').useEffect(effect),
 }));
 jest.mock('@hooks/usePrimaryContactMethod', () => ({__esModule: true, default: () => mockPrimaryContactMethod()}));
