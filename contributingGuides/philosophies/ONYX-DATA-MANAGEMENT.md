@@ -16,6 +16,7 @@ This is how the application manages all the data stored in Onyx.
 This improves performance and lessens the chance that one action will overwrite the changes made by another action.
 
 ### - UI Components MUST NOT call Onyx methods directly and should call an action instead
+The one exception is a one-shot `Onyx.get()` or `Onyx.multiGet()` inside an event handler of a component, page or hook, under the rules in the reading section below.
 ### - Data SHOULD be optimistically stored on disk whenever possible without waiting for a server response
 Example of creating a new optimistic comment:
 1. User adds a comment
@@ -45,7 +46,7 @@ There are four ways to read Onyx data, and `Onyx.connect` is deprecated:
 4. **`Onyx.multiGet()`**: takes an array of keys and resolves each one the way `Onyx.get()` does, in the order given. Every `Onyx.get()` rule below applies to it and to each key it reads.
 
 ### - Prefer a pure function over reading Onyx at all
-A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
+A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx`, `Onyx.connectWithoutView` or, in an event handler, `Onyx.get()`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
 
 ### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
 Any value used during render belongs in `useOnyx` so the UI updates when the value changes.

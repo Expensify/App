@@ -434,8 +434,8 @@ function lineNumberAtOffset(source: string, offset: number): number {
 }
 
 /**
- * A directive covers a banned call when it reaches any line of the call, not only its first: a rule may report on an
- * element inside a multi-line `Onyx.multiGet([...])`, and a line directive on that element silences it just as well.
+ * A directive covers a banned call when it reaches any line of the call, not only its first: both rules report on the
+ * call line, but a line directive inside a multi-line `Onyx.multiGet([...])` is still an attempt to silence the read.
  */
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, bannedRanges: BannedRange[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index);

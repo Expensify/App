@@ -73,7 +73,7 @@ const meta = {
             DISABLE_GUIDANCE,
         ].join('\n\n'),
         noUnresolvableOnyxKey: [
-            'Do not read Onyx with a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.',
+            'Do not read Onyx with `{{keyText}}`, a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.',
             'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. For Onyx.multiGet(), pass an array literal, or a const bound to one, whose every element is written that way. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter.',
             DISABLE_GUIDANCE,
         ].join('\n\n'),
@@ -247,7 +247,7 @@ function create(context) {
         const keyPath = getOnyxKeyPath(keyArgument, sourceCode);
 
         if (!keyPath) {
-            return {keyPath: null};
+            return {keyPath: null, keyNode: keyArgument};
         }
 
         if (!RESTRICTED_KEY_PATHS.has(keyPath) || isConciergeChatKey(keyArgument)) {
@@ -269,13 +269,13 @@ function create(context) {
         const elements = keyArgument?.type === 'SpreadElement' ? null : getKeyListElements(keyArgument, sourceCode, isMultiReadCall);
 
         if (!elements) {
-            return [{node: call, keyPath: null}];
+            return [{node: call, keyPath: null, keyNode: keyArgument}];
         }
 
         // Every finding is reported on the call so one directive above a multi-line call covers all of its keys
         return elements.flatMap((element) => {
             if (!element || element.type === 'SpreadElement') {
-                return [{node: call, keyPath: null}];
+                return [{node: call, keyPath: null, keyNode: element}];
             }
 
             const finding = findRestrictedKey(element);
@@ -296,7 +296,7 @@ function create(context) {
                 context.report(
                     finding.keyPath
                         ? {node: finding.node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}}
-                        : {node: finding.node, messageId: 'noUnresolvableOnyxKey'},
+                        : {node: finding.node, messageId: 'noUnresolvableOnyxKey', data: {keyText: finding.keyNode ? sourceCode.getText(finding.keyNode) : 'no key'}},
                 );
             }
         },

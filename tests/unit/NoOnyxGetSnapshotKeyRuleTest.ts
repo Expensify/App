@@ -338,6 +338,14 @@ describe('no-onyx-get-snapshot-key multiGet', () => {
 
             {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet(keys); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.multiGet([ONYXKEYS.SESSION, key]); }`, errors: UNRESOLVABLE_ERRORS},
+            // Both findings land on the call, so each message names its own key to tell them apart
+            {
+                code: `${ONYX_IMPORT} export function submit(a, b) { return Onyx.multiGet([ONYXKEYS.SESSION, a, b]); }`,
+                errors: [
+                    {messageId: 'noUnresolvableOnyxKey', data: {keyText: 'a'}},
+                    {messageId: 'noUnresolvableOnyxKey', data: {keyText: 'b'}},
+                ],
+            },
             {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet([ONYXKEYS.SESSION, ...keys]); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(ids) { return Onyx.multiGet(ids.map((id) => \`\${ONYXKEYS.COLLECTION.POLICY_TAGS}\${id}\`)); }`, errors: UNRESOLVABLE_ERRORS},
         ],
