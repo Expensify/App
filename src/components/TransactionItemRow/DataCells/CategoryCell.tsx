@@ -31,7 +31,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: categoryForComparison,
         onSave,
@@ -54,6 +54,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             text={categoryForDisplay}
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
+            isSelectable
         />
     );
 
@@ -71,7 +72,10 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                 />
             }
