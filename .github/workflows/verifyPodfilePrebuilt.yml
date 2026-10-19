@@ -6,7 +6,7 @@ name: Verify Podfile.lock uses prebuilt react-native
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - 'ios/Podfile.lock'
       - '.github/scripts/verifyPodfilePrebuilt.sh'

@@ -3,7 +3,7 @@ name: Cloudflare Worker tests
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - 'web/cloudflare-worker/**'
       # The tests check its inline scripts against the CSP hashes.
@@ -21,7 +21,7 @@ permissions:
 jobs:
   test:
     name: Cloudflare Worker tests
-    if: github.actor != 'OSBotify'
+    if: github.actor != 'OSBotify' && github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:

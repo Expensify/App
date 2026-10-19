@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths: ['**.ts', '**.tsx']
 
 concurrency:
@@ -13,7 +13,7 @@ concurrency:
 jobs:
   react-compiler-compliance:
     name: React Compiler Compliance
-    if: ${{ github.actor != 'OSBotify' }}
+    if: ${{ github.actor != 'OSBotify' && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
 
     steps:
