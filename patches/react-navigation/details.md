@@ -86,6 +86,14 @@
 - PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+005+remount-native-tabs-host-on-hidden-change.patch](@react-navigation+bottom-tabs+7.19.2+005+remount-native-tabs-host-on-hidden-change.patch)
+
+- Reason: Remounts the native tab host when the set of hidden routes changes. Turning the Insights beta on or off swaps which route has `tabBarItemHidden` (see the hidden-tab-items patch), so one `Tabs.Screen` is removed from the host and another is inserted. Android does not remove a native tab in place (see the stable-native-tab-identity patch), so the host was left with a stale tab and its selected tab pointing at it, and the app crashed when the host was shown again. With this patch the `Tabs.Host` key includes the hidden route names, so a change replaces the whole host with a fresh one that has the right tabs. The beta rarely changes, so remounting the tab contents then is acceptable. **Remove this patch** together with the stable-native-tab-identity patch, once react-native-screens removes Android tabs correctly.
+- Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
+- E/App issue: [#104280](https://github.com/Expensify/App/issues/104280)
+- PR Introducing Patch: TBD
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.

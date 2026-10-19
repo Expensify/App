@@ -1,0 +1,23 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index d2d69feda98..9d79889b1af 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -43,6 +43,9 @@ export function NativeBottomTabView({
+   // route replaces its native tab, and Android never removes the old one, so the bar shows the tab twice.
+   const getRouteForScreenKey = screenKey => state.routes.find(route => route.name === screenKey);
+   const nativeSelectedScreenKey = state.routes.find(route => route.key === nativeSelectedRouteKey)?.name ?? nativeSelectedRouteKey;
++  // Android cannot remove a native tab in place, so a change in which routes are hidden would leave the host with a
++  // stale tab and crash it. Keyed by the hidden route names, the host is remounted with the new set of tabs instead.
++  const nativeTabsHostKey = `native-tabs-host-${state.routes.filter(isRouteHidden).map(route => route.name).join(',')}`;
+   // Hidden routes stay mounted once visited, the same as the native tabs.
+   const visitedHiddenRouteKeysRef = React.useRef(new Set());
+   if (isFocusedRouteHidden) {
+@@ -391,7 +394,7 @@ export function NativeBottomTabView({
+           }, route.key)
+         }, route.name);
+       })
+-    }, "native-tabs-host"), ...state.routes.map((route, index) => {
++    }, nativeTabsHostKey), ...state.routes.map((route, index) => {
+       if (!isRouteHidden(route) || !visitedHiddenRouteKeysRef.current.has(route.key)) {
+         return null;
+       }
