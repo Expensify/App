@@ -500,13 +500,12 @@ describe('TransactionUtils', () => {
             it('should fall back to the workspace default when the category rule points at a disabled tax rate', () => {
                 // Given a category rule pointing at a tax rate the admin has since disabled, on a rate with no tax rate of its own
                 const category = 'Advertising';
-                const basePolicy = buildDistancePolicy(category, true);
                 const fakePolicy: Policy = {
-                    ...basePolicy,
+                    ...buildDistancePolicy(category, true),
                     taxRates: {
-                        ...basePolicy.taxRates,
+                        ...CONST.DEFAULT_TAX,
                         taxes: {
-                            ...basePolicy.taxRates?.taxes,
+                            ...CONST.DEFAULT_TAX.taxes,
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: true},
                         },
