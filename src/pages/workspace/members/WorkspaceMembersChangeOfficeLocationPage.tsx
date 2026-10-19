@@ -48,11 +48,14 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [selectedAccountIDs, selectedAccountIDsMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const [selection, selectionMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
     const [chosenOfficeID, setChosenOfficeID] = useState<string>();
 
+    // Members picked on another workspace's member list are left out, even when they also belong to this one
+    const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
+
     // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = isLoadingOnyxValue(selectedAccountIDsMetadata) || !!selectedAccountIDs?.length;
+    const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
     const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy);
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
 

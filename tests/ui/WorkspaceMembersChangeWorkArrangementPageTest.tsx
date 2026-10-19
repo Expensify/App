@@ -9,6 +9,7 @@ import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceMembersChangeWorkArrangementPage from '@pages/workspace/members/WorkspaceMembersChangeWorkArrangementPage';
 
 import CONST from '@src/CONST';
@@ -41,7 +42,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/actions/Policy/Member', () => ({clearWorkspaceMembersSelectedForBulkEdit: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({isPolicyAdmin: jest.fn(() => true)}));
-jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: ({children}: PropsWithChildren) => children}));
+jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: jest.fn(({children}: PropsWithChildren) => children)}));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
 type MockWorkArrangementSelectorProps = {
@@ -71,7 +72,7 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useOnyx).mockReturnValue([[member1AccountID, member2AccountID], {status: 'loaded'}]);
+        jest.mocked(useOnyx).mockReturnValue([{policyID, accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
     });
 
     const renderPage = (member1IsOffice?: boolean, member2IsOffice?: boolean) => {
@@ -144,5 +145,23 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
         // Then neither member gets an arrangement of their own, so both keep following the workspace default, and the page still closes
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
+    });
+
+    it('leaves out members picked on another workspace', () => {
+        // Given members picked on another workspace's member list who also belong to this workspace
+        jest.mocked(useOnyx).mockReturnValue([{policyID: 'otherPolicy', accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
+        renderPage(true, false);
+
+        // When office-based is chosen and confirmed on this workspace's page
+        act(() => {
+            getSelectorProps()?.onSelect(true);
+        });
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
+        });
+
+        // Then the page is blocked and nobody's arrangement changes
+        expect(jest.mocked(AccessOrNotFoundWrapper).mock.lastCall?.[0].shouldBeBlocked).toBe(true);
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
     });
 });

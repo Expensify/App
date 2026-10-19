@@ -872,7 +872,7 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policy.id));
             });
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT)).toEqual([userAccountID]);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT)).toEqual({policyID: policy.id, accountIDs: [userAccountID]});
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -885,13 +885,13 @@ describe('WorkspaceMembers', () => {
             await screen.findByText(USER_OPTION);
             selectCheckboxByMemberName('Member');
             await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, [userAccountID]);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {policyID: policy.id, accountIDs: [userAccountID]});
             });
             expect(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).toBeOnTheScreen();
 
-            // When the bulk change is applied, which empties the members handed to it
+            // When the bulk change is applied, which clears the members handed to it
             await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, []);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, null);
             });
 
             // Then the members page drops its selection too

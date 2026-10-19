@@ -150,9 +150,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const {isBetaEnabled} = usePermissions();
-    const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (accountIDs) => accountIDs?.length});
+    const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
 
-    // A bulk office location or work arrangement change empties the members it was given once it is applied, which
+    // A bulk office location or work arrangement change clears the members it was given once it is applied, which
     // ends the selection here too
     const [prevMembersSelectedForBulkEditCount, setPrevMembersSelectedForBulkEditCount] = useState(membersSelectedForBulkEditCount);
     if (prevMembersSelectedForBulkEditCount !== membersSelectedForBulkEditCount) {
@@ -628,7 +628,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const editSelectedEmployees = (bulkEditRoute: Route) => {
-        setWorkspaceMembersSelectedForBulkEdit(selectedEmployees.map((login) => policyMemberEmailsToAccountIDs[login]).filter((accountID) => accountID !== undefined));
+        setWorkspaceMembersSelectedForBulkEdit(
+            policyID,
+            selectedEmployees.map((login) => policyMemberEmailsToAccountIDs[login]).filter((accountID) => accountID !== undefined),
+        );
         Navigation.navigate(bulkEditRoute);
     };
 

@@ -9,6 +9,7 @@ import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceMembersChangeOfficeLocationPage from '@pages/workspace/members/WorkspaceMembersChangeOfficeLocationPage';
 
 import ROUTES from '@src/ROUTES';
@@ -44,7 +45,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils'),
     isPolicyAdmin: jest.fn(() => true),
 }));
-jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: ({children}: PropsWithChildren) => children}));
+jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: jest.fn(({children}: PropsWithChildren) => children)}));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
 const headquartersAndNewJerseyOffices: Record<string, OfficeLocation> = {
@@ -85,7 +86,7 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useOnyx).mockReturnValue([[member1AccountID, member2AccountID], {status: 'loaded'}]);
+        jest.mocked(useOnyx).mockReturnValue([{policyID, accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
     });
 
     const renderPage = (member1OfficeID?: string, member2OfficeID?: string) => {
@@ -158,5 +159,23 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
         // Then nobody is assigned to it, so both keep following whichever office is primary, and the page still closes
         expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
+    });
+
+    it('leaves out members picked on another workspace', () => {
+        // Given members picked on another workspace's member list who also belong to this workspace
+        jest.mocked(useOnyx).mockReturnValue([{policyID: 'otherPolicy', accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
+        renderPage('OFFICE1', 'OFFICE2');
+
+        // When an office is chosen and confirmed on this workspace's page
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({keyForList: 'OFFICE2'});
+        });
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
+        });
+
+        // Then the page is blocked and nobody is assigned to the office
+        expect(jest.mocked(AccessOrNotFoundWrapper).mock.lastCall?.[0].shouldBeBlocked).toBe(true);
+        expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
     });
 });
