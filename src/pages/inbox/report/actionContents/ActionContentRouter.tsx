@@ -44,7 +44,6 @@ import {
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
-    isDeletedReportPreviewWithError,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
@@ -213,8 +212,7 @@ function ActionContentRouter({
             />
         );
     }
-    // This preview has no report left to show, so render the placeholder instead of pointing at a report that is gone.
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {

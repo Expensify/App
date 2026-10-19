@@ -44,7 +44,7 @@ function useEditMessage({
 }: UseEditMessageProps) {
     const reportScrollManager = useReportScrollManager();
 
-    const {email} = useCurrentUserPersonalDetails();
+    const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
     const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
@@ -109,6 +109,7 @@ function useEditMessage({
             isOriginalReportArchived,
             email ?? '',
             personalDetails,
+            currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
         );

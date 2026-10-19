@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
@@ -16,7 +18,7 @@ import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExpenseRuleFormFieldID} from '@src/types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -211,6 +213,7 @@ type SettingsNavigatorParamList = {
         action?: 'edit';
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -284,23 +287,23 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.AGENTS.NEW]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
-    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -352,6 +355,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
@@ -368,6 +372,15 @@ type SettingsNavigatorParamList = {
         country?: Country | '';
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: {
+        policyID: string;
+        country?: Country | '';
+    };
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: {
+        policyID: string;
+        officeID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -694,6 +707,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS]: {
+        purchaseID: string;
+    };
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: undefined;
@@ -833,6 +849,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_HR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
@@ -1098,10 +1126,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         subPage?: string;
         authType?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SETUP]: {
         policyID: string;
         accountID?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;
@@ -1454,6 +1484,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_BILL_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_FX_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
@@ -1560,6 +1593,19 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        settingName: BusinessCentralBankAccountSettingName;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
@@ -2193,6 +2239,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+        domainAccountID: number;
+        accountID: number;
+    };
     [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
         domainAccountID: number;
         accountID: number;
@@ -2273,6 +2323,11 @@ type ProfileNavigatorParamList = {
         accountID: string;
         reportID: string;
         login?: string;
+        policyID?: string;
+    };
+    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: {
+        memberAccountID: string;
+        policyID: string;
     };
 };
 
@@ -2288,11 +2343,15 @@ type ReportDetailsNavigatorParamList = {
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: {
         reportID: string;
+        shouldShowQRCodeOnly?: string;
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+    };
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: {
+        reportID: string;
     };
 };
 
@@ -3225,6 +3284,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CONNECTIONS]: {
+        policyID: string;
+        newConnectionName?: ConnectionName;
+        integrationToDisconnect?: ConnectionName;
+        shouldDisconnectIntegrationBeforeConnecting?: boolean;
+        isIntuitEnterpriseSuite?: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
         integration: string;
@@ -3302,6 +3368,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.AGENTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ROOMS]: {
@@ -3451,10 +3520,6 @@ type SubmitPlanModalNavigatorParamList = {
     [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
-type AIFeaturesPromoModalNavigatorParamList = {
-    [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
-};
-
 type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
@@ -3580,6 +3645,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
         policyID: string;
     };
+    [SCREENS.BILLING_RECEIPT]: AttachmentModalContainerModalProps & {purchaseID: string};
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;
         policyID?: string;
@@ -3638,11 +3704,13 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: NavigatorScreenParams<SubmitPlanModalNavigatorParamList>;
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+        [SCREENS.DYNAMIC_CARD_AUTHENTICATION]: {
+            policyID?: string;
+        };
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
         [SCREENS.PRE_MOUNT_BUFFER]: undefined;
     };
@@ -3926,7 +3994,6 @@ export type {
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     SubmitPlanModalNavigatorParamList,
-    AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     PolicyCopySettingsNavigatorParamList,

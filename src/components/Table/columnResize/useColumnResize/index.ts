@@ -17,7 +17,7 @@ import {useEffect, useRef} from 'react';
 import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams} from './types';
 
 import useLiveColumnWidths from './useLiveColumnWidths';
-import useResizeIndicator from './useResizeIndicator';
+import useResizeIndicator, {setGripHovered, trackHeadingHover} from './useResizeIndicator';
 
 /** A DOM `div` style, which the React Native style system can't type */
 function getHandleStyle(columnGap: number): React.CSSProperties {
@@ -25,8 +25,9 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
         position: 'absolute',
         top: 0,
         bottom: 0,
-        right: -(columnGap / 2 + CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH / 2),
-        width: CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH,
+        // Spans the gap to the next column, with the grip and the line flush against this column's edge, so they read as part of the column being resized.
+        right: -columnGap,
+        width: columnGap + CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
         // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
         touchAction: 'none',
     };
@@ -67,6 +68,13 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
+    };
+
+    // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
+    const syncGripHover = (event: React.PointerEvent<HTMLDivElement>) => {
+        const isPointerOnHeading = !!event.currentTarget.parentElement?.contains(document.elementFromPoint(event.clientX, event.clientY));
+
+        setGripHovered(event.currentTarget, isPointerOnHeading);
     };
 
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
@@ -116,10 +124,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
+        syncGripHover(event);
     };
 
     /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
-    const handleLostPointerCapture = () => {
+    const handleLostPointerCapture = (event: React.PointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
 
         if (!drag) {
@@ -127,6 +136,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
+        syncGripHover(event);
     };
 
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
@@ -152,6 +162,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
 
         return {
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
+            ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
             onPointerMove: handlePointerMove,
             onPointerUp: handlePointerUp,

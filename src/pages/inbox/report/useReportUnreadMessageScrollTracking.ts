@@ -192,6 +192,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        setIsActionBadgeAboveViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,

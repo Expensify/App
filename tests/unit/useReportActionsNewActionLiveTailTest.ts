@@ -300,6 +300,43 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
     });
+
+    it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', () => {
+        // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
+        const setIsFloatingMessageCounterVisible = jest.fn();
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, action, 'local');
+        });
+
+        // Then the caller receives a scroll request once the optimistic row renders, without an openReport round trip.
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        rerender(buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+    });
+
+    it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {
+        // Given an unread marker and a report whose newest actions are not loaded yet
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: false}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
+        });
+
+        // Then openReport fetches the newest actions before the list scrolls
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+    });
 });
 
 describe('withNavigationFallback stub', () => {

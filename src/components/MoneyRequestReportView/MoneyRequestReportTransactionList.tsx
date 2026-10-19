@@ -1,6 +1,6 @@
 import LinkButton from '@components/Button/composed/LinkButton';
 
-import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
@@ -199,7 +199,7 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialActions,
     listFooterComponent,
 }: MoneyRequestReportTransactionListProps) {
-    useCopySelectionHelper();
+    useCopySelectionEvent();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
