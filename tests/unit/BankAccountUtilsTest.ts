@@ -9,6 +9,7 @@ import {
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
+    isEligibleForWiseGlobalReimbursements,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
@@ -220,6 +221,66 @@ describe('BankAccountUtils', () => {
                 expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
             });
         });
+    });
+
+    describe('isEligibleForWiseGlobalReimbursements', () => {
+        const eligibleAccountData: AccountData = {
+            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+            additionalData: {currency: CONST.CURRENCY.USD},
+        };
+
+        it('returns true for a verified USD business account', () => {
+            // Given a verified USD business bank account
+            // When checking whether it can start the Wise global reimbursements flow
+            // Then it is eligible, since that is the only kind of account Wise onboarding supports
+            expect(isEligibleForWiseGlobalReimbursements(eligibleAccountData)).toBe(true);
+        });
+
+        it('returns false when the account data is missing', () => {
+            // Given no account data, e.g. an unknown bankAccountID in the URL
+            // When checking eligibility
+            // Then it is not eligible, so the intro page shows not-found instead of crashing
+            expect(isEligibleForWiseGlobalReimbursements(undefined)).toBe(false);
+        });
+
+        it('returns false for a personal account', () => {
+            // Given a personal account that is otherwise eligible
+            // When checking eligibility
+            // Then it is not eligible, because global reimbursements are paid from business accounts only
+            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL})).toBe(false);
+        });
+
+        it('returns false for a non-USD account', () => {
+            // Given a business account in a currency other than USD
+            // When checking eligibility
+            // Then it is not eligible, because Release 1 only supports U.S. accounts
+            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.EUR}})).toBe(false);
+        });
+
+        it('returns false when the currency is missing', () => {
+            // Given a business account without a currency
+            // When checking eligibility
+            // Then it is not eligible, matching the existing Corpay condition that requires an explicit USD currency
+            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
+        });
+
+        it('returns false when the account is already set up with Corpay', () => {
+            // Given a verified USD business account that already has a Corpay verification
+            // When checking eligibility
+            // Then it is not eligible, because global reimbursements are already enabled for it, matching the Wallet menu condition
+            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
+        });
+
+        it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
+            'returns false for an account in the %s state',
+            (state) => {
+                // Given a USD business account that is not verified yet or is locked
+                // When checking eligibility
+                // Then it is not eligible, because only OPEN accounts can send reimbursements
+                expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, state})).toBe(false);
+            },
+        );
     });
 
     describe('getLastFourDigits', () => {
