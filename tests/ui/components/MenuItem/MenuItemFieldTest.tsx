@@ -1,11 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
+import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewProps} from 'react-native';
 
 import React from 'react';
 
@@ -15,16 +20,45 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
+jest.mock('@libs/getPlatform', () => jest.fn());
+
+const mockedGetPlatform = jest.mocked(getPlatform);
 const CHEVRON_TEST_ID = 'menu-item-chevron';
 const pressEvent = {nativeEvent: {}};
 const NAME = 'Legal first name';
 const VALUE = 'John';
+
+type MockFormHelpMessageProps = {
+    message?: React.ReactNode;
+    messageStyle?: StyleProp<TextStyle>;
+    dataSet?: ViewProps['dataSet'];
+};
+
+const mockFormHelpMessage = jest.fn(({message, messageStyle}: MockFormHelpMessageProps) => {
+    const RN = jest.requireActual<
+        Record<
+            string,
+            React.ComponentType<{
+                children?: React.ReactNode;
+                style?: StyleProp<TextStyle>;
+            }>
+        >
+    >('react-native');
+    return <RN.Text style={messageStyle}>{message}</RN.Text>;
+});
+
+jest.mock('@components/FormHelpMessage', () => (props: MockFormHelpMessageProps) => mockFormHelpMessage(props));
 
 function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
 
 describe('MenuItemField', () => {
+    beforeEach(() => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockFormHelpMessage.mockClear();
+    });
+
     describe('filled shape', () => {
         it('renders the name and the value', () => {
             render(
@@ -51,6 +85,108 @@ describe('MenuItemField', () => {
             );
 
             expect(await screen.findByLabelText(`${NAME}, ${VALUE}`)).toBeOnTheScreen();
+        });
+
+        it('marks only the value as copyable when value selection is enabled', () => {
+            // Given a field value that is allowed to start native text selection
+            // When the field is rendered
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                        isValueSelectable
+                    />
+                </Wrapper>,
+            );
+
+            // Then only the value receives the shared copyable-text marker
+            expect(screen.getByText(VALUE)).toHaveStyle({userSelect: 'text'});
+            expect(screen.getByText(VALUE)).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).toHaveStyle({userSelect: 'none'});
+            expect(screen.getByText(NAME)).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+        });
+
+        it.each([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID])('keeps browser value selection disabled on %s', async (platform) => {
+            // Given a native platform where browser selection handling does not apply
+            mockedGetPlatform.mockReturnValue(platform);
+            const onPress = jest.fn();
+
+            // When a pressable field opts into browser value selection
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                        onPress={onPress}
+                        isValueSelectable
+                    />
+                </Wrapper>,
+            );
+
+            // Then native text stays unmarked and ordinary row presses still work
+            expect(screen.getByText(VALUE)).not.toHaveStyle({userSelect: 'text'});
+            expect(screen.getByText(VALUE)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            fireEvent.press(await screen.findByLabelText(`${NAME}, ${VALUE}`), pressEvent);
+            expect(onPress).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps disabled interactive values excluded from selection and copied content', () => {
+            // Given a disabled interactive field on web
+            // When browser value selection is requested
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={VALUE}
+                        onPress={() => {}}
+                        isDisabled
+                        isValueSelectable
+                    />
+                </Wrapper>,
+            );
+
+            // Then selectable styling and metadata cannot override the disabled restriction
+            expect(screen.getByText(VALUE)).toHaveStyle({userSelect: 'none'});
+            expect(screen.getByText(VALUE)).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(VALUE)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
         });
     });
 
@@ -99,6 +235,34 @@ describe('MenuItemField', () => {
     });
 
     describe('empty shape', () => {
+        it('keeps the placeholder label nonselectable when web value selection is enabled', () => {
+            // Given a field without a value to select
+            // When its row opts into browser value selection
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        isValueSelectable
+                    />
+                </Wrapper>,
+            );
+
+            // Then the placeholder remains a label rather than a copyable value
+            expect(screen.getByText(NAME)).toHaveStyle({userSelect: 'none'});
+            expect(screen.getByText(NAME)).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+        });
+
         it.each([
             ['no value prop', undefined],
             ['an empty value', ''],
@@ -116,6 +280,51 @@ describe('MenuItemField', () => {
             expect(screen.queryByText(VALUE)).not.toBeOnTheScreen();
             // The name stands in for the missing value, so it is the whole announced label
             expect(await screen.findByLabelText(NAME)).toBeOnTheScreen();
+        });
+    });
+
+    describe('help text selection', () => {
+        it('excludes help text from selection and copied content when web value selection is enabled', () => {
+            // Given a help message inside a row with a selectable value
+            const helpMessage = 'Commuter deduction applied';
+
+            // When the row is rendered on web
+            render(
+                <Wrapper>
+                    <MenuItem.Root shouldAllowTextSelection>
+                        <MenuItem.HelpText message={helpMessage} />
+                    </MenuItem.Root>
+                </Wrapper>,
+            );
+
+            // Then the help message cannot be highlighted and is excluded by SelectionScraper
+            expect(screen.getByText(helpMessage)).toHaveStyle({userSelect: 'none'});
+            expect(mockFormHelpMessage.mock.calls.at(-1)?.[0].dataSet).toEqual(
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+        });
+
+        it('does not change help text selection for an ordinary row', () => {
+            // Given a help message inside a row that does not enable value selection
+            const helpMessage = 'Validation failed';
+
+            // When the row is rendered
+            render(
+                <Wrapper>
+                    <MenuItem.Root>
+                        <MenuItem.HelpText
+                            isError
+                            message={helpMessage}
+                        />
+                    </MenuItem.Root>
+                </Wrapper>,
+            );
+
+            // Then no selection-specific style or scraper marker is added
+            expect(screen.getByText(helpMessage)).not.toHaveStyle({userSelect: 'none'});
+            expect(mockFormHelpMessage.mock.calls.at(-1)?.[0].dataSet).toBeUndefined();
         });
     });
 
@@ -229,7 +438,8 @@ describe('MenuItemField', () => {
             expect(await screen.findByRole(CONST.ROLE.BUTTON, {name: `${NAME}, ${VALUE}`})).toBeOnTheScreen();
         });
 
-        it('calls onPress when pressed', async () => {
+        it.each([false, true])('calls onPress for a normal press with isValueSelectable=%s', async (isValueSelectable) => {
+            // Given a pressable field with or without native value selection enabled
             const onPress = jest.fn();
             render(
                 <Wrapper>
@@ -237,12 +447,15 @@ describe('MenuItemField', () => {
                         name={NAME}
                         value={VALUE}
                         onPress={onPress}
+                        isValueSelectable={isValueSelectable}
                     />
                 </Wrapper>,
             );
 
+            // When the row is pressed without selecting text
             fireEvent.press(await screen.findByLabelText(`${NAME}, ${VALUE}`), pressEvent);
 
+            // Then the usual row action still runs once
             expect(onPress).toHaveBeenCalledTimes(1);
         });
 

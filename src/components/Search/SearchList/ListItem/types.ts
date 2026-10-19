@@ -437,8 +437,11 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
         formattedDay: string;
 
-        /** Compact "day" value used where space is tight, e.g. chart axis labels */
+        /** Compact "day" value used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
         shortFormattedDay: string;
+
+        /** Day label for line chart axes, e.g. "Aug 15", adding the year only outside the current year */
+        lineChartFormattedDay: string;
     };
 
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
@@ -479,8 +482,11 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         formattedWeek: string;
 
-        /** Compact "week" value used where space is tight, e.g. chart axis labels */
+        /** Compact week range used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
         shortFormattedWeek: string;
+
+        /** Week start label for line chart axes, e.g. "Sep 6", adding the year only outside the current year */
+        lineChartFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {

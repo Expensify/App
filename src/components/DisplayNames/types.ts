@@ -49,6 +49,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     /** If we should add an ellipsis after the participants list */
     shouldAddEllipsis?: boolean;
 
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
+
     /** Whether to parse HTML in the title */
     shouldParseHtml?: boolean;
 

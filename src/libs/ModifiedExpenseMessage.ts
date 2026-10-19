@@ -324,6 +324,10 @@ function getForReportAction({
         return translate('iou.addedReceipt');
     }
 
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptRemoved) {
+        return translate('iou.removedReceipt');
+    }
+
     // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
     // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
     // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the
