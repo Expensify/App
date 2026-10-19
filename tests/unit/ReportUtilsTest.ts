@@ -5592,7 +5592,23 @@ describe('ReportUtils', () => {
                 lastReadTime: '2023-07-08 07:15:44.030',
                 participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             };
-            expect(getMostRecentlyVisitedReport(reports, {})).toEqual(latestReport);
+            expect(getMostRecentlyVisitedReport(reports, {}, false)).toEqual(latestReport);
+        });
+
+        it('should keep a hidden public room only when the user is anonymous', () => {
+            // Given a public room the user does not participate in, so it is hidden for them
+            const publicRoom: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isPinned: false,
+                participants: {},
+                lastReadTime: '2023-07-08 07:15:44.030',
+            };
+
+            // When a regular user and an anonymous visitor look for the most recently visited report
+            // Then only the anonymous visitor, who opened the room from a public link, gets it back
+            expect(getMostRecentlyVisitedReport([publicRoom], {}, false)).toBeUndefined();
+            expect(getMostRecentlyVisitedReport([publicRoom], {}, true)).toEqual(publicRoom);
         });
     });
 
@@ -6378,9 +6394,9 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, ownerAccountID]),
             };
 
-            expect(canLeaveChat(report, undefined, unrelatedAccountID)).toBe(true);
-            expect(canLeaveChat(report, undefined, ownerAccountID)).toBe(false);
-            expect(canLeaveChat(report, undefined, managerAccountID)).toBe(false);
+            expect(canLeaveChat(report, undefined, unrelatedAccountID, false, false)).toBe(true);
+            expect(canLeaveChat(report, undefined, ownerAccountID, false, false)).toBe(false);
+            expect(canLeaveChat(report, undefined, managerAccountID, false, false)).toBe(false);
         });
     });
 
@@ -10907,7 +10923,7 @@ describe('ReportUtils', () => {
             const reportNameValuePairsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             };
-            const result = findLastAccessedReport(false, undefined, false, undefined, reportNameValuePairsCollection);
+            const result = findLastAccessedReport(false, undefined, false, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -10930,11 +10946,11 @@ describe('ReportUtils', () => {
 
             // When resolving with visit data present
             // Then the visited report wins, because any visit time outranks a lastReadTime-only report
-            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(normalReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined, reports)?.reportID).toBe(normalReport.reportID);
 
             // When the only visited report is excluded
             // Then the lookup falls back to the most recently read eligible report
-            expect(findLastAccessedReport(false, undefined, false, normalReport.reportID, undefined, reports)?.reportID).toBe(unvisitedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, normalReport.reportID, undefined, reports)?.reportID).toBe(unvisitedReport.reportID);
         });
     });
     describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
@@ -10982,7 +10998,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false, undefined);
+            const result = findLastAccessedReport(false, undefined, false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -11021,33 +11037,33 @@ describe('ReportUtils', () => {
 
         it('should resolve a report from the passed collection while the stored reports are still empty', () => {
             // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
-            expect(findLastAccessedReport(false, undefined)).toBeUndefined();
+            expect(findLastAccessedReport(false, undefined, false)).toBeUndefined();
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
             };
 
-            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
         });
 
         it('should prefer the passed collection over the stored reports', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
             };
 
-            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
         });
 
         it('should fall back to the stored reports when no collection is passed', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
         });
     });
 
@@ -15130,7 +15146,7 @@ describe('ReportUtils', () => {
         it('should return true for root group chat', () => {
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(true);
         });
 
         it('should return false for a task off a group chat', () => {
@@ -15142,7 +15158,7 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
             };
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(false);
         });
 
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
@@ -15157,18 +15173,33 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(true);
         });
 
-        it('should return false if the chat is public room and the user is the guest', async () => {
+        it('should return true for the same public room when the user is not anonymous', () => {
+            // Given a public policy room the current user participates in, viewed by a regular (non-anonymous) user
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
             };
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            // When checking whether the user can leave it
+            // Then the user can leave it, which is what makes the anonymous-guest case meaningful
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(true);
+        });
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+        it('should return false if the chat is public room and the user is the guest', () => {
+            // Given the same public room, but viewed by an anonymous (signed-out) guest
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+
+            // When checking whether the guest can leave it
+            // Then the anonymous flag passed by the caller blocks leaving
+            expect(canLeaveChat(report, undefined, currentUserAccountID, true, false)).toBe(false);
         });
 
         it('should return false if the report is hidden for the current user', async () => {
@@ -15185,7 +15216,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(false);
         });
 
         it('should return false for selfDM reports', () => {
@@ -15194,7 +15225,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(false);
         });
 
         it('should return false for the public announce room if the user is a member of the policy', () => {
@@ -15208,7 +15239,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(false);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(false);
         });
 
         it('should return true for the invoice room if the user is not the sender or receiver', async () => {
@@ -15229,7 +15260,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(true);
         });
 
         it('should return true for chat thread if the user is joined', async () => {
@@ -15243,7 +15274,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(true);
         });
 
         it('should return true for user created policy room', async () => {
@@ -15259,7 +15290,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(true);
         });
     });
 
