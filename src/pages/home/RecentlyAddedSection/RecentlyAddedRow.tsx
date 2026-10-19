@@ -75,7 +75,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                     <Text
                         numberOfLines={1}
-                        style={styles.mutedNormalTextLabel}
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink1]}
                     >
                         {formattedDate}
                         {hasFailedScanAmountPlaceholder && (
