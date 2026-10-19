@@ -1138,7 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
             weekLabel: (week?: number) => (week === undefined ? '周' : `第 ${week} 周`),
             monthLabel: (month?: number) => (month === undefined ? '月' : `第 ${month} 个月`),
             quarterLabel: (quarter?: number) => (quarter === undefined ? '季度' : `第 ${quarter} 季度`),
-            yearLabel: (year?: number) => (year === undefined ? '年份' : `${year} 年`),
+            yearLabel: (year?: number) => (year === undefined ? '年份' : `第 ${year} 年`),
         },
     },
     allSettingsScreen: {
