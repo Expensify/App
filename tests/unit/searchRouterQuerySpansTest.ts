@@ -426,6 +426,21 @@ describe('searchRouterQuerySpans', () => {
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY.NONE);
     });
 
+    it.each([
+        ['double quotes', '"a"', CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.SHORT],
+        ['single quotes on an explicit keyword', "keyword:'a'", CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.SHORT],
+        ['a quoted phrase', '"ab cd"', CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM],
+    ])('does not count the quotes of free text in %s toward its length', (_, query, expectedBucket) => {
+        // Given quoted free text, which the search parser keeps quoted in its raw filters while the list searches for it unquoted
+        startSearchRouterQuerySpan(query);
+
+        // When it commits
+        markSearchRouterQueryCommitted(query);
+
+        // Then the length bucket reflects the text the list searches for, so quoting a term does not move it to a longer bucket
+        expect(getRootAttributes()?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(expectedBucket);
+    });
+
     it('treats a trailing filter key without a value as a filter, not free text', () => {
         // Given free text followed by a filter key the user hasn't typed a value for yet, which the search parser alone reads as free text
         const query = 'taxi from: ';

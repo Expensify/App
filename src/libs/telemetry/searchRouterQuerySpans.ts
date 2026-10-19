@@ -35,6 +35,8 @@ const SHORT_QUERY_MAX_LENGTH = 2;
 const MEDIUM_QUERY_MAX_LENGTH = 5;
 const LONG_QUERY_MAX_LENGTH = 12;
 const WHITESPACE_REGEX = /\s/;
+// Same pattern the search parser uses to unquote keywords
+const QUOTED_KEYWORD_REGEX = /^(['"])(.*)\1$/g;
 
 let activeQuery: string | undefined;
 let activeQueryDebouncedAt: number | undefined;
@@ -166,11 +168,13 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number, 
     // Unlike the autocomplete parser, the search parser knows every supported key, including the ones the router
     // doesn't autocomplete (`keyword`, `sortBy`, `sortOrder`, `compare`). It returns free text as `keyword` filters,
     // which also covers `keyword:taxi`, the same search as `taxi`. A query it rejects counts as free text in full.
+    // Its raw filters keep the quotes around a quoted keyword (`"a"`), which the list searches for without them.
     const parsedFilters = getParsedQueryFilters(parsableQuery);
     const freeText = parsedFilters
         ? parsedFilters
               .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)
               .flatMap((filter) => filter.value)
+              .map((keyword) => keyword.replaceAll(QUOTED_KEYWORD_REGEX, '$2'))
               .join(' ')
         : parsableQuery;
 
