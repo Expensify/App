@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/MoneyRequestViewReportFields';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -38,6 +39,7 @@ import {
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import shouldEditReportFieldsInlineInActionsList from '@libs/shouldEditReportFieldsInlineInActionsList';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
@@ -148,6 +150,7 @@ function MoneyReportView({
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
+    const shouldEditReportFieldsInline = shouldEditReportFieldsInlineInActionsList();
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
@@ -174,11 +177,22 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {/* One-expense reports keep rows that open the report field editor instead of the inline inputs
-                            the multi-expense table uses. This view renders inside the inverted report actions list, and
-                            a keyboard opened by an input inside that list makes it scroll away from the field. */}
+                        {/* One-expense reports edit their fields in place like the multi-expense report view does, one field
+                            per row since this screen reads as a single expense rather than a table. The native apps keep
+                            rows that open the report field editor instead: this view renders inside the inverted report
+                            actions list, and there a keyboard opened by an input scrolls the list away from the field. */}
+                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && shouldEditReportFieldsInline && (
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                                pendingAction={pendingAction}
+                                style={styles.mt5}
+                                shouldUseSingleColumn
+                            />
+                        )}
                         {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
+                            !shouldEditReportFieldsInline &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
                                     return null;
