@@ -193,6 +193,7 @@ import {
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
+    isOneTransactionThread,
     isPayer,
     isPayOptional,
     isPolicyRelatedReport,
@@ -24171,6 +24172,149 @@ describe('ReportUtils', () => {
         it('should accept the report actions as an array', () => {
             expect(hasReportBeenForwardedSinceLastSubmit(report, [submittedAction, forwardedAfterSubmitAction])).toBe(true);
             expect(hasReportBeenForwardedSinceLastSubmit(report, [submittedAction, forwardedBeforeSubmitAction])).toBe(false);
+        });
+    });
+
+    describe('isOneTransactionThread', () => {
+        const parentReport = createMock<Report>({reportID: 'one-transaction-parent', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'one-transaction-chat'});
+        const threadReport = createMock<Report>({reportID: 'one-transaction-thread', parentReportID: parentReport.reportID, parentReportActionID: '1'});
+        const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+            originalMessage: {IOUTransactionID: 'txn-1', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+        });
+        const secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: 'another-transaction-thread',
+            message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+            originalMessage: {IOUTransactionID: 'txn-2', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: CONST.CURRENCY.USD},
+        });
+        const sentMoneyAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'sent USD 1.00', text: 'sent USD 1.00'}],
+            originalMessage: {
+                IOUTransactionID: 'txn-3',
+                IOUReportID: parentReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            },
+        });
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const;
+
+        afterEach(async () => {
+            await Onyx.merge(parentReportActionsKey, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return false when the report or the parent report is missing', () => {
+            // Given the parent's actions hold a single IOU action pointing to the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When either the thread or its parent report is not loaded
+            const resultWithoutParent = isOneTransactionThread(threadReport, undefined, iouAction, undefined, parentReportActions);
+            const resultWithoutReport = isOneTransactionThread(undefined, parentReport, iouAction, undefined, parentReportActions);
+
+            // Then there is nothing to match, so neither is a one-transaction thread
+            expect(resultWithoutParent).toBe(false);
+            expect(resultWithoutReport).toBe(false);
+        });
+
+        it('should return true when the passed parent report actions hold a single IOU action pointing to the report', () => {
+            // Given the parent report's actions contain exactly one IOU action whose child is the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When checking the thread with those actions passed in
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, parentReportActions);
+
+            // Then the thread is the parent's only transaction thread
+            expect(result).toBe(true);
+        });
+
+        it('should return false when the parent report has more than one IOU action', () => {
+            // Given the parent report holds two expenses
+            const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When checking the thread of one of them
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, parentReportActions);
+
+            // Then it is not a one-transaction thread because the parent has multiple transactions
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the only IOU action belongs to a different thread', () => {
+            // Given the parent's single IOU action links to another child report
+            const parentReportActions = {[secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When checking a thread that the action does not point to
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, parentReportActions);
+
+            // Then the report is not that parent's transaction thread
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the thread parent action is a sent money action', () => {
+            // Given the parent's single IOU action is a "pay" with IOUDetails, meaning money was sent rather than requested
+            const parentReportActions = {[sentMoneyAction.reportActionID]: sentMoneyAction};
+
+            // When checking the thread created by that action
+            const result = isOneTransactionThread(threadReport, parentReport, sentMoneyAction, undefined, parentReportActions);
+
+            // Then sent-money threads are never treated as one-transaction threads
+            expect(result).toBe(false);
+        });
+
+        it('should accept the parent report actions as an array', () => {
+            // Given the caller holds the parent's actions as a sorted array, like usePaginatedReportActions returns
+            const singleAction = [iouAction];
+            const twoActions = [iouAction, secondIOUAction];
+
+            // When checking the thread with the arrays passed in
+            const resultForSingleAction = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, singleAction);
+            const resultForTwoActions = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, twoActions);
+
+            // Then the results match the object form
+            expect(resultForSingleAction).toBe(true);
+            expect(resultForTwoActions).toBe(false);
+        });
+
+        it('should read the passed parent report actions rather than the actions stored in Onyx', async () => {
+            // Given Onyx says the parent report has two expenses
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes only the single IOU action
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction, undefined, {[iouAction.reportActionID]: iouAction});
+
+            // Then the passed actions win over the Onyx-stored ones
+            expect(result).toBe(true);
+        });
+
+        it('should fall back to the actions stored in Onyx when parentReportActions is not passed', async () => {
+            // Given Onyx holds a single IOU action for the parent report
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When a caller that has not been migrated yet omits parentReportActions
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction);
+
+            // Then the transitional fallback still resolves the thread from Onyx
+            expect(result).toBe(true);
+        });
+
+        it('should return false when parentReportActions is not passed and Onyx has no actions for the parent report', () => {
+            // Given nothing is stored for the parent report and the caller passes no actions
+            // When checking the thread
+            const result = isOneTransactionThread(threadReport, parentReport, iouAction);
+
+            // Then there is no IOU action to match the thread against
+            expect(result).toBe(false);
         });
     });
 
