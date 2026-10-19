@@ -4,6 +4,7 @@
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -19,7 +20,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {emailSelector} from '@selectors/Session';
@@ -37,9 +38,7 @@ type MergeResultConfirmationConfig = {
     heading?: string;
     description?: React.ReactNode;
     descriptionComponent?: React.ReactNode;
-    cta?: React.ReactNode;
     ctaComponent?: React.ReactNode;
-    ctaStyle?: TextStyle;
     onButtonPress?: () => void;
     illustration?: DotLottieAnimation | IconAsset;
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -91,8 +90,11 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA]: {
             descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />,
-            cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
-            ctaStyle: {...styles.mt2, ...styles.textSupporting},
+            ctaComponent: (
+                <Text style={[styles.textAlignCenter, styles.mt2, styles.textSupporting]}>
+                    <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
+                </Text>
+            ),
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER]: {
             descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', login)} />,

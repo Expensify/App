@@ -2,7 +2,6 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -46,20 +45,8 @@ function MergeResultPage() {
         return () => handle.cancel();
     }, [result]);
 
-    const {
-        heading,
-        onButtonPress,
-        illustration,
-        illustrationStyle,
-        description,
-        descriptionComponent,
-        secondaryButtonText,
-        onSecondaryButtonPress,
-        shouldShowSecondaryButton,
-        cta,
-        ctaComponent,
-        ctaStyle,
-    } = useMergeResultConfirmationConfig({result, login});
+    const {heading, onButtonPress, illustration, illustrationStyle, description, descriptionComponent, secondaryButtonText, onSecondaryButtonPress, shouldShowSecondaryButton, ctaComponent} =
+        useMergeResultConfirmationConfig({result, login});
 
     return (
         <ScreenWrapper
@@ -82,7 +69,6 @@ function MergeResultPage() {
                     <ConfirmationPage.Heading>{heading ?? translate('mergeAccountsPage.mergeFailureGenericHeading')}</ConfirmationPage.Heading>
                     {descriptionComponent}
                     {!!description && <ConfirmationPage.Description style={styles.textSupporting}>{description}</ConfirmationPage.Description>}
-                    {!!cta && <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text>}
                     {ctaComponent}
                 </ConfirmationPage.Content>
                 <FixedFooter>
