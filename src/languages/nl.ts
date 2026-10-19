@@ -2821,6 +2821,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Wereldwijde terugbetalingen instellen?', subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.', getStarted: 'Aan de slag'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
@@ -4096,6 +4097,7 @@ ${amount} voor ${merchant} - ${date}`,
             formLabel: 'PDF bekijken',
         },
         attachmentNotFound: 'Bijlage niet gevonden',
+        loadTimedOut: 'Het laden van deze afbeelding duurt te lang.',
         retry: 'Opnieuw proberen',
     },
     messages: {
@@ -9191,6 +9193,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             noBankAccountsFoundDescription: 'Voeg bankrekeningen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
             noPaymentMethodsFound: 'Geen betalingswijzen gevonden',
             noPaymentMethodsFoundDescription: 'Voeg betalingswijzen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            advanced: {
+                autoSyncDescription: 'Synchroniseer Dynamics 365 Business Central en Expensify elke dag automatisch. Rapporten worden in realtime gesynchroniseerd.',
+                accountingMethods: {
+                    label: 'Exportmethode',
+                    description: 'Kies wanneer je onkosten exporteert.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Transitorisch',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak betaalde uitgaven worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uitgaven uit eigen zak worden geëxporteerd zodra ze zijn betaald',
+                    },
+                },
+                postingMode: {
+                    label: 'Boekingsmodus',
+                    description: 'Kies of boekingen automatisch worden geboekt of eerst handmatig moeten worden gecontroleerd.',
+                    note: 'Let op: Expensify boekt elk open dagboek in de batch van het algemeen dagboek die je hebt gekozen op de pagina Expensify Setup in Business Central, niet alleen de dagboeken die het zelf heeft gemaakt. Gebruik een batch alleen voor Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Maken en boeken',
+                            description: 'Boekingen bij export automatisch in het grootboek boeken',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Alleen maken',
+                            description: 'Boekingen na export handmatig boeken in Dynamics 365 Business Central',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Medewerkers/leveranciers automatisch aanmaken',
+                exportToNextOpenPeriod: 'Exporteren naar volgende open periode',
+                exportToNextOpenPeriodDescription:
+                    'Als een rapport is gedateerd in een afgesloten periode in Dynamics 365 Business Central, wordt het geëxporteerd naar de volgende open periode.',
+                syncReimbursedReports: 'Vergoede rapporten synchroniseren',
+                syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een rekeningbetaling aangemaakt.',
+                reimbursementBankAccount: {
+                    label: 'Rekening voor het betalen van rekeningen',
+                    description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
+                settlementsBankAccount: {
+                    label: 'Expensify Kaart-verrekeningsrekening',
+                    description: 'Kies je afrekenrekening en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Je Dynamics 365 Business Central-accounts worden geïmporteerd als categorieën.',
             dimensionsImportAsTags: 'Alle Dynamics 365 Business Central-dimensies worden als tags geïmporteerd',
             customers: 'Klanten',

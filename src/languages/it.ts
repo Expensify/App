@@ -2817,6 +2817,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Configurare i rimborsi globali?', subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.', getStarted: 'Inizia'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
@@ -4094,6 +4095,7 @@ ${amount} per ${merchant} - ${date}`,
             formLabel: 'Visualizza PDF',
         },
         attachmentNotFound: 'Allegato non trovato',
+        loadTimedOut: 'Questa immagine impiega troppo tempo per caricarsi.',
         retry: 'Riprova',
     },
     messages: {
@@ -9217,6 +9219,50 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noBankAccountsFoundDescription: 'Aggiungi conti bancari in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
             noPaymentMethodsFound: 'Nessun metodo di pagamento trovato',
             noPaymentMethodsFoundDescription: 'Aggiungi metodi di pagamento in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
+            advanced: {
+                autoSyncDescription: 'Sincronizza Dynamics 365 Business Central ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
+                accountingMethods: {
+                    label: 'Metodo di esportazione',
+                    description: 'Scegli quando esportare le spese.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Competenza',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate al momento dell’approvazione finale',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
+                    },
+                },
+                postingMode: {
+                    label: 'Modalità di registrazione',
+                    description: 'Scegli se le registrazioni vengono contabilizzate automaticamente o richiedono prima una revisione manuale.',
+                    note: 'Nota: Expensify registra ogni giornale aperto nel batch di giornale generale che hai scelto nella pagina Expensify Setup di Business Central, non solo quelli che ha creato. Usa un batch dedicato solo a Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Crea e registra',
+                            description: 'Registra automaticamente le scritture nella contabilità generale al momento dell’esportazione',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Solo crea',
+                            description: 'Registra manualmente le scritture in Dynamics 365 Business Central dopo l’esportazione',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Crea automaticamente dipendenti/fornitori',
+                exportToNextOpenPeriod: 'Esporta nel prossimo periodo aperto',
+                exportToNextOpenPeriodDescription: 'Quando un report ha una data in un periodo chiuso di Dynamics 365 Business Central, viene esportato nel periodo aperto successivo.',
+                syncReimbursedReports: 'Sincronizza i report rimborsati',
+                syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento di fattura in questo conto.',
+                reimbursementBankAccount: {
+                    label: 'Conto per il pagamento delle bollette',
+                    description: 'Scegli da dove pagare le fatture e creeremo il pagamento in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
+                settlementsBankAccount: {
+                    label: 'Conto di regolamento Carta Expensify',
+                    description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'I tuoi conti Dynamics 365 Business Central verranno importati come categorie.',
             dimensionsImportAsTags: 'Tutte le dimensioni di Dynamics 365 Business Central vengono importate come tag',
             customers: 'Clienti',
