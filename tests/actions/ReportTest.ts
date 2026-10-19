@@ -4061,15 +4061,19 @@ describe('actions/Report', () => {
     describe('updateDescription', () => {
         const currentUserAccountID = 1;
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
+            // Given a room whose stored description has a heading and mentions another room by reportID
             global.fetch = TestHelper.createGlobalFetchMock();
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
-                description: '<h1>test</h1>',
+                description: '<h1>test <mention-report reportID="123"/></h1>',
             };
-            Report.updateDescription(report, '# test', currentUserAccountID);
+
+            // When the user saves the same description, with the reportID-to-name map used to seed the input
+            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'});
 
             await waitForBatchedUpdates();
 
+            // Then the stored description resolves to the same markdown, so no API request is made
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, 0);
         });
 
@@ -4084,7 +4088,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription(report, '# test1', currentUserAccountID);
+            Report.updateDescription(report, '# test1', currentUserAccountID, {});
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;

@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canUseCssPositionSticky} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -351,8 +352,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const hasColumnHeaderElement = !!tableHeaderElement;
     const hasRows = processedData.length > 0;
     const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
-    // Resizable tables always get the scroller: a drag can overflow without a render, and moving the header mid-drag would remount the handle.
-    const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
+    const canStickColumnHeaderInScroller = canUseCssPositionSticky();
 
     const tableListMetadata = useMemo(
         () =>
@@ -362,9 +362,9 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
                 hasColumnHeaderElement,
                 hasRows,
                 isColumnHeaderHiddenInNarrowLayout,
-                hasHorizontalScrollContainer,
+                canStickColumnHeaderInScroller,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, hasHorizontalScrollContainer],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller],
     );
     /**
      * Exposes table control methods through the ref.
@@ -423,7 +423,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         emptyStateElement,
         noResultsStateElement,
         listRef,
-        scrollbarWidth,
         measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
