@@ -139,6 +139,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
+                transactionThreadIDs,
                 isTrackIntentUser,
                 translate,
                 currentUserAccountID,
