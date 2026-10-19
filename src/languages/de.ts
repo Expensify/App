@@ -9037,7 +9037,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             dontSeeYourATS: `<muted-text-label>Sie sehen Ihr ATS hier nicht? <a href="#">Fragen Sie Concierge</a>, und wir können es hinzufügen.</muted-text-label>`,
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
-            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator', hiringManager: 'Einstellende Führungskraft'},
             filters: {
                 description: (providerName: string) => `Wählen Sie aus, welche Mitglieder aus ${providerName} importiert werden. Sie können nach Jobphasen, Tags und Büros auswählen.`,
                 stages: {

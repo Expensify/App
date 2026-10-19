@@ -8866,7 +8866,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
-            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
                 stages: {

@@ -8639,7 +8639,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
-            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员', hiringManager: '招聘经理'},
             filters: {
                 description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
                 stages: {

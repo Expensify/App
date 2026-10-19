@@ -9056,7 +9056,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
-            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement', hiringManager: 'Responsable du recrutement'},
             filters: {
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,

@@ -7677,7 +7677,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             dontSeeYourATS: `<muted-text-label>¿No ves tu ATS aquí? <a href="#">Pregunta a Concierge</a> y podremos añadirlo.</muted-text-label>`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
-            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección', hiringManager: 'responsable de contratación'},
             filters: {
                 description: (providerName: string) => `Selecciona qué miembros se importan desde ${providerName}. Puedes elegir entre etapas de trabajo, etiquetas y oficinas.`,
                 stages: {

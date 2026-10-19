@@ -8979,7 +8979,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             dontSeeYourATS: `<muted-text-label>Nie widzisz tutaj swojego ATS? <a href="#">Zapytaj Concierge</a>, a my możemy go dodać.</muted-text-label>`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
-            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji', hiringManager: 'Rekruter'},
             filters: {
                 description: (providerName: string) => `Wybierz, którzy członkowie zostaną zaimportowani z ${providerName}. Możesz wybierać spośród etapów rekrutacji, tagów i biur.`,
                 stages: {

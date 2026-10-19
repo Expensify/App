@@ -7948,7 +7948,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
-            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
             filters: {
                 description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
                 stages: {

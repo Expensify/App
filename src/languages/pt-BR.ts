@@ -8961,7 +8961,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             dontSeeYourATS: `<muted-text-label>Não está vendo seu ATS aqui? <a href="#">Pergunte ao Concierge</a> e podemos adicioná-lo.</muted-text-label>`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
-            approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento', hiringManager: 'Gerente de contratação'},
             filters: {
                 description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
                 stages: {

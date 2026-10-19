@@ -8958,7 +8958,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
             filters: {
                 description: (providerName: string) => `Selecteer welke leden worden geïmporteerd uit ${providerName}. Je kunt kiezen op basis van functieniveaus, tags en kantoren.`,
                 stages: {

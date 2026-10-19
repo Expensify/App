@@ -8980,7 +8980,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             dontSeeYourATS: `<muted-text-label>Non vedi il tuo ATS qui? <a href="#">Chiedi a Concierge</a> e possiamo aggiungerlo.</muted-text-label>`,
             importSettings: 'Impostazioni di importazione',
             defaultApprover: 'Approvatore predefinito',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting', hiringManager: 'Responsabile assunzioni'},
             filters: {
                 description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base alle fasi lavorative, ai tag e alle sedi.`,
                 stages: {
