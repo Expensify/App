@@ -22,37 +22,21 @@ import type {ConfirmationVariantProps} from './types';
 function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
     const {
         transaction,
-        transactions,
-        receiptFiles,
-        canEnterScanFieldsManually,
-        report,
-        reportDrafts,
         policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
         participants,
         iouType,
-        action,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
-        isMovingTransactionFromTrackExpense,
-        isCategorizingTrackExpense,
-        isSharingTrackExpense,
         isUnreported,
         isPolicyExpenseChat,
-        draftTransactionIDs,
-        privateIsArchivedMap,
-        backToReport,
-        onExpenseWriteWillStart,
         submitLock,
     } = submissionParams;
     const {isSelfDMDestination} = orchestratorProps;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
+    const transactionTaxValues = getTransactionTaxValues({
         transaction,
         policy,
         isPolicyExpenseChat,
@@ -65,32 +49,11 @@ function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProp
     });
 
     const requestMoneySubmission = useRequestMoneySubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        canEnterScanFieldsManually,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
+        ...submissionParams,
         selectedParticipants: participants.filter((participant) => participant.selected),
-        iouType,
-        action,
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isTimeRequest,
-        isMovingTransactionFromTrackExpense,
-        isCategorizingTrackExpense,
-        isSharingTrackExpense,
         isSelfDMDestination,
-        draftTransactionIDs,
-        privateIsArchivedMap,
-        backToReport,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        onExpenseWriteWillStart,
+        ...transactionTaxValues,
     });
 
     // Only a workspace destination can enforce a workspace's distance rules.

@@ -15,54 +15,17 @@ import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a distance expense (map, manual, odometer or GPS), submitting through CreateDistanceRequest. */
 function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
-        participants,
-        iouType,
-        action,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isPolicyExpenseChat,
-        draftTransactionIDs,
-        backToReport,
-        onExpenseWriteWillStart,
-        submitLock,
-    } = submissionParams;
+    const {transaction, policy, participants, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, submitLock} = submissionParams;
     const {isSelfDMDestination} = orchestratorProps;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isDistanceRequest: true});
+    const transactionTaxValues = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isDistanceRequest: true});
 
     const distanceSubmission = useDistanceSubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
+        ...submissionParams,
         selectedParticipants: participants.filter((participant) => participant.selected),
-        iouType,
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        backToReport,
-        draftTransactionIDs,
         isSelfDMDestination,
-        action,
-        onExpenseWriteWillStart,
+        ...transactionTaxValues,
     });
 
     // Only a workspace destination can enforce a workspace's distance rules.

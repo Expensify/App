@@ -11,38 +11,16 @@ import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a split, submitting through splitBill / startSplitBill / splitBillAndOpenReport. */
 function SplitConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
-        policy,
-        personalDetails,
-        currentUserPersonalDetails,
-        participants,
-        iouType,
-        isDistanceRequest,
-        isUnreported,
-        isPolicyExpenseChat,
-        submitLock,
-    } = submissionParams;
+    const {transaction, policy, participants, isDistanceRequest, isUnreported, isPolicyExpenseChat, submitLock} = submissionParams;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isUnreported, isDistanceRequest});
+    const transactionTaxValues = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isUnreported, isDistanceRequest});
 
     const splitSubmission = useSplitSubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
+        ...submissionParams,
         policyID: policy?.id,
-        personalDetails,
-        currentUserPersonalDetails,
         selectedParticipants: participants.filter((participant) => participant.selected),
-        iouType,
         releaseSubmitLock: submitLock.unlockSubmission,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
+        ...transactionTaxValues,
     });
 
     // A distance split resolves to the distance path (see resolveSubmissionPath), so no distance block is passed here.

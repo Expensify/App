@@ -12,34 +12,13 @@ import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a per diem expense, submitting through CreatePerDiemExpense (or the self-DM variant when tracking). */
 function PerDiemConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {
-        transaction,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
-        participants,
-        iouType,
-        backToReport,
-        onExpenseWriteWillStart,
-        submitLock,
-    } = submissionParams;
+    const {participants, iouType, submitLock} = submissionParams;
 
     const perDiemSubmission = usePerDiemSubmission({
-        transaction,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
+        ...submissionParams,
         selectedParticipants: participants.filter((participant) => participant.selected),
         isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
         isSelfDMDestination: orchestratorProps.isSelfDMDestination,
-        backToReport,
-        onExpenseWriteWillStart,
     });
 
     // A per diem is never a distance request, so there's no distance block to pass.

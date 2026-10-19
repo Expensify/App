@@ -26,18 +26,10 @@ type PayConfirmationProps = Omit<ConfirmationVariantProps, 'orchestratorProps'> 
  * doesn't mount SubmitExpenseOrchestrator. Pay has no request-type tabs, so it is always a manual expense.
  */
 function PayConfirmation({submissionParams, listProps, destinationReportID, optimisticP2PDestinationReportID}: PayConfirmationProps) {
-    const {transaction, receiptFiles, report, participants, currentUserPersonalDetails, onExpenseWriteWillStart, submitLock} = submissionParams;
+    const {transaction, report, participants, currentUserPersonalDetails, submitLock} = submissionParams;
     const {isConfirmed, setIsConfirmed} = submitLock;
 
-    const {sendMoney} = useSendMoneySubmission({
-        transaction,
-        receiptFiles,
-        report,
-        participants,
-        currentUserPersonalDetails,
-        setIsConfirmed,
-        onExpenseWriteWillStart,
-    });
+    const {sendMoney} = useSendMoneySubmission({...submissionParams, setIsConfirmed});
 
     const handleSendMoney = (paymentMethod: PaymentMethodType | undefined) => {
         if (isConfirmed) {

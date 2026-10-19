@@ -17,38 +17,11 @@ import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a tracked expense (track, categorize, share, or a submit into a new draft workspace), submitting through TrackExpense. */
 function TrackConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {
-        transaction,
-        transactions,
-        receiptFiles,
-        canEnterScanFieldsManually,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        isDraftPolicy,
-        personalDetails,
-        currentUserPersonalDetails,
-        participants,
-        iouType,
-        action,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isTimeRequest,
-        isCategorizingTrackExpense,
-        isSharingTrackExpense,
-        isUnreported,
-        isPolicyExpenseChat,
-        isSubmittingExpenseToDraftWorkspace,
-        draftTransactionIDs,
-        privateIsArchivedMap,
-        onExpenseWriteWillStart,
-        submitLock,
-    } = submissionParams;
+    const {transaction, policy, participants, iouType, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isTimeRequest, isUnreported, isPolicyExpenseChat, submitLock} =
+        submissionParams;
     const {isSelfDMDestination} = orchestratorProps;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
+    const transactionTaxValues = getTransactionTaxValues({
         transaction,
         policy,
         isPolicyExpenseChat,
@@ -60,33 +33,11 @@ function TrackConfirmation({submissionParams, orchestratorProps, listProps}: Con
     });
 
     const trackSubmission = useTrackExpenseSubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        canEnterScanFieldsManually,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        isDraftPolicy,
-        personalDetails,
-        currentUserPersonalDetails,
+        ...submissionParams,
         selectedParticipants: participants.filter((participant) => participant.selected),
-        iouType,
-        action,
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isCategorizingTrackExpense,
-        isSharingTrackExpense,
-        isSubmittingExpenseToDraftWorkspace,
         isSelfDMDestination,
-        draftTransactionIDs,
-        privateIsArchivedMap,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        onExpenseWriteWillStart,
+        ...transactionTaxValues,
     });
 
     // Only a workspace destination can enforce a workspace's distance rules.
