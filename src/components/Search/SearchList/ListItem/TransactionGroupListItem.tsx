@@ -7,6 +7,7 @@ import {getSearchGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +24,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isCashBackWithdrawalGroup, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -225,6 +227,8 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -283,6 +287,10 @@ function TransactionGroupListItemImpl({
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     const onPress = (event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A cash back row has no children to drill into.
         if (isCashBackWithdrawal) {
             return;
@@ -297,6 +305,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     };
 
@@ -561,18 +572,43 @@ function TransactionGroupListItemImpl({
                 accessibilityLabel={item.text ?? ''}
                 role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
+                shouldAllowTextSelection={!isCashBackWithdrawal}
                 interactive={!isCashBackWithdrawal}
                 focusable={!isCashBackWithdrawal}
                 pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
                 hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
-                onMouseDown={(e) => e.preventDefault()}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
+                onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 wrapperStyle={[
                     pageGutterMargin,
                     StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),

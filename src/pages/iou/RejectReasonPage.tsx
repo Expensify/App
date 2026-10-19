@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -47,6 +48,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -56,18 +58,19 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(
+        const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
-            values.comment,
+            comment: values.comment,
             policy,
-            currentUserAccountID,
-            currentUserLogin ?? '',
-            isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             delegateAccountID,
             getCurrencyDecimals,
-            {rules},
-        );
+            rules,
+            reportTransactionsCollection,
+        });
         removeTransaction(transactionID, {isDeleted: false});
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

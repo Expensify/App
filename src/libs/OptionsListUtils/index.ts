@@ -230,9 +230,8 @@ type GetAlternateTextConfig = {
     lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    currentUserAccountID: number;
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
@@ -395,10 +394,9 @@ type CreateOptionParams = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    currentUserAccountID: number;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
     currentUserLogin?: string;
@@ -636,7 +634,7 @@ function getReportOption({
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
     const option = createOption({
@@ -728,7 +726,7 @@ function getReportDisplayOption({
     visibleReportActionsData = {},
     pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
 
     const option = createOption({
         dateFnsLocale,
@@ -973,7 +971,7 @@ function processReport(
     }
 
     const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const isChatRoom = reportUtilsIsChatRoom(report);
 
     if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
@@ -1309,7 +1307,7 @@ function createFilteredOptionList(
             const is1on1DM = reportUtilsIsOneOnOneChat(report);
 
             if (is1on1DM) {
-                const accountIDs = getParticipantsAccountIDsForDisplay(report);
+                const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
                 for (const accountID of accountIDs) {
                     // ALWAYS set 1:1 DMs - prioritize them over policy/group chats
                     // This ensures proper avatar display for personal details
@@ -1460,7 +1458,7 @@ function createOptionFromReport({
     convertToDisplayStringWithoutCurrency,
     pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
 
     return {
         item: report,
@@ -1960,7 +1958,7 @@ function isValidReport(
     const isMoneyRequestReport = option.isMoneyRequestReport;
     const isSelfDM = option.isSelfDM;
     const isChatRoom = option.isChatRoom;
-    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item, undefined);
 
     if (excludeNonAdminWorkspaces && !isPolicyAdmin(policy)) {
         return false;
@@ -2127,7 +2125,7 @@ function prepareReportOptionsForDisplay(
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
-        currentUserAccountID?: number;
+        currentUserAccountID: number;
         currentUserLogin?: string;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
@@ -2254,7 +2252,8 @@ function prepareReportOptionsForDisplay(
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
+            // isUnread() gates on isEmptyReport, so an empty chat is not shown in bold here.
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty);
         }
 
         let lastIOUCreationDate;

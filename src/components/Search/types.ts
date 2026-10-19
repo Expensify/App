@@ -175,6 +175,8 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
+type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
@@ -371,6 +373,7 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
@@ -439,8 +442,6 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
-    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
-    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -493,9 +494,6 @@ type SearchChartDataRow = {
 
     /** The grouped search result the point was built from */
     item: GroupedItem;
-
-    /** Palette color the chart assigns this group */
-    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -553,6 +551,8 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchCompareMode,
     ChartView,
     SingularSearchStatus,

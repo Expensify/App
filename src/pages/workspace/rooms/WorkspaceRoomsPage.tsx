@@ -113,7 +113,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         keyForList: report.reportID,
         reportID: report.reportID,
         name: getReportName(report, derivedNames?.[report.reportID]),
-        memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+        memberCount: getParticipantsAccountIDsForDisplay(report, undefined, true, false, false, personalDetails).length,
         action: () => {
             if (isAdmin) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
