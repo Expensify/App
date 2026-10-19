@@ -297,6 +297,7 @@ import {
     isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest,
+    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -6146,7 +6147,7 @@ function canEditFieldOfMoneyRequest({
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
-            (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
+            (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequest(transaction)) &&
             canEditExpense &&
             (isDeleteAction ? isRequestor : true)
         );
