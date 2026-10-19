@@ -16,7 +16,7 @@ import type {SearchKey} from './libs/SearchKeyUtils';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
-import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 import Log from './libs/Log';
@@ -273,10 +273,6 @@ const DYNAMIC_ROUTES = {
     SUBMIT_PLAN_WELCOME: {
         path: 'submit-plan-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
-    },
-    AI_FEATURES_PROMO: {
-        path: 'ai-features-promo',
-        entryScreens: ['*'],
     },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
@@ -2588,9 +2584,11 @@ const ROUTES = {
     SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
         route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+            if (!subPage) {
+                return 'settings/wallet/collect-deposit-account' as const;
+            }
+
+            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
@@ -5476,6 +5474,23 @@ const ROUTES = {
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
         route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/accounting-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/accounting-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/posting-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/posting-mode` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/bank-account/:settingName',
+        getRoute: (policyID: string, settingName: BusinessCentralBankAccountSettingName) =>
+            `workspaces/${policyID}/accounting/business-central/advanced/bank-account/${settingName}` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
