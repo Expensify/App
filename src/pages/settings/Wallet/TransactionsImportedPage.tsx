@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV, {getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {getExistingCardImportSettings, hasTagExceedingMaxLength} from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -82,6 +82,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
             {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
             {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
             {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+            {text: translate('common.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
             {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
         ],
         [translate],
@@ -102,12 +103,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
             if (duplicateColumn) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            } else if (hasTagExceedingMaxLength(spreadsheet)) {
+                errors.tagTooLong = translate('spreadsheet.fieldValueTooLong', translate('common.tag'), CONST.API_TRANSACTION_TAG_MAX_LENGTH);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
+    }, [spreadsheet, requiredColumns, translate, columnRoles]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);

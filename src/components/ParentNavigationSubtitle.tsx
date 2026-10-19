@@ -24,6 +24,8 @@ import SCREENS from '@src/SCREENS';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
+import {getReportHasParentAccess} from '@selectors/Report';
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -99,14 +101,15 @@ function ParentNavigationSubtitle({
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const hasParentAccess = getReportHasParentAccess(currentReport);
     const policyExpenseChat = !parentReportID && currentReport && isExpenseReport(currentReport) ? getPolicyExpenseChat(currentReport.ownerAccountID, currentReport.policyID) : undefined;
     const parentNavigationReportID = parentReportID || policyExpenseChat?.reportID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const report = parentReport ?? policyExpenseChat;
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentNavigationReportID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const hasAccessToParentReport = !!parentNavigationReportID && currentReport?.hasParentAccess !== false;
+    const hasAccessToParentReport = !!parentNavigationReportID && hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
         const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);

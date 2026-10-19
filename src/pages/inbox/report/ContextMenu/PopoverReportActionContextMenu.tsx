@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -356,6 +357,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -390,6 +393,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
+                    iouReportTransactions,
                     chatIOUReport: chatReport,
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
@@ -426,18 +430,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             });
         } else if (reportAction) {
             callbackWhenDeleteModalHide.current = () => {
-                deleteReportComment(
+                deleteReportComment({
                     report,
                     reportAction,
                     originalReportActions,
                     reportActions,
-                    ancestorsRef.current,
+                    ancestors: ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
-                    email ?? '',
+                    currentEmail: email ?? '',
                     isOffline,
-                    visibleReportActionsData ?? undefined,
-                );
+                    currentUserAccountID,
+                    visibleReportActionsData: visibleReportActionsData ?? undefined,
+                });
             };
         }
 
@@ -452,6 +457,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         childReport,
         selfDMReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         duplicateTransactions,
         duplicateTransactionViolations,

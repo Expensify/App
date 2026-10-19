@@ -60,7 +60,6 @@ function PayActionButton() {
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -93,6 +92,7 @@ function PayActionButton() {
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
+                    invoiceReportTransactions: transactions,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -103,7 +103,6 @@ function PayActionButton() {
                     paymentMethod,
                     activePolicy,
                     conciergeChat,
-                    betas,
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, currentUserDetails.displayName, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
@@ -118,13 +117,13 @@ function PayActionButton() {
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,
+                    iouReportTransactions: transactions,
                     introSelected,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
                     policy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,

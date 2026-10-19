@@ -50,6 +50,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;
+        supportTicketCalendarLink: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;

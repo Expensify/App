@@ -2,16 +2,18 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import {getSnapshotFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -20,8 +22,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
 import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -357,6 +358,12 @@ function getCardTotalsByCardID(snapshot: OnyxEntry<SearchResults>): Record<numbe
     return totalsByCardID;
 }
 
+// The Search footer can answer a breakdown (e.g. non-reimbursable) on this same snapshot, and a response lands before
+// its stamp does, so only a total known to be the plain one is the row's.
+function isUnconfirmedTotal(searchResults: OnyxEntry<SearchResults>): boolean {
+    return !!searchResults && getSnapshotFooterTotal(searchResults.search) !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+}
+
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
         return YOUR_SPEND_ROW_STATE.HIDDEN;
@@ -373,13 +380,24 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
     return YOUR_SPEND_ROW_STATE.READY;
 }
 
+function getLiveRowState(rawState: YourSpendRowState, shouldUseCached: boolean, isUnconfirmed: boolean, isOffline: boolean): YourSpendRowState {
+    if (shouldUseCached) {
+        return YOUR_SPEND_ROW_STATE.READY;
+    }
+    if (!isUnconfirmed || rawState !== YOUR_SPEND_ROW_STATE.READY) {
+        return rawState;
+    }
+    // Online, Home's own search confirms a total soon. Offline nothing will, so the row hides as with no snapshot.
+    return isOffline ? YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY : YOUR_SPEND_ROW_STATE.LOADING;
+}
+
 function useYourSpendData(): UseYourSpendDataReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
 
@@ -407,6 +425,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
+    const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
     const pendingSpendBuckets = useMemo(
@@ -500,14 +519,19 @@ function useYourSpendData(): UseYourSpendDataReturn {
         setCachedApprovalHash(approvalHash);
     }
 
+    const isApprovalTotalUnconfirmed = isUnconfirmedTotal(approvalSearchResults);
+    const isPaymentTotalUnconfirmed = isUnconfirmedTotal(paymentSearchResults);
+
     if (
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
+        !isApprovalTotalUnconfirmed &&
         (!cachedApprovalReady || cachedApprovalReady.total !== approvalTotalsRaw.total || cachedApprovalReady.currency !== approvalTotalsRaw.currency)
     ) {
         setCachedApprovalReady({total: approvalTotalsRaw.total, currency: approvalTotalsRaw.currency});
     }
     if (
         paymentRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
+        !isPaymentTotalUnconfirmed &&
         (!cachedPaymentReady || cachedPaymentReady.total !== paymentTotalsRaw.total || cachedPaymentReady.currency !== paymentTotalsRaw.currency)
     ) {
         setCachedPaymentReady({total: paymentTotalsRaw.total, currency: paymentTotalsRaw.currency});
@@ -522,69 +546,77 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // OUTSTANDING report. An empty signature means nothing is awaiting approval, so the row
     // must hide immediately after approving the last expense. A zero-result search returns
     // no count, which would otherwise keep the stale cached total on screen.
+    // An unconfirmed total is bridged the same way, and waits on Home's own refetch when nothing is cached.
     const shouldUseCachedApproval =
-        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
-        approvalCountIsMissing &&
+        ((approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing) || isApprovalTotalUnconfirmed) &&
         approvalSearchResults !== undefined &&
         cachedApprovalReady !== null &&
         cachedApprovalHash === approvalHash &&
         outstandingReportsSignature !== '';
-    const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
+    const shouldUseCachedPayment =
+        ((paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing) || isPaymentTotalUnconfirmed) &&
+        paymentSearchResults !== undefined &&
+        cachedPaymentReady !== null;
 
-    const approvalRowStateLive = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
-    const paymentRowStateLive = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
+    const approvalRowStateLive = getLiveRowState(approvalRowStateRaw, shouldUseCachedApproval, isApprovalTotalUnconfirmed, isOffline);
+    const paymentRowStateLive = getLiveRowState(paymentRowStateRaw, shouldUseCachedPayment, isPaymentTotalUnconfirmed, isOffline);
     const approvalTotalsLive: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotalsLive: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
     const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
     const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
-    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
-    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|');
-
-    const fireSearches = useEffectEvent(() => {
-        if (isOffline) {
+    // One key per search, so a card charge does not also refetch the approval and payment totals.
+    const fireCardSearch = () => {
+        if (isOffline || !cardGroupQueryJSON) {
             return;
         }
-        if (cardGroupQueryJSON) {
-            search({
-                queryJSON: cardGroupQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isApprovalApplicable && approvalQueryJSON) {
-            search({
-                queryJSON: approvalQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isPaymentApplicable && paymentQueryJSON) {
-            search({
-                queryJSON: paymentQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-    });
+        search({
+            queryJSON: cardGroupQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
 
-    useEffect(() => {
-        if (!isFocused) {
+    const fireApprovalSearch = () => {
+        if (isOffline || !isApprovalApplicable || !approvalQueryJSON) {
             return;
         }
-        fireSearches();
-    }, [isFocused, isOffline, cardGroupQueryJSON?.hash, applicabilityKey, accountID]);
+        search({
+            queryJSON: approvalQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    const firePaymentSearch = () => {
+        if (isOffline || !isPaymentApplicable || !paymentQueryJSON) {
+            return;
+        }
+        search({
+            queryJSON: paymentQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, cardGroupQueryJSON?.hash, spendDataSignature?.cardExpenses ?? 0].join('|'), fireCardSearch);
+    useTabFocusedRefresh(
+        SCREENS.HOME,
+        // The expense counter catches edits on a report that is already outstanding, which leave the report list unchanged.
+        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature, spendDataSignature?.expenses ?? 0].join('|'),
+        fireApprovalSearch,
+    );
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, paymentQueryJSON?.hash, isPaymentApplicable ? 1 : 0, reimbursedReportsSignature].join('|'), firePaymentSearch);
 
     return {
         approvalRowState,

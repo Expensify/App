@@ -80,6 +80,11 @@ type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState
     directionCoordinates: Coordinate[][];
 };
 
+type GPSMapViewContentProps = Omit<GPSMapViewProps, 'accessToken'> & {
+    /** Whether the foreground location permissions are granted */
+    foregroundLocationPermissionsGranted: boolean;
+};
+
 type GPSDirectionProps = {
     /** Whether the GPS trip is active */
     isTrackingGPS: boolean;
@@ -200,6 +205,7 @@ export type {
     WayPoint,
     MapViewProps,
     GPSMapViewProps,
+    GPSMapViewContentProps,
     DirectionProps,
     PendingMapViewProps,
     Coordinate,

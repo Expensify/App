@@ -42,6 +42,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
+    hasSettledZeroReimbursableSpend,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -172,6 +173,13 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager || !isExpenseReportUtils(report) || !isProcessingReportUtils(report) || reportTransactions.length === 0) {
+        return false;
+    }
+
     if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
@@ -180,9 +188,9 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 
@@ -191,28 +199,12 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
-    if (!isCurrentUserManager) {
-        return false;
-    }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitWorkspace = isSubmitPolicy(policy);
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-
-    if (!isExpenseReport || reportTransactions.length === 0) {
+    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
+    if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (!isApprovalEnabled && !isSubmitWorkspace) {
-        return false;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    return isProcessingReportUtils(report);
+    return !reportTransactions.every((transaction) => isPending(transaction));
 }
 
 function isPrimaryPayAction({
@@ -266,14 +258,17 @@ function isPrimaryPayAction({
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
 
     if (
         canPayReport &&
         isExpenseReport &&
         arePaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))
+        (reimbursableSpend !== 0 ||
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, reportTransactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))))
     ) {
         return isSecondaryAction ?? !didExportFail;
     }

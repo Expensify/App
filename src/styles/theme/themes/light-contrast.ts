@@ -8,6 +8,10 @@ const lightContrastTheme = {
     border: colors.productLight500,
     icon: colors.productLight800,
     textSupporting: '#53645C',
+    // The default theme trades some contrast for a softer look on RBR and GBR text. High contrast takes it back,
+    // so a reader who needs the extra separation from the background gets it.
+    textError: colors.tangerine700,
+    textSuccess: colors.green700,
     buttonSuccessText: colors.productLight900,
     buttonDangerText: colors.productDark100,
     bordersBold: colors.productLight800,

@@ -11,15 +11,23 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    getWorkflowMemberEmails,
+    includesEveryWorkspaceMember,
+    isApprovalWorkflowLockedByIntegration,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -59,7 +67,7 @@ type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingPr
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID), [route.params.policyID]);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
@@ -114,11 +122,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+        const workflowToSave = {...approvalWorkflow, isDefault};
+
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
                 Navigation.dismissModal({
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection});
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
                     },
                 });
                 return;
@@ -129,7 +141,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
             Navigation.dismissModal({
                 afterTransition: () => {
-                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+                    updateApprovalWorkflow(workflowToSave, membersToRemove, approversToRemove, policy);
                 },
             });
         });
@@ -163,7 +175,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         !canWriteApprovals ||
         isPendingDeletePolicy(policy) ||
         !currentApprovalWorkflow ||
-        isAnyHRReadOnlyWorkflowMode(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
     // Set the initial approval workflow when the page is loaded

@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -121,6 +121,7 @@ type LazyHydrationContext = {
 
     /** Currency formatter used when the option list was built. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -236,6 +237,12 @@ type GetValidReportsConfig = {
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    /**
+     * Resolves a single report by ID so the option builders can read an option's parent chat report without the
+     * module-level `Onyx.connect()` cache. Callers pass a resolver backed by the same reports snapshot the option
+     * list was built from (see `useFilteredOptions`), which keeps both derived from one consistent snapshot.
+     */
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -268,6 +275,7 @@ type IsValidReportsConfig = Pick<
 type GetOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -285,6 +293,11 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
@@ -309,6 +322,7 @@ type GetUserToInviteConfig = {
     currentUserEmail: string;
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

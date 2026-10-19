@@ -1,7 +1,7 @@
 ---
 title: How to Pay Expenses in New Expensify
 description: Learn how to pay personal or workspace expenses in New Expensify using connected bank accounts or your Wallet.
-keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report]
+keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report, who can pay a report, workspace admin pay report, payer, mark as paid]
 ---
 
 Paying expenses in New Expensify is fast and easy—whether you're reimbursing a teammate through a Workspace or sending money to a friend personally. You can pay using a connected business bank account or your Wallet.
@@ -13,6 +13,17 @@ Paying expenses in New Expensify is fast and easy—whether you're reimbursing a
 To pay Workspace expenses, you’ll first need to:
 - [Connect a business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - Ask the submitter to [connect a personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account)
+
+## Who Can Pay Workspace Expenses
+
+Any admin who can manage the **Payments** section of **Workflows** can pay an approved report—this includes the **Workspace admin** and **Payments admin** roles. **Payments** must be enabled on the workspace.
+
+- You do not have to be the workspace's **Payer** to pay a report.
+- The **Payer** is the only admin who is prompted to pay. They see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat. Other admins are not prompted, but they can still open the report and pay it.
+- You pay from a bank account you have access to. If the workspace's connected bank account has not been shared with you, choose one of your own business bank accounts, add one when prompted, or select **Mark as paid**.
+- Paying from a different bank account does not change the workspace's connected bank account.
+
+Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account) with other admins.
 
 ## Where to Find Workspaces Expenses to Pay
 
@@ -96,6 +107,12 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 
 ---
 
+## Do I have to be the workspace Payer to pay a report?
+
+No. Any admin who can manage the **Payments** section of **Workflows**—a **Workspace admin** or a **Payments admin**—can pay an approved report, even when a bank account is connected to the workspace. Only the **Payer** is prompted to pay, so other admins need to open the report and pay it themselves.
+
+---
+
 ## Why don't I see my bank account when I click Pay?
 
 Only bank accounts that match the report's currency appear as payment options. If you have a USD bank account but the report is in EUR, the USD account will not be shown. To pay the report, connect a bank account in the matching currency, or select **Mark as paid** to record a payment made outside Expensify.
@@ -115,3 +132,13 @@ Select **Enable Global Reimbursements** to start setting up global reimbursement
 ## How do I pay a report with only non-reimbursable expenses?
 
 Reports containing only non-reimbursable expenses (e.g., company card charges) cannot be paid via ACH through Expensify. Instead, select **Mark as paid** from the **Pay** button dropdown to close the report.
+
+---
+
+## Why don't I see Cancel payment on a report I paid with a business bank account?
+
+**Cancel payment** only appears while Expensify can still stop the transfer. When you open the report, Expensify checks whether the reimbursement is still cancelable, and shows **Cancel payment** under **More** only if it is. Once the money is on its way to the recipient's bank, the option no longer appears, and some payments send the money right away, so **Cancel payment** never appears for them.
+
+If you need to stop a transfer that already left, contact your bank directly.
+
+To cancel a payment you recorded with **Mark as paid**, open the report, select **More**, then select **Cancel payment**.

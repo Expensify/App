@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -611,6 +611,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 data: 'object',
                 errors: 'object',
             });
+        case 'supportTicketCalendarLink':
+            return validateString(value);
+        case 'reopenedAsReportID':
+            return validateString(value);
         case 'calendlyCalls':
             return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
                 status: 'string',
@@ -719,6 +723,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -1061,10 +1067,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'reimbursable':
         case 'participantsAutoAssigned':
         case 'isFromGlobalCreate':
+        case 'wasAutoCategorizeEnabledOnCreation':
         case 'isFromFloatingActionButton':
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
+        case 'isReusedRoute':
             return validateBoolean(value);
         case 'amount':
         case 'taxAmount':
@@ -1192,6 +1200,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    wasAutoCategorizeEnabledOnCreation: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromFloatingActionButton: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1235,6 +1244,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isReusedRoute: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1462,6 +1472,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 startDate: 'string',
                 endDate: 'string',
                 nights: 'number',
+                ruleID: 'number',
+                filters: 'object',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1541,6 +1553,7 @@ function getReasonForShowingRowInLHN({
     conciergeReportID,
     hasGuidesEmails,
     derivedIsEmptyReport,
+    transactionViolations,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1555,6 +1568,7 @@ function getReasonForShowingRowInLHN({
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
     derivedIsEmptyReport: boolean | undefined;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1577,6 +1591,7 @@ function getReasonForShowingRowInLHN({
         conciergeReportID,
         derivedIsEmptyReport,
         hasGuidesEmails,
+        transactionViolations,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1604,13 +1619,16 @@ function getReasonAndReportActionForGBRInLHNRow(
     report: OnyxEntry<Report>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     isReportArchived = false,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived) ?? {};
+    const {reason, reportAction} =
+        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived, reportMetadata}) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};

@@ -38,6 +38,14 @@ Object.assign(global, {TextDecoder, TextEncoder});
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
 
+// Gesture Handler 3 throws in __DEV__ when a GestureDetector has no GestureHandlerRootView above it. In the app every screen
+// renders under the root view in App.tsx, but tests render screens on their own, so the context pretends a root view is always present.
+// Jest resolves the package through `main` (lib/module), so the compiled file is the one to mock.
+jest.mock('react-native-gesture-handler/lib/module/GestureHandlerRootViewContext', () => ({
+    __esModule: true,
+    default: jest.requireActual<typeof React>('react').createContext(true),
+}));
+
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
 // and we only want to mock the storage layer, not the whole Onyx module.
@@ -342,6 +350,10 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+// The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage', () => jest.fn(() => undefined));
+
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
     createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
@@ -357,6 +369,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

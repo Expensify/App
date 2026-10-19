@@ -20,9 +20,9 @@ function useFxExpenseAccountPicker(persistedAccount: string | undefined) {
         setDraftAccountID(value);
     };
 
-    const buildList = (accountOptions: SelectorType[], sourceAccountCount: number, onConfirm: () => void) => {
+    const buildList = (accountOptions: SelectorType[], onConfirm: () => void) => {
         // Don't prepend None onto an empty account list or the empty-state BlockingView never shows.
-        const shouldShowNoneOption = sourceAccountCount > 0 || persisted.length > 0;
+        const shouldShowNoneOption = accountOptions.length > 0 || persisted.length > 0;
         const noneOption: SelectorType = {
             value: '',
             text: translate('common.none'),

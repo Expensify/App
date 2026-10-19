@@ -1,10 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import type {TabSelectorProps} from '@components/TabSelector/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -56,6 +60,14 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+function CollapsibleTabSelector(props: TabSelectorProps) {
+    return (
+        <CollapsibleHeaderOnKeyboardGroupMember>
+            <TabSelector {...props} />
+        </CollapsibleHeaderOnKeyboardGroupMember>
+    );
+}
 
 function IOURequestStartPage({
     route,
@@ -190,8 +202,16 @@ function IOURequestStartPage({
         // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
+        if (!hadPreInsertedFullscreen) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        // Close the RHP a frame later. Closed in the same update as the restore, Android dismisses it with the
+        // pre-insert's `none` animation instead of the restored slide.
+        requestAnimationFrame(() => Navigation.closeRHPFlow());
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -283,105 +303,116 @@ function IOURequestStartPage({
             >
                 {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
                 <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
-                    <View style={styles.flex1}>
-                        <FocusTrapContainerElement
-                            onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                            style={[styles.w100]}
-                        >
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={navigateBack}
-                            />
-                        </FocusTrapContainerElement>
+                    {/*
+                        The embedded confirmation opens the participant picker, which on iOS is an overlay rather
+                        than a modal. Hosting it here is what lets the overlay cover this page's header and tab
+                        bar, instead of stopping at the top of the form it is declared in.
+                    */}
+                    <ParticipantPickerOverlayHost>
+                        <CollapsibleHeaderOnKeyboardGroup>
+                            <View style={styles.flex1}>
+                                <CollapsibleHeaderOnKeyboardGroupMember>
+                                    <FocusTrapContainerElement
+                                        onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                                        style={[styles.w100]}
+                                    >
+                                        <HeaderWithBackButton
+                                            title={tabTitles[iouType]}
+                                            onBackButtonPress={navigateBack}
+                                        />
+                                    </FocusTrapContainerElement>
+                                </CollapsibleHeaderOnKeyboardGroupMember>
 
-                        {shouldUseTab ? (
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
-                                onTabSelect={onTabSelectFocusHandler}
-                                tabBar={TabSelector}
-                                onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
-                                onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                lazyLoadEnabled
-                                shouldReapplyInterruptedTabPress
-                            >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepScan
-                                                key={transactionRequestType}
-                                                route={route}
-                                                navigation={navigation}
-                                            />
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
-                                {iouType === CONST.IOU.TYPE.SPLIT && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                <DynamicIOURequestStepDistance
-                                                    route={route}
-                                                    navigation={navigation}
-                                                />
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                )}
-                                {!!shouldShowPerDiemOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {shouldShowWorkspaceSelectForPerDiem ? (
-                                                    <IOURequestStepPerDiemWorkspace
+                                {shouldUseTab ? (
+                                    <OnyxTabNavigator
+                                        id={CONST.TAB.IOU_REQUEST_TYPE}
+                                        defaultSelectedTab={defaultSelectedTab}
+                                        onTabSelected={resetIOUTypeIfChanged}
+                                        onTabSelect={onTabSelectFocusHandler}
+                                        tabBar={CollapsibleTabSelector}
+                                        onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                                        onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
+                                        lazyLoadEnabled
+                                        shouldReapplyInterruptedTabPress
+                                    >
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    <IOURequestStepScan
+                                                        key={transactionRequestType}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
-                                                ) : (
-                                                    <DynamicIOURequestStepDestination
-                                                        openedFromStartPage
-                                                        ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
+                                        {iouType === CONST.IOU.TYPE.SPLIT && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        <DynamicIOURequestStepDistance
+                                                            route={route}
+                                                            navigation={navigation}
+                                                        />
+                                                    </TabScreenWithFocusTrapWrapper>
                                                 )}
-                                            </TabScreenWithFocusTrapWrapper>
+                                            </TopTab.Screen>
                                         )}
-                                    </TopTab.Screen>
-                                )}
-                                {shouldShowTimeOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
-                                                    <IOURequestStepTimeWorkspace
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
-                                                ) : (
-                                                    <IOURequestStepHours
-                                                        route={route}
-                                                        navigation={navigation}
-                                                        explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
-                                                    />
+                                        {!!shouldShowPerDiemOption && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        {shouldShowWorkspaceSelectForPerDiem ? (
+                                                            <IOURequestStepPerDiemWorkspace
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        ) : (
+                                                            <DynamicIOURequestStepDestination
+                                                                openedFromStartPage
+                                                                ref={perDiemInputRef}
+                                                                explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        )}
+                                                    </TabScreenWithFocusTrapWrapper>
                                                 )}
-                                            </TabScreenWithFocusTrapWrapper>
+                                            </TopTab.Screen>
                                         )}
-                                    </TopTab.Screen>
+                                        {shouldShowTimeOption && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
+                                                            <IOURequestStepTimeWorkspace
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        ) : (
+                                                            <IOURequestStepHours
+                                                                route={route}
+                                                                navigation={navigation}
+                                                                explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
+                                                            />
+                                                        )}
+                                                    </TabScreenWithFocusTrapWrapper>
+                                                )}
+                                            </TopTab.Screen>
+                                        )}
+                                    </OnyxTabNavigator>
+                                ) : (
+                                    <FocusTrapContainerElement
+                                        onContainerElementChanged={setActiveTabContainerElement}
+                                        style={[styles.flexColumn, styles.flex1]}
+                                    >
+                                        {manualContent}
+                                    </FocusTrapContainerElement>
                                 )}
-                            </OnyxTabNavigator>
-                        ) : (
-                            <FocusTrapContainerElement
-                                onContainerElementChanged={setActiveTabContainerElement}
-                                style={[styles.flexColumn, styles.flex1]}
-                            >
-                                {manualContent}
-                            </FocusTrapContainerElement>
-                        )}
-                    </View>
+                            </View>
+                        </CollapsibleHeaderOnKeyboardGroup>
+                    </ParticipantPickerOverlayHost>
                 </DragAndDropProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

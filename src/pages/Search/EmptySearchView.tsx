@@ -1,6 +1,7 @@
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -24,7 +25,7 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
@@ -87,7 +88,7 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, currentUserPersonalDetails?.login);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -139,6 +140,7 @@ function EmptySearchViewContent({
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -157,6 +159,8 @@ function EmptySearchViewContent({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
+
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     let isFilteredWorkspaceAccessible = true;
     if (filteredPolicyID.value) {
@@ -165,8 +169,8 @@ function EmptySearchViewContent({
         isFilteredWorkspaceAccessible = !!filteredPolicy;
     }
 
-    const handleCreateWorkspaceReport = (policy: OnyxEntry<Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!policy?.id) {
+    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!defaultChatEnabledPolicy?.id) {
             return;
         }
 
@@ -174,7 +178,7 @@ function EmptySearchViewContent({
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policy,
+            defaultChatEnabledPolicy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
@@ -420,7 +424,7 @@ function EmptySearchViewContent({
     return (
         <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle]}
+            {...tabRootScrollProps}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}
         >

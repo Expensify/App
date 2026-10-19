@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -106,6 +106,7 @@ You can use the following operators to filter reports:
 | `withdrawn:` | Filter by ACH withdrawal date | `withdrawn:2024-01-15` |
 | `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-invoicing`) | `withdrawal-type:reimbursement` |
 | `paid-status:` | Filter by how the report was paid (`markedAsPaid`, `withdrawing`, `confirmed`). Combine multiple values with commas | `paid-status:markedAsPaid,confirmed` |
+| `paid-by:` | Filter by the member who paid the report (email, phone, display name, or `me`). Combine multiple members with commas. Reports that have not been paid never match. This operator also works on expense, invoice, and trip searches | `paid-by:me,alice@acme.com` |
 | `action:` | Filter by blocking report action | `action:approve` |
 | `submitter-user-id:` | Filter by the Custom field 1 value set for the report submitter | `submitter-user-id:12345` |
 | `submitter-payroll-id:` | Filter by the Custom field 2 value set for the report submitter | `submitter-payroll-id:67890` |
@@ -179,7 +180,6 @@ Use `group-by:` to group results by a specific dimension.
 
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
-| `group-by:report` | Group results by report | `type:expense group-by:report` |
 | `group-by:from` | Group results by submitter | `type:expense group-by:from` |
 | `group-by:card` | Group results by card | `type:expense group-by:card` |
 | `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |

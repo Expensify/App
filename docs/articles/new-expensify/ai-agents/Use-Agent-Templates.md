@@ -1,68 +1,75 @@
 ---
 title: Use Agent Templates
-description: Learn what each built-in Agent template does and when to use it to automate common workflows.
-keywords: [Agent templates, AI agents, TipMaster, Translator Tess, Splitter Sam, starter agents, AI workflows]
-internalScope: Audience is members creating personal Agents. Covers the available built-in Agent templates, how they work, and when to use each one. Does not cover creating or managing Agents, Agent rules, or writing custom Agent instructions.
-retrievalIntent: Which Agent template should I use?
+description: Learn what each built-in agent template does, how it works, and when to use it.
+keywords: [agent templates, agents, TipMaster, Translator Tess, Splitter Sam, Description Dan, AI agent, receipt translator, card splitter, automate description]
+internalScope: Audience is New Expensify members creating AI agents. Covers the built-in agent templates available when creating a new agent and what each one does. Does not cover creating custom agents, editing agent instructions, agent rules, or RuleBot.
 contentType: topic
+platform: New Expensify
+order: 6
 ---
 
 # Use Agent Templates
 
-Agent templates are prebuilt personal Agents with instructions already written for common tasks. Instead of creating an Agent from scratch, you can start with a template and customize its instructions before creating the Agent.
+Agent templates are prebuilt personal agents with instructions already written for common tasks. Instead of creating an agent from scratch, you can start with a template and customize its instructions at any time.
 
-To learn how to create an Agent, see [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
+Expensify includes a growing library of built-in templates, each designed for a specific workflow. This article explains what each template does and when you might want to use it.
 
 ---
 
-## How Agent templates work
+## How agent templates work
 
-Each Agent template includes a predefined set of instructions designed for a specific workflow.
+Every template is a standard Expensify agent with instructions that are already written for you. Like any agent, it runs from its own Expensify account and is added as a full-access Copilot on your account, allowing it to review expenses and act on your behalf.
 
-When you create an Agent from a template, you can review and edit those instructions before saving the Agent. After it's created, you can continue updating its instructions at any time.
+Each template monitors your expenses and receipts for specific conditions. When those conditions are met, the agent performs its configured action, such as adding a comment or moving an expense to another report. If an expense doesn't match the template's instructions, the agent takes no action.
 
-For guidance on writing clear, effective instructions, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
+When you create an agent from a template, you can edit its instructions at any time to customize its behavior.
+
+![Agents page showing available templates]({{site.url}}/assets/images/Agent_Templates.png){:width="100%"}
 
 ---
 
 ## What TipMaster does
 
-TipMaster identifies restaurant receipts where the tip exceeds 20% of the pre-tax subtotal and adds a comment showing the subtotal, tip amount, and calculated tip percentage.
+TipMaster flags restaurant receipts where the tip exceeds 20%. 
 
-TipMaster is useful for monitoring meal spending, identifying accidental over-tipping, or highlighting expenses that may need additional review.
+When you add a restaurant receipt, TipMaster calculates the tip percentage using the pre-tax subtotal. If the tip is greater than 20%, it adds a comment showing the subtotal, tip amount, and calculated percentage. It ignores receipts that aren't from restaurants and tips that are 20% or less.
+
+TipMaster is useful for maintaining consistent meal spending, identifying accidental over-tipping, or highlighting expenses that may need additional review.
 
 ---
 
 ## What Translator Tess does
 
-Translator Tess translates receipts that aren't written in English and comments with an English translation of the receipt's key details, including the merchant, date, line items, subtotal, tax, and total.
+Translator Tess translates receipts that aren't written in English.
+
+When you add a receipt in another language, Translator Tess comments with an English translation of the receipt's key details, including the merchant, date, line items, subtotal, tax, and total. Receipts that are already in English are ignored.
 
 Translator Tess is useful for international travel, reviewing foreign-language receipts, or keeping expense documentation consistent across global teams.
 
 ---
 
-## What Splitter Sam does
+## What HotelSplitBot does
 
-Splitter Sam moves company card expenses to the correct card report, creating the report if necessary. Cash expenses aren't affected.
+HotelSplitBot itemizes hotel expenses so each charge can have its own category.
 
-Splitter Sam is useful if you use multiple company cards and want each card's expenses grouped on its own report for easier reconciliation.
+When a hotel receipt includes separate charges, such as the room, meals, parking, or laundry, HotelSplitBot splits them into individual expenses while keeping the room charge as its own expense. The split amounts add up to the original expense total. Hotel expenses that only include a room charge or have already been split aren't changed.
+
+HotelSplitBot is useful for itemizing hotel stays and categorizing room charges and incidentals separately.
 
 ---
 
-## What happens after you create an Agent from a template
+## What Description Dan does
 
-Creating an Agent from a template creates a standard personal Agent with the template's instructions pre-filled.
+Description Dan automatically adds descriptions to expenses based on descriptions you've previously used for the same merchant.
 
-After the Agent is created, you can:
+When an expense has no description, Description Dan looks at your past expenses from that merchant. If the same description has been used repeatedly, it adds that description to the new expense. Expenses that already have a manually entered description aren't changed.
 
- - Edit its instructions at any time.
- - Chat with the Agent.
- - Copilot into the Agent's account.
- - Use the Agent the same way you would any other personal Agent.
+Description Dan is useful for recurring purchases where you typically use the same description, helping keep expense details consistent without entering them manually each time.
 
 ---
 
 ## Related articles
 
- - [Understand How AI Agents Work in Expensify](/articles/new-expensify/ai-agents/Understand-How-AI-Agents-Work-in-Expensify)
- - [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
+- [Understand how agents work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work)
+- [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
+- [Write agent instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)

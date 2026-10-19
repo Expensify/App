@@ -11,6 +11,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,7 @@ import {
     closeUserAccount,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 
@@ -38,13 +40,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Domain, PersonalDetailsList} from '@src/types/onyx';
+import type {Domain} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
 import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -67,10 +68,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         selector: securityGroupSelector,
     });
 
-    const memberPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsSelector(accountID)(personalDetailsList), [accountID]);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: memberPersonalDetailsSelector,
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
@@ -112,7 +110,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, userSecurityGroup, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
@@ -168,10 +166,14 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+                    timezone={personalDetails?.timezone?.selected}
+                    onPress={() => {
+                        clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+                        Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+                    }}
                     pendingAction={domainPendingActions?.member?.[memberLogin]?.vacationDelegate}
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.vacationDelegateErrors)}
-                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate)}
+                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
                 />
                 {!!domainSettings?.twoFactorAuthRequired && (
                     <ToggleSettingOptionRow

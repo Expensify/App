@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +55,14 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
         (selectedReport) => !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`] || !allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`],
     );
 
+    const intersectedEmployees = (() => {
+        const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
+        const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
+        const firstWorkspaceEmployees = employeeLists.at(0);
+        return firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
+    })();
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(intersectedEmployees));
+
     // Get all possible approvers from all selected reports' policies
     // An approver must be able to approve ALL selected reports
     const getAllApprovers = () => {
@@ -61,11 +70,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             return [];
         }
 
-        const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
-        const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
-        const firstWorkspaceEmployees = employeeLists.at(0);
-        const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, undefined, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, employeePersonalDetails, true, false);
         // We get the intersection here because the selected approver must belong to every workspace
         // Resolve the translation once, not per member.
         const hiddenText = translate('common.hidden');

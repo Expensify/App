@@ -5,6 +5,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
+import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext} from 'react';
 
@@ -47,20 +48,18 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const [payeeDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsDisplayNameSelector(getQueuedPaymentPayeeAccountID(targetReport) ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
-    });
+    const [payeeDisplayName = ''] = usePersonalDetail(getQueuedPaymentPayeeAccountID(targetReport), displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     return (
-        <ReportActionItemBasicMessage message={translate(getReimbursementQueuedMessageKey(targetReport, paymentType), payeeDisplayName ?? '')}>
+        <ReportActionItemBasicMessage message={translate(getReimbursementQueuedMessageKey(targetReport, paymentType), payeeDisplayName)}>
             <>
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
                     <ActionableItemButtons layout="horizontal">
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
+                            onPress={() => openPersonalBankAccountSetupView({exitReportID: targetReport?.reportID, isUserValidated})}
                         >
                             <Button.KeyboardShortcut />
                             <Button.Text>{translate('bankAccount.addBankAccount')}</Button.Text>
