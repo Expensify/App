@@ -688,6 +688,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         );
         await waitForBatchedUpdatesWithAct();
 
+        // When a waypoint is pressed
         const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 

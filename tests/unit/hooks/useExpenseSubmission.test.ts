@@ -647,7 +647,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the expense is created
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -683,7 +683,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the expense is created
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -726,7 +726,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the expense is created
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
