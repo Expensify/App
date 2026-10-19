@@ -145,10 +145,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 shouldEnableMaxHeight
                 testID="CardReconciliationPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.accounting.cardReconciliation')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
-                />
+                <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
                     contentContainerStyle={styles.pb5}
                     addBottomSafeAreaPadding

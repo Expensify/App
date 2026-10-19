@@ -3585,7 +3585,7 @@ describe('WorkflowUtils', () => {
                 (approvalMode) => {
                     expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
                         providerName: 'Greenhouse',
-                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                        settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute(POLICY_ID),
                     });
                 },
             );
@@ -3621,7 +3621,7 @@ describe('WorkflowUtils', () => {
 
                 expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
                     providerName: 'Workday',
-                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
+                    settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(POLICY_ID),
                 });
             });
         });
