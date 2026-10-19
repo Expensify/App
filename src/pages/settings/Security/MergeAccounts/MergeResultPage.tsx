@@ -51,7 +51,6 @@ function MergeResultPage() {
         illustrationStyle,
         description,
         descriptionComponent,
-        buttonText,
         secondaryButtonText,
         onSecondaryButtonPress,
         shouldShowSecondaryButton,
@@ -92,8 +91,8 @@ function MergeResultPage() {
                         />
                     )}
                     <ConfirmationPage.PrimaryButton
-                        text={buttonText}
-                        onPress={onButtonPress}
+                        text={translate('common.buttonConfirm')}
+                        onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY))}
                     />
                 </FixedFooter>
             </ConfirmationPage>
