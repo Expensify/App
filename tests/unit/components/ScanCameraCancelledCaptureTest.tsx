@@ -169,7 +169,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then no alert appears on the screen the user went to, and the expected cancellation is logged as info, not as a warning
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogInfo).toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', false, {error: CAMERA_CLOSED_ERROR});
+        expect(mockLogInfo).toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', false, {error: CAMERA_CLOSED_ERROR.message});
         expect(mockLogWarn).not.toHaveBeenCalled();
     });
 
@@ -183,7 +183,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then the user is told the camera failed, and the failure is logged as a warning, as before
         expect(alertSpy).toHaveBeenCalledWith('receipt.cameraErrorTitle', 'receipt.cameraErrorMessage');
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR.message);
     });
 
     it('still logs a warning, without an alert, when the camera fails for another reason after the user left the scan screen', async () => {
@@ -193,12 +193,12 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // When the user leaves the screen and the capture fails with an error that is not the camera closing
         mockIsFocused = false;
-        const writeError = {code: 'capture/file-io-error', message: 'Failed to write the photo to disk'};
+        const writeError = Object.assign(new Error('Failed to write the photo to disk'), {code: 'capture/file-io-error'});
         await failCapture(writeError);
 
         // Then no alert appears on the screen the user went to, but the failure stays a warning because it is a real camera error, not a cancellation
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', writeError);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', writeError.message);
         expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
     });
 
@@ -215,7 +215,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then no alert appears on the screen the user went to, but this is a real storage failure, so it stays a warning instead of being logged as a cancellation
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', saveError);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', saveError.message);
         expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
     });
 });

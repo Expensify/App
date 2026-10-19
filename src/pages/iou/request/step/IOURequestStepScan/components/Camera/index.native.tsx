@@ -213,15 +213,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
                 onCapture(cameraFile, source);
             })
-            .catch((error: string) => {
+            .catch((error: unknown) => {
                 isCapturingPhoto.current = false;
                 maybeCancelShutterSpan();
+                const errorMessage = error instanceof Error ? error.message : String(error);
                 const isScreenFocused = navigation.isFocused();
                 // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
                 if (!isScreenFocused && isCameraClosedError(error)) {
-                    Log.info('Photo capture cancelled by leaving the screen', false, {error});
+                    Log.info('Photo capture cancelled by leaving the screen', false, {error: errorMessage});
                 } else {
-                    Log.warn('Error taking photo', error);
+                    Log.warn('Error taking photo', errorMessage);
                 }
                 if (isScreenFocused) {
                     showCameraAlert();
