@@ -33,13 +33,6 @@ jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     }),
 }));
 
-// Jest resolves the `.native` file, so each test picks which platform behavior it renders.
-let mockShouldEditReportFieldsInline = false;
-jest.mock('@libs/shouldEditReportFieldsInlineInActionsList', () => ({
-    __esModule: true,
-    default: () => mockShouldEditReportFieldsInline,
-}));
-
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -357,7 +350,6 @@ describe('MoneyReportView report fields visibility', () => {
     });
 
     afterEach(async () => {
-        mockShouldEditReportFieldsInline = false;
         await act(async () => {
             await Onyx.clear();
         });
@@ -377,9 +369,8 @@ describe('MoneyReportView report fields visibility', () => {
         return {policy: buildReportFieldsPolicy(fieldList), report: buildExpenseReport({fieldList})};
     };
 
-    it('edits the report fields inline, one per row on a wide layout, where inline editing is supported', async () => {
-        // Given a platform that edits report fields inline, and a one-expense report with 4 custom fields on a wide layout
-        mockShouldEditReportFieldsInline = true;
+    it('edits the report fields inline, one per row on a wide layout', async () => {
+        // Given a one-expense report with 4 custom fields on a wide layout
         const {policy, report} = buildFourFieldReport();
         await seedReportFieldsPolicy(policy, report);
 
@@ -394,23 +385,6 @@ describe('MoneyReportView report fields visibility', () => {
             expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
         });
         expect(screen.getByLabelText('Test0')).toBeOnTheScreen();
-    });
-
-    it('shows the report fields as rows that open the editor on the native apps', async () => {
-        // Given the native apps, where a keyboard opened inside the inverted report actions list scrolls it away from
-        // the input, and a one-expense report with 4 custom fields
-        const {policy, report} = buildFourFieldReport();
-        await seedReportFieldsPolicy(policy, report);
-
-        // When this view renders them
-        renderMoneyReportView(report, policy);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the fields show as rows rather than inline inputs
-        await waitFor(() => {
-            expect(screen.getByText('Test0')).toBeOnTheScreen();
-        });
-        expect(screen.queryAllByTestId('reportFieldsRow')).toHaveLength(0);
     });
 
     it('keeps a custom report field visible for a non-admin submitter after the report is approved (single-expense combined view)', async () => {
@@ -431,7 +405,7 @@ describe('MoneyReportView report fields visibility', () => {
 
         // The custom field (rendered read-only after approval) must still show for the submitter.
         await waitFor(() => {
-            expect(screen.getByText('Test')).toBeOnTheScreen();
+            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
         });
     });
 
