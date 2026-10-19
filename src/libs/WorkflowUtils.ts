@@ -417,8 +417,8 @@ function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): b
 }
 
 /** Label for a member's first approver: "1st approver" when their workflow has more than one level, "Approver" otherwise. */
-function getFirstApproverLabel(hasMultipleApprovers: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
-    return hasMultipleApprovers ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+function getFirstApproverLabel(isMultiLevelWorkflow: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
+    return isMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {

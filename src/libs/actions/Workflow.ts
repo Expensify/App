@@ -326,14 +326,21 @@ type SetApprovalWorkflowRulesParams = {
     membersWithPendingApprover?: string[];
 };
 
+type ApprovalWorkflowRulesOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.POLICY>;
+
+type ApprovalWorkflowRulesOnyxData = {
+    optimisticData: ApprovalWorkflowRulesOnyxUpdate[];
+    successData: ApprovalWorkflowRulesOnyxUpdate[];
+    failureData: ApprovalWorkflowRulesOnyxUpdate[];
+};
+
 /**
  * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
  * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}: SetApprovalWorkflowRulesParams) {
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}: SetApprovalWorkflowRulesParams): ApprovalWorkflowRulesOnyxData {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
-    type ApprovalWorkflowRulesOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.POLICY>;
     const optimisticData: ApprovalWorkflowRulesOnyxUpdate[] = [];
     const successData: ApprovalWorkflowRulesOnyxUpdate[] = [];
     const failureData: ApprovalWorkflowRulesOnyxUpdate[] = [];

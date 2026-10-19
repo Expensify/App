@@ -361,10 +361,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
-    // Hoisted out of isControlPolicyWithWideLayout so the Approver column can share the same notion of "wide" as the
-    // custom-field columns, rather than disagreeing about the medium-screen-width band.
-    const hasWideTableLayout = !shouldUseNarrowLayout && !isMediumScreenWidth;
-    const isControlPolicyWithWideLayout = hasWideTableLayout && isControlPolicy(policy);
+    // The Approver column and the custom-field columns share one notion of "wide" so they cannot disagree about the
+    // medium screen width band.
+    const isWideTableLayout = !shouldUseNarrowLayout && !isMediumScreenWidth;
+    const isControlPolicyWithWideLayout = isWideTableLayout && isControlPolicy(policy);
 
     const filteredMembers = useWorkspaceMembers(policy);
 
@@ -378,7 +378,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const firstApproverByMemberEmail = getFirstApproverByMemberEmail(enforcedApprovalWorkflows);
     // A Dynamic External Workflow set to hide people takes the approval configuration off screen everywhere it is
     // surfaced, so the column goes with it rather than showing approvers the workspace is hiding.
-    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy) && !isEmptyObject(firstApproverByMemberEmail);
+    const shouldShowApproverColumn = isWideTableLayout && isApprovalsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy) && !isEmptyObject(firstApproverByMemberEmail);
     const shouldUseOrdinalApproverLabel = hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.

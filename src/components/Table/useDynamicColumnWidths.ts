@@ -274,13 +274,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     // total over the row's width, so this can't flip the layout back into one that fits.
     // Clamped by `maxWidth` exactly as `calculateDynamicColumnWidths` clamps the minimums it is handed, so a column
     // that caps itself below its floor can't make this prediction overshoot and raise floors on a table that fits.
-    const willScroll =
-        measurements.reduce((total, measurement) => total + Math.min(minWidthFor(measurement, MIN_FREE_TEXT_COLUMN_WIDTH), measurement.maxWidth ?? Number.POSITIVE_INFINITY), 0) >
-        availableWidth;
+    const squeezedMinWidths = measurements.map((measurement) => minWidthFor(measurement, MIN_FREE_TEXT_COLUMN_WIDTH));
+    const totalSqueezedWidth = squeezedMinWidths.reduce((total, minWidth, index) => total + Math.min(minWidth, measurements.at(index)?.maxWidth ?? Number.POSITIVE_INFINITY), 0);
+    const willScroll = totalSqueezedWidth > availableWidth;
 
-    const constraints: DynamicColumnConstraints[] = measurements.map((measurement) => ({
+    const constraints: DynamicColumnConstraints[] = measurements.map((measurement, index) => ({
         contentWidth: measurement.contentWidth,
-        minWidth: minWidthFor(measurement, willScroll ? SCROLLED_FREE_TEXT_COLUMN_WIDTH : MIN_FREE_TEXT_COLUMN_WIDTH),
+        minWidth: willScroll ? minWidthFor(measurement, SCROLLED_FREE_TEXT_COLUMN_WIDTH) : (squeezedMinWidths.at(index) ?? 0),
         // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
         // available width without breaking the sizing: capping the free-text columns hands everything they give
         // up to whichever column is left uncapped, which is how `Role` ends up hundreds of pixels wide.
