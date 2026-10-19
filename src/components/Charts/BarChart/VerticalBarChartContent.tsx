@@ -153,6 +153,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         }
 
         const color = dataPoint.seriesColors?.[seriesItem.key] ?? seriesItem.color ?? VictoryTheme.colors.default;
+        // Moves the bar from the group's center to the middle of its series' slot, counted from the group's left edge, so the series sit side by side
         const offset = -barLayout.barWidth / 2 + seriesIndex * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
 
         return (
