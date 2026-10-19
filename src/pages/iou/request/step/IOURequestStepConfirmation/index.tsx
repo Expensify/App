@@ -675,7 +675,7 @@ function IOURequestStepConfirmationContent({
         shouldHideToSection,
     };
 
-    const renderConfirmation = () => {
+    const renderSubmissionVariant = () => {
         const variantProps = {submissionParams, orchestratorProps, listProps};
 
         switch (submissionPath) {
@@ -798,7 +798,9 @@ function IOURequestStepConfirmationContent({
                                 dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                             />
                         </DragAndDropConsumer>
-                        {renderConfirmation()}
+
+                        {renderSubmissionVariant()}
+
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}
