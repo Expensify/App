@@ -53,6 +53,7 @@ let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: s
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
 let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
+let mockPolicy: {id: string; policyAccountID: number} | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
@@ -102,6 +103,9 @@ jest.mock('@hooks/useOnyx', () => {
             }
             if (key === onyxKeys.NEW_AGENT_TEMPLATE) {
                 return [mockTemplate, {status: 'loaded'}] as const;
+            }
+            if (key.startsWith(onyxKeys.COLLECTION.POLICY)) {
+                return [mockPolicy, {status: 'loaded'}] as const;
             }
             return [undefined, {status: 'loaded'}] as const;
         }),
@@ -222,6 +226,7 @@ describe('AddAgentPage', () => {
         mockAvatarDraftStatus = 'loaded';
         mockIsNarrowLayout = true;
         mockTemplate = undefined;
+        mockPolicy = undefined;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
         resolveOptimisticPersonalDetail = undefined;
@@ -351,7 +356,7 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined);
             expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
             expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
@@ -367,11 +372,13 @@ describe('AddAgentPage', () => {
         });
 
         it('forwards policyID from route params to createCompanyAgent', async () => {
+            mockPolicy = {id: 'POL_42', policyAccountID: 5444};
+
             renderAddAgentPage({policyID: 'POL_42'});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockCreateCompanyAgent).toHaveBeenCalledWith(OWNER_ACCOUNT_ID, OWNER_LOGIN, 'Reject gambling.', 'POL_42', CONST.POLICY.ROLE.ADMIN, 'Bot', 'bot-avatar--blue');
+            expect(mockCreateCompanyAgent).toHaveBeenCalledWith(OWNER_ACCOUNT_ID, OWNER_LOGIN, 'Reject gambling.', mockPolicy, CONST.POLICY.ROLE.ADMIN, 'Bot', 'bot-avatar--blue');
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(
@@ -427,7 +434,7 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined);
         });
 
         it('creates the agent with the reconstructed uploaded file when a photo was uploaded', () => {
