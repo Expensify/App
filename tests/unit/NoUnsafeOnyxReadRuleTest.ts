@@ -79,6 +79,7 @@ function inRepo(relativePath: string): string {
 describe('no-unsafe-onyx-read', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
+            // A read in a function or method that nothing calls at render or import time runs on an event
             `${ONYX_IMPORT} export function submit() { const draft = Onyx.get(ONYXKEYS.SESSION); return draft; }`,
             `${ONYX_IMPORT} export default function handler() { return Onyx.get(ONYXKEYS.SESSION); }`,
             `${ONYX_IMPORT} const handlers = {onPress: () => Onyx.get(ONYXKEYS.SESSION)};`,
@@ -112,6 +113,7 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_UTILS_IMPORT} const initialValue = OnyxUtils.get(ONYXKEYS.SESSION);`,
             "import cache from './cache'; const initialValue = cache.get(ONYXKEYS.SESSION);",
 
+            // A global that is not the Onyx import is not a read, and mutating a read result is a documented convention the rule does not police
             `${ONYX_IMPORT} const api = window.somethingElse; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`,
             `${ONYX_IMPORT} function f(key) { const pending = Onyx.get(ONYXKEYS.SESSION); pending.name = 'x'; return pending; }`,
 
@@ -244,6 +246,7 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const read = Onyx.get;`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; } const api = Onyx;`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} let read = Onyx.get; function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const {get: read} = Onyx;`, errors: RENDER_ERRORS},
             {code: `import * as Onyx from 'react-native-onyx'; const initialValue = Onyx.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
             // An alias of an alias is still a read
             {
@@ -330,6 +333,8 @@ describe('no-unsafe-onyx-read under the TypeScript parser', () => {
             // A cast around the Onyx object does not hide the read
             {code: `${ONYX_IMPORT} function Row() { const value = (Onyx as typeof Onyx).get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx!.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            // A cast on the callee is unwrapped like a cast on the object
+            {code: `${ONYX_IMPORT} function Row() { const value = (Onyx.get as typeof Onyx.get)(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const api = Onyx as typeof Onyx; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {
                 code: `${ONYX_IMPORT} function Row() { const options = {selector: (data: unknown) => Onyx.get(ONYXKEYS.ACCOUNT)} as const; const [value] = useOnyx(key, options); return <View value={value} />; }`,
