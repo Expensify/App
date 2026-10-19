@@ -3034,6 +3034,9 @@ type BusinessCentralExport = {
 
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether reports dated in a closed accounting period are exported to the next open period */
+    exportToNextOpenPeriod: boolean;
 };
 
 /**
@@ -3042,7 +3045,30 @@ type BusinessCentralExport = {
 type BusinessCentralAutoSync = {
     /** Whether automatic synchronization is enabled */
     enabled: boolean;
+
+    /** ID of the daily job that runs the automatic synchronization, null while it is disabled */
+    jobID?: string | null;
 };
+
+/**
+ * Settings for syncing payments made in Expensify back to Business Central.
+ */
+type BusinessCentralSync = {
+    /** Whether reimbursed expense reports are marked as paid in Business Central */
+    syncReimbursedReports: boolean;
+
+    /** ID of the Business Central bank account employee reimbursements are paid from */
+    reimbursementBankAccountID: string;
+
+    /** Whether Expensify Card settlements are synced to Business Central */
+    syncExpensifyCardSettlements: boolean;
+
+    /** ID of the Business Central bank account Expensify Card settlements are paid from */
+    settlementsBankAccountID: string;
+};
+
+/** Payment sync setting that holds a Business Central bank account ID */
+type BusinessCentralBankAccountSettingName = keyof Pick<BusinessCentralSync, 'reimbursementBankAccountID' | 'settlementsBankAccountID'>;
 
 /**
  * Connection config for Business Central.
@@ -3073,13 +3099,16 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
+        /** Payment sync settings */
+        sync?: BusinessCentralSync;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -3780,6 +3809,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         preventSelfApproval?: boolean;
 
+        /** When enabled, non-reimbursable reports cannot be marked as paid */
+        preventPayoutNonReimbursableReports?: boolean;
+
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
@@ -4257,6 +4289,8 @@ export type {
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
     BusinessCentralExport,
+    BusinessCentralSync,
+    BusinessCentralBankAccountSettingName,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
 

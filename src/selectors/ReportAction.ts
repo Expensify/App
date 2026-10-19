@@ -7,12 +7,14 @@ import {
     getSortedReportActions,
     isActionOfType,
 } from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -154,6 +156,22 @@ const transactionThreadReportIDSelector = (transactionID: string | undefined) =>
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
 
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
+    if (!allReportActions) {
+        return undefined;
+    }
+
+    const result: Record<string, true> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
+            result[reportID] = true;
+        }
+    }
+    return result;
+}
+
 type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
 
 type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
@@ -177,6 +195,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,
 };
