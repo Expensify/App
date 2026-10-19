@@ -437,7 +437,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
@@ -453,7 +456,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
@@ -476,6 +482,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
+        styles.userSelectNone,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
@@ -495,6 +502,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
             accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             isFocused={isFocused}
             shouldShowTooltip={showTooltip}
@@ -525,6 +533,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         stateNum={reportItem.stateNum}
                         statusNum={reportItem.statusNum}
                         isSelected={isSelected}
+                        shouldAllowStatusTextSelection
                     />
                 )}
                 <AvatarTooltipsProvider isEnabled={showTooltip}>

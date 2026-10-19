@@ -26,6 +26,7 @@ import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportTransactions from './useReportTransactions';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -48,6 +49,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const moneyRequestReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -113,6 +115,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 paymentType,
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
+                iouReportTransactions: moneyRequestReportTransactions,
                 introSelected,
                 currentUserAccountID: currentUserDetails.accountID,
                 currentUserLogin: currentUserDetails.login ?? '',
