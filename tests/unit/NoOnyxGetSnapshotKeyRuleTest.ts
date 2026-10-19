@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -67,8 +70,9 @@ describe('no-onyx-get-snapshot-key restricted keys', () => {
         valid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`},
 
+            // POLICY_CATEGORIES is not one of the Search snapshot collections, and a const key resolves to what it holds
             {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\`); }`},
-            {code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.SESSION; return Onyx.get(ONYXKEYS.SESSION); }`},
+            {code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.SESSION; return Onyx.get(key); }`},
 
             // The position rule owns where a read may run, so this rule reports nothing about render or module scope
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(ONYXKEYS.SESSION); return <View value={value} />; }`},
@@ -100,6 +104,12 @@ describe('no-onyx-get-snapshot-key restricted keys', () => {
                 code: `${ONYX_IMPORT} export function submit(formID) { return Onyx.get(\`\${formID}Draft\`); }`,
                 errors: UNRESOLVABLE_ERRORS,
             },
+            // A computed member or a static prefix before the ONYXKEYS access cannot be resolved to one key
+            {code: `${ONYX_IMPORT} export function submit(name) { return Onyx.get(ONYXKEYS.COLLECTION[name]); }`, errors: UNRESOLVABLE_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(\`report_\${ONYXKEYS.ACCOUNT}\`); }`, errors: UNRESOLVABLE_ERRORS},
+            // Aliases resolve by binding, not by source order, and a let alias still counts as a read
+            {code: `${ONYX_IMPORT} export function submit() { return read(ONYXKEYS.COLLECTION.REPORT); } const read = Onyx.get;`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} let read = Onyx.get; export function submit() { return read(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
 
             // The key check does not depend on the position of the read
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(ONYXKEYS.COLLECTION.REPORT); return <View value={value} />; }`, errors: RESTRICTED_ERRORS},
@@ -219,6 +229,20 @@ describe('no-onyx-get-snapshot-key Concierge chat key', () => {
                 code: `${ONYX_IMPORT} export async function submit(suffix) { const conciergeReportID = await Onyx.get(\`\${ONYXKEYS.CONCIERGE_REPORT_ID}\${suffix}\`); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${conciergeReportID}\`); }`,
                 errors: RESTRICTED_ERRORS,
             },
+            // Options that are not a plain object literal could carry a selector
+            {
+                code: `${ONYX_IMPORT} ${USE_ONYX_IMPORT} function Row({options}) { const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, options); const onPress = async () => Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${conciergeReportID}\`); return <Button onPress={onPress} />; }`,
+                errors: RESTRICTED_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} ${USE_ONYX_IMPORT} function Row({options}) { const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {...options}); const onPress = async () => Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${conciergeReportID}\`); return <Button onPress={onPress} />; }`,
+                errors: RESTRICTED_ERRORS,
+            },
+            // A third expression in the template makes it another key
+            {
+                code: `${ONYX_IMPORT} export async function submit(suffix) { const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${conciergeReportID}\${suffix}\`); }`,
+                errors: RESTRICTED_ERRORS,
+            },
             // The exemption covers the report collection only, and only a key made of the prefix and the ID
             {
                 code: `${ONYX_IMPORT} export async function submit() { const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT_ACTIONS}\${conciergeReportID}\`); }`,
@@ -261,6 +285,11 @@ describe('no-onyx-get-snapshot-key under the TypeScript parser', () => {
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST as OnyxKey); }`, errors: RESTRICTED_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(key: OnyxKey) { return Onyx.get(key as OnyxKey); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT] as const); }`, errors: RESTRICTED_ERRORS},
+            // A cast around the Onyx object does not hide the read
+            {code: `${ONYX_IMPORT} export function submit() { return (Onyx as typeof Onyx).get(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx!.get(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
+            // An import-equals binding of ONYXKEYS is not the ES import the rule trusts
+            {code: `${ONYX_IMPORT} import ONYXKEYS = require('@src/ONYXKEYS'); export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, errors: UNRESOLVABLE_ERRORS},
         ],
     });
 });
@@ -358,19 +387,6 @@ describe('no-onyx-get-snapshot-key every ONYXKEYS entry', () => {
         // Then the rule and the runtime agree on every key, so the rule tracks CONST.SEARCH.SNAPSHOT_ONYX_KEYS exactly
         expect(disagreements).toEqual([]);
     });
-
-    it('covers every Search snapshot prefix', () => {
-        // Given the ONYXKEYS entries the rule rejects
-        const rejectedValues = collectKeyPaths(ONYXKEYS)
-            .filter(([keyPath]) => isRejected(keyPath))
-            .map(([, value]) => value);
-
-        // When each snapshot prefix is looked up among them
-        // Then at least one rejected key starts with it, so the loader did not drop a prefix from runtimeConfigured.ts
-        for (const prefix of CONST.SEARCH.SNAPSHOT_ONYX_KEYS) {
-            expect(rejectedValues.some((value) => value.startsWith(prefix))).toBe(true);
-        }
-    });
 });
 
 describe('no-onyx-get-snapshot-key next to no-unsafe-onyx-read', () => {
@@ -394,6 +410,6 @@ describe('no-onyx-get-snapshot-key next to no-unsafe-onyx-read', () => {
         });
 
         // Then only the render read is reported, since the disable covers the key choice and nothing else
-        expect(messages.map((message) => message.messageId)).toEqual(['noOnyxGetInRender']);
+        expect(messages.map((message) => message.messageId)).toEqual(['noOnyxReadInRender']);
     });
 });

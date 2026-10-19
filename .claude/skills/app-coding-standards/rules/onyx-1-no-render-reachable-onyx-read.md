@@ -14,21 +14,21 @@ Do not re-check these:
 | Enforced | By |
 |---|---|
 | `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
-| A read written in a component or hook body (including `memo` and `forwardRef` wrappers and any function with a top-level `return <JSX>`), in a JSX expression, in a `useMemo` callback, a `selector`, a lazy initializer or a `useSyncExternalStore` snapshot, in a same-file function passed by name to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot, to `memo` or `forwardRef`, or to a `selector`, or at module scope. Not a same-file helper that render calls, see A | `no-unsafe-onyx-read` |
+| A read written in a component or hook body (including `memo` and `forwardRef` wrappers and any function with a top-level `return <JSX>`), in a JSX expression, in a `useMemo` callback, a `selector`, a lazy initializer or a `useSyncExternalStore` snapshot, in a same-file function passed by name to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot, to `memo` or `forwardRef`, or to a `selector`, in a same-file helper that render or module scope calls, or at module scope. Not a helper imported from another file, see A | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
-| An inline `eslint-disable` that covers `no-unsafe-onyx-read`, named or blanket, or one over a runtime OnyxUtils import | `scripts/checkOnyxLintBypass.ts` |
-| An `eslint-disable` of `no-onyx-get-snapshot-key` with no reason after `--`, or in block form | `scripts/checkOnyxLintDisableReason.ts` |
+| An inline `eslint-disable` that covers `no-unsafe-onyx-read`, named or blanket, or one over a runtime OnyxUtils import, in any linted file outside `tests/` | `scripts/checkOnyxLintBypass.ts` |
+| An `eslint-disable` of `no-onyx-get-snapshot-key` with a reason under 12 letters or digits after `--` or in block form, in any linted file outside `tests/` | `scripts/checkOnyxLintDisableReason.ts` |
 | A missing `await` whose value is then used | `tsc` |
 
-A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script only checks that one exists. Judge its content under E1. The key `${ONYXKEYS.COLLECTION.REPORT}${id}`, inline or through a const, passes `no-onyx-get-snapshot-key` without a disable when `id` is a same-file `const` bound to `ONYXKEYS.CONCIERGE_REPORT_ID` by `await Onyx.get(...)`, `const [id] = useOnyx(...)` with no `selector`, or the matching slot of `Onyx.multiGet(...)`. That read needs no E1 review, and A through D still apply to it.
+A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script checks only that it holds at least 12 letters or digits. Judge its content under E1. The key `${ONYXKEYS.COLLECTION.REPORT}${id}`, inline or through a const, passes `no-onyx-get-snapshot-key` without a disable when `id` is a same-file `const` bound to `ONYXKEYS.CONCIERGE_REPORT_ID` by `await Onyx.get(...)`, `const [id] = useOnyx(...)` with no `selector`, or the matching slot of `Onyx.multiGet(...)`. That read needs no E1 review, and A through D still apply to it.
 
 What's left crosses a file boundary, depends on write ordering, only shows in the diff, or happens after the read.
 
-Mutating a read result writes the cache, since the value is the cached object. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here.
+Mutating a read result writes the cache, since a single-key read returns the cached object and a collection read returns the cached members. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here.
 
-**A. Position.** Render reaches a read wherever it's written. Lint counts a function as a render body when it's named like a component or hook, has a top-level `return <JSX>`, is wrapped in `memo` or `forwardRef`, or is passed to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot or a `selector` option, inline or by name. It misses a helper that a component or hook calls from render. This holds even in the same file. It also misses a helper that returns JSX from inside an `if` or `switch`, and a function passed to a child that calls it during render. When one of these helpers is `async`, `tsc` catches it only where the Promise lands in a slot typed `ReactElement`, such as `renderItem`; a JSX child or a `render*` prop typed `ReactNode` accepts a Promise, so check for a type error before relying on it.
+**A. Position.** Render reaches a read wherever it's written. Lint counts a function as a render body when it's named like a component or hook, has a top-level `return <JSX>`, is wrapped in `memo` or `forwardRef`, or is passed to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot or a `selector` option, inline or by name. It follows a helper the render body calls in the same file, through aliases and `useCallback`, but misses one imported from another file. It also misses a helper that returns JSX from inside an `if` or `switch`, a component passed inline to any call other than `memo` or `forwardRef` (such as a HOC), and a function passed to a child that calls it during render. When one of these helpers is `async`, `tsc` catches it only where the Promise lands in a slot typed `ReactElement`, such as `renderItem`; a JSX child or a `render*` prop typed `ReactNode` accepts a Promise, so check for a type error before relying on it.
 
 **B. Tick.** Awaiting a read doesn't wait for an earlier write. `Onyx.get` captures the cached value when it's called, and `merge` and `update` apply to the cache later, so a read queued behind them sees the old value. `set` lands at once today, but don't rely on it: await the write, or read first. A derived key (`ONYXKEYS.DERIVED.*`) is recomputed on a microtask after its source changes, so a read in the same synchronous stretch returns the old derived value, even after a `set` that already updated the source. Read a derived key only before writing its sources.
 
@@ -41,11 +41,12 @@ Mutating a read result writes the cache, since the value is the cached object. `
 **A1. A hook calls a reading helper from render.**
 
 ```ts
-// src/hooks/useCurrentUserEmail.ts
-async function getCurrentUserEmail() {
-    return (await Onyx.get(ONYXKEYS.SESSION))?.email; // fine on its own
+// src/hooks/useCurrentUserEmail/getCurrentUserEmail.ts
+export default async function getCurrentUserEmail() {
+    return (await Onyx.get(ONYXKEYS.SESSION))?.email; // fine on its own, and lint only sees this file
 }
 
+// src/hooks/useCurrentUserEmail/index.ts
 function useCurrentUserEmail() {
     return getCurrentUserEmail(); // render gets a Promise, and tsc accepts it
 }
@@ -66,7 +67,8 @@ async function renderTagBadge(policyID: string) {
     }
 }
 
-<FlatList renderItem={({item}) => renderTagBadge(item.policyID)} />;
+// A render prop typed ReactNode accepts the Promise, and lint sees only a callback passed as a prop
+<Section renderTitle={() => renderTagBadge(policyID)} />;
 ```
 
 **B. A read right after a write.**
@@ -167,16 +169,16 @@ return <Text>Current theme: {theme}</Text>;
 
 **DO NOT flag if:**
 
-- The read sits in an event handler or `useCallback` body that render doesn't invoke, and the reading function isn't exported, isn't a render body by A2, and isn't passed as a render callback
+- The read sits in an event handler or `useCallback` body that render doesn't invoke, the reading function isn't exported, isn't a render body by A2, and isn't passed as a render callback, and no B, C, D or E item applies
 - The prop holding the reader is named `on*` or `handle*`, and every receiver attaches it to an event or calls it from a handler. A receiver that calls it from an effect is C1 regardless of the name
 - The value only reaches a handler argument or a request field and is never rendered
 - The receiver only registers the handler for an event (an `on*` prop, `addEventListener`, `useKeyboardShortcut`), even if the handler is in an effect's dependency array
 - The removed `useOnyx` value appears nowhere in the diff except the converted call's arguments
-- The value is meant as a snapshot of the event, and nothing downstream expects it to update
+- The value is meant as a point-in-time value taken at the event, and nothing downstream expects it to update
 - The write is awaited, or the read runs in its `.then`, and the read key isn't derived from the written one
 - (B only) The read sits in a deliberate deferral: a `.then`, a timer, `runAfterTransitions`, `runAfterInteractions`, or a callback passed to an async API. Don't suggest hoisting it above the deferral, since that pins the value to the moment before the wait. A `.then` chained on the read itself is not a deferral, and a deferral never excuses an A, C or D finding
 - The write and the read are in exclusive branches, or the write's branch returns first
-- The keys differ and the read key isn't derived from the written one
+- The keys differ, and the read key isn't derived from the written one and isn't a member of the written collection
 
 **Search Patterns** (hints for reviewers):
 

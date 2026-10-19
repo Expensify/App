@@ -17,22 +17,15 @@ const READ_METHODS = new Set([READ_METHOD, MULTI_READ_METHOD]);
 
 const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
 
+// This module lives at eslint-plugin-local-rules/utils/, so the repo root is two levels up. Resolving it from the module
+// rather than process.cwd() keeps the rules working when ESLint runs from an editor or a parent workspace. The Jest
+// transformer compiles this file to CommonJS and turns `import.meta` into an empty object, hence the __dirname fallback.
+const RULES_UTILS_DIR = import.meta.dirname ?? __dirname;
+
 function findRepoRoot() {
-    let current = path.resolve(process.cwd());
+    const root = path.resolve(RULES_UTILS_DIR, '../..');
 
-    while (true) {
-        if (fs.existsSync(path.join(current, SNAPSHOT_KEYS_SOURCE))) {
-            return current;
-        }
-
-        const parent = path.dirname(current);
-
-        if (parent === current) {
-            return null;
-        }
-
-        current = parent;
-    }
+    return fs.existsSync(path.join(root, SNAPSHOT_KEYS_SOURCE)) ? root : null;
 }
 
 const REPO_ROOT = findRepoRoot();
@@ -84,7 +77,7 @@ function getVariableByName(scope, variableName) {
     let currentScope = scope;
 
     while (currentScope) {
-        const variable = currentScope.variables.find((scopeVariable) => scopeVariable.name === variableName);
+        const variable = currentScope.set.get(variableName);
 
         if (variable) {
             return variable;
@@ -96,9 +89,36 @@ function getVariableByName(scope, variableName) {
     return null;
 }
 
+function resolveVariable(identifier, sourceCode) {
+    return getVariableByName(sourceCode.getScope(identifier), identifier.name);
+}
+
+function getDeclaredVariable(declaration, name, sourceCode) {
+    return sourceCode.getDeclaredVariables(declaration).find((declaredVariable) => declaredVariable.name === name) ?? null;
+}
+
+// The single `const` (or, unless `constOnly`, `let`/`var`) definition of a variable, or null
+function getSingleVariableDefinition(variable, constOnly) {
+    if (variable?.defs.length !== 1) {
+        return null;
+    }
+
+    const definition = variable.defs.at(0);
+
+    if (definition.type !== 'Variable' || (constOnly && definition.parent?.kind !== 'const')) {
+        return null;
+    }
+
+    return definition;
+}
+
+function isImportFrom(definition, isSource) {
+    return definition.type === 'ImportBinding' && definition.parent?.type === 'ImportDeclaration' && isSource(definition.parent.source.value);
+}
+
 // Resolves `identifier` from its own scope, so a shadowed name in an outer declaration is never confused with the inner one
 function getConstInitializer(identifier, sourceCode) {
-    const variable = getVariableByName(sourceCode.getScope(identifier), identifier.name);
+    const variable = resolveVariable(identifier, sourceCode);
 
     if (variable?.defs.length !== 1) {
         return null;
@@ -115,9 +135,9 @@ function getConstInitializer(identifier, sourceCode) {
 
 // The ONYXKEYS root must be the import of src/ONYXKEYS, not a local object or another module's export under the same name
 function isOnyxKeysImport(identifier, sourceCode) {
-    const variable = getVariableByName(sourceCode.getScope(identifier), identifier.name);
+    const variable = resolveVariable(identifier, sourceCode);
 
-    return !variable || variable.defs.every((definition) => definition.type === 'ImportBinding' && ONYXKEYS_MODULE_SOURCE.test(definition.parent.source.value));
+    return !variable || variable.defs.every((definition) => isImportFrom(definition, (source) => ONYXKEYS_MODULE_SOURCE.test(source)));
 }
 
 function getOnyxKeyPath(node, sourceCode, seen = new Set()) {
@@ -180,7 +200,7 @@ function getRepoRelativePath(filename) {
 // True when every use of the const is an argument of a call `isAllowedCall` accepts, so nothing like `keys.push()`,
 // `keys[0] = x` or a helper that mutates its argument could have changed the elements
 function isOnlyPassedTo(identifier, sourceCode, isAllowedCall) {
-    const variable = getVariableByName(sourceCode.getScope(identifier), identifier.name);
+    const variable = resolveVariable(identifier, sourceCode);
 
     // An exported const is visible to every importer, which this file cannot see
     if (!variable || variable.defs.some((definition) => definition.parent?.parent?.type === 'ExportNamedDeclaration')) {
@@ -227,136 +247,142 @@ function getKeyListElements(node, sourceCode, isAllowedCall, seen = new Set()) {
 }
 
 /**
- * Tracks the Onyx default import and the Onyx.get / Onyx.multiGet aliases in one file, so every rule that inspects Onyx
- * reads recognizes the same calls. Spread `visitors` into the rule's visitor object and call `getCalledReadMethod` with a
- * CallExpression callee to learn which read method it invokes, if any.
+ * Resolves, on demand, whether a callee is `Onyx.get` or `Onyx.multiGet` from `react-native-onyx`, through any chain of
+ * aliases in the file: `import O from 'react-native-onyx'`, `const api = Onyx`, `const {get: read} = Onyx`,
+ * `const read = Onyx.get`, with TS casts unwrapped at every step. Resolution walks variable definitions instead of visitor
+ * order, so an alias declared after its first use is still recognized. With `constOnly`, an alias bound by `let` or `var`
+ * does not count, which the Concierge proof needs since such a binding could be reassigned.
  */
 function createOnyxReadTracker(sourceCode) {
-    const onyxImportBindings = new WeakSet();
-    const readAliases = new WeakMap();
+    const memo = new Map();
 
-    function getDeclaredVariable(node, bindingName) {
-        return sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
+    function isOnyxModuleSource(source) {
+        return source === ONYX_MODULE;
     }
 
-    function trackImportBinding(node, bindingName) {
-        const variable = getDeclaredVariable(node, bindingName);
+    // One slot per question (object or read method) and per strictness, so the two never return each other's answer
+    function memoized(variable, question, constOnly, compute) {
+        const key = `${question}:${constOnly ? 'const' : 'any'}`;
+        let entry = memo.get(variable);
 
-        if (variable) {
-            onyxImportBindings.add(variable);
+        if (!entry) {
+            entry = {};
+            memo.set(variable, entry);
         }
-    }
 
-    function trackReadAlias(node, bindingName, readMethod) {
-        const variable = getDeclaredVariable(node, bindingName);
-
-        if (variable) {
-            readAliases.set(variable, readMethod);
+        if (!(key in entry)) {
+            // A self-referential chain resolves to "not Onyx" while it is being computed
+            entry[key] = null;
+            entry[key] = compute();
         }
+
+        return entry[key];
     }
 
-    function resolveVariable(identifier) {
-        return getVariableByName(sourceCode.getScope(identifier), identifier.name);
+    // True when `identifier` is bound to the Onyx default or namespace import, directly or through aliases
+    function isOnyxObject(identifier, constOnly) {
+        const variable = resolveVariable(identifier, sourceCode);
+
+        if (!variable) {
+            return false;
+        }
+
+        return !!memoized(variable, 'object', constOnly, () => {
+            if (variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isOnyxModuleSource)) {
+                const specifier = variable.defs.at(0).node;
+                return specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier';
+            }
+
+            const definition = getSingleVariableDefinition(variable, constOnly);
+            const init = definition ? unwrapTypeOnlyExpressions(definition.node.init) : null;
+
+            return definition?.node.id.type === 'Identifier' && init?.type === 'Identifier' && isOnyxObject(init, constOnly);
+        });
     }
 
-    function getOnyxReadMethod(node) {
-        if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier') {
+    // The read method a member access `Onyx.get` / `api['multiGet']` names, or null
+    function getMemberReadMethod(node, constOnly) {
+        const member = unwrapTypeOnlyExpressions(node);
+
+        if (member?.type !== 'MemberExpression') {
             return null;
         }
 
-        const propertyName = getStaticPropertyName(node);
+        const propertyName = getStaticPropertyName(member);
+        const object = unwrapTypeOnlyExpressions(member.object);
 
-        if (!READ_METHODS.has(propertyName)) {
+        return READ_METHODS.has(propertyName) && object?.type === 'Identifier' && isOnyxObject(object, constOnly) ? propertyName : null;
+    }
+
+    // The read method an identifier is bound to through `const read = Onyx.get`, `const read2 = read` or `const {get: read} = Onyx`, or null
+    function getIdentifierReadMethod(identifier, constOnly) {
+        const variable = resolveVariable(identifier, sourceCode);
+        const definition = getSingleVariableDefinition(variable, constOnly);
+
+        if (!definition) {
             return null;
         }
 
-        const objectVariable = resolveVariable(node.object);
-        return !!objectVariable && onyxImportBindings.has(objectVariable) ? propertyName : null;
+        return memoized(variable, 'method', constOnly, () => {
+            const {id, init} = definition.node;
+
+            if (id.type === 'Identifier') {
+                const value = unwrapTypeOnlyExpressions(init);
+
+                // `const read2 = read` follows the alias; anything else must be the member access itself
+                return value?.type === 'Identifier' ? getIdentifierReadMethod(value, constOnly) : getMemberReadMethod(value, constOnly);
+            }
+
+            const source = unwrapTypeOnlyExpressions(init);
+
+            if (id.type !== 'ObjectPattern' || source?.type !== 'Identifier' || !isOnyxObject(source, constOnly)) {
+                return null;
+            }
+
+            const property = id.properties.find((candidate) => candidate.type === 'Property' && candidate.value.type === 'Identifier' && candidate.value.name === identifier.name);
+            const keyName = property ? getStaticName(property.key, property.computed) : null;
+
+            return READ_METHODS.has(keyName) ? keyName : null;
+        });
     }
 
-    function getCalledReadMethod(callee) {
-        const readMethod = getOnyxReadMethod(callee);
+    /**
+     * The Onyx read method `callee` invokes (`get` or `multiGet`), or null. Pass `{constOnly: true}` to reject aliases
+     * bound by `let` or `var`.
+     */
+    function getCalledReadMethod(callee, {constOnly = false} = {}) {
+        const current = unwrapTypeOnlyExpressions(callee);
 
-        if (readMethod) {
-            return readMethod;
+        if (current?.type === 'Identifier') {
+            return getIdentifierReadMethod(current, constOnly);
         }
 
-        const calleeVariable = callee.type === 'Identifier' ? resolveVariable(callee) : null;
-
-        return calleeVariable ? (readAliases.get(calleeVariable) ?? null) : null;
+        return getMemberReadMethod(current, constOnly);
     }
 
-    const visitors = {
-        ImportDeclaration(node) {
-            if (node.source.value !== ONYX_MODULE) {
-                return;
-            }
+    /** The import specifier node `identifier` is bound to when it comes from a module `isSource` accepts, or null. */
+    function getImportSpecifier(identifier, isSource) {
+        const variable = resolveVariable(identifier, sourceCode);
 
-            for (const specifier of node.specifiers) {
-                if (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier') {
-                    trackImportBinding(node, specifier.local.name);
-                }
-            }
-        },
-        VariableDeclarator(node) {
-            // A `let` or `var` alias can be reassigned to something that is not Onyx, so only a const counts
-            if (node.parent?.kind !== 'const') {
-                return;
-            }
+        return !!variable && variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isSource) ? variable.defs.at(0).node : null;
+    }
 
-            if (node.id.type === 'ObjectPattern' && node.init?.type === 'Identifier') {
-                const initVariable = resolveVariable(node.init);
-
-                if (!initVariable || !onyxImportBindings.has(initVariable)) {
-                    return;
-                }
-
-                for (const property of node.id.properties) {
-                    if (property.type !== 'Property' || property.value.type !== 'Identifier') {
-                        continue;
-                    }
-
-                    const keyName = getStaticName(property.key, property.computed);
-
-                    if (READ_METHODS.has(keyName)) {
-                        trackReadAlias(node, property.value.name, keyName);
-                    }
-                }
-                return;
-            }
-
-            if (node.id.type !== 'Identifier') {
-                return;
-            }
-
-            if (node.init?.type === 'Identifier') {
-                const aliasedVariable = resolveVariable(node.init);
-
-                if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
-                    trackImportBinding(node, node.id.name);
-                }
-            }
-
-            const readMethod = getOnyxReadMethod(node.init);
-
-            if (readMethod) {
-                trackReadAlias(node, node.id.name, readMethod);
-            }
-        },
-    };
-
-    return {visitors, getCalledReadMethod};
+    return {getCalledReadMethod, getImportSpecifier};
 }
 
 export {
+    ONYX_MODULE,
     ONYXKEYS_ROOT,
     REPO_ROOT,
     SNAPSHOT_KEYS_SOURCE,
     READ_METHOD,
     MULTI_READ_METHOD,
+    TYPE_ONLY_EXPRESSIONS,
     getStaticName,
     unwrapTypeOnlyExpressions,
-    getVariableByName,
+    resolveVariable,
+    getDeclaredVariable,
+    getSingleVariableDefinition,
     getConstInitializer,
     getOnyxKeyPath,
     getCalleeName,

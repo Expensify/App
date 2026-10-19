@@ -1,6 +1,6 @@
 // Node ESM needs the extension to load a rule's helper module
 // eslint-disable-next-line import/extensions
-import {createOnyxReadTracker, getCalleeName, getRepoRelativePath, getStaticName, matchesCalleeName} from './utils/onyxReadUtils.js';
+import {createOnyxReadTracker, getCalleeName, getDeclaredVariable, getRepoRelativePath, getStaticName, matchesCalleeName, TYPE_ONLY_EXPRESSIONS} from './utils/onyxReadUtils.js';
 
 const name = 'no-unsafe-onyx-read';
 
@@ -8,11 +8,29 @@ const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/',
 
 const READ_ALLOWED_FILES = new Set([]);
 
-const EFFECT_HOOK_NAMES = new Set(['useEffect', 'useLayoutEffect', 'useInsertionEffect', 'useFocusEffect']);
+// Hooks whose callback React runs at commit, with the argument index that callback sits at
+const EFFECT_HOOK_CALLBACK_INDICES = new Map([
+    ['useEffect', 0],
+    ['useLayoutEffect', 0],
+    ['useInsertionEffect', 0],
+    ['useFocusEffect', 0],
+    ['useImperativeHandle', 1],
+]);
 
-const CALLBACK_HOOK_NAMES = new Set(['useCallback']);
+const CALLBACK_HOOK_NAMES = new Set(['useCallback', 'useEffectEvent']);
 
-const EFFECT_CONTINUATION_NAMES = new Set(['then', 'catch', 'finally', 'setTimeout', 'requestAnimationFrame', 'queueMicrotask', 'runAfterInteractions', 'runAfterTransitions']);
+const EFFECT_CONTINUATION_NAMES = new Set([
+    'then',
+    'catch',
+    'finally',
+    'setTimeout',
+    'setInterval',
+    'requestAnimationFrame',
+    'requestIdleCallback',
+    'queueMicrotask',
+    'runAfterInteractions',
+    'runAfterTransitions',
+]);
 
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
@@ -46,8 +64,8 @@ const meta = {
     },
     schema: [],
     messages: {
-        noOnyxGetInRender:
-            'Do not read Onyx during render. Onyx.get() and Onyx.multiGet() are one-shot reads that never subscribes, so a value they return while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
+        noOnyxReadInRender:
+            'Do not read Onyx during render. Onyx.get() and Onyx.multiGet() are one-shot reads that never subscribe, so a value they return while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
             'Use useOnyx() for anything the component renders. Reserve Onyx.get() and Onyx.multiGet() for code that runs on an event: event handlers and useCallback bodies.',
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
@@ -89,6 +107,27 @@ function getFunctionName(functionNode, parent) {
     return null;
 }
 
+// JSX written directly, or behind `cond ? <A /> : null`, `cond && <A />` or a TS wrapper
+function isJSXExpression(node) {
+    if (!node) {
+        return false;
+    }
+
+    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+        return true;
+    }
+
+    if (node.type === 'ConditionalExpression') {
+        return isJSXExpression(node.consequent) || isJSXExpression(node.alternate);
+    }
+
+    if (node.type === 'LogicalExpression') {
+        return isJSXExpression(node.left) || isJSXExpression(node.right);
+    }
+
+    return TYPE_ONLY_EXPRESSIONS.has(node.type) && isJSXExpression(node.expression);
+}
+
 function returnsJSX(functionNode) {
     const body = functionNode.body;
 
@@ -96,15 +135,11 @@ function returnsJSX(functionNode) {
         return false;
     }
 
-    if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
-        return true;
-    }
-
     if (body.type !== 'BlockStatement') {
-        return false;
+        return isJSXExpression(body);
     }
 
-    return body.body.some((statement) => statement.type === 'ReturnStatement' && (statement.argument?.type === 'JSXElement' || statement.argument?.type === 'JSXFragment'));
+    return body.body.some((statement) => statement.type === 'ReturnStatement' && isJSXExpression(statement.argument));
 }
 
 function getRenderTimeArgumentIndices(callee) {
@@ -113,10 +148,8 @@ function getRenderTimeArgumentIndices(callee) {
     return calleeName ? (RENDER_TIME_HOOK_ARGUMENTS.get(calleeName) ?? null) : null;
 }
 
-function isHookOption(property) {
-    const call = property.parent?.parent;
-
-    if (call?.type !== 'CallExpression' || !call.arguments.includes(property.parent)) {
+function isHookArgument(node, call) {
+    if (call?.type !== 'CallExpression' || !call.arguments.includes(node)) {
         return false;
     }
 
@@ -125,10 +158,36 @@ function isHookOption(property) {
     return !!calleeName && isHookName(calleeName);
 }
 
-function isRenderTimeUsage(identifier) {
+// `useOnyx(key, {selector})` inline, or `const options = {selector}; useOnyx(key, options)`
+function isHookOption(property, sourceCode) {
+    const options = property.parent;
+
+    if (isHookArgument(options, options?.parent)) {
+        return true;
+    }
+
+    // `const options = {selector} as const` wraps the object before the declarator
+    let holder = options;
+
+    while (holder?.parent && TYPE_ONLY_EXPRESSIONS.has(holder.parent.type)) {
+        holder = holder.parent;
+    }
+
+    const declarator = holder?.parent;
+
+    if (declarator?.type !== 'VariableDeclarator' || declarator.init !== holder || declarator.id.type !== 'Identifier') {
+        return false;
+    }
+
+    const variable = getDeclaredVariable(declarator, declarator.id.name, sourceCode);
+
+    return !!variable && variable.references.some((reference) => isHookArgument(reference.identifier, reference.identifier.parent));
+}
+
+function isRenderTimeUsage(identifier, sourceCode) {
     const parent = identifier.parent;
 
-    if (parent?.type === 'Property' && parent.value === identifier && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
+    if (parent?.type === 'Property' && parent.value === identifier && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent, sourceCode)) {
         return true;
     }
 
@@ -151,47 +210,78 @@ function getFunctionBinding(functionNode, parent) {
     return null;
 }
 
-function isReferencedAtRenderTime(declaration, boundName, sourceCode, seen = new Set()) {
-    const variable = sourceCode.getDeclaredVariables(declaration).find((declaredVariable) => declaredVariable.name === boundName);
+/**
+ * RENDER or MODULE_SCOPE when some reference to the bound function runs it there (a render slot, a call written in a
+ * render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
+ * classifyPosition, which this recursion feeds back into for the call sites.
+ */
+function getEscalatedPosition(declaration, boundName, sourceCode, seen, classifyCall) {
+    const variable = getDeclaredVariable(declaration, boundName, sourceCode);
 
     if (!variable || seen.has(variable)) {
-        return false;
+        return null;
     }
 
     seen.add(variable);
 
-    return variable.references.some((reference) => {
+    for (const reference of variable.references) {
         const identifier = reference.identifier;
 
-        if (isRenderTimeUsage(identifier)) {
-            return true;
+        if (isRenderTimeUsage(identifier, sourceCode)) {
+            return RENDER;
         }
 
         const parent = identifier.parent;
 
-        if (parent?.type !== 'VariableDeclarator' || parent.init !== identifier || parent.id.type !== 'Identifier') {
-            return false;
+        // `const value = helper();` written in a render body or at module scope runs the helper right there
+        if (parent?.type === 'CallExpression' && parent.callee === identifier) {
+            const position = classifyCall(parent);
+
+            if (position === RENDER || position === MODULE_SCOPE) {
+                return position;
+            }
+
+            continue;
         }
 
-        return isReferencedAtRenderTime(parent, parent.id.name, sourceCode, seen);
-    });
+        if (parent?.type === 'VariableDeclarator' && parent.init === identifier && parent.id.type === 'Identifier') {
+            const position = getEscalatedPosition(parent, parent.id.name, sourceCode, seen, classifyCall);
+
+            if (position) {
+                return position;
+            }
+        }
+    }
+
+    return null;
+}
+
+function isEffectHookCallbackArgument(call, argument) {
+    const calleeName = getCalleeName(call.callee);
+
+    return !!calleeName && EFFECT_HOOK_CALLBACK_INDICES.get(calleeName) === call.arguments.indexOf(argument);
 }
 
 function isEffectCallback(functionNode, parent, grandparent) {
-    if (parent?.type !== 'CallExpression' || parent.arguments.at(0) !== functionNode) {
+    if (parent?.type !== 'CallExpression' || !parent.arguments.includes(functionNode)) {
         return false;
     }
 
-    if (matchesCalleeName(parent.callee, EFFECT_HOOK_NAMES)) {
+    if (isEffectHookCallbackArgument(parent, functionNode)) {
         return true;
     }
 
     return (
+        parent.arguments.at(0) === functionNode &&
         matchesCalleeName(parent.callee, CALLBACK_HOOK_NAMES) &&
         grandparent?.type === 'CallExpression' &&
-        grandparent.arguments.at(0) === parent &&
-        matchesCalleeName(grandparent.callee, EFFECT_HOOK_NAMES)
+        isEffectHookCallbackArgument(grandparent, parent)
     );
+}
+
+// A function the enclosing one returns: `return () => {...}` or an arrow whose body is the function
+function isReturnedFunction(functionNode, parent) {
+    return parent?.type === 'ReturnStatement' || (isFunctionNode(parent) && parent.body === functionNode);
 }
 
 function getHandlerBinding(functionNode, parent, grandparent) {
@@ -236,7 +326,7 @@ function runsWithEnclosingCode(functionNode, parent) {
 
 function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
     function isHandlerInvokedFromEffect(binding) {
-        const variable = sourceCode.getDeclaredVariables(binding.declaration).find((declaredVariable) => declaredVariable.name === binding.name);
+        const variable = getDeclaredVariable(binding.declaration, binding.name, sourceCode);
 
         if (!variable || seen.has(variable)) {
             return false;
@@ -252,8 +342,12 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
             const identifier = reference.identifier;
             const parent = identifier.parent;
 
-            if (parent?.type === 'CallExpression' && parent.arguments.at(0) === identifier && isEffectCallback(identifier, parent, parent.parent)) {
+            if (parent?.type === 'CallExpression' && parent.arguments.includes(identifier) && isEffectCallback(identifier, parent, parent.parent)) {
                 return true;
+            }
+
+            if (parent?.type === 'VariableDeclarator' && parent.init === identifier && parent.id.type === 'Identifier') {
+                return isHandlerInvokedFromEffect({declaration: parent, name: parent.id.name});
             }
 
             const isCalled = parent?.type === 'CallExpression' && parent.callee === identifier;
@@ -288,6 +382,14 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
             return isHandlerInvokedFromEffect(binding);
         }
 
+        // A function returned from an effect callback is its cleanup, which React runs from the effect too; a function
+        // returned from anything else is a value whose call site decides
+        if (isReturnedFunction(ancestor, parent)) {
+            const enclosingIndex = ancestors.findLastIndex((candidate, candidateIndex) => candidateIndex < index && isFunctionNode(candidate));
+
+            return enclosingIndex !== -1 && isEffectCallback(ancestors[enclosingIndex], ancestors[enclosingIndex - 1] ?? null, ancestors[enclosingIndex - 2] ?? null);
+        }
+
         if (!runsWithEnclosingCode(ancestor, parent)) {
             return false;
         }
@@ -306,8 +408,9 @@ function isReadAllowedInFile(filename) {
     return READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory)) || READ_ALLOWED_FILES.has(relativePath);
 }
 
-function classifyFunctionBoundary(functionNode, parent, sourceCode) {
-    if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
+// `classifyCall` comes from classifyPosition, which this function and getEscalatedPosition recurse into for a helper's call sites
+function classifyFunctionBoundary(functionNode, parent, grandparent, sourceCode, seen, classifyCall) {
+    if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent, sourceCode)) {
         return RENDER;
     }
 
@@ -333,14 +436,18 @@ function classifyFunctionBoundary(functionNode, parent, sourceCode) {
                 return SYNCHRONOUS;
             }
 
-            return DEFERRED;
+            // `const read = useCallback(() => Onyx.get(key), []); read();` in a render body
+            const handler = getHandlerBinding(functionNode, parent, grandparent);
+
+            return (handler && getEscalatedPosition(handler.declaration, handler.name, sourceCode, seen, classifyCall)) ?? DEFERRED;
         }
     }
 
     const binding = getFunctionBinding(functionNode, parent);
+    const escalated = binding ? getEscalatedPosition(binding.declaration, binding.name, sourceCode, seen, classifyCall) : null;
 
-    if (binding && isReferencedAtRenderTime(binding.declaration, binding.name, sourceCode)) {
-        return RENDER;
+    if (escalated) {
+        return escalated;
     }
 
     const functionName = getFunctionName(functionNode, parent);
@@ -352,7 +459,13 @@ function classifyFunctionBoundary(functionNode, parent, sourceCode) {
     return returnsJSX(functionNode) ? RENDER : DEFERRED;
 }
 
-function classifyPosition(ancestors, sourceCode) {
+/**
+ * Where a read at the innermost of `ancestors` runs. With `skipEffectCheck`, a deferred position is reported as EVENT
+ * without looking for an effect: the helper call sites only need to know whether they are RENDER or MODULE_SCOPE, and
+ * the effect search would otherwise repeat for every call site.
+ */
+function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectCheck = false) {
+    const classifyCall = (call) => classifyPosition(sourceCode.getAncestors(call), sourceCode, seen, true);
     let sawJSXExpression = false;
 
     for (let index = ancestors.length - 1; index >= 0; index--) {
@@ -371,14 +484,14 @@ function classifyPosition(ancestors, sourceCode) {
             return RENDER;
         }
 
-        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, sourceCode);
+        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, ancestors[index - 2] ?? null, sourceCode, seen, classifyCall);
 
         if (disposition === DEFERRED) {
-            return isReachedFromEffect(ancestors, index, sourceCode, new Set()) ? EFFECT : EVENT;
+            return !skipEffectCheck && isReachedFromEffect(ancestors, index, sourceCode, new Set()) ? EFFECT : EVENT;
         }
 
-        if (disposition === RENDER) {
-            return RENDER;
+        if (disposition === RENDER || disposition === MODULE_SCOPE) {
+            return disposition;
         }
     }
 
@@ -388,10 +501,9 @@ function classifyPosition(ancestors, sourceCode) {
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
-    const {visitors, getCalledReadMethod} = createOnyxReadTracker(sourceCode);
+    const {getCalledReadMethod} = createOnyxReadTracker(sourceCode);
 
     return {
-        ...visitors,
         CallExpression(node) {
             if (!getCalledReadMethod(node.callee)) {
                 return;
@@ -410,7 +522,7 @@ function create(context) {
             }
 
             if (position === RENDER) {
-                context.report({node, messageId: 'noOnyxGetInRender'});
+                context.report({node, messageId: 'noOnyxReadInRender'});
                 return;
             }
 

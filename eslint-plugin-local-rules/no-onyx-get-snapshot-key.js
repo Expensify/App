@@ -8,12 +8,14 @@ import {
     getConstInitializer,
     getKeyListElements,
     getOnyxKeyPath,
+    getSingleVariableDefinition,
     getStaticName,
-    getVariableByName,
     MULTI_READ_METHOD,
+    ONYX_MODULE,
     ONYXKEYS_ROOT,
     READ_METHOD,
     REPO_ROOT,
+    resolveVariable,
     SNAPSHOT_KEYS_SOURCE,
     unwrapTypeOnlyExpressions,
 } from './utils/onyxReadUtils.js';
@@ -23,12 +25,10 @@ const name = 'no-onyx-get-snapshot-key';
 
 const SNAPSHOT_KEYS_DECLARATION = /SEARCH_SNAPSHOT_ONYX_KEYS:\s*\[([^\]]*)\]/;
 
-// The Concierge chat is never part of a Search snapshot, so a report key provably built from this ID always reads live data
+// A read of the Concierge chat always wants the live report, so a report key provably built from this ID may read live data
 const CONCIERGE_REPORT_ID_KEY_PATH = 'CONCIERGE_REPORT_ID';
 
 const REPORT_COLLECTION_KEY_PATH = 'COLLECTION.REPORT';
-
-const ONYX_MODULE = 'react-native-onyx';
 
 const USE_ONYX_HOOK_SOURCE = /(^|\/)useOnyx$/;
 
@@ -36,6 +36,8 @@ const USE_ONYX_EXPORT_NAME = 'useOnyx';
 
 const SELECTOR_OPTION_NAME = 'selector';
 
+// Read once at load. ESLint's result cache is keyed on the linted file and the config, not on this list, so after
+// SEARCH_SNAPSHOT_ONYX_KEYS changes a cached pass survives until that file or the config changes; lint with --no-cache then.
 function resolveRestrictedKeyPaths() {
     if (!REPO_ROOT) {
         throw new Error(`${name} could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
@@ -67,7 +69,7 @@ const meta = {
     messages: {
         noRestrictedOnyxKey: [
             'Do not read {{keyPath}} with a one-shot Onyx read. src/hooks/useOnyx.ts rewrites this key to snapshot_<hash> inside a SearchScopeProvider subtree, so a component subscribed to it may never have been reading the global key at all. A read here returns live data where the component saw the snapshot, and nothing at the call site can tell the two apart.',
-            'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription. The Concierge chat is never in a snapshot, so a report key built from a const read of ONYXKEYS.CONCIERGE_REPORT_ID in this file is allowed.',
+            'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription. A read of the Concierge chat always wants the live report, so a report key built from a const read of ONYXKEYS.CONCIERGE_REPORT_ID in this file is allowed.',
             DISABLE_GUIDANCE,
         ].join('\n\n'),
         noUnresolvableOnyxKey: [
@@ -115,38 +117,27 @@ function hasSelectorOption(call) {
 
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const {visitors, getCalledReadMethod} = createOnyxReadTracker(sourceCode);
-    const useOnyxBindings = new WeakSet();
+    const {getCalledReadMethod, getImportSpecifier} = createOnyxReadTracker(sourceCode);
 
     function isMultiReadCall(call) {
         return getCalledReadMethod(call.callee) === MULTI_READ_METHOD;
     }
 
-    function trackUseOnyxImport(node) {
-        for (const specifier of node.specifiers) {
-            const isHookModuleDefault = specifier.type === 'ImportDefaultSpecifier' && USE_ONYX_HOOK_SOURCE.test(node.source.value);
-            const isOnyxNamedExport = specifier.type === 'ImportSpecifier' && node.source.value === ONYX_MODULE && getStaticName(specifier.imported, false) === USE_ONYX_EXPORT_NAME;
-
-            if (!isHookModuleDefault && !isOnyxNamedExport) {
-                continue;
-            }
-
-            const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === specifier.local.name);
-
-            if (variable) {
-                useOnyxBindings.add(variable);
-            }
-        }
-    }
-
+    // `import useOnyx from '@hooks/useOnyx'` or `import {useOnyx as x} from 'react-native-onyx'`
     function isUseOnyxCall(call) {
         if (call.callee.type !== 'Identifier') {
             return false;
         }
 
-        const variable = getVariableByName(sourceCode.getScope(call.callee), call.callee.name);
+        const hookModuleSpecifier = getImportSpecifier(call.callee, (source) => USE_ONYX_HOOK_SOURCE.test(source));
 
-        return !!variable && useOnyxBindings.has(variable);
+        if (hookModuleSpecifier) {
+            return hookModuleSpecifier.type === 'ImportDefaultSpecifier';
+        }
+
+        const onyxSpecifier = getImportSpecifier(call.callee, (source) => source === ONYX_MODULE);
+
+        return onyxSpecifier?.type === 'ImportSpecifier' && getStaticName(onyxSpecifier.imported, false) === USE_ONYX_EXPORT_NAME;
     }
 
     // ONYXKEYS.X, directly or through a const. Unlike getOnyxKeyPath it never accepts a template literal, whose leading
@@ -168,8 +159,11 @@ function create(context) {
         return current?.type === 'MemberExpression' ? getOnyxKeyPath(current, sourceCode) : null;
     }
 
+    // The proof follows const aliases only, since a `let` alias of Onyx.get could be reassigned before the read
     function readsConciergeReportID(call) {
-        return call?.type === 'CallExpression' && getCalledReadMethod(call.callee) === READ_METHOD && getMemberKeyPath(call.arguments.at(0)) === CONCIERGE_REPORT_ID_KEY_PATH;
+        return (
+            call?.type === 'CallExpression' && getCalledReadMethod(call.callee, {constOnly: true}) === READ_METHOD && getMemberKeyPath(call.arguments.at(0)) === CONCIERGE_REPORT_ID_KEY_PATH
+        );
     }
 
     // Slot `elementIndex` of a `const [...] = useOnyx(...)` tuple or an awaited Onyx.multiGet() result
@@ -182,7 +176,7 @@ function create(context) {
             return elementIndex === 0 && !hasSelectorOption(call) && getMemberKeyPath(call.arguments.at(0)) === CONCIERGE_REPORT_ID_KEY_PATH;
         }
 
-        if (!isMultiReadCall(call)) {
+        if (getCalledReadMethod(call.callee, {constOnly: true}) !== MULTI_READ_METHOD) {
             return false;
         }
 
@@ -204,15 +198,9 @@ function create(context) {
             return false;
         }
 
-        const variable = getVariableByName(sourceCode.getScope(current), current.name);
+        const definition = getSingleVariableDefinition(resolveVariable(current, sourceCode), true);
 
-        if (variable?.defs.length !== 1) {
-            return false;
-        }
-
-        const definition = variable.defs.at(0);
-
-        if (definition.type !== 'Variable' || definition.parent?.kind !== 'const') {
+        if (!definition) {
             return false;
         }
 
@@ -296,11 +284,6 @@ function create(context) {
     }
 
     return {
-        ...visitors,
-        ImportDeclaration(node) {
-            visitors.ImportDeclaration(node);
-            trackUseOnyxImport(node);
-        },
         CallExpression(node) {
             const readMethod = getCalledReadMethod(node.callee);
 
