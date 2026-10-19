@@ -29,6 +29,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -119,6 +120,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
 
     const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -202,6 +204,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoriesAndTagsHasOutstandingChildTask,
                 setupCategoriesAndTagsParentReportAction,
                 policyHasTags,
+                reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
             });
         },
         [
@@ -221,6 +224,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             policyHasTags,
             canWriteCategories,
             showReadOnlyModal,
+            getReviewWorkspaceSettingsTaskCompletion,
         ],
     );
 
@@ -344,6 +348,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 hasOutstandingChildTask,
                 parentReportAction,
                 isVendorMatchingBetaEnabled,
+                getReviewWorkspaceSettingsTaskCompletion(),
             );
         }
 
@@ -511,6 +516,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoriesAndTagsHasOutstandingChildTask,
                             setupCategoriesAndTagsParentReportAction,
                             policyHasTags,
+                            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
                         });
                     },
                 });
@@ -549,6 +555,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoriesAndTagsHasOutstandingChildTask,
                             setupCategoriesAndTagsParentReportAction,
                             policyHasTags,
+                            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
                         });
                     },
                 });

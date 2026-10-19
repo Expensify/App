@@ -5,11 +5,14 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
+    CreateWorkspaceCategoriesParams,
+    DeleteWorkspaceCategoriesParams,
     EnablePolicyCategoriesParams,
     GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryItemizedReceiptsRequiredParams,
     RemovePolicyCategoryReceiptsRequiredParams,
+    RenameWorkspaceCategoriesParams,
     SetPolicyCategoryApproverParams,
     SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
@@ -18,6 +21,7 @@ import type {
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyShowCategoryGLCodesParams,
+    SetWorkspaceCategoriesEnabledParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
     UpdatePolicyCategoryPayrollCodeParams,
@@ -71,6 +75,7 @@ type CreatePolicyCategoryParams = {
     setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
     setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
     policyHasTags?: boolean;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 type SetWorkspaceCategoryEnabledParams = {
@@ -89,6 +94,7 @@ type SetWorkspaceCategoryEnabledParams = {
     setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
     policyHasTags?: boolean;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 function appendSetupCategoriesOnboardingData(
@@ -227,6 +233,7 @@ function setWorkspaceCategoryEnabled({
     setupCategoriesAndTagsParentReportAction,
     policyHasTags,
     isVendorMatchingBetaEnabled,
+    reviewWorkspaceSettingsTaskData = {},
 }: SetWorkspaceCategoryEnabledParams) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
@@ -318,12 +325,13 @@ function setWorkspaceCategoryEnabled({
         );
     }
 
-    const parameters = {
+    const parameters: SetWorkspaceCategoriesEnabledParams = {
         policyID,
         categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryDescriptionRequired(
@@ -785,6 +793,7 @@ function createPolicyCategory({
     setupCategoriesAndTagsHasOutstandingChildTask,
     setupCategoriesAndTagsParentReportAction,
     policyHasTags,
+    reviewWorkspaceSettingsTaskData = {},
 }: CreatePolicyCategoryParams) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(
@@ -808,12 +817,13 @@ function createPolicyCategory({
             setupCategoriesAndTagsParentReportAction,
         );
     }
-    const parameters = {
+    const parameters: CreateWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 async function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>): Promise<ImportFinalModal> {
@@ -883,7 +893,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
     }
 }
 
-function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}, isVendorMatchingBetaEnabled: boolean | undefined) {
+function renamePolicyCategory(
+    policyData: PolicyData,
+    policyCategory: {oldName: string; newName: string},
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policy = policyData.policy;
     const policyID = policy.id;
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
@@ -1026,14 +1041,15 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
 
     pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, isVendorMatchingBetaEnabled, policyOptimisticData, policyCategoriesOptimisticData);
 
-    const parameters = {
+    const parameters: RenameWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify({
             [policyCategory.oldName]: policyCategory.newName,
         }),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string, policyCategories: PolicyCategories = {}) {
@@ -1388,6 +1404,7 @@ function deleteWorkspaceCategories(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction>,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyID = policyData.policy?.id;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
@@ -1454,12 +1471,13 @@ function deleteWorkspaceCategories(
         parentReportAction,
     );
 
-    const parameters = {
+    const parameters: DeleteWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify(categoryNamesToDelete),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, shouldGoBack = true) {
