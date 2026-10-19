@@ -1,0 +1,6 @@
+# @desc   Press Join on the post-sign-in welcome screen to create the account and enter onboarding.
+# @pre    role="button" label="Join"
+# @post   text="What’s your work email?"
+# @tag    auth
+
+press "role=\"button\" label=\"Join\" || label=\"Join\""
