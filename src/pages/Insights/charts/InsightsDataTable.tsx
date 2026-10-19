@@ -64,7 +64,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                 const changePercentage = hasChange ? formatChangePercentage(primaryValue, comparedValue, preferredLocale) : undefined;
                 const isIncrease = hasChange && primaryValue > comparedValue;
                 const isNewSpend = comparedValue === 0;
-                const changeColor = isIncrease ? theme.danger : theme.successHover;
+                const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
 
                 return (
                     <View
