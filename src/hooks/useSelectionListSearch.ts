@@ -1,6 +1,6 @@
 import type {ListItem} from '@components/SelectionList/types';
 
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop, {shouldMoveInitialSelectionToTop} from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
@@ -22,7 +22,9 @@ function useSelectionListSearch<T extends ListItem & {value: string}>(data: T[],
     if (initialSelectedValues === undefined && data.length > 0) {
         setInitialSelectedValues(data.filter((item) => item.isSelected).map((item) => item.value));
     }
-    const orderedData = moveInitialSelectionToTop(data, initialSelectedValues ?? []);
+    // The values actually pinned to the top, so callers share one source of truth instead of re-deriving the pin.
+    const pinnedValues = shouldMoveInitialSelectionToTop(data.length) ? (initialSelectedValues ?? []) : [];
+    const orderedData = moveInitialSelectionToTop(data, pinnedValues);
     const [searchValue, setSearchValue, filteredData] = useSearchResults(
         orderedData,
         (item, searchInput) => tokenizedSearch([item], searchInput, () => [item.text ?? '', item.value]).length > 0,
@@ -33,6 +35,6 @@ function useSelectionListSearch<T extends ListItem & {value: string}>(data: T[],
         onChangeText: setSearchValue,
         headerMessage: noResultsMessage && searchValue && filteredData.length === 0 ? noResultsMessage : undefined,
     };
-    return {filteredData, textInputOptions};
+    return {filteredData, textInputOptions, pinnedValues};
 }
 export default useSelectionListSearch;

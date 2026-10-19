@@ -53,8 +53,10 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
         isSelected: !defaultCompanyCardVendorID,
     };
     const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
-    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
-    const isSelectionPinnedToTop = vendorOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (filteredVendorOptions.at(0)?.isSelected ?? false);
+    const {filteredData: filteredVendorOptions, textInputOptions, pinnedValues} = useSelectionListSearch(vendorOptions);
+    // Place the clear row below the top vendor only when that vendor is the one the hook actually pinned.
+    const firstVendorValue = filteredVendorOptions.at(0)?.value;
+    const isSelectionPinnedToTop = firstVendorValue !== undefined && pinnedValues.includes(firstVendorValue);
     const data: VendorListItem[] = shouldShowClearOption ? withClearRow(filteredVendorOptions, clearOption, isSelectionPinnedToTop) : filteredVendorOptions;
 
     const headerContent = (

@@ -151,6 +151,40 @@ describe('useSelectionListSearch', () => {
         expect(result.current.filteredData.at(0)?.value).toBe('01');
     });
 
+    it('reports the pinned values so callers share one source of truth', () => {
+        // Given a long list that opened with the 7th item selected
+        const data = buildItems(13, 6);
+
+        // When the hook orders the list
+        const {result} = renderHook(() => useSelectionListSearch(data));
+
+        // Then it reports exactly the value it pinned, so callers do not have to re-derive the pin
+        expect(result.current.pinnedValues).toEqual(['07']);
+    });
+
+    it('reports no pinned values when nothing was selected when the list opened', () => {
+        // Given a long list that opened with nothing selected, then the first row becomes selected (optimistic tap)
+        const {result, rerender} = renderHook((data: Item[]) => useSelectionListSearch(data), {initialProps: buildItems(13, -1)});
+        expect(result.current.pinnedValues).toEqual([]);
+
+        // When the live selection flips to the first row
+        rerender(buildItems(13, 0));
+
+        // Then nothing is reported as pinned, so the caller does not move the clear row under a row that was never pinned
+        expect(result.current.pinnedValues).toEqual([]);
+    });
+
+    it('reports no pinned values for a list below the item-limit threshold', () => {
+        // Given a short list (< item-limit threshold) with a mid-list selection
+        const data = buildItems(8, 3);
+
+        // When the hook orders the list
+        const {result} = renderHook(() => useSelectionListSearch(data));
+
+        // Then nothing is pinned, matching the fact that short lists keep their natural order
+        expect(result.current.pinnedValues).toEqual([]);
+    });
+
     it('clears the no-results message once a search matches again', () => {
         // Given a search that matched nothing
         const data = [buildItem('apple')];
