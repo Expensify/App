@@ -2538,8 +2538,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!transactionEntry) {
                 continue;
             }
+            // Unreported expenses have no report to read the owner from, and imported card expenses also have no money
+            // request action in the snapshot. The cardholder owns them, so read the owner from the card when we have it.
+            const isUnreported = !transactionEntry.reportID || transactionEntry.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const cardID = isUnreported ? (transactionEntry.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])?.cardID : undefined;
+            const cardholderAccountID = cardID ? (cardList?.[cardID]?.accountID ?? nonPersonalAndWorkspaceCards?.[cardID]?.accountID) : undefined;
             const ownerAccountID =
                 transactionEntry.ownerAccountID ??
+                cardholderAccountID ??
                 getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
             if (typeof ownerAccountID === 'number') {
                 moveOwnerAccountIDs.add(ownerAccountID);
