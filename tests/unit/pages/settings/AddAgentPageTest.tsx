@@ -11,6 +11,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AddAgentPage from '@pages/settings/Agents/DynamicAddAgentPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -35,6 +36,16 @@ const mockCreateAgent = jest.fn<{optimisticAccountID: number; avatarURI: string 
         resolveOptimisticPersonalDetail = resolve;
     }),
 }));
+const mockCreateCompanyAgent = jest.fn<{optimisticAccountID: number; avatarURI: string | undefined; optimisticReportID: string; optimisticPersonalDetailPromise: Promise<void>}, unknown[]>(
+    () => ({
+        optimisticAccountID: -123456,
+        avatarURI: undefined,
+        optimisticReportID: OPTIMISTIC_REPORT_ID,
+        optimisticPersonalDetailPromise: new Promise((resolve) => {
+            resolveOptimisticPersonalDetail = resolve;
+        }),
+    }),
+);
 const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
 const mockClearNewAgentTemplate = jest.fn<void, unknown[]>();
@@ -45,6 +56,7 @@ let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
+    createCompanyAgent: (...args: unknown[]) => mockCreateCompanyAgent(...args),
     setNewAgentAvatarPreset: (...args: unknown[]) => mockSetNewAgentAvatarPreset(...args),
     clearNewAgentAvatarDraft: (...args: unknown[]) => mockClearNewAgentAvatarDraft(...args),
     clearNewAgentTemplate: (...args: unknown[]) => mockClearNewAgentTemplate(...args),
@@ -354,16 +366,16 @@ describe('AddAgentPage', () => {
             expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         });
 
-        it('forwards policyID from route params to createAgent', async () => {
+        it('forwards policyID from route params to createCompanyAgent', async () => {
             renderAddAgentPage({policyID: 'POL_42'});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
+            expect(mockCreateCompanyAgent).toHaveBeenCalledWith(OWNER_ACCOUNT_ID, OWNER_LOGIN, 'Reject gambling.', 'POL_42', CONST.POLICY.ROLE.ADMIN, 'Bot', 'bot-avatar--blue');
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(
-                ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS),
+                ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.WORKSPACE_AGENTS.getRoute('POL_42')),
                 expect.anything(),
             );
             expect(getRevealAfterTransition()).toEqual(expect.any(Function));
