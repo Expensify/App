@@ -22,7 +22,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -150,6 +150,12 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const [isLoading, setIsLoading] = useState(true);
     const [hasLoadFailed, setHasLoadFailed] = useState(false);
     const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    // On web the image keeps the onError it was first given, so handleError reads this ref, not the stale state.
+    const hasLoadTimedOutRef = useRef(false);
+    const updateLoadTimedOut = (value: boolean) => {
+        hasLoadTimedOutRef.current = value;
+        setHasLoadTimedOut(value);
+    };
     const [reloadKey, setReloadKey] = useState(0);
 
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
@@ -207,19 +213,22 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed && !hasLoadTimedOut;
 
     const handleError = () => {
+        // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
+        if (hasLoadTimedOutRef.current) {
+            return;
+        }
         setHasLoadFailed(true);
-        setHasLoadTimedOut(false);
         onError?.();
     };
 
     /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
     const handleLoadTimeout = () => {
-        setHasLoadTimedOut(true);
+        updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
     };
@@ -262,7 +271,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
-                                        setHasLoadTimedOut(false);
+                                        updateLoadTimedOut(false);
                                     }}
                                     waitForSession={() => {
                                         // only active lightbox should call this function

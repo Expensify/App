@@ -116,6 +116,21 @@ describe('ImageView (web)', () => {
         expect(onError).not.toHaveBeenCalled();
     });
 
+    it('keeps the timeout notice when a stalled load later errors', () => {
+        // Given a load that already timed out
+        const {onError} = renderImageView();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the transport finally gives up and the image reports an error
+        fireEvent(screen.getByTestId('full-image'), 'error');
+
+        // Then the user still sees the timeout notice, since a slow load is not a missing attachment
+        expect(screen.getByTestId('retry-button')).toBeTruthy();
+        expect(onError).not.toHaveBeenCalled();
+    });
+
     it('hides the spinner when the image fails to load', () => {
         // Given a full-size image that is loading
         const {onError} = renderImageView();

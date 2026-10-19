@@ -149,6 +149,25 @@ describe('ImageWithLoading', () => {
         expect(onError).not.toHaveBeenCalled();
     });
 
+    it('keeps the timeout notice when a stalled load later errors', () => {
+        // Given a load that already timed out
+        const {onError} = renderImage();
+        startLoading();
+        act(() => {
+            jest.advanceTimersByTime(200);
+        });
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the transport finally gives up and the image reports an error
+        fireEvent(screen.getByTestId('full-image'), 'error');
+
+        // Then the user still sees the timeout notice, since a slow load is not a missing attachment
+        expect(screen.getByTestId('retry-button')).toBeTruthy();
+        expect(onError).not.toHaveBeenCalled();
+    });
+
     it('reports a real load error to the parent', () => {
         // Given an image that is loading
         const {onError} = renderImage();
@@ -237,6 +256,21 @@ describe('ImageWithLoading', () => {
         expect(screen.queryByTestId('load-timeout-notice')).toBeNull();
         expect(screen.queryByTestId('retry-button')).toBeNull();
         expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('still reports an error to a thumbnail that hides the notice', () => {
+        // Given a thumbnail-sized image that stalled with no notice to show
+        const {onError} = renderImage({previewUri: PREVIEW_URI, shouldShowTimeoutNotice: false});
+        startLoading();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the stalled load later errors
+        fireEvent(screen.getByTestId('full-image'), 'error');
+
+        // Then the parent is told, since nothing else on screen explains the missing image
+        expect(onError).toHaveBeenCalledTimes(1);
     });
 
     it('does not report a timeout while offline', () => {

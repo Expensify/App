@@ -54,16 +54,25 @@ function ImageWithLoading({
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    // On web the image keeps the onError it was first given, so handleError reads this ref, not the stale state.
+    const hasLoadTimedOutRef = useRef(false);
+    const updateLoadTimedOut = (value: boolean) => {
+        hasLoadTimedOutRef.current = value;
+        setHasLoadTimedOut(value);
+    };
     const [reloadKey, setReloadKey] = useState(0);
     const {isOffline} = useNetwork();
 
     const handleError = () => {
+        // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
+        if (hasLoadTimedOutRef.current && shouldShowTimeoutNotice) {
+            return;
+        }
         onError?.();
         if (isLoadedRef.current) {
             isLoadedRef.current = false;
             setIsImageCached(false);
         }
-        setHasLoadTimedOut(false);
         if (isOffline) {
             return;
         }
@@ -72,12 +81,12 @@ function ImageWithLoading({
 
     /** The transport went silent. Stop the spinner and offer a retry; the image and preview stay mounted in case the load still finishes. */
     const handleLoadTimeout = () => {
-        setHasLoadTimedOut(true);
+        updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
     };
@@ -86,7 +95,7 @@ function ImageWithLoading({
         isLoadedRef.current = true;
         setIsLoading(false);
         setIsImageCached(true);
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
         onLoad?.(e);
     };
 

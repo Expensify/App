@@ -47,6 +47,12 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [isLoading, setIsLoading] = useState(true);
     const [hasLoadFailed, setHasLoadFailed] = useState(false);
     const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    // On web the image keeps the onError it was first given, so handleError reads this ref, not the stale state.
+    const hasLoadTimedOutRef = useRef(false);
+    const updateLoadTimedOut = (value: boolean) => {
+        hasLoadTimedOutRef.current = value;
+        setHasLoadTimedOut(value);
+    };
     const [reloadKey, setReloadKey] = useState(0);
     const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
@@ -74,31 +80,34 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setImageSize({width: 0, height: 0});
         setIsLoading(true);
         setHasLoadFailed(false);
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
         resetZoom();
     };
 
     const handleError = () => {
+        // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
+        if (hasLoadTimedOutRef.current) {
+            return;
+        }
         setHasLoadFailed(true);
-        setHasLoadTimedOut(false);
         onError?.();
     };
 
     /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
     const handleLoadTimeout = () => {
-        setHasLoadTimedOut(true);
+        updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
     };
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
         setImageSize(size);
-        setHasLoadTimedOut(false);
+        updateLoadTimedOut(false);
     };
 
     const imageLoadingEnd = () => {
