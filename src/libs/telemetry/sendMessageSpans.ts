@@ -118,12 +118,4 @@ function cancelSendMessageSpansForReport(reportID: string | undefined) {
     }
 }
 
-export {
-    getSendMessageVisibleSpanID,
-    startSendMessageVisibleSpan,
-    startSendMessagePhase,
-    markSendMessageCommitted,
-    endSendMessageVisibleSpan,
-    cancelSendMessagePhases,
-    cancelSendMessageSpansForReport,
-};
+export {startSendMessageVisibleSpan, startSendMessagePhase, markSendMessageCommitted, endSendMessageVisibleSpan, cancelSendMessagePhases, cancelSendMessageSpansForReport};
