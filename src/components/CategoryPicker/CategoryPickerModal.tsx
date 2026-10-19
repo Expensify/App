@@ -19,7 +19,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
@@ -31,7 +31,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ComponentRef} from 'react';
 
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import CategoryPicker from '.';
 
@@ -122,24 +124,38 @@ function CategoryPickerModal({
     // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
     // is drawn on the page behind the sheet, so no room is kept for it.
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
-    const bottomSheetHeight = getBottomSheetHeight({
-        preferredHeight: popoverHeight,
-        windowHeight,
-        keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
-        topSafeAreaInset: safeAreaTop,
-        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
-        // A phone in landscape is too short for a sheet over the form, so there the sheet fills the screen instead.
-        shouldFillWindow: isInLandscapeMode,
-    });
-    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave. In landscape
-    // the sheet fills the screen whatever the list's length.
-    const fittedSheetHeight = shouldFitContentHeight && !isInLandscapeMode ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
+    // A phone in landscape is too short for a sheet over the form, so there the sheet fills the screen.
+    const shouldFillWindow = isInLandscapeMode;
+    // On a phone in portrait, a list with a search input opens as tall as a sheet may be and stays put when that input brings
+    // up the keyboard. Natively the room for it is made inside the sheet, frame by frame with the keyboard. On mobile web the
+    // keyboard shrinks the window instead, so the gap above the sheet is sized off the screen, which the keyboard leaves alone:
+    // the sheet then loses only the keyboard's height and its top edge doesn't move.
+    const shouldKeepTopEdge = isSmallScreenWidth && !isInLandscapeMode && isSearchable;
+    const minSheetHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable});
+    const keptTopEdgeSheetHeight = windowHeight - Dimensions.get('screen').height * (1 - CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING;
+    const bottomSheetHeight = shouldKeepTopEdge
+        ? Math.max(minSheetHeight, keptTopEdgeSheetHeight)
+        : getBottomSheetHeight({
+              preferredHeight: popoverHeight,
+              windowHeight,
+              keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
+              topSafeAreaInset: safeAreaTop,
+              minHeight: minSheetHeight,
+              shouldFillWindow,
+          });
+    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
+    const fittedSheetHeight =
+        shouldFitContentHeight && !shouldFillWindow && !shouldKeepTopEdge ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
     const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
     // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
     // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
     const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
+
+    // The keyboard's offset is negative while it is open. It covers the home indicator, so the sheet pads for whichever is taller.
+    const {height: keyboardOffset} = useReanimatedKeyboardAnimation();
+    const keyboardRoomStyle = useAnimatedStyle(() => ({paddingBottom: Math.max(safeAreaPaddingBottom, -keyboardOffset.get())}));
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -167,13 +183,20 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            avoidKeyboard={isSmallScreenWidth}
+            avoidKeyboard={isSmallScreenWidth && !shouldKeepTopEdge}
             outerStyle={outerStyle}
             // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
             shouldLimitHeightIfBottomDockedInLandscapeMode={false}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, !shouldSkipListTopPadding && styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
+            <Animated.View
+                style={[
+                    StyleUtils.getHeight(popoverDimensions.height),
+                    styles.flexColumn,
+                    !shouldSkipListTopPadding && styles.pt4,
+                    shouldKeepTopEdge ? keyboardRoomStyle : StyleUtils.getPaddingBottom(bottomSafeAreaPadding),
+                ]}
+            >
                 {!!onAddCategory && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb5, StyleUtils.getHeight(headerHeight)]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -222,7 +245,7 @@ function CategoryPickerModal({
                     onSubmit={handleCategorySelect}
                     shouldAutoFocusSearchInput
                 />
-            </View>
+            </Animated.View>
         </PopoverWithMeasuredContent>
     );
 }

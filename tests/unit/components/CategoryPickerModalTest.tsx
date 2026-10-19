@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
+import {Dimensions} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -32,7 +33,8 @@ jest.mock('@hooks/useResponsiveLayout', () =>
 );
 
 // The window as a mobile browser reports it with the keyboard open: shorter, and panned down past the page top.
-const mockWindowHeight = 500;
+const WINDOW_HEIGHT = 500;
+let mockWindowHeight = WINDOW_HEIGHT;
 const mockViewportOffsetTop = 40;
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 390, windowHeight: mockWindowHeight})));
 jest.mock('@hooks/useViewportOffsetTop', () => jest.fn(() => mockViewportOffsetTop));
@@ -64,6 +66,7 @@ describe('CategoryPickerModal', () => {
         mockIsSmallScreenWidth = true;
         mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
+        mockWindowHeight = WINDOW_HEIGHT;
     });
 
     const renderSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean} = {}) =>
@@ -311,6 +314,82 @@ describe('CategoryPickerModal', () => {
 
             // Then the sheet stops at the window cap instead of growing to fit every row and running off the screen
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(windowCap);
+        });
+    });
+
+    describe('with a searchable list', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`,
+                Object.fromEntries(Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT}, (_, index) => [`Category${index}`, {name: `Category${index}`, enabled: true}])),
+            );
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('opens as tall as a sheet may be on a phone, so opening the keyboard does not push the list up', async () => {
+            // Given a phone in portrait and enough categories that the list shows its search input
+            // When the expense form's category list opens, and then the search input brings up the keyboard
+            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+            const closedHeight = mockPopoverProps?.popoverDimensions?.height;
+            mockKeyboardHeight = 200;
+            rerender(
+                <CategoryPickerModal
+                    isVisible
+                    onClose={jest.fn()}
+                    policyID={POLICY_ID}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
+                    shouldFitContentHeight
+                />,
+            );
+
+            // Then the sheet opens tall, leaving a gap above it rather than filling the window, and neither shrinks nor is lifted
+            // when the keyboard opens, so its top edge and the list under it stay where they were. The room for the keyboard is
+            // made inside it, in step with the keyboard's own animation.
+            const topGap = Dimensions.get('screen').height * (1 - CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO);
+            expect(closedHeight).toBe(mockWindowHeight - topGap - BOTTOM_SHEET_TOP_PADDING);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(closedHeight);
+            expect(mockPopoverProps?.avoidKeyboard).toBe(false);
+        });
+
+        it('loses only the keyboard height on mobile web, where the keyboard shrinks the window, so its top does not move', async () => {
+            // Given a mobile browser in portrait, with enough categories that the list shows its search input
+            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+            const closedHeight = mockPopoverProps?.popoverDimensions?.height ?? 0;
+
+            // When the search input brings up the keyboard, which on mobile web shrinks the window by its height
+            const keyboardHeight = 200;
+            mockWindowHeight = WINDOW_HEIGHT - keyboardHeight;
+            rerender(
+                <CategoryPickerModal
+                    isVisible
+                    onClose={jest.fn()}
+                    policyID={POLICY_ID}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
+                    shouldFitContentHeight
+                />,
+            );
+
+            // Then the sheet, docked to the bottom of that window, is shorter by exactly the keyboard, so its top edge stays where it was
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(closedHeight - keyboardHeight);
+        });
+
+        it('keeps the wide pop-over at its own height', async () => {
+            // Given a wide layout, where the list opens as a pop-over and no keyboard pushes it around
+            mockIsSmallScreenWidth = false;
+
+            // When the expense form's category list opens
+            renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the pop-over keeps the height it was given rather than filling the window
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(CONST.POPOVER_DROPDOWN_MAX_HEIGHT);
         });
     });
 });
