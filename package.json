@@ -135,7 +135,7 @@
     "@shopify/react-native-skia": "^2.11.2",
     "@ua/react-native-airship": "26.7.0",
     "array.prototype.tosorted": "^1.1.4",
-    "awesome-phonenumber": "^5.4.0",
+    "awesome-phonenumber": "6.11.0",
     "canvas-size": "^1.2.6",
     "canvaskit-wasm": "0.41.0",
     "d3-scale": "^4.0.2",
@@ -372,6 +372,7 @@
   },
   "overrides": {
     "typescript": "$typescript",
+    "awesome-phonenumber": "$awesome-phonenumber",
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
     "@typescript-eslint/typescript-estree": "8.61.0",

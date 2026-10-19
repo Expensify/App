@@ -649,6 +649,17 @@ describe('ValidationUtils', () => {
             expect(isValidUSPhone('+12018675309')).toBe(true);
         });
 
+        test('Should return true for a US phone number in a recently added area code', () => {
+            // Given a phone number in the 983 area code, which libphonenumber only recognizes since v8.13.30
+            const phoneNumber = '+19833330123';
+
+            // When we validate it as a US phone number
+            const isValid = isValidUSPhone(phoneNumber);
+
+            // Then it is accepted, so users with newer area codes can add their phone number to the Wallet
+            expect(isValid).toBe(true);
+        });
+
         test('Should return true for a Puerto Rico phone number', () => {
             expect(isValidUSPhone('+17873464732')).toBe(true);
         });
@@ -681,6 +692,28 @@ describe('ValidationUtils', () => {
     describe('isValidPhoneNumber', () => {
         test('Should return true for a US phone number', () => {
             expect(isValidPhoneNumber('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a US phone number in a recently added area code', () => {
+            // Given a phone number in the 983 area code, which libphonenumber only recognizes since v8.13.30
+            const phoneNumber = '+19833330123';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is accepted, so users with newer area codes can save it in their personal details
+            expect(isValid).toBe(true);
+        });
+
+        test('Should return false for a US phone number with an area code that is not in use', () => {
+            // Given a 10-digit US phone number whose area code starts with 1, which no US area code does
+            const phoneNumber = '+11234567890';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is still rejected, because the library keeps treating invalid numbers as not possible
+            expect(isValid).toBe(false);
         });
 
         test('Should return true for a Canadian phone number', () => {
