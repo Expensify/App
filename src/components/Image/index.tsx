@@ -35,7 +35,7 @@ function Image({
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
-    const aspectRatioStyle = useMemo(() => {
+    const aspectRatioStyle = useMemo<ImageProps['style']>(() => {
         if (!shouldSetAspectRatioInStyle || !aspectRatio) {
             return {};
         }

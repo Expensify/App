@@ -53,7 +53,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
-    const filesToValidate = useRef<FileObject[]>([]);
+    const filesToValidate = useRef<Array<FileObject | null>>([]);
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<FileValidationError[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
@@ -235,7 +235,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    const validateAndResizeFiles = async (files: FileObject[], items: DataTransferItem[], validationState: ValidationState) => {
+    const validateAndResizeFiles = async (files: Array<FileObject | null>, items: DataTransferItem[], validationState: ValidationState) => {
         if (files.length === 0) {
             return;
         }
@@ -251,8 +251,14 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
+        const nonNullFiles: FileObject[] = [];
         for (const [index, file] of files.entries()) {
+            // Keep failed extraction at the original async URI read before validating any files.
+            if (file === null) {
+                throw new TypeError('Cannot read properties of null (reading uri)');
+            }
             originalFileOrder.current.set(file.uri ?? '', index);
+            nonNullFiles.push(file);
         }
 
         const pdfsToLoad: FileObject[] = [];
@@ -264,7 +270,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // whole batch with Promise.all multiplies peak memory by the number of selected files (each pass
         // decodes the full-resolution image), which can kill the WebContent process on memory-constrained
         // mobile Safari when 3+ photos are selected — the tab reloads and the attachments are lost.
-        for (const [index, file] of files.entries()) {
+        for (const [index, file] of nonNullFiles.entries()) {
             // eslint-disable-next-line no-await-in-loop
             const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
 
@@ -425,7 +431,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         extendLoaderIfNeeded();
     };
 
-    const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
+    const validateFiles = (files: Array<FileObject | null>, items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
         if (isValidatingFiles) {
             Log.warn('Files are already being validated. Please wait for the current validation to complete before calling `validateFiles` again.');
             return;
