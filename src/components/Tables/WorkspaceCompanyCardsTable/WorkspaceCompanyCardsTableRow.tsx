@@ -82,7 +82,7 @@ function WorkspaceCompanyCardTableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;

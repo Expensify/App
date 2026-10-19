@@ -96,7 +96,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
 
-    const onBackButtonPress = () => {
+    const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
             turnOffMobileSelectionMode();
@@ -118,7 +118,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                 route={route}
                 addBottomSafeAreaPadding
                 policyFeature={CONST.POLICY.POLICY_FEATURE.AGENTS}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={goBackOrClearSelection}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 headerContent={headerContent}
             >

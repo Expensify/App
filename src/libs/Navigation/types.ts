@@ -18,7 +18,7 @@ import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExpenseRuleFormFieldID} from '@src/types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -540,16 +540,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: {
         policyID?: string;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: {
-        policyID: string;
-        groupID: string;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: {
         policyID: string;
         customUnitID: string;
@@ -603,12 +593,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATE_END_DATE_EDIT]: {
         policyID: string;
         rateID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: {
-        policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORT]: {
         policyID: string;
@@ -1593,6 +1577,19 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        settingName: BusinessCentralBankAccountSettingName;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
@@ -3512,10 +3509,6 @@ type SubmitPlanModalNavigatorParamList = {
     [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
-type AIFeaturesPromoModalNavigatorParamList = {
-    [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
-};
-
 type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
@@ -3641,6 +3634,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
         policyID: string;
     };
+    [SCREENS.BILLING_RECEIPT]: AttachmentModalContainerModalProps & {purchaseID: string};
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;
         policyID?: string;
@@ -3699,7 +3693,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: NavigatorScreenParams<SubmitPlanModalNavigatorParamList>;
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -3990,7 +3983,6 @@ export type {
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     SubmitPlanModalNavigatorParamList,
-    AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     PolicyCopySettingsNavigatorParamList,

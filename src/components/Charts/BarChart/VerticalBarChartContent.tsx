@@ -12,6 +12,7 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
@@ -129,14 +130,13 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
             yZero,
         });
 
+    const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         barHitHalfWidth.set(barLayout.barWidth > 0 ? barLayout.barWidth / 2 + barLayout.gap * BAR_HIT_GAP_RATIO : 0);
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
-        setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
-        );
+        syncPointPositions(xScale, yScale);
     };
 
     const cursorStyle = useAnimatedStyle(() => ({

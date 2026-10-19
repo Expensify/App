@@ -24,6 +24,7 @@ import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
@@ -315,7 +316,7 @@ function WorkspaceCompanyCardsTable({
                           if (!bankName || cardID === undefined) {
                               return;
                           }
-                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName);
+                          showInlineEditError(renameCompanyCardInline(translate, domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName));
                       },
                       onDismissError: () => {
                           if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {

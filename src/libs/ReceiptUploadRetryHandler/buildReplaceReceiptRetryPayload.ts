@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import type {ReceiptRetryContext} from './types';
 
+import {parseRetryParams} from './buildRetryPayload';
 import isRetrySupported from './isRetrySupported';
 
 type StoredReplaceReceiptRetryParams = Pick<ReplaceReceiptRetryParams, 'transactionID' | 'state' | 'isSameReceipt' | 'receiptAddedReportActionID' | 'receiptRemovedReportActionID'>;
@@ -19,17 +20,6 @@ const RECEIPT_STATES = new Set<unknown>(Object.values(CONST.IOU.RECEIPT_STATE));
 
 function isReceiptState(value: unknown): value is ValueOf<typeof CONST.IOU.RECEIPT_STATE> {
     return RECEIPT_STATES.has(value);
-}
-
-function parseRetryParams(retryParams: ReceiptError['retryParams']): unknown {
-    if (typeof retryParams !== 'string') {
-        return retryParams;
-    }
-    try {
-        return JSON.parse(retryParams);
-    } catch {
-        return undefined;
-    }
 }
 
 function getReplaceReceiptRetryParams(receiptError: ReceiptError): StoredReplaceReceiptRetryParams | undefined {

@@ -357,11 +357,12 @@ function ReportFetchHandler() {
     }, [report?.reportID, prevReportID, reportIDFromRoute, isInPreloadedTab]);
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
+        // `reportActions` is the same list `transactionThreadReportID` above is derived from, so both checks agree on which actions the report has
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction, undefined, reportActions)) {
             return;
         }
         navigation.setParams({reportActionID: ''});
-    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport, reportActions]);
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
     // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard

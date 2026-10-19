@@ -58,7 +58,7 @@ function show({bodyText, type, duration, action, position}: GrowlShowOptions) {
 }
 
 /**
- * Show error growl
+ * Show error growl.
  */
 function error(options: GrowlOptions) {
     show({...options, type: CONST.GROWL.ERROR});
