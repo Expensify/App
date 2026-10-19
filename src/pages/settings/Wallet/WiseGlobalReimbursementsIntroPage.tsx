@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -51,7 +52,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     }, [isWiseReimbursementsBetaEnabled]);
 
     if (isLoadingOnyxValue(bankAccountListMetadata) || !isWiseReimbursementsBetaEnabled) {
-        return null;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
