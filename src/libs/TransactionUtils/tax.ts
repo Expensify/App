@@ -13,7 +13,7 @@ import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTa
 
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {ExpenseRule, Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -50,6 +50,15 @@ function getEnabledTaxRateCount(options: TaxRates) {
 function hasSelectableRateTaxCode(policy: OnyxEntry<Policy>, customUnitRateID: string): boolean {
     const rateTaxCode = getDistanceRateCustomUnitRate(policy, customUnitRateID)?.attributes?.taxRateExternalID;
     return isSelectableTaxCode(policy, rateTaxCode);
+}
+
+/**
+ * The tax rate a category rule asks for, or the given default when no rule applies. Disabling a tax rate leaves the rule
+ * pointing at it, so a rule the user can no longer pick also falls back rather than saving a rate the expense cannot carry.
+ */
+function getSelectableCategoryTaxCode(policy: OnyxEntry<Policy>, taxRules: ExpenseRule[], category: string, defaultTaxCode: string | undefined): string | undefined {
+    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
+    return categoryTaxCode && isSelectableTaxCode(policy, categoryTaxCode) ? categoryTaxCode : defaultTaxCode;
 }
 
 /**
@@ -122,11 +131,17 @@ function getDistanceRateTaxUpdates(
     // A rate's own tax rate wins over a category rule, because vehicle types coded to the same category can each
     // reclaim at a different rate.
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax) ?? [];
-    const categoryTaxCode = hasSelectableRateTaxCode(policy, customUnitRateID) ? undefined : getCategoryDefaultTaxRate(taxRules, category ?? transaction?.category ?? '', defaultTaxCode);
-    // We use || instead of ?? because the category rule can resolve to an empty string.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxCode = categoryTaxCode || defaultTaxCode;
-    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
+    const categoryTaxCode = hasSelectableRateTaxCode(policy, customUnitRateID)
+        ? undefined
+        : getSelectableCategoryTaxCode(policy, taxRules, category ?? transaction?.category ?? '', defaultTaxCode);
+    const taxCode = categoryTaxCode ?? defaultTaxCode;
+    const unit = distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit;
+    // A commute the workspace excludes from reimbursement is not reclaimable either, so only the rest of the trip is taxed.
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(transaction?.comment?.customUnit, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const taxableDistance = commuterExclusionData
+        ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit)
+        : getDistanceInMeters(transaction, unit);
+    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, taxableDistance);
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);
     const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD;
@@ -235,10 +250,10 @@ function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction
         if (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
             return undefined;
         }
-        return getCategoryDefaultTaxRate(taxRules, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '');
+        return getSelectableCategoryTaxCode(policy, taxRules, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '');
     }
 
-    return getCategoryDefaultTaxRate(taxRules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
+    return getSelectableCategoryTaxCode(policy, taxRules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
 }
 
 function getCategoryTaxDetails(

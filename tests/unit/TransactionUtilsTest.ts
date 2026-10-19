@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
-import type {Routes} from '../../src/types/onyx/Transaction';
+import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -496,6 +496,30 @@ describe('TransactionUtils', () => {
                 expect(categoryTaxCode).toBe('id_TAX_RATE_1');
                 expect(categoryTaxValue).toBe('5%');
             });
+
+            it('should fall back to the workspace default when the category rule points at a disabled tax rate', () => {
+                // Given a category rule pointing at a tax rate the admin has since disabled, on a rate with no tax rate of its own
+                const category = 'Advertising';
+                const basePolicy = buildDistancePolicy(category, true);
+                const fakePolicy: Policy = {
+                    ...basePolicy,
+                    taxRates: {
+                        ...basePolicy.taxRates,
+                        taxes: {
+                            ...basePolicy.taxRates?.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: true},
+                        },
+                    },
+                };
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rule is skipped, because the expense cannot carry a tax rate the user is no longer offered
+                expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+                expect(categoryTaxValue).toBe('0%');
+            });
         });
 
         describe('should return undefined tax', () => {
@@ -608,6 +632,32 @@ describe('TransactionUtils', () => {
             // When resolving the default tax code for a distance expense on that rate
             // Then no tax code is returned, because none of them can be picked
             expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBeUndefined();
+        });
+
+        it('taxes only the reimbursable distance when a commuter exclusion applies', () => {
+            // Given a 30 mile trip on a taxed rate, where the workspace excludes 10 miles as a commute
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1'});
+            const buildTrip = (customUnit: TransactionCustomUnit): Transaction => ({
+                ...distanceTransaction,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, ...customUnit},
+                },
+            });
+
+            // When computing the tax for the full trip, the excluded trip, and a trip of only the reimbursable part
+            const fullTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 30}), RATE_ID, getCurrencyDecimalsLocal);
+            const excludedTrip = TransactionUtils.getDistanceRateTaxUpdates(
+                policy,
+                buildTrip({quantity: 30, commuterExclusion: 10, reimbursableDistance: 20}),
+                RATE_ID,
+                getCurrencyDecimalsLocal,
+            );
+            const shortTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 20}), RATE_ID, getCurrencyDecimalsLocal);
+
+            // Then the commute is left out of the tax, so the expense is taxed as if it were only the reimbursable 20 miles
+            expect(excludedTrip.taxAmount).toBe(shortTrip.taxAmount);
+            expect(excludedTrip.taxAmount).toBeLessThan(fullTrip.taxAmount);
         });
 
         it('makes getDistanceRateTaxUpdates drop the disabled tax rate', () => {
