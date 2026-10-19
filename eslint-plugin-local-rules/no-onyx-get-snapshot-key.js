@@ -272,14 +272,15 @@ function create(context) {
             return [{node: call, keyPath: null}];
         }
 
+        // Every finding is reported on the call so one directive above a multi-line call covers all of its keys
         return elements.flatMap((element) => {
             if (!element || element.type === 'SpreadElement') {
-                return [{node: element ?? call, keyPath: null}];
+                return [{node: call, keyPath: null}];
             }
 
             const finding = findRestrictedKey(element);
 
-            return finding ? [{node: element, ...finding}] : [];
+            return finding ? [{node: call, ...finding}] : [];
         });
     }
 

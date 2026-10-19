@@ -49,8 +49,8 @@ type BannedRule = {
     /** The rule reports on the member access itself (`Onyx.connect`), so an alias or `.call` line is a use too. */
     reportsOnMember?: boolean;
     /**
-     * A sibling rule on the same calls (`no-onyx-get-snapshot-key`) reports on the elements of a multi-line
-     * `Onyx.multiGet([...])`, so a directive on any of the call's lines silences a report.
+     * Both Onyx read rules report on the call line, but a directive on an inner line of a multi-line
+     * `Onyx.multiGet([...])` is still an attempt to silence the read, so it counts too.
      */
     coversInnerLines?: boolean;
     grandfathered: Map<string, number>;
@@ -92,7 +92,7 @@ const ONYX_READ_BAN: BannedRule = {
     // The import, not `Onyx`, since an aliased import such as `import O from 'react-native-onyx'` is a read site too
     searchTerms: [ONYX_MODULE, 'eslint-disable'],
     message:
-        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers or useCallback bodies in components, pages and hooks.',
+        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers that render never calls, in components, pages and hooks.',
 };
 
 const ONYX_UTILS_IMPORT_BAN: BannedRule = {

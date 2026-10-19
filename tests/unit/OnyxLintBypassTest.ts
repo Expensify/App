@@ -309,7 +309,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         ].join('\n');
 
         // When the read ban scans it
-        // Then both count, because a rule may report on the element, and a directive on its line silences that report
+        // Then both count, since a directive inside the call is a bypass attempt even though both rules report on the call line
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([
             {file: 'src/libs/Foo.ts', line: 3},
             {file: 'src/libs/Foo.ts', line: 5},

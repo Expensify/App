@@ -389,6 +389,57 @@ describe('no-onyx-get-snapshot-key every ONYXKEYS entry', () => {
     });
 });
 
+describe('no-onyx-get-snapshot-key on a multi-line Onyx.multiGet', () => {
+    const multiLineRead = [
+        ONYX_IMPORT,
+        'export async function submit(reportID, transactionID) {',
+        '    return Onyx.multiGet([',
+        '        ONYXKEYS.SESSION,',
+        `        \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`,`,
+        `        \`\${ONYXKEYS.COLLECTION.TRANSACTION}\${transactionID}\`,`,
+        '    ]);',
+        '}',
+    ];
+
+    it('reports every restricted element on the line of the call', () => {
+        // Given a multi-line multiGet whose restricted keys sit on lines after the call
+        const code = multiLineRead.join('\n');
+
+        // When the key rule lints it
+        const messages = new Linter().verify(code, {
+            plugins: {localRules: {rules: {[ruleModule.name]: ruleModule}}},
+            languageOptions: {ecmaVersion: 2022, sourceType: 'module'},
+            rules: {[`localRules/${ruleModule.name}`]: 'error'},
+        });
+
+        // Then both keys are reported on the call line, so one directive above the call covers the read
+        expect(messages.map((message) => [message.messageId, message.line])).toEqual([
+            ['noRestrictedOnyxKey', 3],
+            ['noRestrictedOnyxKey', 3],
+        ]);
+    });
+
+    it('is covered by one reasoned directive above the call', () => {
+        // Given the same read with a reasoned disable of the key rule on the line above the call
+        const code = [
+            ...multiLineRead.slice(0, 2),
+            '    // eslint-disable-next-line localRules/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot',
+            ...multiLineRead.slice(2),
+        ].join('\n');
+
+        // When the key rule lints it with unused directives reported
+        const messages = new Linter().verify(code, {
+            plugins: {localRules: {rules: {[ruleModule.name]: ruleModule}}},
+            languageOptions: {ecmaVersion: 2022, sourceType: 'module'},
+            linterOptions: {reportUnusedDisableDirectives: 'error'},
+            rules: {[`localRules/${ruleModule.name}`]: 'error'},
+        });
+
+        // Then nothing is reported: the directive is used and silences every restricted element of the call
+        expect(messages).toEqual([]);
+    });
+});
+
 describe('no-onyx-get-snapshot-key next to no-unsafe-onyx-read', () => {
     it('leaves the position check in place when only the key rule is disabled', () => {
         // Given a render-time read of a snapshot key with a reasoned disable of the key rule only
