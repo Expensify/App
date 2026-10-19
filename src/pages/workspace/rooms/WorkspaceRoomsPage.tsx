@@ -129,6 +129,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     currentUserAccountID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    fullPolicySnapshot: policy?.fullPolicySnapshotLastModified ? {policyID, lastModified: policy.fullPolicySnapshotLastModified} : undefined,
                 });
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
                 return;

@@ -121,6 +121,7 @@ function MoneyRequestReportPreview({
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
+    const fullPolicySnapshotLastModified = policy?.fullPolicySnapshotLastModified;
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
@@ -371,13 +372,14 @@ function MoneyRequestReportPreview({
 
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             const childReportID = resolveChildReportID(transaction);
+            const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
             if (childReportID) {
                 if (!isIOUActionLoaded && iouReportID) {
                     if (isOffline) {
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -385,7 +387,7 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 return;
             }
 
@@ -394,12 +396,14 @@ function MoneyRequestReportPreview({
         [
             conciergeChat,
             currentUserAccountID,
+            fullPolicySnapshotLastModified,
             hasIOUReportActions,
             introSelected,
             iouReportID,
             isOffline,
             navigateToExpense,
             openReportFromPreview,
+            policyID,
             resolveChildReportID,
             transactions.length,
         ],
