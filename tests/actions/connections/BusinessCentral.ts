@@ -5,6 +5,9 @@ import CONST from '@src/CONST';
 import {
     clearBusinessCentralErrorField,
     connectToBusinessCentral,
+    updateBusinessCentralAccountingMethod,
+    updateBusinessCentralAutoCreateEntities,
+    updateBusinessCentralAutoSync,
     updateBusinessCentralCardProgramAccount,
     updateBusinessCentralCompany,
     updateBusinessCentralCustomerMapping,
@@ -13,17 +16,24 @@ import {
     updateBusinessCentralExportDate,
     updateBusinessCentralExporter,
     updateBusinessCentralExportToMultipleAccounts,
+    updateBusinessCentralExportToNextOpenPeriod,
     updateBusinessCentralFieldMapping,
     updateBusinessCentralNonReimbursableAccount,
     updateBusinessCentralNonReimbursableExpensesExportDestination,
     updateBusinessCentralPaymentMethod,
+    updateBusinessCentralPostingMode,
     updateBusinessCentralReimbursableAccount,
     updateBusinessCentralReimbursableExpensesExportDestination,
+    updateBusinessCentralReimbursementBankAccount,
+    updateBusinessCentralSettlementsBankAccount,
+    updateBusinessCentralSyncExpensifyCardSettlements,
     updateBusinessCentralSyncItems,
+    updateBusinessCentralSyncReimbursedReports,
     updateBusinessCentralSyncTaxRates,
 } from '@src/libs/actions/connections/BusinessCentral';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -529,6 +539,38 @@ describe('actions/connections/BusinessCentral', () => {
                 value: 'BANK',
             },
             {
+                name: 'updateBusinessCentralAccountingMethod',
+                update: () => updateBusinessCentralAccountingMethod(MOCK_POLICY_ID, COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH, COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD,
+                parameters: {accountingMethod: COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD,
+                value: COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH,
+            },
+            {
+                name: 'updateBusinessCentralPostingMode',
+                update: () => updateBusinessCentralPostingMode(MOCK_POLICY_ID, CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY, CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_POSTING_MODE,
+                parameters: {postingMode: CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE,
+                value: CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY,
+            },
+            {
+                name: 'updateBusinessCentralAutoCreateEntities',
+                update: () => updateBusinessCentralAutoCreateEntities(MOCK_POLICY_ID, false, true),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES,
+                parameters: {enabled: false},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.AUTO_CREATE_ENTITIES,
+                value: false,
+            },
+            {
+                name: 'updateBusinessCentralExportToNextOpenPeriod',
+                update: () => updateBusinessCentralExportToNextOpenPeriod(MOCK_POLICY_ID, true, false),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD,
+                parameters: {enabled: true},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                value: true,
+            },
+            {
                 name: 'updateBusinessCentralExportToMultipleAccounts',
                 update: () => updateBusinessCentralExportToMultipleAccounts(MOCK_POLICY_ID, true, false),
                 command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS,
@@ -683,6 +725,153 @@ describe('actions/connections/BusinessCentral', () => {
             );
             expect(getFirstWriteOnyxData()).toMatchObject({
                 optimisticData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {export: {cardProgramAccounts: {[FEED_KEY]: null}}}}}}}],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralAutoSync', () => {
+        it('writes the auto-sync command and optimistically updates autoSync.enabled', () => {
+            // Given a policy with auto-sync off
+            // When an admin turns auto-sync on
+            updateBusinessCentralAutoSync(MOCK_POLICY_ID, true, false);
+
+            // Then the command carries the toggle value, and autoSync.enabled flips right away with the pending state under the autoSync key the Advanced page reads
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC, {policyID: MOCK_POLICY_ID, enabled: true}, expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        autoSync: {enabled: true},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                successData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null}}}}}}],
+            });
+        });
+
+        it('rolls autoSync.enabled back and sets an error on failure', () => {
+            // Given a policy with auto-sync off
+            // When an admin turns auto-sync on
+            updateBusinessCentralAutoSync(MOCK_POLICY_ID, true, false);
+
+            // Then on failure the toggle goes back to off and shows an error, so the admin sees the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        autoSync: {enabled: false},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('payment sync settings', () => {
+        const syncCases = [
+            {
+                name: 'updateBusinessCentralSyncReimbursedReports',
+                update: () => updateBusinessCentralSyncReimbursedReports(MOCK_POLICY_ID, false, true),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS,
+                parameters: {enabled: false},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.SYNC_REIMBURSED_REPORTS,
+                value: false,
+            },
+            {
+                name: 'updateBusinessCentralReimbursementBankAccount',
+                update: () => updateBusinessCentralReimbursementBankAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT,
+                parameters: {reimbursementBankAccountID: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID,
+                value: 'bank-2',
+            },
+            {
+                name: 'updateBusinessCentralSyncExpensifyCardSettlements',
+                update: () => updateBusinessCentralSyncExpensifyCardSettlements(MOCK_POLICY_ID, true, false),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                parameters: {enabled: true},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                value: true,
+            },
+            {
+                name: 'updateBusinessCentralSettlementsBankAccount',
+                update: () => updateBusinessCentralSettlementsBankAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT,
+                parameters: {settlementsBankAccountID: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                value: 'bank-2',
+            },
+        ];
+
+        it.each(syncCases)('$name sends the request parameter the backend reads and optimistically updates the sync config', ({update, command, parameters, settingName, value}) => {
+            // Given a connected policy
+            // When an admin changes a payment sync setting
+            update();
+
+            // Then the command carries the parameter name Web-Expensify reads, and the sync config shows the new value as pending so the row updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(command, {policyID: MOCK_POLICY_ID, ...parameters}, expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        sync: {[settingName]: value},
+                                        pendingFields: {[settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        errorFields: {[settingName]: null},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                successData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {pendingFields: {[settingName]: null}}}}}}],
+            });
+        });
+
+        it('rolls a payment sync setting back to the old value and sets an error on failure', () => {
+            // Given a policy that pays reimbursements from bank-1
+            // When an admin picks bank-2
+            updateBusinessCentralReimbursementBankAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1');
+
+            // Then on failure the sync config goes back to bank-1 and the row shows an error, so the admin sees the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        sync: {[CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID]: 'bank-1'},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
             });
         });
     });

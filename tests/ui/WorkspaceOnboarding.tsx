@@ -1014,6 +1014,71 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should not set RHP_ADMINS_ROOM when joining a Submit workspace with the Join Workspace intent', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        // Given a joinable auto-join Submit workspace with the JOIN_WORKSPACE purpose (not EMPLOYER)
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                submitPolicyID: {
+                    policyID: 'submit-policy-id',
+                    policyName: 'Submit Workspace',
+                    policyOwner: 'owner@test.com',
+                    employeeCount: 4,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.SUBMIT,
+                },
+            });
+        });
+
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+        onyxSetSpy.mockClear();
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses "Join Now"
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        await waitFor(() => {
+            expect(mockJoinAccessiblePolicy.mock.calls.at(0)?.at(0)).toBe('submit-policy-id');
+        });
+
+        // Then onboarding completes with JOIN_WORKSPACE but does not set the RHP_ADMINS_ROOM variant
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                }),
+            );
+        });
+
+        const rhpVariantCalls = onyxSetSpy.mock.calls.filter(([key]) => key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
+        expect(rhpVariantCalls).not.toContainEqual([ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM]);
+
+        // Then navigation does not go to the Expenses search route
+        expect(navigate).not.toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
+
+        onyxSetSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses in the admins room', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
