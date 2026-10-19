@@ -288,6 +288,36 @@ describe('searchRouterQuerySpans', () => {
         expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.TIMED_OUT);
     });
 
+    it('cancels a span as timed_out when its query starts after the max duration and commits before the timeout fires', () => {
+        // Given a debounced query whose input change is already older than the max duration, as after a long JS thread freeze
+        const changedAt = performance.now() - CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - 1000;
+        startSearchRouterQuerySpan('abc', changedAt);
+
+        // When the list commits the query before the zero-delay timeout runs
+        markSearchRouterQueryCommitted('abc');
+
+        // Then the span is cancelled as timed_out instead of ending as a successful sample longer than the max duration
+        expect(getSpan(ROOT)).toBeUndefined();
+        expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
+        expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.TIMED_OUT);
+    });
+
+    it('cancels a span as timed_out when the render that commits its query runs past the max duration', () => {
+        // Given an active span close to its max duration
+        const changedAt = performance.now();
+        jest.advanceTimersByTime(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - 100);
+        startSearchRouterQuerySpan('abc', changedAt);
+
+        // When a render that blocks the JS thread, so the timeout can't run, commits the query past the max duration
+        const performanceNowSpy = jest.spyOn(performance, 'now').mockReturnValue(changedAt + CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS + 1000);
+        markSearchRouterQueryCommitted('abc');
+        performanceNowSpy.mockRestore();
+
+        // Then the span is cancelled as timed_out instead of ending as a successful sample longer than the max duration
+        expect(getSpan(ROOT)).toBeUndefined();
+        expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.TIMED_OUT);
+    });
+
     it('backdates the span start to the input change that produced the query', () => {
         // Given the input changed and the debounce delay then passed
         const changedAt = performance.now();

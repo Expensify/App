@@ -40,6 +40,7 @@ const QUOTED_KEYWORD_REGEX = /^(['"])(.*)\1$/g;
 
 let activeQuery: string | undefined;
 let activeQueryDebouncedAt: number | undefined;
+let activeQueryDeadline: number | undefined;
 let measuredCount = 0;
 let timeoutID: ReturnType<typeof setTimeout> | undefined;
 
@@ -105,6 +106,7 @@ function clearActiveQuery() {
     timeoutID = undefined;
     activeQuery = undefined;
     activeQueryDebouncedAt = undefined;
+    activeQueryDeadline = undefined;
 }
 
 function beginSearchRouterQuerySession() {
@@ -200,6 +202,7 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number, 
     measuredCount = queryOrdinal;
     activeQuery = debouncedQuery;
     activeQueryDebouncedAt = performance.now();
+    activeQueryDeadline = activeQueryDebouncedAt + CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - elapsedMs;
     timeoutID = setTimeout(
         () => cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.TIMED_OUT),
         Math.max(0, CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - elapsedMs),
@@ -212,6 +215,10 @@ function markSearchRouterQueryCommitted(query: string, attributes?: SearchRouter
     }
     if (isMountCommit) {
         cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.LIST_MOUNT);
+        return;
+    }
+    if (activeQueryDeadline !== undefined && performance.now() > activeQueryDeadline) {
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.TIMED_OUT);
         return;
     }
     const rootSpan = getSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
