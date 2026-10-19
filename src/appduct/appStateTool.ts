@@ -2,6 +2,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasNonAnonymousSessionSelector} from '@src/selectors/Session';
 import type {Onboarding, Session} from '@src/types/onyx';
 
 import {registerTool} from '@appduct/web';
@@ -51,7 +52,7 @@ function registerAppStateTool(): void {
             const completed: boolean | null = loaded ? onboarding.hasCompletedGuidedSetupFlow !== false : null;
 
             return {
-                authenticated: !!session?.authToken,
+                authenticated: hasNonAnonymousSessionSelector(session),
                 accountID: session?.accountID ?? null,
                 email: session?.email ?? null,
                 onboardingNvpLoaded: loaded,

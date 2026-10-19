@@ -1,6 +1,7 @@
 import {beginSignIn, signUpUser} from '@userActions/Session';
 
 import {registerLoginTool} from '@src/appduct/loginTool';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Session} from '@src/types/onyx';
 
@@ -174,6 +175,24 @@ describe('ensure_test_session', () => {
 
         expect(result).toMatchObject({outcome: 'sign_up_failed', detail: 'Account creation is blocked'});
         expect(Date.now() - startedAt).toBeLessThan(5000);
+    });
+
+    it('does not mistake the anonymous boot session for a signup landing', async () => {
+        // Public-room access signs the boot state in with a real token of type
+        // anonymousAccount, so a wait on "any token" would report authenticated the
+        // instant SignUpUser was dispatched, before the server answered anything.
+        await Onyx.merge(ONYXKEYS.SESSION, sessionPatch({authToken: 'anonymous-token', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, accountID: 1}));
+        jest.mocked(beginSignIn).mockImplementation(() => {
+            respondWithAccount({accountExists: false, isLoading: false});
+        });
+        jest.mocked(signUpUser).mockImplementation(() => {
+            // Only the anonymous token ever exists: the signup never lands.
+            respondWithAccount({accountExists: false, isLoading: false, errors: serverError('Signup never completed')});
+        });
+
+        const result = await callTool({login: 'melvinbottestuser+anon@gmail.com'});
+
+        expect(result).toMatchObject({outcome: 'sign_up_failed'});
     });
 
     it('stops at BeginSignIn in dryRun and never calls SignUpUser', async () => {

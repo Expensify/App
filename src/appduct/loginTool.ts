@@ -2,13 +2,14 @@ import {beginSignIn, signUpUser} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasNonAnonymousSessionSelector} from '@src/selectors/Session';
 import type {Account, Session} from '@src/types/onyx';
 
 import {registerTool} from '@appduct/web';
 /**
  * Appduct login tool (PoC).
  *
- * Replaces the three tap sequences the Melvin App prestart ceremony replays
+ * Replaces the three tap sequences Melvin's pre-start ceremony replays
  * (sign-in.ad, join.ad, complete-onboarding.ad) with one call that returns a
  * structured verdict instead of a UI landmark match.
  *
@@ -156,13 +157,15 @@ function registerLoginTool(): void {
 
             // SignUpUser reports success by writing a session token and failure by writing an
             // account error. Waiting on the token alone turns every rejected signup into a full
-            // timeout, so watch both and take whichever arrives first.
+            // timeout, so watch both and take whichever arrives first. Anonymous public-room
+            // sessions also carry a token, so "any token" would read the boot state as the
+            // signup landing; the app's own signed-in definition excludes them.
             const signedIn = waitFor<Session>(
                 (notify) => {
                     const connection = Onyx.connectWithoutView({
                         key: ONYXKEYS.SESSION,
                         callback: (value) => {
-                            if (!value?.authToken) {
+                            if (!value || !hasNonAnonymousSessionSelector(value)) {
                                 return;
                             }
                             Onyx.disconnect(connection);
@@ -195,7 +198,7 @@ function registerLoginTool(): void {
             ).then((failedAccount): SignupOutcome => ({session: undefined, accountError: latestError(failedAccount)}));
 
             const {session, accountError} = await Promise.race([signedIn, signupRejected]);
-            if (!session?.authToken) {
+            if (!session || !hasNonAnonymousSessionSelector(session)) {
                 return {...base, outcome: accountError ? ('sign_up_failed' as const) : ('timeout' as const), detail: accountError ?? 'no authToken after SignUpUser'};
             }
 

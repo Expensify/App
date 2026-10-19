@@ -10,7 +10,7 @@
  * published verbatim and never validated app-side, so the handler receives what the caller sent.
  */
 function rawSchema<T>(schema: Record<string, unknown>): Record<string, unknown> & {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- the marker key Appduct's schema normalizer reads, spelled by its SDK
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the marker key the Appduct schema normalizer reads, spelled by its SDK
     readonly '~appductJsonSchemaTypes'?: {readonly input: T; readonly output: T};
 } {
     return schema;
