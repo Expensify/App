@@ -15,7 +15,7 @@ import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
 
-/** Confirms a tracked expense (track, categorize, share, or a submit into a new draft workspace), submitting through TrackExpense. */
+/** Confirms a tracked expense, submitting through TrackExpense. */
 function TrackConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
     const {transaction, policy, participants, iouType, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isTimeRequest, isUnreported, isPolicyExpenseChat, submitLock} =
         submissionParams;
@@ -34,13 +34,12 @@ function TrackConfirmation({submissionParams, orchestratorProps, listProps}: Con
 
     const trackSubmission = useTrackExpenseSubmission({
         ...submissionParams,
+        ...transactionTaxValues,
         selectedParticipants: participants.filter((participant) => participant.selected),
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
         isSelfDMDestination,
-        ...transactionTaxValues,
     });
 
-    // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,

@@ -50,13 +50,12 @@ function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProp
 
     const requestMoneySubmission = useRequestMoneySubmission({
         ...submissionParams,
+        ...transactionTaxValues,
         selectedParticipants: participants.filter((participant) => participant.selected),
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
         isSelfDMDestination,
-        ...transactionTaxValues,
     });
 
-    // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,

@@ -17,13 +17,12 @@ function SplitConfirmation({submissionParams, orchestratorProps, listProps}: Con
 
     const splitSubmission = useSplitSubmission({
         ...submissionParams,
+        ...transactionTaxValues,
         policyID: policy?.id,
         selectedParticipants: participants.filter((participant) => participant.selected),
         releaseSubmitLock: submitLock.unlockSubmission,
-        ...transactionTaxValues,
     });
 
-    // A distance split resolves to the distance path (see resolveSubmissionPath), so no distance block is passed here.
     const createTransaction = guardSubmission(submitLock, splitSubmission.createTransaction);
 
     return (

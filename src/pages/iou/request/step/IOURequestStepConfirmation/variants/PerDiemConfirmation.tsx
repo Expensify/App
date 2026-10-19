@@ -21,7 +21,6 @@ function PerDiemConfirmation({submissionParams, orchestratorProps, listProps}: C
         isSelfDMDestination: orchestratorProps.isSelfDMDestination,
     });
 
-    // A per diem is never a distance request, so there's no distance block to pass.
     const createTransaction = guardSubmission(submitLock, perDiemSubmission.createTransaction);
 
     return (

@@ -12,7 +12,6 @@ import type {ConfirmationVariantProps} from './types';
 function InvoiceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
     const invoiceSubmission = useInvoiceSubmission(submissionParams);
 
-    // An invoice is never a distance request, so there's no distance block to pass.
     const createTransaction = guardSubmission(submissionParams.submitLock, invoiceSubmission.createTransaction);
 
     return (
