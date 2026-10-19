@@ -1,3 +1,4 @@
+import getFrozenColumnWidths from '@components/Table/columnResize/getFrozenColumnWidths';
 import getResizableColumnLayout, {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
@@ -101,6 +102,32 @@ describe('getResizableColumnLayout', () => {
 
         // Then the last headed column gives up its leftover, since the column between is already at its minimum
         expect(getResizedColumnWidths('name', 260)).toEqual({name: 260, email: 160, role: 140});
+    });
+
+    it('takes a drag out of the leftover a fixed-width last column fills, and repaints the same widths after the save', () => {
+        // Given a 760px table whose last headed column has a declared 72px width, leaving 88px of leftover room
+        const columns = [column('name', {minWidth: 100}), column('taxRate', {minWidth: 100}), column('taxCode', {minWidth: 100}), {...column('enabled'), declaredWidth: 72}];
+        const {resolvedColumnWidths, getResizedColumnWidths} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, taxRate: 150, taxCode: 150, enabled: 72},
+            resizedColumnKeys: [],
+            tableWidth: 760,
+            rowChromeWidths,
+        });
+
+        // When the third column is dragged 50px wider and the painted widths are saved
+        const draggedWidths = getResizedColumnWidths('taxCode', 200);
+        const savedColumnWidths = {...resolvedColumnWidths, ...draggedWidths};
+        const frozenWidths = getFrozenColumnWidths({
+            columns,
+            storedTableColumnWidths: {availableColumnsWidth: 760, columnWidths: savedColumnWidths, resizedColumnKeys: ['taxCode']},
+            availableColumnsWidth: 760,
+        });
+
+        // Then the fixed column keeps its declared width so the drag eats the leftover its track fills instead of overflowing,
+        // and the saved layout repaints without the columns before the dragged one jumping wider
+        expect(savedColumnWidths).toEqual({name: 300, taxRate: 150, taxCode: 200, enabled: 72});
+        expect(frozenWidths).toEqual(savedColumnWidths);
     });
 
     it('squeezes a column after the dragged one to the minimum the layout uses, not its content, before the row overflows', () => {

@@ -72,16 +72,18 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
     const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
     const columnWidths = {...resolvedColumnWidths};
+    const resizableColumnKeys = columns.filter(isColumnResizable).map((column) => column.key);
+    const isGrowableColumnResizable = !!growableColumnKey && resizableColumnKeys.includes(growableColumnKey);
 
     // Absorbs wider columns to its left from the room it paints, leftover included, so the first pixels of a drag on it aren't dead.
+    // A fixed-width column only fills the leftover through its track, so a drag takes that room before the row overflows.
     // Floored so the row never overflows the table by a fraction of a pixel.
-    if (growableColumnKey) {
+    if (growableColumnKey && isGrowableColumnResizable) {
         const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, resolvedColumnWidths));
         columnWidths[growableColumnKey] = (columnWidths[growableColumnKey] ?? 0) + Math.max(leftoverWidth, 0);
     }
 
     const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
-    const resizableColumnKeys = columns.filter(isColumnResizable).map((column) => column.key);
 
     // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
     const gridTemplateColumns = columnWidthValues.map((widthValue, index) => (columns.at(index)?.key === growableColumnKey ? getGrowableColumnTrack(widthValue) : widthValue));
@@ -90,7 +92,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
 
     const dragMinWidths: Record<string, number> = {};
 
-    if (growableColumnKey && resizableColumnKeys.includes(growableColumnKey)) {
+    if (growableColumnKey && isGrowableColumnResizable) {
         const paintedWidth = columnWidths[growableColumnKey] ?? 0;
         const overflowWidth = getColumnsWidthSum(columns, columnWidths) - availableColumnsWidth;
 
