@@ -7,10 +7,11 @@
  * A directive counts when it names the rule, in the `-line` or `-next-line` form, and its text after
  * `--` holds fewer than `MIN_REASON_LENGTH` letters or digits. A block `eslint-disable` that names the
  * rule always counts, even with a reason: one sentence cannot vouch for every read under it. Blanket
- * directives that name no rule are left to `onyxLintBypass.ts`.
+ * directives that name no rule are left to `onyxLintBypass.ts`. A file Babel cannot parse fails closed:
+ * every disable naming the rule counts.
  */
 
-import {collectDirectiveMatches, directiveTargetsBan, parseSource} from './onyxLintBypass';
+import {collectDirectiveMatches, directiveDescription, directiveTargetsBan, extractCommentsByRegex, isCheckedSourceFile, lineNumberAtOffset, parseSource} from './onyxLintBypass';
 
 /** Fewest letters and digits after `--` that count as a reason, so `-- ok`, `-- todo` or a row of dashes does not pass. */
 const MIN_REASON_LENGTH = 12;
@@ -26,7 +27,7 @@ type ReasonedRule = {
 const ONYX_SNAPSHOT_KEY_RULE: ReasonedRule = {
     id: 'rulesdir/no-onyx-get-snapshot-key',
     name: 'no-onyx-get-snapshot-key',
-    appliesTo: (filePath) => filePath.startsWith('src/'),
+    appliesTo: isCheckedSourceFile,
     searchTerms: ['no-onyx-get-snapshot-key', 'eslint-disable'],
     message:
         'A disable of no-onyx-get-snapshot-key needs a reason after `--` that says why live data is right for this Search snapshot key, on the line it covers. For example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. A block eslint-disable of this rule is never accepted.',
@@ -41,8 +42,7 @@ type UnreasonedDisable = {
 };
 
 function hasReason(args: string): boolean {
-    const reason = args.match(/--(?<reason>[\s\S]*)$/)?.groups?.reason ?? '';
-    return (reason.match(/[\p{L}\p{N}]/gu) ?? []).length >= MIN_REASON_LENGTH;
+    return (directiveDescription(args).match(/[\p{L}\p{N}]/gu) ?? []).length >= MIN_REASON_LENGTH;
 }
 
 /**
@@ -50,20 +50,19 @@ function hasReason(args: string): boolean {
  * Line numbers are 1-based.
  */
 function collectUnreasonedDisables(source: string, filePath: string, rule: ReasonedRule = ONYX_SNAPSHOT_KEY_RULE): UnreasonedDisable[] {
-    const parsed = parseSource(source);
-    if (!parsed) {
-        return [];
-    }
+    const parsed = parseSource(source, filePath);
+    // Fail closed: when Babel cannot parse the file, comments come from a regex and every directive naming the rule counts
+    const comments = parsed ? parsed.comments : extractCommentsByRegex(source);
     const unreasoned: UnreasonedDisable[] = [];
-    for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
+    for (const match of collectDirectiveMatches(comments, source, 'disable')) {
         if (!directiveTargetsBan(match.args, rule)) {
             continue;
         }
         const isLineForm = match.kind === '-line' || match.kind === '-next-line';
-        if (isLineForm && hasReason(match.args)) {
+        if (parsed && isLineForm && hasReason(match.args)) {
             continue;
         }
-        unreasoned.push({file: filePath, line: source.slice(0, match.index).split('\n').length});
+        unreasoned.push({file: filePath, line: lineNumberAtOffset(source, match.index)});
     }
     return unreasoned;
 }

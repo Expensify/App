@@ -5,13 +5,16 @@
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
- * call: `Onyx.connect()` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
+ * use: `Onyx.connect` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
  * For the OnyxUtils ban it counts only when it covers a runtime import of the module. Blanket
- * disables over unrelated code, like the ones around ReportUtils, are ignored.
+ * disables over unrelated code, like the ones around ReportUtils, are ignored. A file Babel cannot
+ * parse fails closed: every disable in it counts.
  *
  * Calls and imports are located in the Babel AST, so spacing, comments and parentheses cannot hide
  * them the way they could from a text scan.
  */
+
+import type {ParserPlugin} from '@babel/parser';
 
 import {parse} from '@babel/parser';
 
@@ -43,7 +46,12 @@ type BannedRule = {
     methods: Set<string>;
     /** Bans runtime imports of these modules instead of `objects`/`methods` calls. */
     importSources?: Set<string>;
-    /** The rule reports on nodes inside the call, so a directive on any of the call's lines silences it. */
+    /** The rule reports on the member access itself (`Onyx.connect`), so an alias or `.call` line is a use too. */
+    reportsOnMember?: boolean;
+    /**
+     * A sibling rule on the same calls (`no-onyx-get-snapshot-key`) reports on the elements of a multi-line
+     * `Onyx.multiGet([...])`, so a directive on any of the call's lines silences a report.
+     */
     coversInnerLines?: boolean;
     grandfathered: Map<string, number>;
     appliesTo: (file: string) => boolean;
@@ -51,13 +59,24 @@ type BannedRule = {
     message: string;
 };
 
+/** A file ESLint lints, so a directive in it means something. Docs and patches mention directives without honoring them. */
+function isLintedFile(file: string): boolean {
+    return /\.[cm]?[jt]sx?$/.test(file);
+}
+
+// The lint rules run on every linted file; test suites are exempt because reads are allowed there and suites exercise the rules themselves
+function isCheckedSourceFile(file: string): boolean {
+    return isLintedFile(file) && !file.startsWith('tests/');
+}
+
 const ONYX_CONNECT_BAN: BannedRule = {
     id: BANNED_RULE_ID,
     name: BANNED_RULE_NAME,
     objects: new Set(['Onyx']),
     methods: new Set(['connect']),
+    reportsOnMember: true,
     grandfathered: GRANDFATHERED_BYPASSES,
-    appliesTo: () => true,
+    appliesTo: isLintedFile,
     searchTerms: ['Onyx', 'connect', 'eslint-disable'],
     message: 'Onyx.connect() is banned and the ban cannot be bypassed with eslint-disable. Use the useOnyx() hook to read Onyx data instead.',
 };
@@ -68,8 +87,8 @@ const ONYX_READ_BAN: BannedRule = {
     objects: new Set(['Onyx']),
     methods: new Set(['get', 'multiGet']),
     coversInnerLines: true,
-    grandfathered: new Map<string, number>([['src/setup/addUtilsToWindow.ts', 1]]),
-    appliesTo: (file) => file.startsWith('src/'),
+    grandfathered: new Map<string, number>(),
+    appliesTo: isCheckedSourceFile,
     // The import, not `Onyx`, since an aliased import such as `import O from 'react-native-onyx'` is a read site too
     searchTerms: [ONYX_MODULE, 'eslint-disable'],
     message:
@@ -83,7 +102,7 @@ const ONYX_UTILS_IMPORT_BAN: BannedRule = {
     methods: new Set(),
     importSources: new Set(['react-native-onyx/dist/OnyxUtils']),
     grandfathered: new Map<string, number>(),
-    appliesTo: (file) => file.startsWith('src/'),
+    appliesTo: isCheckedSourceFile,
     searchTerms: ['OnyxUtils', 'eslint-disable'],
     message:
         'The react-native-onyx/dist/OnyxUtils import restriction cannot be silenced with eslint-disable. Read Onyx with useOnyx(), Onyx.get() or Onyx.multiGet() instead. Type-only imports of OnyxUtils are still allowed.',
@@ -111,9 +130,29 @@ type BabelComment = {
     end: number | null;
 };
 
-function parseSource(source: string): {root: ASTNode; comments: BabelComment[]} | null {
+// A `.ts` file may use angle-bracket assertions, which the jsx plugin would reject
+function babelPluginsFor(file: string): ParserPlugin[] {
+    return /\.[cm]?ts$/.test(file) ? ['typescript'] : ['typescript', 'jsx'];
+}
+
+type ParsedSource = {root: ASTNode; comments: BabelComment[]};
+
+/**
+ * Comments found by a plain regex, for a file Babel cannot parse. The regex does not understand strings, so a `/*` in
+ * one can hide a later directive; the file already failed to parse, so this is a best effort.
+ */
+function extractCommentsByRegex(source: string): BabelComment[] {
+    return [...source.matchAll(/\/\*(?<block>[\s\S]*?)\*\/|\/\/(?<line>[^\n\r\u2028\u2029]*)/g)].map((match) => ({
+        type: match.groups?.block === undefined ? 'CommentLine' : 'CommentBlock',
+        value: match.groups?.block ?? match.groups?.line ?? '',
+        start: match.index,
+        end: match.index + match[0].length,
+    }));
+}
+
+function parseSource(source: string, file: string): ParsedSource | null {
     try {
-        const parsed: unknown = parse(source, {sourceType: 'unambiguous', plugins: ['typescript', 'jsx'], errorRecovery: true, attachComment: true});
+        const parsed: unknown = parse(source, {sourceType: 'unambiguous', plugins: babelPluginsFor(file), errorRecovery: true, attachComment: true});
         if (!BabelASTUtils.isASTNode(parsed) || !BabelASTUtils.isRecord(parsed)) {
             return null;
         }
@@ -135,31 +174,32 @@ function parseSource(source: string): {root: ASTNode; comments: BabelComment[]} 
     }
 }
 
-function collectDirectiveMatches(comments: readonly BabelComment[], source: string, directive: 'disable' | 'enable'): DirectiveMatch[] {
+// ESLint only supports -line / -next-line on disable. `eslint-enable-line` and `eslint-enable-next-line` are not real
+// directives, so treating them as enables would reopen a blanket disable that ESLint still honors. The keyword must be
+// followed by whitespace or the end of the comment, as in ESLint, so `eslint-enable**` is a plain comment too.
+const DIRECTIVE_PATTERNS = {
+    disable: /^\s*eslint-disable(?<kind>-next-line|-line)?(?=\s|$)(?<args>[\s\S]*)$/,
+    enable: /^\s*eslint-enable(?=\s|$)(?<args>[\s\S]*)$/,
+};
+
+function collectDirectiveMatches(comments: readonly BabelComment[], source: string, directive: keyof typeof DIRECTIVE_PATTERNS): DirectiveMatch[] {
     const matches: DirectiveMatch[] = [];
     for (const comment of comments) {
         if (comment.start === null || comment.end === null) {
             continue;
         }
-        // ESLint only supports -line / -next-line on disable. `eslint-enable-line` and
-        // `eslint-enable-next-line` are not real directives, so treating them as enables
-        // would reopen a blanket disable that ESLint still honors.
-        const pattern = directive === 'disable' ? '^\\s*eslint-disable(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$' : '^\\s*eslint-enable(?!-)(?<args>[\\s\\S]*)$';
-        const directiveMatch = comment.value.match(new RegExp(pattern));
+        const directiveMatch = comment.value.match(DIRECTIVE_PATTERNS[directive]);
         if (!directiveMatch) {
+            continue;
+        }
+        // ESLint reads only `-line` and `-next-line` directives from a line comment; `// eslint-enable` and a block-form
+        // `// eslint-disable` are plain comments to it
+        if (comment.type === 'CommentLine' && !directiveMatch.groups?.kind) {
             continue;
         }
         matches.push({index: comment.start, text: source.slice(comment.start, comment.end), kind: directiveMatch.groups?.kind, args: directiveMatch.groups?.args ?? ''});
     }
     return matches;
-}
-
-function directiveKind(match: DirectiveMatch): string | undefined {
-    return match.kind;
-}
-
-function directiveArgs(match: DirectiveMatch): string {
-    return match.args;
 }
 
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'comments']);
@@ -287,8 +327,9 @@ function collectBannedCallRanges(root: ASTNode, ban: BannedRule): BannedRange[] 
     const names = collectBannedNames(root, ban);
     const ranges: BannedRange[] = [];
     const visit = (node: ASTNode) => {
-        if (isBannedCall(node, ban, names)) {
-            // A rule that reports only on the call is silenced by its first line alone
+        const isBannedUse = ban.reportsOnMember ? isBannedMember(node, ban, names.objects) : isBannedCall(node, ban, names);
+        if (isBannedUse) {
+            // Unless a rule reports inside the call, the first line alone silences it
             ranges.push({start: node.start, end: ban.coversInnerLines ? node.end : node.start});
         }
         for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
@@ -337,9 +378,22 @@ function collectBannedImportRanges(root: ASTNode, sources: Set<string>): BannedR
     return ranges;
 }
 
+/** ESLint splits a directive from its description only on `--` surrounded by whitespace. */
+const DESCRIPTION_SEPARATOR = /\s-{2,}\s/u;
+
+/** The rule list of a directive, with its description and comment decoration removed. */
+function directiveRuleList(args: string): string {
+    return args.split(DESCRIPTION_SEPARATOR).at(0) ?? '';
+}
+
+/** The description after `--`, or an empty string when the directive has none. */
+function directiveDescription(args: string): string {
+    const match = DESCRIPTION_SEPARATOR.exec(args);
+    return match ? args.slice(match.index + match[0].length) : '';
+}
+
 function normalizedDirectiveArgs(args: string): string {
-    return args
-        .replace(/--[\s\S]*$/, '')
+    return directiveRuleList(args)
         .replaceAll(/[\s*]+/g, ' ')
         .trim();
 }
@@ -385,7 +439,7 @@ function lineNumberAtOffset(source: string, offset: number): number {
  */
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, bannedRanges: BannedRange[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index);
-    const kind = directiveKind(match);
+    const kind = match.kind;
     const directiveEnd = match.index + match.text.length;
     const directiveEndLine = lineNumberAtOffset(source, Math.max(match.index, directiveEnd - 1));
     return bannedRanges.some((range) => {
@@ -406,8 +460,7 @@ function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, banne
             if (enableOffset <= directiveEnd || enableOffset >= range.start) {
                 return false;
             }
-            const enableArgs = directiveArgs(enableMatch);
-            return isBlanketDirective(enableArgs) || directiveTargetsBan(enableArgs, ban);
+            return isBlanketDirective(enableMatch.args) || directiveTargetsBan(enableMatch.args, ban);
         });
         return !reenabled;
     });
@@ -418,26 +471,28 @@ function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, banne
  * Line numbers are 1-based. Matches both full-line and trailing `eslint-disable-line`.
  */
 function collectDisableDirectivesFromSource(source: string, file: string, ban: BannedRule = ONYX_CONNECT_BAN): SuppressedBan[] {
-    const parsed = parseSource(source);
-    if (!parsed) {
-        return [];
-    }
+    const parsed = parseSource(source, file);
     const bans: SuppressedBan[] = [];
+    if (!parsed) {
+        // Fail closed: with no AST to match uses against, every disable directive counts
+        for (const match of collectDirectiveMatches(extractCommentsByRegex(source), source, 'disable')) {
+            bans.push({file, line: lineNumberAtOffset(source, match.index)});
+        }
+        return bans;
+    }
     const bannedRanges = ban.importSources ? collectBannedImportRanges(parsed.root, ban.importSources) : collectBannedCallRanges(parsed.root, ban);
     const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
     for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
-        const args = directiveArgs(match);
+        const args = match.args;
         const targetsBan = directiveTargetsBan(args, ban);
         const isBlanket = isBlanketDirective(args);
         const coversBan = (isBlanket || (!!ban.importSources && targetsBan)) && blanketDirectiveCoversCall(source, match, bannedRanges, enableMatches, ban);
         if ((ban.importSources || !targetsBan) && !coversBan) {
             continue;
         }
-        const prefix = source.slice(0, match.index);
-        const line = prefix.split('\n').length;
-        bans.push({file, line});
+        bans.push({file, line: lineNumberAtOffset(source, match.index)});
     }
-    return bans;
+    return bans.sort((a, b) => a.line - b.line);
 }
 
 /** Return the suppressed bans that exceed the grandfathered allowance for their file. */
@@ -463,16 +518,18 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
 
 export {
     BANNED_RULE_ID,
-    BANNED_RULE_NAME,
     BANNED_RULES,
-    GRANDFATHERED_BYPASSES,
-    ONYX_CONNECT_BAN,
     ONYX_READ_BAN,
     ONYX_UTILS_IMPORT_BAN,
     collectDirectiveMatches,
     collectDisableDirectivesFromSource,
     directiveTargetsBan,
     findNewBypasses,
+    directiveDescription,
+    extractCommentsByRegex,
+    isCheckedSourceFile,
+    isLintedFile,
+    lineNumberAtOffset,
     parseSource,
 };
-export type {BannedRule, SuppressedBan};
+export type {BannedRule};

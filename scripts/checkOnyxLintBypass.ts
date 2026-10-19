@@ -5,7 +5,7 @@ import {file} from 'bun';
  * Fails the lint run when a new inline `eslint-disable` silences one of the Onyx lint bans in
  * `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint rule, so an inline
  * disable can silence it. The runner re-elevates those disables by scanning source for directives
- * that name the ban, or blanket directives that cover a real banned call. For the OnyxUtils ban a
+ * that name the ban, or blanket directives that cover a real banned use. For the OnyxUtils ban a
  * named directive counts only when it covers a runtime import. No disable comment can reach this
  * check.
  *

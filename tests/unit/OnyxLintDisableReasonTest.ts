@@ -89,12 +89,35 @@ describe('collectUnreasonedDisables', () => {
         expect(collectUnreasonedDisables(source, FILE)).toEqual([]);
     });
 
-    it('covers src but not tests', () => {
-        // Given a src file and a test suite
+    it('covers every file the rule lints except tests', () => {
+        // Given files under src, .storybook and tests, plus a doc
         // When the rule decides which files it checks
-        // Then tests are out of scope, like the Onyx read ban
+        // Then only test suites are out of scope, like the Onyx read ban
         expect(ONYX_SNAPSHOT_KEY_RULE.appliesTo('src/pages/Foo.tsx')).toBe(true);
+        expect(ONYX_SNAPSHOT_KEY_RULE.appliesTo('.storybook/preview.tsx')).toBe(true);
         expect(ONYX_SNAPSHOT_KEY_RULE.appliesTo('tests/unit/FooTest.ts')).toBe(false);
+        expect(ONYX_SNAPSHOT_KEY_RULE.appliesTo('contributingGuides/LINTING.md')).toBe(false);
+    });
+
+    it('fails closed when the file cannot be parsed', () => {
+        // Given a file with a syntax error, a reasoned disable of the rule, and a reasonless one
+        const source = ['const = ;', `// eslint-disable-next-line ${RULE_ID} -- ${REASON}`, snapshotKeyRead, `// eslint-disable-next-line ${RULE_ID}`, snapshotKeyRead].join('\n');
+
+        // When the reason check scans it
+        // Then both directives naming the rule are reported, even the reasoned one, since nothing can be verified without an AST
+        expect(collectUnreasonedDisables(source, FILE)).toEqual([
+            {file: FILE, line: 2},
+            {file: FILE, line: 4},
+        ]);
+    });
+
+    it('reads the reason only after a spaced double dash, as ESLint does', () => {
+        // Given a directive whose `--` touches the preceding word, so ESLint sees no description at all
+        const source = [`// eslint-disable-next-line ${RULE_ID}, x--aaaaaaaaaaaaaaaa`, snapshotKeyRead].join('\n');
+
+        // When the reason check scans it
+        // Then it is reported, because the text after `--` is not a description to ESLint either
+        expect(collectUnreasonedDisables(source, FILE)).toEqual([{file: FILE, line: 1}]);
     });
 });
 
