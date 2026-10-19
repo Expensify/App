@@ -529,9 +529,16 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
 
+            jest.mocked(getCurrentPosition).mockImplementationOnce(async (success) => {
+                success({
+                    coords: {latitude: 40.7128, longitude: -74.006, altitude: null, accuracy: null, altitudeAccuracy: null, heading: null, speed: null},
+                    timestamp: 0,
+                });
+            });
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1));
         });
 
         it('drops the "Automatic" label from all three fields as soon as any one of them is entered', async () => {
