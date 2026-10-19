@@ -1,3 +1,4 @@
+import ConfirmationPage from '@components/ConfirmationPage';
 /**
  * Builds the ConfirmationPage config (heading, description, CTA, buttons, illustration) for each merge-account result.
  */
@@ -36,7 +37,6 @@ import useThemeStyles from './useThemeStyles';
 
 type MergeResultConfirmationConfig = {
     heading?: string;
-    description?: React.ReactNode;
     descriptionComponent?: React.ReactNode;
     ctaComponent?: React.ReactNode;
     onButtonPress?: () => void;
@@ -104,7 +104,7 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
             heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
-            description: translate('mergeAccountsPage.mergePendingSAML.limitedSupport'),
+            descriptionComponent: <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergePendingSAML.limitedSupport')}</ConfirmationPage.Description>,
             ctaComponent: (
                 <View style={[styles.renderHTML, styles.mt2, styles.flexRow]}>
                     <RenderHTML html={translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp')} />
@@ -133,13 +133,19 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
         },
         [CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS]: {
             heading: translate('mergeAccountsPage.mergeFailureTooManyAttempts.heading'),
-            description: translate('mergeAccountsPage.mergeFailureTooManyAttempts.description'),
+            descriptionComponent: (
+                <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeFailureTooManyAttempts.description')}</ConfirmationPage.Description>
+            ),
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ACCOUNT_UNVALIDATED]: {
-            description: translate('mergeAccountsPage.mergeFailureUnvalidatedAccount.description'),
+            descriptionComponent: (
+                <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeFailureUnvalidatedAccount.description')}</ConfirmationPage.Description>
+            ),
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
-            description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
+            descriptionComponent: (
+                <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeFailureSelfMerge.description')}</ConfirmationPage.Description>
+            ),
         },
     };
 

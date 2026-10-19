@@ -45,7 +45,7 @@ function MergeResultPage() {
         return () => handle.cancel();
     }, [result]);
 
-    const {heading, onButtonPress, illustration, illustrationStyle, description, descriptionComponent, secondaryButtonText, onSecondaryButtonPress, shouldShowSecondaryButton, ctaComponent} =
+    const {heading, onButtonPress, illustration, illustrationStyle, descriptionComponent, secondaryButtonText, onSecondaryButtonPress, shouldShowSecondaryButton, ctaComponent} =
         useMergeResultConfirmationConfig({result, login});
 
     return (
@@ -68,7 +68,6 @@ function MergeResultPage() {
                     />
                     <ConfirmationPage.Heading>{heading ?? translate('mergeAccountsPage.mergeFailureGenericHeading')}</ConfirmationPage.Heading>
                     {descriptionComponent}
-                    {!!description && <ConfirmationPage.Description style={styles.textSupporting}>{description}</ConfirmationPage.Description>}
                     {ctaComponent}
                 </ConfirmationPage.Content>
                 <FixedFooter>
