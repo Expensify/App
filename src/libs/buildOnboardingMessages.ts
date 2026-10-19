@@ -1,7 +1,3 @@
-import {translate} from '@libs/Localize';
-
-import type {Video} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
@@ -9,6 +5,10 @@ import type {Locale, Onboarding} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+import type {Video} from './actions/Report';
+
+import {translate} from './Localize';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;

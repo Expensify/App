@@ -1,3 +1,5 @@
+import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks} from '@libs/buildOnboardingMessages';
+import {buildOnboardingMessages} from '@libs/buildOnboardingMessages';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -16,10 +18,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {getStateFromPath} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
-
-import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks} from './buildOnboardingMessages';
-
-import {buildOnboardingMessages} from './buildOnboardingMessages';
 
 type GetOnboardingInitialPathParamsType = {
     isUserFromPublicDomain: boolean;
