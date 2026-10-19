@@ -12,7 +12,7 @@ type ConfirmationPageDescriptionProps = {
 function ConfirmationPageDescription({children, style}: ConfirmationPageDescriptionProps) {
     const styles = useThemeStyles();
 
-    return <Text style={[styles.textAlignCenter, style, styles.w100]}>{children}</Text>;
+    return <Text style={[styles.textAlignCenter, styles.w100, style]}>{children}</Text>;
 }
 
 export default ConfirmationPageDescription;
