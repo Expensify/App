@@ -585,8 +585,7 @@
 "../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-syntax"	4
-"../../src/libs/actions/connections/index.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/connections/index.ts"	"no-restricted-syntax"	3
+"../../src/libs/actions/connections/index.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/connections/NetSuiteCommands.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/connections/QuickbooksDesktop.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/connections/QuickbooksOnline.ts"	"no-restricted-syntax"	2
