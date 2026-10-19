@@ -9,6 +9,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type * as NativeNavigation from '@react-navigation/native';
+
 import React from 'react';
 
 type ReactNativeComponents = {
