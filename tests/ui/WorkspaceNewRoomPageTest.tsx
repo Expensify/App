@@ -1,10 +1,9 @@
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import type * as FormProviderModule from '@components/Form/FormProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type * as MenuItemModule from '@components/MenuItemWithTopDescription';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SelectionListProps} from '@components/SelectionList/types';
 import type * as ValuePickerModule from '@components/ValuePicker';
@@ -141,8 +140,7 @@ function selectRoomOption(page: ReturnType<typeof renderNewRoomPage>, label: str
     }
     expect(props.items?.some((item) => item.value === value)).toBe(true);
     // The actual ValuePicker owns its modal visibility through the menu item's press event.
-    const MenuItem = jest.requireActual<typeof MenuItemModule>('@components/MenuItemWithTopDescription').default;
-    fireEvent.press(picker.find((node) => node.type === MenuItem));
+    fireEvent.press(within(picker).getByRole('button'), createMock<ReactNative.GestureResponderEvent>({nativeEvent: {}}));
     fireEvent.press(screen.getByTestId(`room-option-${value}`));
 }
 
