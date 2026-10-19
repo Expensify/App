@@ -5,8 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -19,6 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -28,6 +31,16 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const primaryContactMethod = usePrimaryContactMethod();
+    const feedSelectorRoute = ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID);
+
+    // The feed selector only opens this page while the primary contact method is public, so once that changes return to it, whichever way the user came back here
+    useFocusEffect(() => {
+        if (!primaryContactMethod || isEmailPublicDomain(primaryContactMethod)) {
+            return;
+        }
+        Navigation.goBack(feedSelectorRoute);
+    });
 
     return (
         <AccessOrNotFoundWrapper
@@ -52,7 +65,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                         variant="success"
                         size={CONST.BUTTON_SIZE.LARGE}
                         // After the user adds their work email, the back button should take them to the feed selector to pick a feed again, not back to this now-stale prompt page.
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, feedSelectorRoute))}
                     >
                         <Button.Text>{translate('onboarding.workEmail.addWorkEmail')}</Button.Text>
                     </Button>

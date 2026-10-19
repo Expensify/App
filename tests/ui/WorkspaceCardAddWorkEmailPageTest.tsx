@@ -50,13 +50,21 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
+const mockPrimaryContactMethod = jest.fn(() => 'user@gmail.com');
+const mockIsUserValidated = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+    useFocusEffect: (effect: () => void) => jest.requireActual<typeof React>('react').useEffect(effect),
+}));
+jest.mock('@hooks/usePrimaryContactMethod', () => ({__esModule: true, default: () => mockPrimaryContactMethod()}));
+jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [mockIsUserValidated()]}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
     default: () => ({flex1: {}, textHeadlineLineHeightXXL: {}, ph5: {}, mt2: {}, mb4: {}, textSupporting: {}}),
 }));
-jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
-jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
+jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn(), goBack: jest.fn()}}));
+jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn(), goBack: jest.fn()}}));
 jest.mock(
     '@pages/workspace/AccessOrNotFoundWrapper',
     () =>
@@ -69,15 +77,30 @@ const POLICY_ID = 'policy123';
 describe('Workspace card add work email pages', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockPrimaryContactMethod.mockReturnValue('user@gmail.com');
+        mockIsUserValidated.mockReturnValue(true);
     });
 
-    it('returns company card users to the company card feed selector', () => {
-        render(
+    function renderCompanyCardPage() {
+        return render(
             <WorkspaceCompanyCardAddWorkEmailPage
                 // @ts-expect-error - Test only needs route parameters read by this screen.
                 route={{name: SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL, key: 'company-card-add-work-email', params: {policyID: POLICY_ID}}}
             />,
         );
+    }
+
+    function renderExpensifyCardPage() {
+        return render(
+            <WorkspaceExpensifyCardAddWorkEmailPage
+                // @ts-expect-error - Test only needs route parameters read by this screen.
+                route={{name: SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL, key: 'expensify-card-add-work-email', params: {policyID: POLICY_ID}}}
+            />,
+        );
+    }
+
+    it('returns company card users to the company card feed selector', () => {
+        renderCompanyCardPage();
 
         fireEvent.press(screen.getByTestId('addWorkEmailButton'));
 
@@ -85,15 +108,47 @@ describe('Workspace card add work email pages', () => {
     });
 
     it('returns Expensify Card users to the Expensify Card feed selector', () => {
-        render(
-            <WorkspaceExpensifyCardAddWorkEmailPage
-                // @ts-expect-error - Test only needs route parameters read by this screen.
-                route={{name: SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL, key: 'expensify-card-add-work-email', params: {policyID: POLICY_ID}}}
-            />,
-        );
+        renderExpensifyCardPage();
 
         fireEvent.press(screen.getByTestId('addWorkEmailButton'));
 
         expect(Navigation.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)}/select-feed/contact-methods`);
+    });
+
+    it('stays on the company card prompt while the primary contact method is public', () => {
+        renderCompanyCardPage();
+
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('returns to the company card feed selector once a work email is the primary contact method', () => {
+        // Given the user came back to the prompt after making a work email their primary contact method
+        mockPrimaryContactMethod.mockReturnValue('user@company.com');
+
+        // When the prompt is focused
+        renderCompanyCardPage();
+
+        // Then it goes back to the feed selector
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(POLICY_ID));
+    });
+
+    it('stays on the Expensify Card prompt while the account is not validated', () => {
+        mockPrimaryContactMethod.mockReturnValue('user@company.com');
+        mockIsUserValidated.mockReturnValue(false);
+
+        renderExpensifyCardPage();
+
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('returns to the Expensify Card feed selector once a validated work email is the primary contact method', () => {
+        // Given the user came back to the prompt after making a work email their primary contact method
+        mockPrimaryContactMethod.mockReturnValue('user@company.com');
+
+        // When the prompt is focused
+        renderExpensifyCardPage();
+
+        // Then it goes back to the feed selector
+        expect(Navigation.goBack).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)}/select-feed`);
     });
 });

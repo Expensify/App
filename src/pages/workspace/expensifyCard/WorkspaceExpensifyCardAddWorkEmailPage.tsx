@@ -5,8 +5,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -16,9 +19,12 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {useFocusEffect} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -28,6 +34,17 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const primaryContactMethod = usePrimaryContactMethod();
+    const feedSelectorRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+
+    // The feed selector only opens this page while the account is unvalidated or the primary contact method is public, so once both change return to it, whichever way the user came back here
+    useFocusEffect(() => {
+        if (!isUserValidated || !primaryContactMethod || isEmailPublicDomain(primaryContactMethod)) {
+            return;
+        }
+        Navigation.goBack(feedSelectorRoute);
+    });
 
     return (
         <AccessOrNotFoundWrapper
@@ -52,14 +69,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                         variant="success"
                         size={CONST.BUTTON_SIZE.LARGE}
                         // After the user adds their work email, the back button should take them to the feed selector to pick a feed again, not back to this now-stale prompt page.
-                        onPress={() =>
-                            Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.CONTACT_METHODS.path,
-                                    createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)),
-                                ),
-                            )
-                        }
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, feedSelectorRoute))}
                     >
                         <Button.Text>{translate('onboarding.workEmail.addWorkEmail')}</Button.Text>
                     </Button>
