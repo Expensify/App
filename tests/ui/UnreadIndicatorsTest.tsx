@@ -950,6 +950,24 @@ describe('Unread Indicators', () => {
         });
     });
 
+    it('removes the manual unread divider when the report is explicitly marked as read', async () => {
+        // Given an open chat explicitly marked unread through the report-level command
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOptionWithoutAct(0);
+        const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`);
+        markCommentAsUnread(REPORT_ID, reportActions, createMock<ReportAction>({}), USER_A_ACCOUNT_ID, false);
+        await waitForBatchedUpdates();
+        const hintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
+        await waitFor(() => expect(screen.queryAllByLabelText(hintText)).toHaveLength(1));
+
+        // When the user explicitly marks the report as read from the LHN
+        readNewestAction(REPORT_ID, true, true);
+        await waitForBatchedUpdates();
+
+        // Then the existing divider disappears immediately, without navigating away and reopening the report
+        await waitFor(() => expect(screen.queryAllByLabelText(hintText)).toHaveLength(0));
+    });
+
     it('marks the latest comment unread from the inbox even when it was sent by the current user', async () => {
         // Given a read chat whose latest message was sent by the current user
         await signInAndGetAppWithUnreadChat();

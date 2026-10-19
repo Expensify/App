@@ -1108,6 +1108,63 @@ describe('actions/Report', () => {
         }
     });
 
+    it.each([
+        [true, true],
+        [true, false],
+        [false, true],
+        [false, false],
+    ])('only explicit mark-as-read clears manual markers while offline (explicit: %s, cached anchor: %s)', async (shouldResetUnreadMarker, hasCachedAnchor) => {
+        // Given a manual unread mark that must work without a server round trip
+        const reportID = 'explicit-mark-as-read';
+        const unreadTime = '2026-01-01 09:59:59.999';
+        const action = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'marked-action',
+            actorAccountID: 1,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2026-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', text: 'Marked message', html: 'Marked message'}],
+        });
+        setHasRadio(false);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            lastReadTime: unreadTime,
+            manuallyMarkedUnreadReportActionID: hasCachedAnchor ? action.reportActionID : undefined,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {manuallyMarkedUnreadTime: unreadTime});
+        await waitForBatchedUpdates();
+
+        // When an explicit command or an automatic read advances the read cursor
+        Report.readNewestAction(reportID, true, shouldResetUnreadMarker);
+        await waitForBatchedUpdates();
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const metadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+
+        // Then explicit reads clear both markers; automatic reads preserve the divider for the current visit
+        if (shouldResetUnreadMarker) {
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+            expect(metadata?.manuallyMarkedUnreadTime).toBeFalsy();
+        } else {
+            expect(report?.manuallyMarkedUnreadReportActionID).toBe(hasCachedAnchor ? action.reportActionID : undefined);
+            expect(metadata?.manuallyMarkedUnreadTime).toBe(unreadTime);
+        }
+        expect(
+            getUnreadMarkerReportAction({
+                visibleReportActions: [action],
+                earliestReceivedOfflineMessageIndex: undefined,
+                currentUserAccountID: 1,
+                prevSortedVisibleReportActionsObjects: {[action.reportActionID]: action},
+                unreadMarkerTime: shouldResetUnreadMarker ? report?.lastReadTime : unreadTime,
+                isScrolledOverThreshold: false,
+                isOffline: true,
+                isReversed: false,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+                manuallyMarkedUnreadTime: metadata?.manuallyMarkedUnreadTime,
+            }),
+        ).toEqual(shouldResetUnreadMarker ? [null, -1] : [action.reportActionID, 0]);
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
     it('Should properly update comment with links', async () => {
         /* This tests a variety of scenarios when a user edits a comment.
          * We should generate a link when editing a message unless the link was

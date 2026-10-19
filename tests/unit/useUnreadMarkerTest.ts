@@ -128,15 +128,37 @@ describe('useUnreadMarker', () => {
     });
 
     it('prefers the oldestUnread pagination anchor over the scan on first open when the scan finds nothing', () => {
-        const readAction = makeAction('a', {created: '2023-01-01 09:00:00.000'});
+        // Given an unread pagination anchor on a self-authored action that the automatic scan would skip
+        const unreadAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+        // When rendering the initial slice before history has finished loading
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [readAction],
+            sortedVisibleReportActions: [unreadAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: false,
         });
 
+        // Then the unread pagination anchor supplies the divider
         expect(result.current.unreadMarkerReportActionID).toBe('a');
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('clears a pagination marker when the report is explicitly marked as read', () => {
+        // Given an unread marker supplied by pagination before history finishes loading
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID})],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+        expect(result.current.unreadMarkerReportActionID).toBe('a');
+
+        // When the explicit read command advances the marker's watermark
+        act(() => {
+            DeviceEventEmitter.emit(`readNewestAction_${REPORT_ID}`, '2023-01-01 12:00:00.000');
+        });
+
+        // Then the stale pagination anchor cannot restore the divider
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
     it('ignores the oldestUnread anchor once the report actions have loaded', () => {
