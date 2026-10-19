@@ -3,8 +3,6 @@ import type {FlattenedItem, Section, SectionListItem} from '@components/Selectio
 
 import CONST from '@src/CONST';
 
-import type {TupleToUnion} from 'type-fest';
-
 function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
     return item?.isSelected ?? false;
 }
@@ -18,14 +16,16 @@ function shouldTreatItemAsDisabled<TItem extends ListItem>(item: TItem | Flatten
     return !!item?.isDisabled && !('isSelected' in item && isItemSelected(item));
 }
 
-type UseFlattenedSections = <TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null) => UseFlattenedSectionsResultGeneric<TItem>;
-
-const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedItemKey) => {
+/**
+ * Hook that flattens sections with headers and items into a single array for FlashList.
+ * Also computes disabled indexes, selected items, and initial focus index.
+ */
+function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResult<TItem> {
+    // Force memoization because this hook does not call other React hooks.
     'use memo';
-    type Item = TupleToUnion<typeof sections>['data'][number];
 
-    const data: Array<FlattenedItem<Item>> = [];
-    const selectedOptions: Item[] = [];
+    const data: Array<FlattenedItem<TItem>> = [];
+    const selectedOptions: TItem[] = [];
     const disabledIndices: number[] = [];
     let focusedIndex = -1;
     let firstNonHeaderIndex = -1;
@@ -49,7 +49,7 @@ const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedIt
 
         for (const item of section.data ?? []) {
             const currentIndex = data.length;
-            const itemData: SectionListItem<Item> = {
+            const itemData: SectionListItem<TItem> = {
                 ...item,
                 type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                 isDisabled: section.isDisabled === true || item.isDisabled === true,
@@ -84,9 +84,9 @@ const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedIt
         initialFocusedIndex: focusedIndex,
         firstFocusableIndex: firstNonHeaderIndex === -1 ? 0 : firstNonHeaderIndex,
     };
-};
+}
 
-type UseFlattenedSectionsResultGeneric<TItem extends ListItem> = {
+type UseFlattenedSectionsResult<TItem extends ListItem> = {
     flattenedData: Array<FlattenedItem<TItem>>;
     disabledIndexes: number[];
     itemsCount: number;
