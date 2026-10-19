@@ -176,8 +176,7 @@ By default, tag GL codes are hidden from members. Workspace Admins on the Contro
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
 3. Select **More**.
-4. Select **Settings**.
-5. Turn on **Show GL codes when selecting a tag**.
+4. Enable **Show GL codes when selecting a tag**.
 
 Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
 
