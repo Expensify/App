@@ -40,6 +40,17 @@ let mockCapturedTaskReportAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedRoomAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedIOUReportAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/IOUReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedIOUReportAvatarProps = props;
+        return <View testID="MockedIOUReportAvatar" />;
+    };
+});
+
 jest.mock('@components/Avatar/connected/TaskReportAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
@@ -118,6 +129,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedPolicyExpenseChatAvatarProps = {};
         mockCapturedTaskReportAvatarProps = {};
         mockCapturedRoomAvatarProps = {};
+        mockCapturedIOUReportAvatarProps = {};
     });
 
     afterEach(async () => {
@@ -128,7 +140,6 @@ describe('ReportAvatar (connected)', () => {
     });
 
     it.each([
-        ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
         ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
         ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
         ['a DM', {type: CONST.REPORT.TYPE.CHAT}],
@@ -399,6 +410,41 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedRoomAvatarProps.containerStyle).toEqual([]);
         expect(mockCapturedRoomAvatarProps.horizontalStacking).toEqual({maxRows: 2});
         expect(mockCapturedRoomAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
+    });
+
+    it.each([
+        ['the single container style outside a horizontal stack', undefined, [{marginRight: 12}]],
+        ['no container styles inside a horizontal stack', {maxRows: 2}, []],
+    ])('should render IOUReportAvatar for an IOU report with %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given an IOU report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.IOU});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets everything but the subscript style, which no IOU layout uses, and the single container style is dropped inside a horizontal stack
+        expect(screen.getByTestId('MockedIOUReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedIOUReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: expectedContainerStyle,
+            horizontalStacking,
+            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
     });
 
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
