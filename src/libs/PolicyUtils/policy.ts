@@ -21,7 +21,7 @@ import type {ValueOf} from 'type-fest';
 import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
-import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
+import {canCreateExpensesOnPolicy, canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
 import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type WorkspaceDetails = {
@@ -269,7 +269,8 @@ function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
 /**
  * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
  * plus Submit workspaces. Submit workspaces are free but still support report creation, so they belong
- * here even though they're excluded from `getGroupPaidPolicies`.
+ * here even though they're excluded from `getGroupPaidPolicies`. Workspaces whose role for the user
+ * cannot create expenses (e.g. approve-only) are excluded.
  */
 function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, currentUserLogin?: string) {
     if (isEmptyObject(policies)) {
@@ -281,6 +282,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }
