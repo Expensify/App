@@ -5466,7 +5466,10 @@ describe('TransactionUtils', () => {
 
         it('returns true when another expense stays on the report', () => {
             // Given a report with the discarded expense and another active expense
-            const reportTransactions = [{...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID}, {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID}];
+            const reportTransactions = [
+                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
+                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID},
+            ];
 
             // When the merge discards one of them, Then the report still has the other one
             expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
