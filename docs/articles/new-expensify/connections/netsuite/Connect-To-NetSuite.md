@@ -138,24 +138,25 @@ Expense categories map to Expensify categories and are linked to GL accounts so 
 
 SuiteTax accounts import individual Tax Codes. Legacy tax accounts import Tax Groups.
 
-### SuiteTax accounts
+**SuiteTax accounts**
 
 If the account uses SuiteTax, complete these steps:
 
 1. Go to **Setup > Users/Roles > Manage Roles**.
 2. Edit the role used for the Expensify connection.
 3. Under **Permissions > Lists**, set **Tax Details Tab** to **Full**.
-4. Click **Save**.
-5. Go to **Setup > SuiteTax Engine > SuiteTax Engine Roles**.
-6. Add the role used for the Expensify connection.
-7. Set the access level to **Full**.
-8. Click **Save**.
+4. Select **Save**.
+5. Go to **Setup > SuiteTax Engine > Manage SuiteTax Engine Roles**.
+6. Select **Assign SuiteTax Engine Permissions to Role**.
+7. In the **Role** field, choose the role used for the Expensify connection.
+8. On the **SuiteTax Engine Permissions** subtab, set each permission to **Full**.
+9. Select **Save**.
 
-Do not complete the Tax Group steps below.
+Do not complete the **Legacy tax accounts** steps.
 
-### Legacy tax accounts
+**Legacy tax accounts**
 
-For legacy tax accounts, under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each Tax Group contains only one Tax Code.
+If the account uses legacy taxes, under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each Tax Group contains only one Tax Code.
 
 To create a Tax Group:
 
