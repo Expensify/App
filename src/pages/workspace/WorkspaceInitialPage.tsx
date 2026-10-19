@@ -2,7 +2,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -75,6 +76,8 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
+    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -201,6 +204,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         isUnifiedConnectionsBetaEnabled,
         convertToDisplayString,
     }).map((item) => ({
@@ -257,8 +261,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             <FullPageNotFoundView
                 onBackButtonPress={goBackFromWorkspaceSettingPages}
@@ -281,7 +284,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 />
 
                 <ScrollView
-                    contentContainerStyle={styles.flexColumn}
+                    {...tabRootScrollProps}
                     onScroll={triggerScrollEvent}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
