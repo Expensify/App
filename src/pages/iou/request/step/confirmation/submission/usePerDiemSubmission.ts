@@ -1,7 +1,9 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -9,7 +11,13 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    generateReportID,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+} from '@libs/ReportUtils';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
@@ -18,7 +26,7 @@ import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemEx
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, PolicyTagLists, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -28,7 +36,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {CreateTransactionParams, SubmissionHandle} from './types';
-import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
+
+import useSubmissionOnboardingIntent from './useSubmissionOnboardingIntent';
+import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
+import useSubmissionViolations from './useSubmissionViolations';
 
 type UsePerDiemSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
@@ -41,21 +52,8 @@ type UsePerDiemSubmissionParams = {
     selectedParticipants: Participant[];
     isTrackExpense: boolean;
     isSelfDMDestination: boolean;
-    isLookingAroundUser: boolean;
-    isTrackIntentUser: boolean;
     backToReport?: string;
     onExpenseWriteWillStart?: () => void;
-
-    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
-     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
-    recentlyUsedData: SubmissionRecentlyUsedData;
-    policyTags: OnyxEntry<PolicyTagLists>;
-    rules: OnyxCollection<Rule>;
-    quickAction: OnyxEntry<QuickAction>;
-    selfDMReport: OnyxEntry<Report>;
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
-    reportTransactions: Transaction[];
-    delegateAccountID: number | undefined;
 };
 
 /** Hook implementing the per-diem submission path (CreatePerDiemExpense / self-DM) for the expense confirmation screen. */
@@ -70,18 +68,8 @@ function usePerDiemSubmission({
     selectedParticipants,
     isTrackExpense,
     isSelfDMDestination,
-    isLookingAroundUser,
-    isTrackIntentUser,
     backToReport,
     onExpenseWriteWillStart,
-    recentlyUsedData,
-    policyTags,
-    rules,
-    quickAction,
-    selfDMReport,
-    transactionViolations,
-    reportTransactions,
-    delegateAccountID,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -89,9 +77,18 @@ function usePerDiemSubmission({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
+    const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
+    const delegateAccountID = useDelegateAccountID();
+    const reportTransactions = useReportTransactions(report?.reportID);
+    const {transactionViolations} = useSubmissionViolations();
+
     const policyID = policy?.id;
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
