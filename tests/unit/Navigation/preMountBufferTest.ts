@@ -23,6 +23,7 @@ type MockAction = {
 
 let mockRootState: {key: string; routes: MockRoute[]; index: number; routeNames?: string[]; stale?: boolean} | undefined;
 const mockDispatch = jest.fn<void, [MockAction]>();
+const mockConsumePreMountReplaceOutcome = jest.fn<{routeKey: string; isRevealed: boolean} | undefined, []>();
 let mockStateListener: (() => void) | undefined;
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -77,6 +78,7 @@ jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForAct
     ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers'),
     getPreInsertedOriginalTabRoute: () => mockOriginalTabRoute,
     clearPreInsertedOriginalTabRoute: () => mockClearPreInsertedOriginalTabRoute(),
+    consumePreMountReplaceOutcome: () => mockConsumePreMountReplaceOutcome(),
 }));
 
 const RHP_KEY = 'rhp-1';
@@ -573,9 +575,9 @@ describe('Navigation pre-mount buffer', () => {
         const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey() ?? '';
         mockDispatch.mockClear();
 
-        // The router applies the REPLACE, so the root state changes and the reveal keeps the pre-mount instead of cancelling it
+        // The router applies the REPLACE and reports it showed the pre-mount, so the reveal keeps it instead of cancelling it
         mockDispatch.mockImplementationOnce(() => {
-            mockRootState = mockRootState && {...mockRootState};
+            mockConsumePreMountReplaceOutcome.mockReturnValueOnce({routeKey: preMountedRouteKey, isRevealed: true});
         });
         const rafSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
             callback(0);
