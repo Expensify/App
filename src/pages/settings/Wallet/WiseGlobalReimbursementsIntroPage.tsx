@@ -56,7 +56,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
 
     if (isLoadingOnyxValue(bankAccountListMetadata) || isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
