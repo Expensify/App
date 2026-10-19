@@ -81,6 +81,16 @@ import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 
+function getDestinationKey(policyID: string | undefined, reportID: string | undefined): string | undefined {
+    if (policyID) {
+        return `policy:${policyID}`;
+    }
+    if (reportID) {
+        return `report:${reportID}`;
+    }
+    return undefined;
+}
+
 function SubmitDetailsPage({
     route: {
         params: {reportOrAccountID},
@@ -195,22 +205,25 @@ function SubmitDetailsPage({
     // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
     // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
-    const initialReportIDRef = useRef<string | undefined>(undefined);
-    const hasCapturedInitialReportIDRef = useRef(false);
-    const hasAppliedDestinationDefaultsRef = useRef(false);
+    const hasCapturedInitialDestinationRef = useRef(false);
+    const lastHandledDestinationKeyRef = useRef<string | undefined>(undefined);
     const transactionDestinationPolicyID = transaction?.participants?.at(0)?.policyID;
+    const transactionDestinationReportID = transaction?.participants?.at(0)?.reportID;
     const shouldPreserveSelectedReport = !!transaction?.reportID && !!report?.policyID && transactionDestinationPolicyID === report.policyID;
     const reportIDForInitialization = shouldPreserveSelectedReport ? (transaction?.reportID ?? reportOrAccountID) : reportOrAccountID;
+    const draftDestinationPolicyID = transactionDestinationPolicyID ?? transactionReport?.policyID;
+    const draftDestinationReportID = transactionDestinationReportID ?? transaction?.reportID;
+    const draftDestinationKey = getDestinationKey(draftDestinationPolicyID, draftDestinationReportID);
+    const destinationKey = getDestinationKey(report?.policyID, routeReportID);
 
-    // Capture the draft destination before initMoneyRequest updates it. This makes the comparison independent of
-    // effect ordering and Onyx update timing when the confirmation page remounts after participant selection.
+    // Wait for the draft to hydrate before comparing its destination with the route destination.
     useEffect(() => {
-        if (isLoadingTransaction || hasCapturedInitialReportIDRef.current) {
+        if (isLoadingTransaction || hasCapturedInitialDestinationRef.current) {
             return;
         }
-        initialReportIDRef.current = transaction?.reportID;
-        hasCapturedInitialReportIDRef.current = true;
-    }, [isLoadingTransaction, transaction?.reportID]);
+        lastHandledDestinationKeyRef.current = draftDestinationKey;
+        hasCapturedInitialDestinationRef.current = true;
+    }, [draftDestinationKey, isLoadingTransaction]);
 
     useEffect(() => {
         if (isLoadingTransaction) {
@@ -305,24 +318,19 @@ function SubmitDetailsPage({
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGroupPolicyExpenseChat = isPolicyExpenseChat && isGroupPolicy(policy);
+    const isDestinationPolicyReady = isPolicyExpenseChat ? !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        if (
-            !hasCapturedInitialReportIDRef.current ||
-            (initialReportIDRef.current && initialReportIDRef.current === reportOrAccountID) ||
-            hasAppliedDestinationDefaultsRef.current ||
-            !report?.reportID ||
-            ((isPolicyExpenseChat || isCreatingTrackExpense) && !policy?.id)
-        ) {
+        if (!hasCapturedInitialDestinationRef.current || !destinationKey || lastHandledDestinationKeyRef.current === destinationKey || !report?.reportID || !isDestinationPolicyReady) {
             return;
         }
-        hasAppliedDestinationDefaultsRef.current = true;
+        lastHandledDestinationKeyRef.current = destinationKey;
 
         const defaultReimbursable = isGroupPolicyExpenseChat || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [defaultBillable, isGroupPolicyExpenseChat, isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, policy?.id, report?.reportID, reportOrAccountID]);
+    }, [defaultBillable, destinationKey, isDestinationPolicyReady, isGroupPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, report?.reportID]);
 
     const setBillable = useCallback((billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
