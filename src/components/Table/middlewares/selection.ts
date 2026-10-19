@@ -9,6 +9,7 @@ import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
 import type {Dispatch, SetStateAction} from 'react';
 
+import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useState} from 'react';
 
 import type {MiddlewareHookResult} from './types';
@@ -87,6 +88,7 @@ export default function useSelection<DataType extends TableData>({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
+    const isFocused = useIsFocused();
 
     // When a user long-presses a row on mobile, store the key of the row that will be selected if
     // the user confirms the selection
@@ -125,6 +127,11 @@ export default function useSelection<DataType extends TableData>({
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
+        // Selection mode is app wide, so a table in a background tab would turn off the mode a focused screen just enabled.
+        if (!isFocused) {
+            return;
+        }
+
         const isMobileMissingSelectionMode = selectionUsesNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
         const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !selectionUsesNarrowLayout;
         const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
@@ -137,7 +144,7 @@ export default function useSelection<DataType extends TableData>({
         // setSelectionModeEnabled is omitted from the dependencies below because a caller is free to pass an inline
         // callback, and re-running this effect on every render would fight the selection mode it just set.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
+    }, [isFocused, selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
     // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
