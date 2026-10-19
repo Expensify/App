@@ -20,6 +20,7 @@ import type {
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
+    SetPolicyCategoryTaxParams,
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoriesEnabledParams,
     SetWorkspaceCategoryDescriptionHintParams,
@@ -1938,7 +1939,7 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
  * The cost is that a partial failure discards the writes that succeeded too, so they read stale until the next policy
  * read. That beats showing a rate the server rejected, which is what the admin would otherwise save on top of.
  */
-function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
+function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     if (!policy?.id || categoryNames.length === 0 || !taxID) {
         Log.warn('Invalid params for setPolicyCategoryTaxes');
         return;
@@ -1968,14 +1969,17 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
         ],
     };
 
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of categoryNames) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 
 /** Sets a single category's default tax rate. */
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
-    setPolicyCategoryTaxes(policy, [categoryName], taxID);
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+    setPolicyCategoryTaxes(policy, [categoryName], taxID, reviewWorkspaceSettingsTaskData);
 }
 
 /**
@@ -1990,7 +1994,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * Every rollback is the array as it stood before the delete, for the reason in `setPolicyCategoryTaxes`: Onyx replaces
  * the array wholesale, so per-category snapshots contradict each other and the last failure to land hides the rest.
  */
-function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
+function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || categoryNames.length === 0) {
         Log.warn('Invalid params for deletePolicyCategoryTaxes');
@@ -2029,14 +2033,17 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
         ],
     };
 
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of targets) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID: defaultExternalID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 
 /** Removes a single category's default tax rate. */
-function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string) {
-    deletePolicyCategoryTaxes(policy, [categoryName]);
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+    deletePolicyCategoryTaxes(policy, [categoryName], reviewWorkspaceSettingsTaskData);
 }
 
 /**

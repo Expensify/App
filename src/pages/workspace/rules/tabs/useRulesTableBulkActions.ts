@@ -274,7 +274,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         if (selectedCategoryNames.length > 0) {
-            deletePolicyCategoryTaxes(policy, selectedCategoryNames);
+            deletePolicyCategoryTaxes(policy, selectedCategoryNames, getReviewWorkspaceSettingsTaskCompletion());
         }
         clearTableSelection();
     }, [
