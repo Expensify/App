@@ -74,7 +74,7 @@ function MergeResultPage() {
                     Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
             />
-            <ConfirmationPage style={{...styles.flexGrow1, ...styles.mt3}}>
+            <ConfirmationPage style={styles.mt3}>
                 <ConfirmationPage.Content>
                     <ConfirmationPage.Illustration
                         illustration={illustration}
