@@ -13,6 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -66,6 +67,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -236,7 +238,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled);
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
             }
             clearTableSelection();
             return;
@@ -244,7 +246,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
         if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
             for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
-                deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
+                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, getReviewWorkspaceSettingsTaskCompletion());
             }
             clearTableSelection();
             return;
@@ -289,6 +291,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         policy,
         policyData,
         policyID,
+        getReviewWorkspaceSettingsTaskCompletion,
     ]);
 
     return {

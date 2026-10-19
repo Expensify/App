@@ -11,6 +11,8 @@ import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
+
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
@@ -64,14 +66,23 @@ function getFlagForReviewFormFromCategory(
     };
 }
 
-function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm, originalCategoryName?: string) {
+function saveFlagForReviewRule(
+    policyID: string,
+    policyCategories: PolicyCategories | undefined,
+    form: FlagForReviewRuleForm,
+    originalCategoryName?: string,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName) {
         return;
     }
 
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
+
     if (originalCategoryName && originalCategoryName !== categoryName) {
-        deleteFlagForReviewRule(policyID, originalCategoryName, policyCategories);
+        deleteFlagForReviewRule(policyID, originalCategoryName, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     }
 
     setPolicyCategoryMaxAmount(
@@ -80,14 +91,20 @@ function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategor
         form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '',
         form[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
         policyCategories,
+        remainingTaskData,
     );
 }
 
-function deleteFlagForReviewRule(policyID: string, categoryName: string, policyCategories: PolicyCategories | undefined) {
+function deleteFlagForReviewRule(
+    policyID: string,
+    categoryName: string,
+    policyCategories: PolicyCategories | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const category = policyCategories?.[categoryName];
     const expenseLimitType = category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
-    setPolicyCategoryMaxAmount(policyID, categoryName, '', expenseLimitType, policyCategories);
+    setPolicyCategoryMaxAmount(policyID, categoryName, '', expenseLimitType, policyCategories, reviewWorkspaceSettingsTaskData);
 }
 
 function getFlagForReviewTableData({

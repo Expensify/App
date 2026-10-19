@@ -20,6 +20,7 @@ import type {
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
+    UpdatePolicyCategoryPayrollCodeParams,
     SetWorkspaceRequiresCategoryParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -325,7 +326,13 @@ function setWorkspaceCategoryEnabled({
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
 }
 
-function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
+function setPolicyCategoryDescriptionRequired(
+    policyID: string,
+    categoryName: string,
+    areCommentsRequired: boolean,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreCommentsRequired = policyCategoryToUpdate?.areCommentsRequired;
     const isRemoving = !areCommentsRequired;
@@ -392,12 +399,19 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
         policyID,
         categoryName,
         areCommentsRequired,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
+function setPolicyCategoryReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    maxAmountNoReceipt: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -457,12 +471,18 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
         policyID,
         categoryName,
         maxExpenseAmountNoReceipt: maxAmountNoReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
+function removePolicyCategoryReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -521,12 +541,19 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     const parameters: RemovePolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
+function setPolicyCategoryItemizedReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    maxAmountNoItemizedReceipt: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -586,12 +613,18 @@ function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categ
         policyID,
         categoryName,
         maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
+function removePolicyCategoryItemizedReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -650,9 +683,10 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
     const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
         categoryName,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
@@ -661,6 +695,7 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
     maxAmountNoReceipt: number,
     maxAmountNoItemizedReceipt: number,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
@@ -729,9 +764,10 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
         categoryName,
         maxExpenseAmountNoReceipt: maxAmountNoReceipt,
         maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function createPolicyCategory({
@@ -1059,7 +1095,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
         ],
     };
 
-    const parameters = {
+    const parameters: UpdatePolicyCategoryPayrollCodeParams = {
         policyID,
         categoryName,
         payrollCode,
@@ -1598,7 +1634,13 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void, t
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string, policyCategories: PolicyCategories = {}) {
+function setWorkspaceCategoryDescriptionHint(
+    policyID: string,
+    categoryName: string,
+    commentHint: string,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const originalCommentHint = policyCategories?.[categoryName]?.commentHint;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
@@ -1654,9 +1696,10 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
         policyID,
         categoryName,
         commentHint,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryMaxAmount(
@@ -1665,6 +1708,7 @@ function setPolicyCategoryMaxAmount(
     maxExpenseAmount: string,
     expenseLimitType: PolicyCategoryExpenseLimitType,
     policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalMaxExpenseAmount = policyCategoryToUpdate?.maxExpenseAmount;
@@ -1743,9 +1787,10 @@ function setPolicyCategoryMaxAmount(
         categoryName,
         maxExpenseAmount: parsedMaxExpenseAmount,
         expenseLimitType,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string, approvalRules: ApprovalRule[]) {
@@ -2031,7 +2076,13 @@ function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: stri
     }
 }
 
-function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
+function setPolicyCategoryAttendeesRequired(
+    policyID: string,
+    categoryName: string,
+    areAttendeesRequired: boolean,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
     const isRemoving = !areAttendeesRequired;
@@ -2098,9 +2149,10 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
         policyID,
         categoryName,
         areAttendeesRequired,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 export {

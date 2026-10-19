@@ -15,6 +15,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ValueOf} from 'type-fest';
 
+import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
+
 import {
     removePolicyCategoryItemizedReceiptsRequired,
     removePolicyCategoryReceiptsRequired,
@@ -311,6 +313,7 @@ function applyRequireFieldsReceiptSettings(
     isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const receiptSetting = effectiveForm[INPUT_IDS.RECEIPT_SETTING];
     const itemizedReceiptSetting = effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING];
@@ -335,16 +338,19 @@ function applyRequireFieldsReceiptSettings(
     }
 
     if (isReceiptOverrideValue(receiptTarget) && isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget, isVendorMatchingBetaEnabled);
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
         return;
     }
 
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
+
     if (isReceiptOverrideValue(receiptTarget)) {
-        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget, isVendorMatchingBetaEnabled);
+        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget, isVendorMatchingBetaEnabled);
+        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget, isVendorMatchingBetaEnabled, remainingTaskData);
     }
 }
 
@@ -354,6 +360,7 @@ function saveRequireFieldsRule(
     isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
@@ -364,38 +371,57 @@ function saveRequireFieldsRule(
     const category = policyCategories?.[categoryName];
     const initialForm = getRequireFieldsFormFromCategory(category);
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.DESCRIPTION_SETTING, clearedFields)) {
-        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, false, policyCategories);
+        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     } else if (!clearedFields?.has(INPUT_IDS.DESCRIPTION_SETTING) && effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
         setPolicyCategoryDescriptionRequired(
             policyData.policy.id,
             categoryName,
             effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
             policyCategories,
+            remainingTaskData,
         );
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ATTENDEES_SETTING, clearedFields)) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, false, policyCategories);
+        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     } else if (!clearedFields?.has(INPUT_IDS.ATTENDEES_SETTING) && effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE, policyCategories);
+        setPolicyCategoryAttendeesRequired(
+            policyData.policy.id,
+            categoryName,
+            effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+            policyCategories,
+            remainingTaskData,
+        );
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, isVendorMatchingBetaEnabled, touchedFields, clearedFields, remainingTaskData);
     }
 }
 
-function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string, isVendorMatchingBetaEnabled: boolean | undefined) {
+function deleteRequireFieldsRule(
+    policyData: PolicyData,
+    ruleKey: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const {categoryName} = parseRequireFieldsRuleKey(ruleKey);
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -409,20 +435,25 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string, isVend
         return;
     }
 
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
+
     if (isDescriptionRequiredForCategory(category)) {
-        setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories);
+        setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isAttendeesRequiredForCategory(category)) {
-        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isReceiptRequireOverrideForCategory(category) || isReceiptWaivedForCategory(category)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isItemizedReceiptRequireOverrideForCategory(category) || isItemizedReceiptWaivedForCategory(category)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
     }
 }
 
