@@ -764,6 +764,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
             });
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 

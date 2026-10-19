@@ -158,7 +158,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
+    const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
