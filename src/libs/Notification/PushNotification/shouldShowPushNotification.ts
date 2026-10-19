@@ -39,6 +39,8 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
+// connectWithoutView() is the only option here: Airship calls shouldShowPushNotification() from outside the React tree and owns its callback signature,
+// so we can neither use useOnyx() nor pass this value in as a parameter. This is not a pattern to copy - prefer useOnyx() or passing data in as a parameter.
 let singleExpenseReportView: OnyxEntry<ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW,
