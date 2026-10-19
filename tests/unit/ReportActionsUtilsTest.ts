@@ -3245,6 +3245,23 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
 
+        it('should keep a merged expense deleted action with an empty message visible', () => {
+            // Given the action the backend adds to the submitter's report when an admin merges their expenses, which has no message fragments
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // When checking whether the action is deleted and whether it is visible
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true);
+
+            // Then it is not treated as deleted and is shown in the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
+        });
+
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
                 ...createRandomReportAction(0),
@@ -6314,6 +6331,13 @@ describe('ReportActionsUtils', () => {
                 message: [],
             }) as ReportAction;
 
+        const buildFastACHAction = () =>
+            buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
         it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
             // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
             const action = buildReimbursedAction({
@@ -6360,7 +6384,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -6375,7 +6399,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -6397,7 +6421,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString, 2);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -6460,6 +6484,46 @@ describe('ReportActionsUtils', () => {
 
             const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
+        });
+
+        it('names the submitter when the signed-in session owns the report but the current user does not', async () => {
+            // Given a signed-in session whose account owns the report
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+            const action = buildFastACHAction();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+            await waitForBatchedUpdates();
+
+            // When the message is built for a different current user
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+
+            // Then it names the submitter, and matches what the same call produces with no session at all
+            expect(result).toContain(submitterLogin);
+            expect(result).not.toContain('your');
+
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            expect(ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999)).toBe(result);
+        });
+
+        it('shows "your" wording when the report has no owner and the current user is unknown', () => {
+            // Given a report with no owner, so the submitter also resolves to the default account ID
+            const submitterLogin = 'submitter@example.com';
+
+            // When the current user is unknown and passed as the default account ID
+            const result = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                buildFastACHAction(),
+                undefined,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                CONST.DEFAULT_NUMBER_ID,
+            );
+
+            // Then both sides resolve to the same ID and the message addresses the current user directly
+            expect(result).toContain('your');
         });
     });
 
