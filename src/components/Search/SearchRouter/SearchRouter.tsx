@@ -42,7 +42,13 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {beginSearchRouterQuerySession, endSearchRouterQuerySession, getSearchRouterQueryChangedAt, startSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
+import {
+    beginSearchRouterQuerySession,
+    cancelSearchRouterQuerySpan,
+    endSearchRouterQuerySession,
+    getSearchRouterQueryChangedAt,
+    startSearchRouterQuerySpan,
+} from '@libs/telemetry/searchRouterQuerySpans';
 
 import Navigation from '@navigation/Navigation';
 
@@ -401,6 +407,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue(updatedUserQuery);
             // A same-value update does not restart the debounce timer, so it must not move the span start either.
             if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
+                // The list may still be evaluating the previous debounced query, and that measurement would now include this input.
+                cancelSearchRouterQuerySpan(
+                    updatedUserQuery.trim() ? CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED : CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED,
+                );
                 lastAutocompleteQueryRef.current = updatedUserQuery;
                 queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
                 isQueryChangeTypedRef.current = isTypedInput;

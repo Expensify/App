@@ -266,6 +266,57 @@ describe('SearchRouter query telemetry from the keystroke', () => {
         expect(startedSpans.at(0)?.startTime).toBeCloseTo(eventTimeStamp / 1000, 3);
     });
 
+    it('cancels the span as superseded when the user types while the list is still evaluating the query', async () => {
+        // Given a settled query whose span is open because the list has not committed it yet
+        await renderSearchRouter();
+        type('ab');
+        advance(DEBOUNCE_TIME);
+        expect(getStartedQuerySpans()).toHaveLength(1);
+        expect(getEndedQuerySpans()).toHaveLength(0);
+
+        // When the user types another character before the list commits
+        type('abc');
+
+        // Then the span is cancelled at that keystroke, without waiting for the debounce, so its measurement never includes the new input
+        const endedSpans = getEndedQuerySpans();
+        expect(endedSpans).toHaveLength(1);
+        expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
+        expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED);
+    });
+
+    it('cancels the span as cleared when the user clears the input while the list is still evaluating the query', async () => {
+        // Given a settled query whose span is open because the list has not committed it yet
+        await renderSearchRouter();
+        type('ab');
+        advance(DEBOUNCE_TIME);
+        expect(getEndedQuerySpans()).toHaveLength(0);
+
+        // When the user clears the input before the list commits
+        type('');
+
+        // Then the span is cancelled at that keystroke as cleared, so clearing stays distinguishable from typing more
+        const endedSpans = getEndedQuerySpans();
+        expect(endedSpans).toHaveLength(1);
+        expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
+        expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
+    });
+
+    it('does not measure a query retyped right after clearing it, before the debounce fires', async () => {
+        // Given the user typed a query that the list evaluated
+        await renderSearchRouter();
+        type('abc');
+        advance(DEBOUNCE_TIME);
+
+        // When the user clears the input and types the same query again faster than the debounce delay
+        type('');
+        advance(KEYSTROKE_INTERVAL);
+        type('abc');
+        advance(DEBOUNCE_TIME);
+
+        // Then no other span starts, because keystrokes that don't outlast the debounce are never measured
+        expect(getStartedQuerySpans()).toHaveLength(1);
+    });
+
     it('does not measure a picked suggestion or count it toward the per-open cap', async () => {
         // Given the user typed a query that the list has not committed yet
         await renderSearchRouter();
