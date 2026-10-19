@@ -14,7 +14,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {flushQueue, getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -269,7 +269,12 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
             });
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        // A catch-up response applies straight to Onyx while older WRITE responses are still staged for the deferred
+        // flush. Landing those first keeps that flush from rewinding keys the catch-up already moved forward.
+        const shouldFlushStagedWritesFirst = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
+        const applyPromise = shouldFlushStagedWritesFirst
+            ? flushQueue().then(() => applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)))
+            : applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
