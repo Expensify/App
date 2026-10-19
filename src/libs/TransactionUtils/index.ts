@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -80,7 +81,6 @@ import {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
@@ -95,6 +95,7 @@ import {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -414,6 +415,15 @@ function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefin
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
+}
+
+/**
+ * Whether a receipt can be shown as a real PDF rendered over its thumbnail, rather than just the static thumbnail.
+ * E-receipts have no underlying PDF to render, and map-based distance receipts show the map image instead.
+ */
+function canOverlayReceiptPDF(transaction: OnyxEntry<Transaction>): boolean {
+    const isEReceipt = !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    return !isEReceipt && !isMapBasedDistanceRequest(transaction);
 }
 
 /** Check if odometer image has the source file */
@@ -1584,6 +1594,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1632,6 +1643,11 @@ function getEligibleTransactionsToAdd({
             const perDiemCustomUnitID = transaction.comment?.customUnit?.customUnitID;
 
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
+        }
+
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
         }
 
         return true;
@@ -1893,7 +1909,6 @@ export {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getUnsuppressibleBrokenConnectionTransactionID,
-    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
     allHavePendingRTERViolation,
@@ -1910,6 +1925,7 @@ export {
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     isBrokenConnectionViolation,
+    isPendingRTERViolation,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -1931,6 +1947,7 @@ export {
     getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
     hasReceiptSource,
+    canOverlayReceiptPDF,
     hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
@@ -1995,3 +2012,4 @@ export {
 };
 
 export type {ManuallyEnteredScanFields};
+export type {MergeDuplicatesTransactionParams} from './duplicates';
