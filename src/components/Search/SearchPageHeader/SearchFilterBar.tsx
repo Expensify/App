@@ -63,6 +63,8 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, onLandscapePress}: DropdownProps) {
+    // SearchUIUtils.getDisplayValue joins card IDs with ', ', so decode that display value before resolving card names.
+    // Feed and tax scalars each represent one ID and only need wrapping.
     const cardValue = useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
     return (
         <DropdownButton

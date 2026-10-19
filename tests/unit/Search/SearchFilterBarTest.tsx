@@ -23,7 +23,7 @@ const MockText = Text;
 
 jest.mock('@components/Search/FilterDropdowns/DropdownButton', () => ({
     __esModule: true,
-    default: ({label, value}: Pick<DropdownButtonProps, 'label' | 'value'>) => <MockText testID="filter-value">{value ? `${label}: ${String(value)}` : label}</MockText>,
+    default: ({label, value}: Pick<DropdownButtonProps, 'label' | 'value'>) => <MockText>{value ? `${label}: ${String(value)}` : label}</MockText>,
 }));
 jest.mock('@hooks/useLocalize');
 
@@ -58,7 +58,13 @@ describe('SearchFilterBar value adapters', () => {
         await waitForBatchedUpdates();
     });
 
-    it('matches whole card IDs, decodes producer-joined IDs, and keeps card-list order', async () => {
+    it.each([
+        {scenario: 'a scalar ID overlapping another card ID', value: '123', expected: 'Filter: Card 123'},
+        {scenario: 'an array shown in card-list order', value: ['456', '12'], expected: 'Filter: Card 12, Card 456'},
+        {scenario: 'IDs joined with the producer delimiter', value: '123, 456', expected: 'Filter: Card 123, Card 456'},
+        {scenario: 'IDs joined without the producer space', value: '123,456', expected: 'Filter'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels cards for $scenario', async ({value, expected}) => {
         // Given cards whose IDs overlap and descriptions come from the card Onyx writer.
         const card12 = createMock<Card>({cardID: 12, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardName: 'Card 12'});
         const card123 = createMock<Card>({cardID: 123, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardName: 'Card 123'});
@@ -69,30 +75,19 @@ describe('SearchFilterBar value adapters', () => {
             [String(card456.cardID)]: card456,
         });
 
-        // When a scalar ID, an array, and the producer's joined string reach the display adapter.
-        const scalar = renderFilter(FILTER_KEYS.CARD_ID, '123');
-        // Then a substring ID cannot select another card.
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Card 123');
-        scalar.unmount();
+        // When the adapter receives a card selection, only the producer's exact delimiter should separate scalar IDs.
+        renderFilter(FILTER_KEYS.CARD_ID, value);
 
-        const multiple = renderFilter(FILTER_KEYS.CARD_ID, ['456', '12']);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Card 12, Card 456');
-        multiple.unmount();
-
-        const joined = renderFilter(FILTER_KEYS.CARD_ID, '123, 456');
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Card 123, Card 456');
-        joined.unmount();
-
-        const nonProducer = renderFilter(FILTER_KEYS.CARD_ID, '123,456');
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter');
-        nonProducer.unmount();
-
-        renderFilter(FILTER_KEYS.CARD_ID, []);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter');
+        // Then whole IDs select cards in card-list order, while unrecognized or empty selections keep the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 
-    it('selects exact feed IDs and displays multiple feeds in localized option order', async () => {
-        // Given two feed records using the same company-card settings shape as the Onyx writer.
+    it.each([
+        {scenario: 'a scalar ID overlapping another feed ID', value: '123_vcf', expected: 'Filter: Alpha Feed'},
+        {scenario: 'an array shown in localized option order', value: ['23_vcf', '123_vcf'], expected: 'Filter: Alpha Feed, Zulu Feed'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels feeds for $scenario', async ({value, expected}) => {
+        // Given overlapping feed IDs with names ordered differently from insertion order to expose incorrect matching or sorting.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}23`, {
             settings: {
                 companyCards: {vcf: {}},
@@ -106,21 +101,18 @@ describe('SearchFilterBar value adapters', () => {
             },
         });
 
-        // When scalar and array IDs reach the real feed value hook.
-        const scalar = renderFilter(FILTER_KEYS.FEED, '123_vcf');
-        // Then overlapping IDs stay distinct and labels follow locale-sorted options.
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Alpha Feed');
-        scalar.unmount();
+        // When the adapter receives a feed selection, the real hook must resolve complete option IDs.
+        renderFilter(FILTER_KEYS.FEED, value);
 
-        const multiple = renderFilter(FILTER_KEYS.FEED, ['23_vcf', '123_vcf']);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Alpha Feed, Zulu Feed');
-        multiple.unmount();
-
-        renderFilter(FILTER_KEYS.FEED, []);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter');
+        // Then overlapping IDs stay distinct, names follow localized option order, and an empty selection keeps the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 
-    it('selects exact tax keys and keeps policy tax order', async () => {
+    it.each([
+        {scenario: 'a scalar key overlapping another tax key', value: 'TAX123', expected: 'Filter: Second Tax'},
+        {scenario: 'an array shown in policy tax order', value: ['TAX123', 'TAX12'], expected: 'Filter: First Tax, Second Tax'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels tax rates for $scenario', async ({value, expected}) => {
         // Given a policy tax collection with colliding key prefixes.
         await Onyx.merge(
             `${ONYXKEYS.COLLECTION.POLICY}1`,
@@ -139,17 +131,10 @@ describe('SearchFilterBar value adapters', () => {
             }),
         );
 
-        // When scalar and array keys reach the real tax value hook.
-        const scalar = renderFilter(FILTER_KEYS.TAX_RATE, 'TAX123');
-        // Then only the complete key matches, while multiple names retain policy order.
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: Second Tax');
-        scalar.unmount();
+        // When the adapter receives a tax selection, the real hook must distinguish complete keys despite their shared prefix.
+        renderFilter(FILTER_KEYS.TAX_RATE, value);
 
-        const multiple = renderFilter(FILTER_KEYS.TAX_RATE, ['TAX123', 'TAX12']);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter: First Tax, Second Tax');
-        multiple.unmount();
-
-        renderFilter(FILTER_KEYS.TAX_RATE, []);
-        expect(screen.getByTestId('filter-value').props.children).toBe('Filter');
+        // Then names retain policy order rather than selection order, and an empty selection keeps the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 });
