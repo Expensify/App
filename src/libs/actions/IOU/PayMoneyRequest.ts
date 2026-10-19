@@ -17,7 +17,6 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
     getReimbursableTotal,
-    getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
@@ -63,6 +62,7 @@ type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
     invoiceReport: OnyxEntry<OnyxTypes.Report>;
+    invoiceReportTransactions: OnyxTypes.Transaction[];
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -102,6 +102,7 @@ type PayMoneyRequestFunctionParams = {
     paymentType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     currentUserAccountID: number;
     currentUserLogin: string;
@@ -131,6 +132,7 @@ type PayMoneyRequestFunctionParams = {
 function getPayMoneyRequestParams({
     initialChatReport,
     iouReport,
+    iouReportTransactions,
     recipient,
     paymentMethodType,
     full,
@@ -158,6 +160,7 @@ function getPayMoneyRequestParams({
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     recipient: Participant;
     paymentMethodType: PaymentMethodType;
     full: boolean;
@@ -254,14 +257,13 @@ function getPayMoneyRequestParams({
         chatReport = existingB2BInvoiceReport;
     }
 
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
     const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
     let total = getReimbursableTotal(iouReport);
-    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!unheldReimbursableTotal) {
+    if (hasHeldExpensesReportUtils(iouReportTransactions) && !full && !!unheldReimbursableTotal) {
         total = unheldReimbursableTotal;
     }
 
-    const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(reportTransactions, iouReport);
+    const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(iouReportTransactions, iouReport);
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -404,8 +406,7 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    // Same key as the preview copy below, so dismissing this one clears that one too.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
                 },
             },
         },
@@ -424,8 +425,7 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                // Clear only our own previous failure so a retry does not keep showing a stale RBR.
-                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
             },
         });
         onyxData.failureData?.push({
@@ -434,9 +434,6 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
-                    // The error above sits in the expense report, which the payer cannot reach once it is deleted.
-                    // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         });
@@ -444,7 +441,6 @@ function getPayMoneyRequestParams({
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const iouReportTransactions = getReportTransactions(iouReport?.reportID);
         for (const transaction of iouReportTransactions) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -873,6 +869,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         paymentType,
         chatReport,
         iouReport,
+        iouReportTransactions,
         introSelected,
         currentUserAccountID,
         currentUserLogin,
@@ -915,6 +912,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport,
+        iouReportTransactions,
         recipient,
         paymentMethodType: paymentType,
         full,
@@ -1121,6 +1119,7 @@ function payInvoice({
     paymentMethodType,
     chatReport,
     invoiceReport,
+    invoiceReportTransactions,
     introSelected,
     currentUserAccountIDParam,
     currentUserEmailParam,
@@ -1160,6 +1159,7 @@ function payInvoice({
     } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport: invoiceReport,
+        iouReportTransactions: invoiceReportTransactions,
         recipient,
         paymentMethodType,
         full: true,
