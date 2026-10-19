@@ -198,6 +198,9 @@ function SubmitDetailsPage({
     const initialReportIDRef = useRef<string | undefined>(undefined);
     const hasCapturedInitialReportIDRef = useRef(false);
     const hasAppliedDestinationDefaultsRef = useRef(false);
+    const transactionDestinationPolicyID = transaction?.participants?.at(0)?.policyID;
+    const shouldPreserveSelectedReport = !!transaction?.reportID && !!report?.policyID && transactionDestinationPolicyID === report.policyID;
+    const reportIDForInitialization = shouldPreserveSelectedReport ? (transaction?.reportID ?? reportOrAccountID) : reportOrAccountID;
 
     // Capture the draft destination before initMoneyRequest updates it. This makes the comparison independent of
     // effect ordering and Onyx update timing when the confirmation page remounts after participant selection.
@@ -219,7 +222,9 @@ function SubmitDetailsPage({
         }
 
         initMoneyRequest({
-            reportID: reportOrAccountID,
+            // Preserve a Report-field selection when reopening confirmation for the same workspace. A selection from
+            // another workspace is not valid for this destination, so initialize from the destination route instead.
+            reportID: reportIDForInitialization,
             policy,
             personalPolicy,
             currentIouRequestType: transaction?.iouRequestType,
@@ -235,7 +240,7 @@ function SubmitDetailsPage({
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        reportOrAccountID,
+        reportIDForInitialization,
         policy,
         personalPolicy,
         report,
