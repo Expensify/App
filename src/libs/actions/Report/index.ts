@@ -621,6 +621,11 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
+/** Loads the policy expense chats the workspace picker needs, since OpenApp no longer returns all of them. */
+function openRecipientPicker() {
+    API.read(READ_COMMANDS.OPEN_RECIPIENT_PICKER, null);
+}
+
 function openUnreportedExpense(reportID: string | undefined, backToReport?: string) {
     if (!reportID) {
         return;
@@ -4384,10 +4389,10 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number) {
+function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number, reportIDToName: Record<string, string>) {
     // No change needed
     const currentDescription = report.description ?? '';
-    if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
+    if (Parser.htmlToMarkdown(currentDescription, {reportIDToName}) === newMarkdownValue) {
         return;
     }
 
@@ -9283,6 +9288,7 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     createTransactionThreadReport,
+    openRecipientPicker,
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
