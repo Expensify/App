@@ -29,18 +29,18 @@ describe('formatTooltipComparison', () => {
     });
 
     it("colors a bar's rows like its own bars rather than like the series", () => {
-        // Given a blue bar and its lighter typical bar, where the compared series keeps the line's color
+        // Given a blue bar and its lighter average bar, where the compared series keeps the line's color
         const point: ChartDataPoint = {
             label: 'Amazon',
             values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
             seriesColors: {[CHART_SERIES_KEY.PRIMARY]: colors.blue400, [CHART_SERIES_KEY.COMPARISON]: colors.blue200},
         };
-        const series: NonEmptyTuple<ChartSeries> = [{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Typical'}];
+        const series: NonEmptyTuple<ChartSeries> = [{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average'}];
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, series, formatAmount, 'en');
 
-        // Then the dots match the bars drawn: the bar's own blue, and a lighter blue for the typical amount
+        // Then the dots match the bars drawn: the bar's own blue, and a lighter blue for the average amount
         expect(comparison?.rows.map((row) => row.color)).toEqual([colors.blue400, colors.blue200]);
     });
 

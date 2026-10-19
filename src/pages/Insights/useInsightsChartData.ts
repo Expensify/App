@@ -52,11 +52,7 @@ function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilter
             return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
         }
         case CONST.SEARCH.COMPARE.AVERAGE:
-            return {
-                queryJSON: chart.averageQueryJSON,
-                snapshot: chart.averageSnapshot,
-                label: translate(isLineChart ? 'insightsPage.compare.average' : 'insightsPage.compare.typical'),
-            };
+            return {queryJSON: chart.averageQueryJSON, snapshot: chart.averageSnapshot, label: translate('insightsPage.compare.average')};
         default:
             return undefined;
     }

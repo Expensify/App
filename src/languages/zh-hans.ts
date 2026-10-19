@@ -1134,7 +1134,6 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '比较',
             previousPeriod: '上一期',
             average: '平均',
-            typical: '典型',
             increase: (percentage: string) => `上升 ${percentage}`,
             decrease: (percentage: string) => `下降 ${percentage}`,
         },

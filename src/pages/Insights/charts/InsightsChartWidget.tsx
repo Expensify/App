@@ -47,10 +47,10 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the typical amounts */
+    /** The chart's query for the average amounts */
     averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
 
-    /** The snapshot stored under the chart's query for the typical amounts */
+    /** The snapshot stored under the chart's query for the average amounts */
     averageSnapshot: OnyxEntry<SearchResults>;
 
     /** Page-level filters every chart on the dashboard is narrowed by */

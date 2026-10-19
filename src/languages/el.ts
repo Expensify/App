@@ -1228,7 +1228,6 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Σύγκριση',
             previousPeriod: 'Προηγούμενη περίοδος',
             average: 'Μέσος όρος',
-            typical: 'Τυπικό',
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },

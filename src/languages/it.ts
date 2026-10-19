@@ -1181,7 +1181,6 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Confronta',
             previousPeriod: 'Periodo precedente',
             average: 'Media',
-            typical: 'Tipico',
             increase: (percentage: string) => `In aumento del ${percentage}`,
             decrease: (percentage: string) => `In calo del ${percentage}`,
         },

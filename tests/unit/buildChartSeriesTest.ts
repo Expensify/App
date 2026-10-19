@@ -339,13 +339,13 @@ describe('buildChartSeries', () => {
     });
 
     it("shades each compared bar with its own bar's color", () => {
-        // Given this month's top two merchants compared against the typical amounts
+        // Given this month's top two merchants compared against the average amounts
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a bar chart
         const {rows} = buildChartSeries({
             data,
-            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Typical', color: themeColors.green200},
+            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Average', color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
