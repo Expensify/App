@@ -63,6 +63,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                 const hasChange = primaryValue !== undefined && comparedValue !== undefined && primaryValue !== comparedValue;
                 const changePercentage = hasChange ? formatChangePercentage(primaryValue, comparedValue, preferredLocale) : undefined;
                 const isIncrease = hasChange && primaryValue > comparedValue;
+                const isNewSpend = comparedValue === 0;
                 const changeColor = isIncrease ? theme.danger : theme.successHover;
 
                 return (
@@ -86,7 +87,8 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            {!!changePercentage && (
+                            {!!changePercentage && isNewSpend && <Text style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}>{changePercentage}</Text>}
+                            {!!changePercentage && !isNewSpend && (
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}
                                     accessible

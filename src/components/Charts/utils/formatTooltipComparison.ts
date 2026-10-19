@@ -43,6 +43,10 @@ type TooltipComparison = {
 
 /** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
 function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
+    if (comparedValue === 0) {
+        return '—';
+    }
+
     const difference = primaryValue - comparedValue;
     return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
 }
