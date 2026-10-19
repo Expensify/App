@@ -78,7 +78,9 @@ function buildClippedNodes(doc: Document, anchor: Anchor): AnyNode[] {
         }
         if (isLeaf) {
             if (stopNode.type === ElementType.Text && anchor.textEndIdx !== undefined) {
-                const truncated = Object.assign(stopNode.cloneNode(false), stopNode);
+                const truncated = stopNode.cloneNode(false);
+                // dom-serializer uses the parent to preserve raw text escaping.
+                truncated.parent = stopNode.parent;
                 truncated.data = stopNode.data.slice(0, anchor.textEndIdx);
                 return [...before, truncated];
             }
@@ -88,7 +90,9 @@ function buildClippedNodes(doc: Document, anchor: Anchor): AnyNode[] {
             return [...before, stopNode];
         }
         const innerChildren = clip(stopNode.children, depth + 1);
-        const partialElem = Object.assign(stopNode.cloneNode(false), stopNode);
+        const partialElem = stopNode.cloneNode(false);
+        // dom-serializer uses the parent to preserve HTML inside MathML and SVG.
+        partialElem.parent = stopNode.parent;
         partialElem.children = innerChildren;
         return [...before, partialElem];
     };

@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getCardIssuedMessage, getOriginalMessage, isCardIssuedAction, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,13 +23,18 @@ import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 type IssueCardMessageProps = {
-    action: OnyxEntry<ReportAction>;
+    action: ReportAction<
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
+    >;
     policyID: string | undefined;
 };
 
@@ -37,7 +42,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
-    const cardIssuedActionOriginalMessage = isCardIssuedAction(action) ? getOriginalMessage(action) : undefined;
+    const cardIssuedActionOriginalMessage = getOriginalMessage(action);
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID;
     const expensifyCard = useGetExpensifyCardFromReportAction({
         reportAction: action,
