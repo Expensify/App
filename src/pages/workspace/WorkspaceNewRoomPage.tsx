@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues, FormValue} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -43,6 +43,10 @@ import type {ValueOf} from 'type-fest';
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+function findRoomOption<TValue extends string>(options: Array<{value: TValue}>, value: FormValue | undefined) {
+    return options.find((option) => option.value === value);
+}
 
 function EmptyWorkspaceView() {
     const styles = useThemeStyles();
@@ -360,7 +364,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                                 items={writeCapabilityOptions}
                                 value={writeCapability}
                                 onValueChange={(value) => {
-                                    const selectedOption = writeCapabilityOptions.find((option) => option.value === value);
+                                    const selectedOption = findRoomOption(writeCapabilityOptions, value);
                                     if (selectedOption) {
                                         setWriteCapability(selectedOption.value);
                                     }
@@ -375,7 +379,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                             label={translate('newRoomPage.visibility')}
                             items={visibilityOptions}
                             onValueChange={(value) => {
-                                const selectedOption = visibilityOptions.find((option) => option.value === value);
+                                const selectedOption = findRoomOption(visibilityOptions, value);
                                 if (selectedOption) {
                                     setVisibility(selectedOption.value);
                                 }

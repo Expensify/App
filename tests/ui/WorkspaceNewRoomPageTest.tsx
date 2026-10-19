@@ -201,6 +201,47 @@ describe('WorkspaceNewRoomPage option state and submit', () => {
         }
     });
 
+    it.each(['unmatched-room-option', undefined])('preserves room settings when picker value is %s', async (value) => {
+        // Given deliberate room settings, unmatched picker values must not replace those choices.
+        const page = renderNewRoomPage();
+        await waitForBatchedUpdatesWithAct();
+        selectRoomOption(page, 'Who can post', CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+        selectRoomOption(page, 'Visibility', CONST.REPORT.VISIBILITY.PUBLIC);
+        const capabilityPicker = mockRoomPickers.get('Who can post');
+        const visibilityPicker = mockRoomPickers.get('Visibility');
+        expect(capabilityPicker?.onInputChange).toBeDefined();
+        expect(visibilityPicker?.onInputChange).toBeDefined();
+        if (!capabilityPicker?.onInputChange || !visibilityPicker?.onInputChange) {
+            throw new Error('Expected the mounted room picker callbacks');
+        }
+
+        // When a picker reports a missing or unmatched value, the actual selection handlers ignore it.
+        act(() => {
+            capabilityPicker.onInputChange?.(value);
+            visibilityPicker.onInputChange?.(value);
+        });
+        const form = mockRoomForm;
+        expect(form).toBeDefined();
+        if (!form) {
+            throw new Error('Expected the actual room form');
+        }
+        act(() =>
+            form.onSubmit({
+                roomName: '#test-room',
+                reportDescription: '',
+                policyID: adminPolicy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            }),
+        );
+
+        // Then the submitted report retains both valid choices rather than resetting or accepting the unknown value.
+        expect(addPolicyReport).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(addPolicyReport).mock.calls.at(0)?.[0]).toEqual(
+            expect.objectContaining({writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS, visibility: CONST.REPORT.VISIBILITY.PUBLIC}),
+        );
+    });
+
     it('switches workspace and resets admin-only capability before submit', async () => {
         // Given an admin-only posting choice, switching to a member workspace must remove that capability.
         const page = renderNewRoomPage();

@@ -19,12 +19,11 @@ import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import type * as PolicyConnectionsModule from '@libs/actions/PolicyConnections';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import DynamicWorkspaceSettlementAccountPage from '@pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage';
+import type {WorkspaceSettlementAccountPageProps} from '@pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage';
 
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -129,15 +128,14 @@ const ineligible = createMock<BankAccount>({
     bankCountry: CONST.COUNTRY.US,
     accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP, addressName: 'Chase Bank'},
 });
-type SettlementPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
-const route: SettlementPageProps['route'] = {key: 'settlement', name: SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT, params: {policyID}};
+const route: WorkspaceSettlementAccountPageProps['route'] = {key: 'settlement', name: SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT, params: {policyID}};
 
 function renderSettlementPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <DynamicWorkspaceSettlementAccountPage
                 route={route}
-                navigation={createMock<SettlementPageProps['navigation']>({})}
+                navigation={createMock<WorkspaceSettlementAccountPageProps['navigation']>({})}
             />
         </ComposeProviders>,
     );

@@ -1,13 +1,12 @@
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
-import type AccountData from '@src/types/onyx/AccountData';
 import type {BankName, BankNameKey} from '@src/types/onyx/Bank';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BankIconParams = {
     styles: ThemeStyles;
-    bankName?: AccountData['addressName'];
+    bankName?: string;
     isCard?: boolean;
     maxIconSize?: number;
 };

@@ -5,7 +5,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {BankIconParams} from './Icon/BankIconsUtils';
 import type {ListItem} from './SelectionList/types';
 
 import Icon from './Icon';
@@ -31,7 +30,7 @@ type SettlementAccountSelectorProps = {
 };
 
 type BankAccountListItemLeftElementProps = {
-    bankName: NonNullable<BankIconParams['bankName']>;
+    bankName: string;
 };
 
 function BankAccountListItemLeftElement({bankName}: BankAccountListItemLeftElementProps) {

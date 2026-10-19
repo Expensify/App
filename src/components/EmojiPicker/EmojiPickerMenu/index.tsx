@@ -83,7 +83,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         }
         pendingHeaderFocusIndexRef.current = null;
 
-        headerRef.current.focus?.();
+        headerRef.current.focus();
         return true;
     }, []);
 

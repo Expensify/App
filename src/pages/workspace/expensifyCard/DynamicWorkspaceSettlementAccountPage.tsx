@@ -189,3 +189,4 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 }
 
 export default DynamicWorkspaceSettlementAccountPage;
+export type {WorkspaceSettlementAccountPageProps};

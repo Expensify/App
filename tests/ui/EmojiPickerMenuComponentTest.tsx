@@ -13,7 +13,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {getHeaderEmojis, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
 import type {EmojiPickerListItem} from '@libs/EmojiUtils';
-import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
@@ -486,7 +485,7 @@ describe.each(platformCases)('actual $platform EmojiPickerMenu', ({platform, Men
     }
 });
 
-describe('actual web keyboard and optional host focus', () => {
+describe('actual web keyboard and header focus', () => {
     beforeEach(async () => {
         jest.useFakeTimers();
         await act(async () => {
@@ -666,69 +665,5 @@ describe('actual web keyboard and optional host focus', () => {
         expect(onEmojiSelected).toHaveBeenCalledWith(grinning.code, grinning, -1);
         expect(preventDefault).toHaveBeenCalled();
         expect(stopPropagation).toHaveBeenCalled();
-    });
-
-    it('clears a queued retry when layout succeeds on an actual host without focus', async () => {
-        // Given an absent selected header, the first failed attempt queues the known delay-T retry.
-        mockHiddenHeaders.add('animalsAndNature');
-        renderEmojiMenu(WebEmojiPickerMenu, jest.fn<void, Parameters<EmojiPickerMenuProps['onEmojiSelected']>>());
-        await waitForBatchedUpdatesWithAct();
-        const natureIndex = mockEmojiListProps.data?.findIndex((item) => 'header' in item && item.code === 'animalsAndNature');
-        expect(natureIndex).toBeGreaterThan(0);
-        if (natureIndex === undefined || natureIndex < 0) {
-            throw new Error('Expected the actual nature header index');
-        }
-        const {host: unrelatedHost} = getEmojiHeaderHost(0, 'web');
-        const unrelatedFocus = jest.fn<ReturnType<typeof unrelatedHost.focus>, Parameters<typeof unrelatedHost.focus>>();
-        mockFocusDescriptors.push({host: unrelatedHost, descriptor: Object.getOwnPropertyDescriptor(unrelatedHost, 'focus')});
-        unrelatedHost.focus = unrelatedFocus;
-        expect(screen.queryByTestId(`emoji-row-${natureIndex}`)).toBeNull();
-        fireEvent.press(screen.getByRole('button', {name: en.emojiPicker.headers.animalsAndNature}));
-        expect(mockScrollToOffset).toHaveBeenCalledWith({offset: Math.floor(natureIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT, animated: true});
-        const schedule = jest.spyOn(globalThis, 'setTimeout');
-        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-        expect(schedule.mock.calls.some(([, delay]) => delay === CONST.ANIMATED_TRANSITION)).toBe(true);
-        expect(screen.queryByTestId(`emoji-row-${natureIndex}`)).toBeNull();
-        expect(unrelatedFocus).not.toHaveBeenCalled();
-
-        // When the actual selected host mounts at T, layout succeeds even for the exact external missing-focus compatibility case.
-        mockHiddenHeaders.delete('animalsAndNature');
-        expect(refreshEmojiWindow).toBeDefined();
-        act(() => refreshEmojiWindow?.());
-        const {heading, host} = getEmojiHeaderHost(natureIndex, 'web');
-        mockFocusDescriptors.push({host, descriptor: Object.getOwnPropertyDescriptor(host, 'focus')});
-        // @ts-expect-error The external web host can lack focus. All remaining native host fields and ref identity stay real.
-        host.focus = undefined;
-        const selectedRef: unknown = heading.props.ref;
-        expect(isRecord(selectedRef)).toBe(true);
-        if (!isRecord(selectedRef)) {
-            throw new Error('Expected the actual source-produced object ref');
-        }
-        expect(selectedRef.current).toBe(host);
-        expect(Object.getOwnPropertyDescriptor(host, 'focus')?.value).toBeUndefined();
-        expect(() => fireEvent(heading, 'layout', headerLayout)).not.toThrow();
-        mockSelectedHeaderGeneration += 1;
-        act(() => refreshEmojiWindow?.());
-        const {heading: replacementHeading, host: replacementHost} = getEmojiHeaderHost(natureIndex, 'web');
-        expect(replacementHost).not.toBe(host);
-        expect(replacementHeading.props.ref).toBe(selectedRef);
-        expect(selectedRef.current).toBe(replacementHost);
-        expect(getEmojiHeaderHost(0, 'web').host).toBe(unrelatedHost);
-        const focus = jest.fn<ReturnType<typeof replacementHost.focus>, Parameters<typeof replacementHost.focus>>();
-        const focusAccess = jest.fn<typeof replacementHost.focus, []>(() => focus);
-        mockFocusDescriptors.push({host: replacementHost, descriptor: Object.getOwnPropertyDescriptor(replacementHost, 'focus')});
-        Object.defineProperty(replacementHost, 'focus', {configurable: true, get: focusAccess});
-        expect(focusAccess).not.toHaveBeenCalled();
-        expect(focus).not.toHaveBeenCalled();
-
-        // Then the known queued attempt at 2T sees cleared pending and never accesses the distinct replacement's focus.
-        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-        expect(focusAccess).not.toHaveBeenCalled();
-        expect(focus).not.toHaveBeenCalled();
-        expect(unrelatedFocus).not.toHaveBeenCalled();
-        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION * 3));
-        expect(focusAccess).not.toHaveBeenCalled();
-        expect(focus).not.toHaveBeenCalled();
-        expect(unrelatedFocus).not.toHaveBeenCalled();
     });
 });
