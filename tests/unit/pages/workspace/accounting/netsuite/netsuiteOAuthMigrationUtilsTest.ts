@@ -1,10 +1,14 @@
 import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationNudge} from '@pages/workspace/accounting/netsuite/utils';
 
+import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import createMock from '../../../../../utils/createMock';
 
 type NetSuiteMigrationOverrides = {
+    accountID?: string;
     verified?: boolean;
     tokenID?: string;
     tokenSecret?: string;
@@ -21,8 +25,10 @@ type NetSuiteMigrationOverrides = {
 function makeNetSuitePolicy(overrides: NetSuiteMigrationOverrides): Policy {
     const shouldIncludeSyncOptions = overrides.shouldIncludeSyncOptions ?? true;
     return createMock<Policy>({
+        role: CONST.POLICY.ROLE.ADMIN,
         connections: {
             netsuite: {
+                accountID: 'accountID' in overrides ? overrides.accountID : 'account123',
                 verified: 'verified' in overrides ? overrides.verified : true,
                 tokenID: 'tokenID' in overrides ? overrides.tokenID : 'token123',
                 tokenSecret: 'tokenSecret' in overrides ? overrides.tokenSecret : 'secret456',
@@ -46,6 +52,10 @@ function makeNetSuitePolicy(overrides: NetSuiteMigrationOverrides): Policy {
     });
 }
 
+function makePolicyCollection(...policies: Policy[]): OnyxCollection<Policy> {
+    return Object.fromEntries(policies.map((policy, index) => [`policy_${index}`, policy]));
+}
+
 describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
     describe('when the nudge SHOULD be shown', () => {
         it('returns true for a verified TBA connection with no authType set', () => {
@@ -53,7 +63,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: true, tokenID: 'token', tokenSecret: 'secret', authType: undefined});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should be shown because the connection is TBA and not yet migrated
             expect(result).toBe(true);
@@ -64,7 +74,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: true, tokenID: 'token', tokenSecret: 'secret', authType: 'tba'});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should be shown because the connection is not yet on OAuth 2.0
             expect(result).toBe(true);
@@ -77,7 +87,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: true, tokenID: 'token', tokenSecret: 'secret', authType: 'oauth2'});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown because the migration is already complete
             expect(result).toBe(false);
@@ -88,7 +98,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: false, tokenID: 'token', tokenSecret: 'secret'});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown because the connection is unverified
             expect(result).toBe(false);
@@ -99,7 +109,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: true, tokenID: undefined, tokenSecret: 'secret'});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown because there is no TBA token to migrate
             expect(result).toBe(false);
@@ -110,7 +120,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({verified: true, tokenID: 'token', tokenSecret: undefined});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown because the TBA credential pair is incomplete
             expect(result).toBe(false);
@@ -121,7 +131,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = createMock<Policy>({connections: {}});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown
             expect(result).toBe(false);
@@ -130,7 +140,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
         it('returns false when policy is undefined', () => {
             // Given no policy
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(undefined);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(undefined, {});
 
             // Then the nudge should not be shown
             expect(result).toBe(false);
@@ -141,10 +151,57 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy({shouldIncludeSyncOptions: false});
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown because migration eligibility is unknown
             expect(result).toBe(false);
+        });
+
+        it('returns false when the policy collection is unavailable', () => {
+            // Given a simple TBA connection but no policy collection
+            const policy = makeNetSuitePolicy({});
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, undefined);
+
+            // Then the nudge should not be shown because shared connection eligibility is unknown
+            expect(result).toBe(false);
+        });
+
+        it('returns false when a TBA sibling policy for the same account has an excluded setting', () => {
+            // Given two TBA policies share an account and the sibling imports tax
+            const policy = makeNetSuitePolicy({});
+            const siblingPolicy = makeNetSuitePolicy({syncTax: true});
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy, siblingPolicy));
+
+            // Then the nudge should not migrate the sibling policy indirectly
+            expect(result).toBe(false);
+        });
+
+        it('ignores an excluded sibling policy that is already on OAuth 2.0', () => {
+            // Given a simple TBA policy and an OAuth sibling policy for the same account
+            const policy = makeNetSuitePolicy({});
+            const siblingPolicy = makeNetSuitePolicy({authType: 'oauth2', syncTax: true});
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy, siblingPolicy));
+
+            // Then the nudge can be shown because the sibling will not switch transports
+            expect(result).toBe(true);
+        });
+
+        it('ignores an excluded sibling policy for another NetSuite account', () => {
+            // Given a simple TBA policy and a complex TBA policy for another account
+            const policy = makeNetSuitePolicy({});
+            const siblingPolicy = makeNetSuitePolicy({accountID: 'anotherAccount', syncTax: true});
+
+            // When checking whether to show the migration nudge
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy, siblingPolicy));
+
+            // Then the unrelated sibling does not block this account's nudge
+            expect(result).toBe(true);
         });
 
         it.each([
@@ -157,7 +214,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             const policy = makeNetSuitePolicy(settings);
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown during the limited rollout
             expect(result).toBe(false);
@@ -170,7 +227,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             });
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown during the limited rollout
             expect(result).toBe(false);
@@ -183,7 +240,7 @@ describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
             });
 
             // When checking whether to show the migration nudge
-            const result = shouldShowNetSuiteOAuthMigrationNudge(policy);
+            const result = shouldShowNetSuiteOAuthMigrationNudge(policy, makePolicyCollection(policy));
 
             // Then the nudge should not be shown during the limited rollout
             expect(result).toBe(false);

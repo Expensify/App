@@ -28,6 +28,7 @@ function makeNetSuitePolicy(id: string, nameOverride?: string): Policy {
         name: nameOverride ?? `NetSuite Workspace ${id}`,
         connections: {
             netsuite: {
+                accountID: 'account123',
                 verified: true,
                 tokenID: 'token123',
                 tokenSecret: 'secret456',
@@ -112,6 +113,7 @@ describe('useTimeSensitiveNetSuiteMigration', () => {
             const policy = makePolicy('policy1', {
                 connections: {
                     netsuite: {
+                        accountID: 'account123',
                         verified: true,
                         tokenID: 'token',
                         tokenSecret: 'secret',
@@ -171,6 +173,7 @@ describe('useTimeSensitiveNetSuiteMigration', () => {
                 name: 'TBA Corp',
                 connections: {
                     netsuite: {
+                        accountID: 'account123',
                         verified: true,
                         tokenID: 'token',
                         tokenSecret: 'secret',
@@ -233,6 +236,32 @@ describe('useTimeSensitiveNetSuiteMigration', () => {
             // Then only the un-migrated policy is returned
             expect(result.current.netSuiteMigrationPolicies).toHaveLength(1);
             expect(result.current.netSuiteMigrationPolicies.at(0)?.policyID).toBe('policy1');
+        });
+
+        it('excludes shared connections when one TBA policy uses an unsupported setting', async () => {
+            // Given two policies share a NetSuite account and one imports tax
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, makeNetSuitePolicy('policy1', 'Simple Workspace'));
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}policy2`,
+                makePolicy('policy2', {
+                    connections: {
+                        netsuite: {
+                            accountID: 'account123',
+                            verified: true,
+                            tokenID: 'token123',
+                            tokenSecret: 'secret456',
+                            options: {config: {syncOptions: {syncTax: true}}},
+                        },
+                    },
+                }),
+            );
+            await waitForBatchedUpdates();
+
+            // When the hook renders
+            const {result} = renderHook(() => useTimeSensitiveNetSuiteMigration());
+
+            // Then neither policy is offered because OAuth migration updates both policies
+            expect(result.current.netSuiteMigrationPolicies).toEqual([]);
         });
     });
 

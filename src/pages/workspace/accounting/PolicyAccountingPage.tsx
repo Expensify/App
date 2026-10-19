@@ -60,6 +60,7 @@ type RouteParams = {
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -226,7 +227,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let netSuiteOAuthMigrationHint;
         const netSuiteAccountID = policy?.connections?.netsuite?.accountID;
-        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationNudge(policy) && canWriteAccounting && netSuiteAccountID) {
+        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationNudge(policy, allPolicies) && canWriteAccounting && netSuiteAccountID) {
             const severity = getNetSuiteOAuthMigrationSeverity();
             netSuiteOAuthMigrationHint = (
                 <>
