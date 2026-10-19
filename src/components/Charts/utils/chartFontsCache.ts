@@ -7,7 +7,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
 
-import {Skia} from '@shopify/react-native-skia';
+import {Skia, unwrapModule} from '@shopify/react-native-skia';
 import {Image} from 'react-native';
 
 import buildSkiaFontManager from './buildSkiaFontManager';
@@ -30,8 +30,13 @@ function resolveChartFontAsset(source: DataModule | string): string {
         return source;
     }
 
-    if (typeof source === 'number') {
-        const resolved = Image.resolveAssetSource(source);
+    const asset = unwrapModule(source);
+    if (typeof asset === 'string') {
+        return asset;
+    }
+
+    if (typeof asset === 'number') {
+        const resolved = Image.resolveAssetSource(asset);
 
         if (!resolved?.uri) {
             throw new Error('Chart font asset could not be resolved');
@@ -40,12 +45,8 @@ function resolveChartFontAsset(source: DataModule | string): string {
         return resolved.uri;
     }
 
-    if ('default' in source && typeof source.default === 'string') {
-        return source.default;
-    }
-
-    if ('uri' in source && typeof source.uri === 'string') {
-        return source.uri;
+    if ('uri' in asset && typeof asset.uri === 'string') {
+        return asset.uri;
     }
 
     throw new Error('Unsupported chart font asset source');

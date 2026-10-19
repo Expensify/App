@@ -1,9 +1,10 @@
-/** Font assets are Metro registry IDs on native and emitted URLs or data URLs on web. */
+/** Static font imports need declarations for the values emitted by each platform bundler. */
 declare module '*.otf' {
-    const asset: number | string;
+    const asset: number;
     export default asset;
 }
 
+// Shared TTF files can become Metro registry IDs or web URLs, depending on the importing platform.
 declare module '*.ttf' {
     const asset: number | string;
     export default asset;

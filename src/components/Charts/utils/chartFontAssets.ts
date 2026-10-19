@@ -32,7 +32,7 @@ const CUSTOM_EMOJI_FONT = chartWebFont(customEmojiFontAsset);
 const SANS_SYMBOLS_FONT = chartWebFont(sansSymbolsFontAsset);
 const SANS_SC_MONTHS_FONT = chartWebFont(sansScMonthsFontAsset);
 
-const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule> = {
+const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule | string> = {
     MONOSPACE: EXPENSIFY_MONO_REGULAR,
     MONOSPACE_BOLD: EXPENSIFY_MONO_BOLD,
     MONOSPACE_ITALIC: EXPENSIFY_MONO_ITALIC,
@@ -46,9 +46,9 @@ const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule> = {
     CUSTOM_EMOJI_FONT,
 };
 
-const CHART_FONT_MGR_SUPPLEMENTAL_ASSETS = {
+const CHART_FONT_MGR_SUPPLEMENTAL_ASSETS: Record<'NotoSansSymbols' | 'NotoSansSCMonths', DataModule | string> = {
     NotoSansSymbols: SANS_SYMBOLS_FONT,
     NotoSansSCMonths: SANS_SC_MONTHS_FONT,
-} as const;
+};
 
 export {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS};

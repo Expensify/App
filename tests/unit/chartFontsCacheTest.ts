@@ -1,5 +1,7 @@
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
-import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
+import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
+import type * as ChartFontAssetsModule from '@components/Charts/utils/chartFontAssets';
+import {CHART_FONT_MGR_FROM_TYPEFACES} from '@components/Charts/utils/chartFontConstants';
 import {getChartFontsSnapshot, loadChartFontsOnce, resetChartFontsCacheForTests, subscribeToChartFonts} from '@components/Charts/utils/chartFontsCache';
 
 import type Log from '@libs/Log';
@@ -7,6 +9,7 @@ import type Log from '@libs/Log';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {DataModule, SkData, SkTypeface, SkTypefaceFontProvider, Skia} from '@shopify/react-native-skia';
+import type * as SkiaDataModule from '@shopify/react-native-skia/src/skia/types/Data/Data';
 
 import {Image} from 'react-native';
 
@@ -22,6 +25,7 @@ const mockFontProviderMake = jest.fn<ReturnType<typeof Skia.TypefaceFontProvider
 const mockResolveAssetSource = jest.fn<ReturnType<typeof Image.resolveAssetSource>, Parameters<typeof Image.resolveAssetSource>>();
 
 jest.mock('@shopify/react-native-skia', () => ({
+    unwrapModule: jest.requireActual<typeof SkiaDataModule>('@shopify/react-native-skia/src/skia/types/Data/Data').unwrapModule,
     Skia: {
         Data: {fromURI: (...args: Parameters<typeof Skia.Data.fromURI>) => mockFromURI(...args)},
         Typeface: {MakeFreeTypeFaceFromData: (...args: Parameters<typeof Skia.Typeface.MakeFreeTypeFaceFromData>) => mockMakeFreeTypeFaceFromData(...args)},
@@ -54,10 +58,12 @@ jest.mock('@components/Charts/utils/chartFontAssets', () => {
     };
 });
 
-const MOCK_CHART_FONT_ASSETS = jest.requireMock<{CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule | string>}>(
-    '@components/Charts/utils/chartFontAssets',
-).CHART_SKIA_TYPEFACE_ASSETS;
+const MOCK_CHART_FONT_ASSETS = jest.requireMock<typeof ChartFontAssetsModule>('@components/Charts/utils/chartFontAssets').CHART_SKIA_TYPEFACE_ASSETS;
 const ORIGINAL_CHART_FONT_ASSETS = {...MOCK_CHART_FONT_ASSETS};
+const PRIMARY_FONT_COUNT = Object.keys(CHART_SKIA_TYPEFACE_ASSETS).length;
+const SUPPLEMENTAL_FONT_COUNT = Object.keys(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).length;
+const TOTAL_FONT_COUNT = PRIMARY_FONT_COUNT + SUPPLEMENTAL_FONT_COUNT;
+const PRIMARY_REGISTRATION_COUNT = Object.values(CHART_FONT_MGR_FROM_TYPEFACES).flat().length;
 
 function setupSuccessfulFontLoading(failingKey?: ChartSkiaTypefaceKey) {
     mockFromURI.mockImplementation((uri: string) => {
@@ -95,7 +101,7 @@ describe('chartFontsCache', () => {
         // Given one font failure must not reject independent primary loads.
         setupSuccessfulFontLoading('EXP_NEUE_BOLD');
 
-        // When the real cache loads the chart fonts.
+        // When independent asset loads settle despite the bold face rejecting.
         const fonts = await loadChartFontsOnce();
 
         // Then the failed key stays null while usable fonts still build a manager.
@@ -108,7 +114,7 @@ describe('chartFontsCache', () => {
         // Given a usable partial result should remain available to subscribers.
         setupSuccessfulFontLoading('EXP_NEUE_BOLD');
 
-        // When the real cache settles the load.
+        // When the partial load settles before a subscriber reads the snapshot.
         await loadChartFontsOnce();
 
         const snapshot = getChartFontsSnapshot();
@@ -123,7 +129,7 @@ describe('chartFontsCache', () => {
         mockFromURI.mockRejectedValue(new Error('Failed to load font'));
         mockMakeFreeTypeFaceFromData.mockReturnValue(null);
 
-        // When the real cache loads the chart fonts.
+        // When every primary load rejects before a manager can be built.
         const fonts = await loadChartFontsOnce();
 
         // Then the result exposes the complete null map and no manager.
@@ -136,13 +142,13 @@ describe('chartFontsCache', () => {
         mockFromURI.mockRejectedValue(new Error('Failed to load font'));
         mockMakeFreeTypeFaceFromData.mockReturnValue(null);
 
-        // When the real cache settles the load.
+        // When the initial failure leaves no usable result to cache.
         await loadChartFontsOnce();
-        // When the real cache settles the load.
+        // When another caller retries after that total failure.
         await loadChartFontsOnce();
 
-        // Then both attempts read all eleven primary assets.
-        expect(mockFromURI).toHaveBeenCalledTimes(22);
+        // Then both attempts read every primary asset because neither result can be cached.
+        expect(mockFromURI).toHaveBeenCalledTimes(PRIMARY_FONT_COUNT * 2);
     });
 
     it('should not build fontManager when only the emoji font loads', async () => {
@@ -159,7 +165,7 @@ describe('chartFontsCache', () => {
         });
         mockMakeFreeTypeFaceFromData.mockImplementation(() => createMock<SkTypeface>({}));
 
-        // When the real cache loads the chart fonts.
+        // When the only successful asset cannot supply a registered primary family.
         const fonts = await loadChartFontsOnce();
 
         // Then emoji-only success still returns the complete empty snapshot.
@@ -193,11 +199,11 @@ describe('chartFontsCache', () => {
         const unsubscribeRemoved = subscribeToChartFonts(removedListener);
         unsubscribeRemoved();
 
-        // When multiple callers request the unsettled cache.
+        // When concurrent callers request fonts before the pending primary loads are released.
         const first = loadChartFontsOnce();
         const second = loadChartFontsOnce();
         expect(first).toBe(second);
-        expect(mockFromURI).toHaveBeenCalledTimes(11);
+        expect(mockFromURI).toHaveBeenCalledTimes(PRIMARY_FONT_COUNT);
         expect(getChartFontsSnapshot()).toBe(empty);
         expect(listener).not.toHaveBeenCalled();
         releaseFontLoads();
@@ -205,10 +211,10 @@ describe('chartFontsCache', () => {
         unsubscribe();
         const cached = await loadChartFontsOnce();
 
-        // Then thirteen assets load once, and only the active listener sees the settled snapshot.
+        // Then every asset loads once, and only the active listener sees the settled snapshot.
         expect(cached).toBe(fonts);
         expect(getChartFontsSnapshot()).toBe(fonts);
-        expect(mockFromURI).toHaveBeenCalledTimes(13);
+        expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT);
         expect(listener).toHaveBeenCalledTimes(1);
         expect(removedListener).not.toHaveBeenCalled();
         expect(empty.fontManager).toBeNull();
@@ -228,11 +234,11 @@ describe('chartFontsCache', () => {
         const second = await loadChartFontsOnce();
         unsubscribe();
 
-        // Then empty identity, all eleven ordered keys, and retry notifications remain stable.
+        // Then empty identity, the complete ordered key set, and retry notifications remain stable.
         expect(first).toBe(empty);
         expect(second).toBe(empty);
         expect(ObjectUtils.typedKeys(empty.typefaces)).toEqual(ObjectUtils.typedKeys(CHART_SKIA_TYPEFACE_ASSETS));
-        expect(mockFromURI).toHaveBeenCalledTimes(22);
+        expect(mockFromURI).toHaveBeenCalledTimes(PRIMARY_FONT_COUNT * 2);
         expect(listener).toHaveBeenCalledTimes(2);
         expect(mockFontProviderMake).not.toHaveBeenCalled();
     });
@@ -241,13 +247,13 @@ describe('chartFontsCache', () => {
         // Given one primary typeface fails while all supplemental typefaces load.
         setupSuccessfulFontLoading('EXP_NEUE_BOLD');
 
-        // When fonts load and the cache is requested again.
+        // When a second request reads a cached partial result with one failed primary.
         const fonts = await loadChartFontsOnce();
         const cached = await loadChartFontsOnce();
 
         // Then registration follows production order and the missing primary is not retried.
         expect(cached).toBe(fonts);
-        expect(mockFromURI).toHaveBeenCalledTimes(13);
+        expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT);
         expect(mockRegisterFont.mock.calls.map(([, family]) => family)).toEqual([
             'ExpensifyNeue',
             'ExpensifyNeue',
@@ -284,58 +290,80 @@ describe('chartFontsCache', () => {
         expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
         expect(fonts.fontManager).not.toBeNull();
         expect(cached).toBe(fonts);
-        expect(mockFromURI).toHaveBeenCalledTimes(13);
-        expect(mockRegisterFont).toHaveBeenCalledTimes(10);
-        expect(mockLogHmmm).toHaveBeenCalledTimes(2);
+        expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT);
+        expect(mockRegisterFont).toHaveBeenCalledTimes(PRIMARY_REGISTRATION_COUNT);
+        expect(mockLogHmmm).toHaveBeenCalledTimes(SUPPLEMENTAL_FONT_COUNT);
         expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'NotoSansSymbols', error: 'supplemental unavailable'});
         expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'NotoSansSCMonths', error: 'supplemental unavailable'});
     });
 
-    it('resolves scalar, default URL, URI object and numeric assets without unwrapping nested defaults', async () => {
+    it('resolves scalar, module and Metro assets while rejecting nested defaults', async () => {
         // Given every supported runtime shape, plus an explicitly unsupported nested module default.
         setupSuccessfulFontLoading();
         MOCK_CHART_FONT_ASSETS.MONOSPACE = 'mock://scalar';
         MOCK_CHART_FONT_ASSETS.MONOSPACE_BOLD = {__esModule: true, default: 'mock://default'};
         MOCK_CHART_FONT_ASSETS.MONOSPACE_ITALIC = {uri: 'mock://uri', width: 0, height: 0};
         MOCK_CHART_FONT_ASSETS.MONOSPACE_BOLD_ITALIC = 42;
+        MOCK_CHART_FONT_ASSETS.EXP_NEUE = {__esModule: true, default: 43};
+        MOCK_CHART_FONT_ASSETS.EXP_NEUE_ITALIC = {__esModule: true, default: {uri: 'mock://default-metro', width: 0, height: 0}};
         // @ts-expect-error Nested defaults model malformed interop and must remain unsupported at runtime.
         MOCK_CHART_FONT_ASSETS.EXP_NEUE_BOLD = {__esModule: true, default: {__esModule: true, default: 'mock://nested'}};
-        mockResolveAssetSource.mockReturnValue({uri: 'mock://native', width: 0, height: 0, scale: 1});
+        mockResolveAssetSource.mockImplementation((source) => {
+            if (typeof source !== 'number') {
+                throw new Error('Expected a native font registry ID');
+            }
+            return {uri: `mock://native/${source}`, width: 0, height: 0, scale: 1};
+        });
 
         // When the actual resolver and per-key loader process these assets.
         const fonts = await loadChartFontsOnce();
 
         // Then supported shapes reach Skia once each and the nested shape fails only its key.
         expect(mockResolveAssetSource).toHaveBeenCalledWith(42);
+        expect(mockResolveAssetSource).toHaveBeenCalledWith(43);
+        expect(mockResolveAssetSource).toHaveBeenCalledTimes(2);
         expect(mockFromURI).toHaveBeenCalledWith('mock://scalar');
         expect(mockFromURI).toHaveBeenCalledWith('mock://default');
         expect(mockFromURI).toHaveBeenCalledWith('mock://uri');
-        expect(mockFromURI).toHaveBeenCalledWith('mock://native');
+        expect(mockFromURI).toHaveBeenCalledWith('mock://native/42');
+        expect(mockFromURI).toHaveBeenCalledWith('mock://native/43');
+        expect(mockFromURI).toHaveBeenCalledWith('mock://default-metro');
+        expect(mockFromURI.mock.calls.every(([uri]) => typeof uri === 'string')).toBe(true);
         expect(mockFromURI).not.toHaveBeenCalledWith('mock://nested');
         expect(fonts.typefaces.MONOSPACE).not.toBeNull();
         expect(fonts.typefaces.MONOSPACE_BOLD).not.toBeNull();
         expect(fonts.typefaces.MONOSPACE_ITALIC).not.toBeNull();
         expect(fonts.typefaces.MONOSPACE_BOLD_ITALIC).not.toBeNull();
+        expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
+        expect(fonts.typefaces.EXP_NEUE_ITALIC).not.toBeNull();
         expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
+        expect(mockLogHmmm).toHaveBeenCalledTimes(1);
         expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Unsupported chart font asset source'});
     });
 
-    it('isolates native resolution failure before Skia reads the asset', async () => {
-        // Given a registry ID whose native source cannot be resolved.
-        setupSuccessfulFontLoading();
-        MOCK_CHART_FONT_ASSETS.EXP_NEUE_BOLD = 42;
-        mockResolveAssetSource.mockReturnValue({uri: '', width: 0, height: 0, scale: 1});
+    it.each([
+        {source: 42, resolution: {uri: '', width: 0, height: 0, scale: 1}},
+        {source: {__esModule: true, default: 42}, resolution: {uri: '', width: 0, height: 0, scale: 1}},
+    ] satisfies Array<{source: DataModule; resolution: ReturnType<typeof Image.resolveAssetSource>}>)(
+        'isolates unresolved native asset $source with source $resolution',
+        async ({source, resolution}) => {
+            // Given a bare or wrapped registry ID has no usable native URI.
+            setupSuccessfulFontLoading();
+            MOCK_CHART_FONT_ASSETS.EXP_NEUE_BOLD = source;
+            mockResolveAssetSource.mockReturnValue(resolution);
 
-        // When the real cache loads the remaining assets.
-        const fonts = await loadChartFontsOnce();
+            // When native resolution fails before Skia can read the affected primary asset.
+            const fonts = await loadChartFontsOnce();
 
-        // Then the failed key is logged and the other primary and supplemental loads complete.
-        expect(mockResolveAssetSource).toHaveBeenCalledTimes(1);
-        expect(mockFromURI).toHaveBeenCalledTimes(12);
-        expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
-        expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
-        expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Chart font asset could not be resolved'});
-    });
+            // Then the failed key is logged and the other primary and supplemental loads complete.
+            expect(mockResolveAssetSource).toHaveBeenCalledTimes(1);
+            expect(mockResolveAssetSource).toHaveBeenCalledWith(42);
+            expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT - 1);
+            expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
+            expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
+            expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Chart font asset could not be resolved'});
+        },
+    );
 
     it('retries emoji-only success and caches a later usable primary result', async () => {
         // Given only emoji succeeds in the first request, so no usable font manager exists.
@@ -357,8 +385,8 @@ describe('chartFontsCache', () => {
         expect(first).toBe(empty);
         expect(second).not.toBe(empty);
         expect(second.fontManager).not.toBeNull();
-        expect(mockFromURI).toHaveBeenCalledTimes(24);
+        expect(mockFromURI).toHaveBeenCalledTimes(PRIMARY_FONT_COUNT + TOTAL_FONT_COUNT);
         expect(await loadChartFontsOnce()).toBe(second);
-        expect(mockFromURI).toHaveBeenCalledTimes(24);
+        expect(mockFromURI).toHaveBeenCalledTimes(PRIMARY_FONT_COUNT + TOTAL_FONT_COUNT);
     });
 });

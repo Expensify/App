@@ -28,7 +28,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve numeric bold weight to the bold typeface', () => {
         // Given numeric CSS weights above 600 require a bold face.
-        // When the real selector resolves the requested label.
+        // When a label requests numeric weight 700 with the default family.
         const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 700});
         // Then the label uses the bold Neue face.
         expect(typeface).toBe(typefaces.EXP_NEUE_BOLD);
@@ -36,7 +36,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve string bold weight to the bold typeface', () => {
         // Given the bold keyword must select the same face as a numeric bold weight.
-        // When the real selector resolves the requested label.
+        // When a label requests the bold keyword instead of a numeric weight.
         const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 'bold'});
         // Then the label uses the bold Neue face.
         expect(typeface).toBe(typefaces.EXP_NEUE_BOLD);
@@ -44,7 +44,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve normal weight to the regular typeface', () => {
         // Given a 400 weight is below the bold threshold.
-        // When the real selector resolves the requested label.
+        // When a label requests weight 400 to stay below the bold threshold.
         const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 400});
         // Then the label uses regular Neue.
         expect(typeface).toBe(typefaces.EXP_NEUE);
@@ -52,7 +52,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve semibold numeric weight to the bold typeface', () => {
         // Given 600 is the inclusive boundary for bold selection.
-        // When the real selector resolves the requested label.
+        // When a label requests exactly 600 to exercise the inclusive bold boundary.
         const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 600});
         // Then the label uses bold Neue at that boundary.
         expect(typeface).toBe(typefaces.EXP_NEUE_BOLD);
@@ -60,7 +60,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve medium numeric weight to the regular typeface', () => {
         // Given a medium 500 weight is still below the bold threshold.
-        // When the real selector resolves the requested label.
+        // When a label requests weight 500 without crossing the bold threshold.
         const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 500});
         // Then the label retains regular Neue.
         expect(typeface).toBe(typefaces.EXP_NEUE);
@@ -68,7 +68,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve Expensify New Kansas by font family', () => {
         // Given Kansas has a medium face registered under its production family name.
-        // When the real selector resolves the requested label.
+        // When the family lookup receives the registered Kansas family name.
         const typeface = getChartSkiaTypeface(typefaces, {
             fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily,
         });
@@ -78,7 +78,7 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve italic Expensify Neue bold to the bold italic typeface', () => {
         // Given style and weight must jointly select the Neue variant.
-        // When the real selector resolves the requested label.
+        // When a Neue label requests both italic style and bold weight.
         const typeface = getChartSkiaTypeface(typefaces, {
             fontFamily: FontUtils.fontFamily.single.EXP_NEUE.fontFamily,
             fontStyle: 'italic',
@@ -95,7 +95,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEUE_BOLD: null,
         };
 
-        // When the real selector resolves the requested label.
+        // When a bold label needs a fallback after its requested Neue face failed.
         const typeface = getChartSkiaTypeface(partialTypefaces, {
             fontWeight: 700,
         });
@@ -111,7 +111,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEW_KANSAS_MEDIUM_ITALIC: null,
         };
 
-        // When the real selector resolves the requested label.
+        // When a Kansas label needs a fallback after both Kansas variants failed.
         const typeface = getChartSkiaTypeface(partialTypefaces, {
             fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily,
         });
@@ -126,7 +126,7 @@ describe('getChartSkiaTypeface', () => {
             emptyTypefaces[key] = null;
         }
 
-        // When the real selector resolves the requested label.
+        // When a bold request exhausts every family and general fallback.
         const typeface = getChartSkiaTypeface(emptyTypefaces, {fontWeight: 700});
         // Then the result stays null without inventing a typeface.
         expect(typeface).toBeNull();
@@ -139,7 +139,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('₫'),
         };
 
-        // When the real selector resolves the requested label.
+        // When the Kansas glyph check receives a supported dollar label.
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '$59');
         // Then supported text keeps its Kansas typeface identity.
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
@@ -153,7 +153,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEUE_BOLD: makeTypefaceWithGlyphCoverage(''),
         };
 
-        // When the real selector resolves the requested label.
+        // When the Kansas glyph check encounters the unsupported printable dong symbol.
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '₫59');
         // Then the broader Neue bold face renders the currency label.
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD);
@@ -167,7 +167,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEUE_BOLD_ITALIC: makeTypefaceWithGlyphCoverage(''),
         };
 
-        // When the real selector resolves the requested label.
+        // When an italic Kansas label needs a glyph fallback for the dong symbol.
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily, fontStyle: 'italic'}, '₫59');
         // Then the glyph fallback retains italic style through Neue bold italic.
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD_ITALIC);
@@ -180,7 +180,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('₫'),
         };
 
-        // When the real selector resolves the requested label.
+        // When a supported Kansas label contains a newline between printable characters.
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, 'Total\n$59');
         // Then the newline does not change the selected Kansas typeface.
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
