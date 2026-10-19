@@ -328,7 +328,8 @@ function updateMultipleMoneyRequests({
             const taxValue = getTaxValue(transactionPolicy, transaction, transaction.taxCode);
             if (taxValue) {
                 const decimals = getCurrencyDecimals(getCurrency(transaction));
-                const taxAmount = calculateTaxAmount(taxValue, Math.abs(changes.amount), decimals);
+                // Use the signed amount so the tax has the same sign as the displayed amount
+                const taxAmount = calculateTaxAmount(taxValue, changes.amount, decimals);
                 transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
             }
         }
@@ -373,7 +374,8 @@ function updateMultipleMoneyRequests({
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
             transactionChanges.taxValue = taxValue;
             const decimals = getCurrencyDecimals(getCurrency(transaction));
-            const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
+            // Use the displayed amount so the tax has the same sign as the amount
+            const effectiveAmount = transactionChanges.amount ?? getAmount(transaction, isFromExpenseReport, isUnreportedExpense);
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }

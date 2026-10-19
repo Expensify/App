@@ -95,7 +95,7 @@ function DynamicConfirmationPage() {
         }
 
         return {
-            taxAmount: -reviewDuplicatesTaxAmount,
+            taxAmount: reviewDuplicatesTaxAmount,
             taxValue: taxRate?.value,
             taxCode,
         };
