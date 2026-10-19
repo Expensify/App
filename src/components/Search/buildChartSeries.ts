@@ -150,7 +150,7 @@ function buildChartSeries({
         if (comparedItem) {
             comparedValue = getAmount(comparedItem);
         } else if (comparison && !CHART_GROUP_BY_CONFIG[groupBy].getDateRange) {
-            // Search results only include groups with spend, so a ranked group missing from the compared results had none.
+            // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
             comparedValue = 0;
         }
 
