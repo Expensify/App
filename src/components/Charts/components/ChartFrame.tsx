@@ -1,3 +1,6 @@
+/**
+ * Every chart entry point renders its chart inside this frame, so bar, line and pie charts measure their card and reveal the chart the same way on web and native.
+ */
 import type {ReactNode} from 'react';
 
 import React from 'react';
