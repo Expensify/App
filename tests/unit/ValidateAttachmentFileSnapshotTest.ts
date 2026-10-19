@@ -73,6 +73,45 @@ describe('validateAttachmentFile OS-backed file snapshot (web)', () => {
         expect(result.error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_INVALID);
     });
 
+    it('returns FILE_INVALID, not FILE_CORRUPTED, when a pasted file was rewritten on disk after the paste', async () => {
+        // Given a pasted OS-backed image whose file the source app rewrote after Chrome captured it, so every read of it fails
+        const file: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], '2026-09-21_09-17-50.png', {type: 'image/png'});
+        Object.defineProperty(file, 'arrayBuffer', {value: jest.fn().mockRejectedValue(new DOMException('The requested file could not be read', 'NotReadableError')), configurable: true});
+        mockFileUtils.validateImageForCorruption.mockRejectedValue(new Error('Error reading file: The file is corrupted'));
+
+        // When the file is validated
+        const result = await validateAttachmentFile(file);
+
+        // Then it is reported as unreadable, because the bytes were never checked and are not corrupt
+        expect(result).toEqual({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID});
+    });
+
+    it('checks the snapshot for corruption, so a file rewritten after the image decode still attaches', async () => {
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:snapshot-url');
+        try {
+            // Given a pasted OS-backed image that is readable once and then rewritten on disk by the source app
+            const file: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], '2026-09-21_09-17-50.png', {type: 'image/png'});
+            file.uri = 'blob:pasted-url';
+            let reads = 0;
+            const readOnce = () => {
+                reads++;
+                return reads === 1 ? Promise.resolve() : Promise.reject(new DOMException('The requested file could not be read', 'NotReadableError'));
+            };
+            Object.defineProperty(file, 'arrayBuffer', {value: jest.fn(() => readOnce().then(() => new ArrayBuffer(7))), configurable: true});
+            mockFileUtils.validateImageForCorruption.mockImplementation((checkedFile) => (checkedFile === file ? readOnce() : Promise.resolve()));
+
+            // When the file is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the only read of the OS file is the snapshot, and the decode runs on the memory-backed copy
+            expect(result.isValid).toBe(true);
+            expect(mockFileUtils.validateImageForCorruption).toHaveBeenCalledWith(expect.objectContaining({uri: 'blob:snapshot-url'}));
+            expect(reads).toBe(1);
+        } finally {
+            createObjectURLSpy.mockRestore();
+        }
+    });
+
     it('keeps the lazy OS-backed File on mobile browsers so a multi-file selection is not held in memory', async () => {
         jest.mocked(isMobile).mockReturnValue(true);
         const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
