@@ -41,6 +41,7 @@ import {
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
+    resolveLastActionContext,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
 import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
@@ -438,6 +439,67 @@ describe('ReportAlternateTextUtils', () => {
                 // Still resolves from lastActorDetails since there's no last visible action
                 expect(result).toBe('Spider-Man');
             });
+        });
+    });
+
+    describe('resolveLastActionContext', () => {
+        const parentReportID = '9001';
+        const transactionThreadReportID = '9002';
+        const chatReportID = '9003';
+        const makeCommentAction = (reportActionID: string, created: string): ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 1,
+            created,
+            message: [{type: 'COMMENT', html: reportActionID, text: reportActionID}],
+            originalMessage: {html: reportActionID, lastModified: created},
+            person: [{type: 'TEXT', style: 'strong', text: 'User'}],
+            shouldShow: true,
+        });
+        const parentComment = makeCommentAction('9100', '2024-01-01 10:00:00.000');
+        const iouAction = {
+            reportActionID: '9101',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: 1,
+            childReportID: transactionThreadReportID,
+            created: '2024-01-01 09:00:00.000',
+            message: [{type: 'COMMENT', html: '$1.00', text: '$1.00'}],
+            originalMessage: {IOUTransactionID: 'txn9101', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+            shouldShow: true,
+        } as ReportAction;
+        const threadComment = makeCommentAction('9200', '2024-01-02 10:00:00.000');
+        const expenseReport: Report = {
+            ...createRandomReport(Number(parentReportID), undefined),
+            reportID: parentReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+        };
+
+        beforeEach(async () => {
+            // Seed a one-transaction expense report whose transaction thread has the newest comment
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {...createRandomReport(Number(chatReportID), undefined), reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentComment.reportActionID]: parentComment, [iouAction.reportActionID]: iouAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[threadComment.reportActionID]: threadComment});
+            await waitForBatchedUpdates();
+        });
+
+        it('returns the transaction thread action when the one-transaction thread ID is passed', () => {
+            // Given the caller resolved the one-transaction thread ID from the sorted report actions derived value
+            // When the last action context is resolved
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, transactionThreadReportID);
+
+            // Then the newer action from the transaction thread wins
+            expect(lastAction?.reportActionID).toBe(threadComment.reportActionID);
+        });
+
+        it('only uses the parent report actions when the report has no one-transaction thread', () => {
+            // Given the caller has no one-transaction thread for the report (e.g. the derived value has no entry for it)
+            // When the last action context is resolved without a thread ID
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, undefined);
+
+            // Then only the parent's own actions are considered, because the thread ID is no longer read from a module-level cache
+            expect(lastAction?.reportActionID).toBe(parentComment.reportActionID);
         });
     });
 

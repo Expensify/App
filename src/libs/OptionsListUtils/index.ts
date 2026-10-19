@@ -657,6 +657,9 @@ function getReportOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
+        // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
     });
@@ -748,6 +751,9 @@ function getReportDisplayOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
+        // so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
     });
@@ -812,6 +818,8 @@ function getPolicyExpenseReportOption(
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
+        // Passing transactionThreadIDs as undefined is intentional, it is only read to build the chat preview line, which `showChatPreviewLine: false` disables.
+        transactionThreadIDs: undefined,
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
@@ -1118,6 +1126,8 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            transactionThreadIDs: undefined,
         }),
         isHydrated: true,
     };
@@ -1858,6 +1868,8 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
+        transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,
