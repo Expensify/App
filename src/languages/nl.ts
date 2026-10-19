@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'De grafiek kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
         apiKey: 'API-sleutel',
         exportsTo: 'Exporteert naar',
+        shareReport: 'Rapport delen',
+        reportShared: 'Rapport gedeeld',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -980,6 +982,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
+            addDepositAccount: {title: 'Voeg een bankrekening toe om betalingen te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify Kaart',
@@ -4093,6 +4096,7 @@ ${amount} voor ${merchant} - ${date}`,
             formLabel: 'PDF bekijken',
         },
         attachmentNotFound: 'Bijlage niet gevonden',
+        loadTimedOut: 'Het laden van deze afbeelding duurt te lang.',
         retry: 'Opnieuw proberen',
     },
     messages: {
@@ -8392,6 +8396,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
+                preventPayoutNonReimbursableReportsTitle: 'Voorkom dat niet-declarabele rapporten als betaald worden gemarkeerd',
+                preventPayoutNonReimbursableReportsSubtitle: 'Sta beheerders niet toe om niet-vergoedbare rapporten als betaald te markeren.',
             },
             agentsPromoBanner: {
                 title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
@@ -9185,6 +9191,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             noBankAccountsFoundDescription: 'Voeg bankrekeningen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
             noPaymentMethodsFound: 'Geen betalingswijzen gevonden',
             noPaymentMethodsFoundDescription: 'Voeg betalingswijzen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            advanced: {
+                autoSyncDescription: 'Synchroniseer Dynamics 365 Business Central en Expensify elke dag automatisch. Rapporten worden in realtime gesynchroniseerd.',
+                accountingMethods: {
+                    label: 'Exportmethode',
+                    description: 'Kies wanneer je onkosten exporteert.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Transitorisch',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak betaalde uitgaven worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uitgaven uit eigen zak worden geëxporteerd zodra ze zijn betaald',
+                    },
+                },
+                postingMode: {
+                    label: 'Boekingsmodus',
+                    description: 'Kies of boekingen automatisch worden geboekt of eerst handmatig moeten worden gecontroleerd.',
+                    note: 'Let op: Expensify boekt elk open dagboek in de batch van het algemeen dagboek die je hebt gekozen op de pagina Expensify Setup in Business Central, niet alleen de dagboeken die het zelf heeft gemaakt. Gebruik een batch alleen voor Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Maken en boeken',
+                            description: 'Boekingen bij export automatisch in het grootboek boeken',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Alleen maken',
+                            description: 'Boekingen na export handmatig boeken in Dynamics 365 Business Central',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Medewerkers/leveranciers automatisch aanmaken',
+                exportToNextOpenPeriod: 'Exporteren naar volgende open periode',
+                exportToNextOpenPeriodDescription:
+                    'Als een rapport is gedateerd in een afgesloten periode in Dynamics 365 Business Central, wordt het geëxporteerd naar de volgende open periode.',
+                syncReimbursedReports: 'Vergoede rapporten synchroniseren',
+                syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een rekeningbetaling aangemaakt.',
+                reimbursementBankAccount: {
+                    label: 'Rekening voor het betalen van rekeningen',
+                    description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
+                settlementsBankAccount: {
+                    label: 'Expensify Kaart-verrekeningsrekening',
+                    description: 'Kies je afrekenrekening en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Je Dynamics 365 Business Central-accounts worden geïmporteerd als categorieën.',
             dimensionsImportAsTags: 'Alle Dynamics 365 Business Central-dimensies worden als tags geïmporteerd',
             customers: 'Klanten',
@@ -9903,6 +9954,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10138,6 +10191,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             past: 'Verleden',
             submitted: 'Ingediend',
             approved: 'Goedgekeurd',
+            anyApproval: 'Elke goedkeuring',
             firstApprover: 'Eerste gemachtigde',
             firstApproved: 'Eerst goedgekeurd',
             paidBy: 'Betaald door',
@@ -10146,6 +10200,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             posted: 'Gepost',
             withdrawn: 'Ingetrokken',
             billable: 'Factureerbaar',
+            rejected: 'Afgekeurd',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             sortOrder: {
@@ -11400,6 +11455,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 refundedOn: ({date}: {date: string}) => `Terugbetaald op ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
             },
+            billedTo: 'Gefactureerd aan',
+            viewReceipt: 'Bon bekijken',
+            viewInvoice: 'Factuur bekijken',
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
@@ -11960,22 +12018,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nieuw bij Concierge AI',
-        confirmText: 'Laten we gaan!',
-        spendAnalysis: {
-            title: 'Interactieve uitgavenanalyse',
-            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Maak kennis met je nieuwe declaratie-assistent',
-            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Bouw je eigen agents',
-            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'E-mailprobleem',
         intro: (login: string) => `Onze e-mailprovider is gestopt met verzenden naar <strong>${login}</strong> vanwege afleveringsproblemen. Om dit op te lossen:`,
