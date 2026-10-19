@@ -195,7 +195,9 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
         };
     }, [reportID]);
 
-    const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
+    // Offline there is no OpenReport response coming to fill the actions in, so this skeleton could only ever be
+    // permanent. Every other skeleton on this screen is already gated the same way.
+    const shouldShowEmptyActionsSkeleton = reportActions.length === 0 && !isOffline;
     const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
     // These skeletons render before the report lands in Onyx, so the mark uses the route id.
     useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
