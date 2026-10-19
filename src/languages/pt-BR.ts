@@ -9193,28 +9193,28 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 label: 'Conta do programa de cartão',
                 description: 'Substituir a conta do workspace para estes programas de cartão.',
                 descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Todos os programas usam a conta padrão';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} programa com conta personalizada`;
-                    }
-                    return `${customAccountsCount} programas com contas personalizadas`;
+                    return {
+                        one: `${count} programa com conta personalizada`,
+                        other: `${count} programas com contas personalizadas`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Conta por cartão',
                 description: 'Substitua a conta do programa para cartões individuais.',
                 descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Todos os cartões usam contas do programa';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} cartão com conta personalizada`;
-                    }
-                    return `${customAccountsCount} cartões com contas personalizadas`;
+                    return {
+                        one: `${count} cartão com conta personalizada`,
+                        other: `${count} cartões com contas personalizadas`,
+                    };
                 },
             },
             paymentMethod: {

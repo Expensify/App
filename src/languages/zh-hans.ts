@@ -8847,28 +8847,28 @@ ${reportName}`,
                 label: '卡计划账户',
                 description: '为这些卡计划覆盖工作区账户。',
                 descriptionLevel2: '覆盖此卡计划的工作区账户。',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return '所有方案使用默认账户';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} 个自定义账户的项目`;
-                    }
-                    return `${customAccountsCount} 个具有自定义科目的项目`;
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
                 },
             },
             cardAccount: {
                 label: '按卡计费账户',
                 description: '为单张卡片覆盖默认项目账户。',
                 descriptionLevel2: '为这些卡片覆盖默认项目账户。',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return '所有卡都使用项目账户';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} 张带有自定义账户的卡`;
-                    }
-                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
                 },
             },
             paymentMethod: {

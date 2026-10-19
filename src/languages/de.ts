@@ -9270,28 +9270,28 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 label: 'Kartenprogramm-Konto',
                 description: 'Überschreiben Sie das Arbeitsbereichskonto für diese Kartenprogramme.',
                 descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Alle Programme verwenden das Standardkonto';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
-                    }
-                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                    return {
+                        one: `${count} Programm mit benutzerdefiniertem Konto`,
+                        other: `${count} Programme mit benutzerdefinierten Konten`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Konto pro Karte',
                 description: 'Programm-Konto für einzelne Karten überschreiben.',
                 descriptionLevel2: 'Programm-Konto für diese Karten überschreiben.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Alle Karten verwenden Programmkonten';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} Karte mit benutzerdefiniertem Konto`;
-                    }
-                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                    return {
+                        one: `${count} Karte mit benutzerdefiniertem Konto`,
+                        other: `${count} Karten mit benutzerdefinierten Konten`,
+                    };
                 },
             },
             paymentMethod: {

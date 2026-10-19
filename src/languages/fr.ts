@@ -9293,28 +9293,28 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 label: 'Compte du programme de carte',
                 description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
                 descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Tous les programmes utilisent le compte par défaut';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} programme avec compte personnalisé`;
-                    }
-                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                    return {
+                        one: `${count} programme avec compte personnalisé`,
+                        other: `${count} programmes avec comptes personnalisés`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Compte par carte',
                 description: 'Remplacez le compte de programme pour des cartes individuelles.',
                 descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Toutes les cartes utilisent des comptes de programme';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} carte avec un compte personnalisé`;
-                    }
-                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                    return {
+                        one: `${count} carte avec un compte personnalisé`,
+                        other: `${count} cartes avec comptes personnalisés`,
+                    };
                 },
             },
             paymentMethod: {

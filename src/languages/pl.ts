@@ -9203,28 +9203,32 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 label: 'Konto programu kartowego',
                 description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
                 descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Wszystkie programy używają domyślnego konta';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} program z niestandardowym kontem`;
-                    }
-                    return `${customAccountsCount} programy z niestandardowymi kontami`;
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Konto przypisane do karty',
                 description: 'Zastąp konto programu dla poszczególnych kart.',
                 descriptionLevel2: 'Zastąp konto programu dla tych kart.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Wszystkie karty korzystają z kont programu';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} karta z niestandardowym kontem`;
-                    }
-                    return `${customAccountsCount} karty z niestandardowymi kontami`;
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
                 },
             },
             paymentMethod: {

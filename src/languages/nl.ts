@@ -9187,28 +9187,28 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 label: 'Kaartprogramma-account',
                 description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
                 descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Alle programma’s gebruiken de standaardrekening';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} programma met aangepaste rekening`;
-                    }
-                    return `${customAccountsCount} programma’s met aangepaste rekeningen`;
+                    return {
+                        one: `${count} programma met aangepaste rekening`,
+                        other: `${count} programma’s met aangepaste rekeningen`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Account per kaart',
                 description: 'Overschrijf de programmarekening voor individuele kaarten.',
                 descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Alle kaarten gebruiken programmarekeningen';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} kaart met aangepast account`;
-                    }
-                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                    return {
+                        one: `${count} kaart met aangepast account`,
+                        other: `${count} kaarten met aangepaste rekeningen`,
+                    };
                 },
             },
             paymentMethod: {

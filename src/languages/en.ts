@@ -6656,28 +6656,28 @@ const translations = {
                 label: 'Card program account',
                 description: 'Override the workspace account for these card programs.',
                 descriptionLevel2: 'Override the workspace account for this card program.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'All programs use default account';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} program with custom account`;
-                    }
-                    return `${customAccountsCount} programs with custom accounts`;
+                    return {
+                        one: `${count} program with custom account`,
+                        other: `${count} programs with custom accounts`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Per-card account',
                 description: 'Override the program account for individual cards.',
                 descriptionLevel2: 'Override the program account for these cards.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'All cards use program accounts';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} card with custom account`;
-                    }
-                    return `${customAccountsCount} cards with custom accounts`;
+                    return {
+                        one: `${count} card with custom account`,
+                        other: `${count} cards with custom accounts`,
+                    };
                 },
             },
             paymentMethod: {

@@ -101,7 +101,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                     <MenuItemField
                         name={translate('workspace.businessCentral.cardProgramAccount.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT.getRoute(policyID))}
-                        value={translate('workspace.businessCentral.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                        value={translate('workspace.businessCentral.cardProgramAccount.countInfo', {count: cardProgramsUsingCustomAccountsCount})}
                     >
                         {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, businessCentralConfig?.errorFields) && (
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -112,7 +112,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                     <MenuItemField
                         name={translate('workspace.businessCentral.cardAccount.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT.getRoute(policyID))}
-                        value={translate('workspace.businessCentral.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                        value={translate('workspace.businessCentral.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.totalCount})}
                     >
                         {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT) && (
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

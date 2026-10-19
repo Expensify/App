@@ -9213,28 +9213,28 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 label: 'Conto del programma carta',
                 description: 'Ignora il conto spazio di lavoro per questi programmi di carta.',
                 descriptionLevel2: 'Ignora il conto dello spazio di lavoro per questo programma di carte.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Tutti i programmi usano il conto predefinito';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} programma con conto personalizzato`;
-                    }
-                    return `${customAccountsCount} programmi con conti personalizzati`;
+                    return {
+                        one: `${count} programma con conto personalizzato`,
+                        other: `${count} programmi con conti personalizzati`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Conto per carta',
                 description: 'Sostituisci il conto del programma per le singole carte.',
                 descriptionLevel2: 'Sostituisci il conto del programma per queste carte.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Tutte le carte usano conti di programma';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} carta con conto personalizzato`;
-                    }
-                    return `${customAccountsCount} carte con conti personalizzati`;
+                    return {
+                        one: `${count} carta con conto personalizzato`,
+                        other: `${count} carte con conti personalizzati`,
+                    };
                 },
             },
             paymentMethod: {

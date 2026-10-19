@@ -88,7 +88,7 @@ function BusinessCentralCardProgramAccountPage({policy}: WithPolicyConnectionsPr
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
-                                    <MenuItem.HelpText message={translate('workspace.businessCentral.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])} />
+                                    <MenuItem.HelpText message={translate('workspace.businessCentral.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.perFeedCount[feedKey]})} />
                                 )}
                             </MenuItem.Root>
                         </OfflineWithFeedback>

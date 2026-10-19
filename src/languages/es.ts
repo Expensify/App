@@ -9088,28 +9088,28 @@ ${reportName}`,
                 label: 'Cuenta del programa de tarjetas',
                 description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
                 descriptionLevel2: 'Anular la cuenta del espacio de trabajo para este programa de tarjetas.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Todos los programas usan la cuenta predeterminada';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} programa con cuenta personalizada`;
-                    }
-                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                    return {
+                        one: `${count} programa con cuenta personalizada`,
+                        other: `${count} programas con cuentas personalizadas`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'Cuenta por tarjeta',
                 description: 'Anula la cuenta del programa para tarjetas individuales.',
                 descriptionLevel2: 'Sobrescribe la cuenta del programa para estas tarjetas.',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'Todas las tarjetas usan cuentas del programa';
                     }
-                    if (customAccountsCount === 1) {
-                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
-                    }
-                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                    return {
+                        one: `${count} tarjeta con cuenta personalizada`,
+                        other: `${count} tarjetas con cuentas personalizadas`,
+                    };
                 },
             },
             paymentMethod: {

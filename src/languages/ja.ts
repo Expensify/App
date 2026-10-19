@@ -9088,28 +9088,28 @@ ${reportName}`,
                 label: 'カードプログラム口座',
                 description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
                 descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'すべてのプログラムはデフォルトアカウントを使用します';
                     }
-                    if (customAccountsCount === 1) {
-                        return `カスタム勘定科目を使用するプログラム：${customAccountsCount} 件`;
-                    }
-                    return `${customAccountsCount} 件のプログラム（カスタムアカウントあり）`;
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
                 },
             },
             cardAccount: {
                 label: 'カード単位の口座',
                 description: '個々のカードに対してプログラム口座を上書きします。',
                 descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
-                countInfo: (customAccountsCount: number) => {
-                    if (!customAccountsCount) {
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
                         return 'すべてのカードはプログラムアカウントを使用します';
                     }
-                    if (customAccountsCount === 1) {
-                        return `カスタム口座付きカード ${customAccountsCount} 枚`;
-                    }
-                    return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
                 },
             },
             paymentMethod: {
