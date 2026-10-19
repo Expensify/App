@@ -56,10 +56,13 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
     const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy);
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
 
+    const selectedMembers = (selectedAccountIDs ?? []).map((accountID) => ({
+        accountID,
+        officeID: getMemberOfficeLocation(officeLocations, policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.officeID)?.officeID,
+    }));
+
     // The office the selected members share starts out selected, and none does while their offices differ
-    const selectedMembersOfficeIDs = new Set(
-        (selectedAccountIDs ?? []).map((accountID) => getMemberOfficeLocation(officeLocations, policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.officeID)?.officeID),
-    );
+    const selectedMembersOfficeIDs = new Set(selectedMembers.map((member) => member.officeID));
     const officeID = chosenOfficeID ?? (selectedMembersOfficeIDs.size === 1 ? [...selectedMembersOfficeIDs].at(0) : undefined);
 
     const navigateBackToMembers = () => {
@@ -70,7 +73,12 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
         if (!officeID || !selectedAccountIDs?.length) {
             return;
         }
-        updateEmployeeOfficeLocation(policy, selectedAccountIDs, officeID, personalDetails, translate);
+
+        // Members already in the chosen office are left out, so a member following the primary office keeps following it
+        const accountIDsToUpdate = selectedMembers.filter((member) => member.officeID !== officeID).map((member) => member.accountID);
+        if (accountIDsToUpdate.length) {
+            updateEmployeeOfficeLocation(policy, accountIDsToUpdate, officeID, personalDetails, translate);
+        }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };
 

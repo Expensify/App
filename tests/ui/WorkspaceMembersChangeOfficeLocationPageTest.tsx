@@ -129,7 +129,7 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
         expect(getConfirmButtonProps()?.isDisabled).toBe(true);
     });
 
-    it('assigns the chosen office to every selected member and hands back the selection once the page closes', () => {
+    it('assigns the chosen office to the selected members outside it and hands back the selection once the page closes', () => {
         // Given members in different offices
         const policy = renderPage('OFFICE1', 'OFFICE2');
 
@@ -141,8 +141,22 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
             getConfirmButtonProps()?.onPress?.();
         });
 
-        // Then both members are assigned to it, and the selection is cleared after returning to the members
-        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [member1AccountID, member2AccountID], 'OFFICE2', personalDetails, expect.any(Function));
+        // Then only the member outside it is assigned to it, and the selection is cleared after returning to the members
+        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [member1AccountID], 'OFFICE2', personalDetails, expect.any(Function));
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
+    });
+
+    it('keeps members following the primary office unassigned when their shared office is confirmed', () => {
+        // Given both members follow the primary office
+        renderPage();
+
+        // When the office they share is confirmed without choosing another one
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
+        });
+
+        // Then nobody is assigned to it, so both keep following whichever office is primary, and the page still closes
+        expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     });
 });

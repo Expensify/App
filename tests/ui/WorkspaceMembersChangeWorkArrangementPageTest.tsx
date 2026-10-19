@@ -115,7 +115,7 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
         expect(getConfirmButtonProps()?.isDisabled).toBe(true);
     });
 
-    it('applies the chosen arrangement to every selected member and hands back the selection once the page closes', () => {
+    it('applies the chosen arrangement to the selected members without it and hands back the selection once the page closes', () => {
         // Given an office-based member and a remote one
         const policy = renderPage(true, false);
 
@@ -127,8 +127,22 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
             getConfirmButtonProps()?.onPress?.();
         });
 
-        // Then both members are made office-based, and the selection is cleared after returning to the members
-        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [member1AccountID, member2AccountID], true, personalDetails, expect.any(Function));
+        // Then only the remote member is made office-based, and the selection is cleared after returning to the members
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [member2AccountID], true, personalDetails, expect.any(Function));
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
+    });
+
+    it('keeps members following the workspace default without an arrangement of their own when their shared arrangement is confirmed', () => {
+        // Given both members follow the remote workspace default
+        renderPage();
+
+        // When the arrangement they share is confirmed without choosing the other one
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
+        });
+
+        // Then neither member gets an arrangement of their own, so both keep following the workspace default, and the page still closes
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     });
 });

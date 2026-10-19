@@ -56,12 +56,16 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
         isPolicyAdmin(policy, currentUserLogin) &&
         policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
-    // The arrangement the selected members share starts out selected, and none does while their arrangements differ
-    const selectedMembersIsOffice = new Set(
-        (selectedAccountIDs ?? []).map((accountID) =>
-            getEffectiveWorkArrangement(policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement),
+    const selectedMembers = (selectedAccountIDs ?? []).map((accountID) => ({
+        accountID,
+        isOffice: getEffectiveWorkArrangement(
+            policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.hasOfficeWorkArrangement,
+            policy?.commuterExclusions?.isOfficeWorkArrangement,
         ),
-    );
+    }));
+
+    // The arrangement the selected members share starts out selected, and none does while their arrangements differ
+    const selectedMembersIsOffice = new Set(selectedMembers.map((member) => member.isOffice));
     const isOffice = chosenIsOffice ?? (selectedMembersIsOffice.size === 1 ? [...selectedMembersIsOffice].at(0) : undefined);
 
     const navigateBackToMembers = () => {
@@ -72,7 +76,12 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
         if (isOffice === undefined || !selectedAccountIDs?.length) {
             return;
         }
-        setEmployeeWorkArrangement(policy, selectedAccountIDs, isOffice, personalDetails, translate);
+
+        // Members already on the chosen arrangement are left out, so a member following the workspace default keeps following it
+        const accountIDsToUpdate = selectedMembers.filter((member) => member.isOffice !== isOffice).map((member) => member.accountID);
+        if (accountIDsToUpdate.length) {
+            setEmployeeWorkArrangement(policy, accountIDsToUpdate, isOffice, personalDetails, translate);
+        }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };
 
