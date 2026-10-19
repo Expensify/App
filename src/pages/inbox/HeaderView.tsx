@@ -125,6 +125,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     });
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const grandParentReportAction = useParentReportAction(parentReport, {shouldIgnoreThreadReplies: true});
+    const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
     const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
     const [personalDetails] = useAllPersonalDetails();
@@ -174,7 +175,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // Transaction threads under an invoice use the invoice report header. Other threads use their parent action message.
     const isParentInvoiceAndIsTransactionThread = isChatThread && !!parentReport && isInvoiceReport(parentReport) && isTransactionThread(parentReportAction);
     const reportHeaderData = (!isTaskReport && !isSupportTicketReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
-    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
+    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction, undefined, grandParentReportActions);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedNames, parentNavigationReport?.parentReportID);

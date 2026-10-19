@@ -4167,6 +4167,7 @@ ${amount} για ${merchant} - ${date}`,
             formLabel: 'Προβολή PDF',
         },
         attachmentNotFound: 'Το συνημμένο δεν βρέθηκε',
+        loadTimedOut: 'Η εικόνα αργεί πολύ να φορτώσει.',
         retry: 'Προσπαθήστε ξανά',
     },
     messages: {
