@@ -16,6 +16,9 @@ import useNetwork from './useNetwork';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 
+/**
+ * Hook that returns a workspace's members joined with personal details, filling in fallback identities when details haven't loaded and filtering out Expensify team members on Expensify-owned policies.
+ */
 function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
