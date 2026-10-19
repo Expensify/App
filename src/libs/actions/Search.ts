@@ -69,6 +69,7 @@ import {
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -92,6 +93,7 @@ import type {
     ReportActions,
     Rule,
     SaveSearch,
+    SearchResults,
     SearchTagFilterItem,
     Transaction,
     TransactionViolations,
@@ -123,7 +125,7 @@ import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
-    data: [];
+    data: SearchResults['data'];
     search: {
         offset: number;
         hasMoreResults: boolean;
@@ -1415,7 +1417,9 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
-                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
+                // To-do responses list the other collections first and the snapshot last.
+                const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
@@ -1430,6 +1434,15 @@ function search({
                     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
                         Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
                     );
+                }
+
+                // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.
+                if (searchKey && TODO_SEARCH_KEYS.has(searchKey) && result?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    const countedReportIDs = getExpenseReportIDs(response?.data ?? {});
+                    const clearRecord = shouldCalculateTotals ? Onyx.merge(snapshotKey, {search: {countedReportIDs: null}}) : Promise.resolve();
+                    clearRecord
+                        .then(() => Onyx.merge(snapshotKey, {search: {countedReportIDs}}))
+                        .catch((error: unknown) => Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}));
                 }
 
                 if (shouldUpdateLastSearchParams) {
