@@ -35,7 +35,6 @@ import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
-import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -174,10 +173,6 @@ function SubmitDetailsPage({
         },
         [],
     );
-
-    useEffect(() => {
-        snapshotUserLocation();
-    }, []);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
