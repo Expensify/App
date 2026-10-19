@@ -48,7 +48,6 @@ function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilter
     const isLineChart = chart.chart.view === CONST.SEARCH.VIEW.LINE;
     switch (filters.compare) {
         case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
-            // Only bar charts draw the previous period.
             const periods = isLineChart ? undefined : resolveComparisonPeriods(filters.date);
             return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
         }
