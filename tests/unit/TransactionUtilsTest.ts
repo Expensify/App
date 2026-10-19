@@ -642,6 +642,35 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxAmount).toBe(expectedTaxAmount);
         });
 
+        it.each([
+            {name: 'a positive expense edited to a negative amount', storedAmount: -100, editedAmount: -200, expectedTaxAmount: 10},
+            {name: 'a negative expense edited to a positive amount', storedAmount: 100, editedAmount: 200, expectedTaxAmount: -10},
+        ])('should calculate the category tax from the edited amount for $name', ({storedAmount, editedAmount, expectedTaxAmount}) => {
+            // Given a policy with a tax expense rule for a category, and an expense on an expense report
+            const category = 'Advertising';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction({amount: storedAmount, reportID: '1'});
+
+            // When the amount's sign and the category change in the same edit, as a bulk edit can do
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {amount: editedAmount, category},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax uses the edited amount, so it is stored with the same sign as the new stored amount
+            expect(updatedTransaction.modifiedAmount).toBe(-editedAmount);
+            expect(updatedTransaction.taxAmount).toBe(expectedTaxAmount);
+        });
+
         it('should keep the existing tax when clearing the category on a server backed edit', () => {
             // Given an expense carrying the tax of a category that has its own rule
             const category = 'Advertising';
