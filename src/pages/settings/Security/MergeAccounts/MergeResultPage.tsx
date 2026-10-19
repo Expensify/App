@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeResultConfirmationConfig from '@hooks/useMergeResultConfirmationConfig';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ import {useEffect} from 'react';
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login, backTo} = params;
 
@@ -74,10 +76,10 @@ function MergeResultPage() {
             <ConfirmationPage style={styles.mt3}>
                 <ConfirmationPage.Content>
                     <ConfirmationPage.Illustration
-                        illustration={illustration}
+                        illustration={illustration ?? lazyIllustrations.LockClosedOrange}
                         illustrationStyle={illustrationStyle}
                     />
-                    <ConfirmationPage.Heading>{heading}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Heading>{heading ?? translate('mergeAccountsPage.mergeFailureGenericHeading')}</ConfirmationPage.Heading>
                     {descriptionComponent}
                     {!!description && <ConfirmationPage.Description style={styles.textSupporting}>{description}</ConfirmationPage.Description>}
                     {!!cta && <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text>}

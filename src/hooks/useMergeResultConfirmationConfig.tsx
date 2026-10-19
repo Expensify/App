@@ -34,7 +34,7 @@ import useScreenBoundDynamicRoute from './useScreenBoundDynamicRoute';
 import useThemeStyles from './useThemeStyles';
 
 type MergeResultConfirmationConfig = {
-    heading: string;
+    heading?: string;
     description?: React.ReactNode;
     descriptionComponent?: React.ReactNode;
     cta?: React.ReactNode;
@@ -47,6 +47,16 @@ type MergeResultConfirmationConfig = {
     onSecondaryButtonPress?: () => void;
     shouldShowSecondaryButton?: boolean;
 };
+
+function DescriptionHTML({html}: {html: string}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+            <RenderHTML html={html} />
+        </View>
+    );
+}
 
 function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>; login: string}): MergeResultConfirmationConfig {
     const styles = useThemeStyles();
@@ -61,7 +71,6 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
-        heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
         illustration: lazyIllustrations.LockClosedOrange,
         onButtonPress: () => {},
     };
@@ -69,53 +78,27 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const results: Record<ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>, MergeResultConfirmationConfig> = {
         [CONST.MERGE_ACCOUNT_RESULTS.SUCCESS]: {
             heading: translate('mergeAccountsPage.mergeSuccess.accountsMerged'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', login, userEmailOrPhone ?? '')} />
-                </View>
-            ),
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeSuccess.description', login, userEmailOrPhone ?? '')} />,
             illustration: LottieAnimations.Fireworks,
             illustrationStyle: {width: 150, height: 150},
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
             descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`)}
-                    />
-                </View>
+                <DescriptionHTML
+                    html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`)}
+                />
             ),
-            illustration: lazyIllustrations.LockClosedOrange,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />
-                </View>
-            ),
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />,
             cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
             ctaStyle: {...styles.mt2, ...styles.textSupporting},
-            illustration: lazyIllustrations.LockClosedOrange,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', login)} />
-                </View>
-            ),
-            illustration: lazyIllustrations.LockClosedOrange,
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', login)} />,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', login)} />
-                </View>
-            ),
-            illustration: lazyIllustrations.LockClosedOrange,
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', login)} />,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
             heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
@@ -138,46 +121,23 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
             illustrationStyle: {width: 132, height: 150},
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_PRIMARY_LOGIN]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', login)} />
-                </View>
-            ),
-            illustration: lazyIllustrations.LockClosedOrange,
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', login)} />,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', login)} />
-                </View>
-            ),
-            illustration: lazyIllustrations.LockClosedOrange,
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', login)} />,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-            descriptionComponent: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', login)} />
-                </View>
-            ),
-            illustration: lazyIllustrations.LockClosedOrange,
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', login)} />,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS]: {
             heading: translate('mergeAccountsPage.mergeFailureTooManyAttempts.heading'),
             description: translate('mergeAccountsPage.mergeFailureTooManyAttempts.description'),
-            illustration: lazyIllustrations.LockClosedOrange,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ACCOUNT_UNVALIDATED]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
             description: translate('mergeAccountsPage.mergeFailureUnvalidatedAccount.description'),
-            illustration: lazyIllustrations.LockClosedOrange,
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
-            heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
             description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
-            illustration: lazyIllustrations.LockClosedOrange,
         },
     };
 
