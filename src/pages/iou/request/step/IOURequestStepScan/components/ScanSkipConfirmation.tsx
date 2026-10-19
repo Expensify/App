@@ -406,6 +406,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
+                canUpgradeReceiptQuality={false}
             />
         </>
     );
