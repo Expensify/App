@@ -230,6 +230,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     searchKey: lastSearchQuery.searchKey,
                     isLoading: isSearchLoading,
                     shouldUpdateLastSearchParams: true,
+                    // Every arrow press queues an OpenReport write, so waiting for writes would keep Next disabled at the end of the loaded page.
+                    skipWaitForWrites: true,
                 });
             });
         }

@@ -1,13 +1,16 @@
-import {renderHook} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
 
-import {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
+import MoneyRequestReportNavigation, {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 
-import CONST from '@src/CONST';
+import {search} from '@userActions/Search';
 
-import {useState} from 'react';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
 
 /**
  * These tests verify the source-selection and cache logic of MoneyRequestReportNavigation
@@ -34,6 +37,23 @@ const mockUseSearchSections = jest.fn<SearchSectionsResult, []>();
 jest.mock('@hooks/useSearchSections', () => ({
     __esModule: true,
     default: () => mockUseSearchSections(),
+}));
+
+jest.mock('@userActions/Search', () => ({search: jest.fn()}));
+jest.mock('@userActions/ReportNavigation', () => ({saveLastSearchParams: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({setParams: jest.fn()}));
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
+
+let mockOnNext: (() => void) | undefined;
+jest.mock('@components/PrevNextButtons', () => ({
+    __esModule: true,
+    default: ({onNext}: {onNext: () => void}) => {
+        mockOnNext = onNext;
+        return null;
+    },
 }));
 
 jest.mock('@hooks/useFilterPendingDeleteReports', () => ({
@@ -160,6 +180,42 @@ describe('MoneyRequestReportNavigation', () => {
 
             expect(result.current.allReports).toEqual(['2', '3']);
             expect(result.current.effectiveAllReports).toEqual(['1', '2', '3']);
+        });
+    });
+
+    describe('next page request', () => {
+        it('skips the write queue when Next crosses the prefetch threshold', () => {
+            // Given the first page of 50 reports is loaded, more results exist, and report 40 is open
+            const reportIDs = Array.from({length: CONST.SEARCH.RESULTS_PAGE_SIZE}, (_, index) => `${index + 1}`);
+            const lastSearchQuery = {
+                queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1},
+                offset: 0,
+                hasMoreResults: true,
+                previousLengthOfResults: reportIDs.length,
+            };
+            const snapshot = {data: Object.fromEntries(reportIDs.map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])), search: {isLoading: false}};
+            mockSortedReportIDs = reportIDs;
+            mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+                return [options?.selector ? options.selector(value) : value];
+            });
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                callback(0);
+                return 0;
+            });
+            render(
+                <MoneyRequestReportNavigation
+                    reportID="40"
+                    shouldDisplayNarrowVersion
+                />,
+            );
+
+            // When the user presses Next
+            mockOnNext?.();
+
+            // Then page 2 is requested without waiting for the OpenReport writes each press queues, so Next isn't disabled at report 50 until they drain
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, skipWaitForWrites: true}));
+            requestAnimationFrameSpy.mockRestore();
         });
     });
 });

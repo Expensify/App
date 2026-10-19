@@ -150,6 +150,14 @@ function useSearchAutoRefetch({
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
             const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedTransactionIDs).some((id) => !existingSearchResultIDsSet.has(id));
 
+            // With an RHP over Search, only an entry the results lack needs a refetch right away. Anything else only updates
+            // rows the RHP covers, and refetching from offset 0 replaces the snapshot, dropping the pages the report
+            // navigation arrows loaded. Defer it until Search is focused again.
+            if (!isFocused && !hasAGenuinelyNewID) {
+                hasPendingSearchRef.current = true;
+                return;
+            }
+
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hadPendingSearch && currentSearchResultIDs.length > 0) {
