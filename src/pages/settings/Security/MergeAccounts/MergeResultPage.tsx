@@ -46,9 +46,7 @@ function MergeResultPage() {
 
     const {
         heading,
-        headingStyle,
         onButtonPress,
-        descriptionStyle,
         illustration,
         illustrationStyle,
         description,
@@ -80,9 +78,9 @@ function MergeResultPage() {
                         illustration={illustration}
                         illustrationStyle={illustrationStyle}
                     />
-                    <ConfirmationPage.Heading style={headingStyle}>{heading}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Heading>{heading}</ConfirmationPage.Heading>
                     {descriptionComponent}
-                    {!!description && <ConfirmationPage.Description style={[descriptionStyle, styles.textSupporting]}>{description}</ConfirmationPage.Description>}
+                    {!!description && <ConfirmationPage.Description style={styles.textSupporting}>{description}</ConfirmationPage.Description>}
                     {!!cta && <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text>}
                     {ctaComponent}
                 </ConfirmationPage.Content>

@@ -36,9 +36,7 @@ import useThemeStyles from './useThemeStyles';
 
 type MergeResultConfirmationConfig = {
     heading: string;
-    headingStyle?: TextStyle;
     description?: React.ReactNode;
-    descriptionStyle?: StyleProp<TextStyle>;
     descriptionComponent?: React.ReactNode;
     cta?: React.ReactNode;
     ctaComponent?: React.ReactNode;
