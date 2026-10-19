@@ -32,6 +32,7 @@ type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsN
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -51,7 +52,10 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
         goBackToWallet();
     }, [isWiseReimbursementsBetaEnabled, goBackToWallet]);
 
-    if (isLoadingOnyxValue(bankAccountListMetadata) || !isWiseReimbursementsBetaEnabled) {
+    // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging eligibility
+    const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
+
+    if (isLoadingOnyxValue(bankAccountListMetadata) || isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator />;
     }
 
