@@ -2884,6 +2884,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;', subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.', getStarted: 'Ξεκινήστε'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -4166,6 +4167,7 @@ ${amount} για ${merchant} - ${date}`,
             formLabel: 'Προβολή PDF',
         },
         attachmentNotFound: 'Το συνημμένο δεν βρέθηκε',
+        loadTimedOut: 'Η εικόνα αργεί πολύ να φορτώσει.',
         retry: 'Προσπαθήστε ξανά',
     },
     messages: {

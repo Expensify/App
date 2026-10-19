@@ -97,8 +97,8 @@ import lodashMaxBy from 'lodash/maxBy';
 import Onyx from 'react-native-onyx';
 
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
-import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
+import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './buildOnboardingMessages';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {PersonalDetailsOnyxUpdate} from './PersonalDetailsUtils';
@@ -109,8 +109,8 @@ import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
+import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
@@ -2085,6 +2085,26 @@ function isOpenOrProcessingReport(report: OnyxEntry<Report>): boolean {
     return isOpenReport(report) || isProcessingReport(report);
 }
 
+// Instant submit shows Fix until the first approval. A forward leaves the report submitted, so that still counts as approved.
+// Every other workspace only shows Fix on a draft.
+function isReportEligibleForViolationFix(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, hasBeenForwardedSinceLastSubmit?: boolean): boolean {
+    if (isInstantSubmitEnabled(policy)) {
+        return isOpenOrProcessingReport(report) && !(hasBeenForwardedSinceLastSubmit ?? hasReportBeenForwardedSinceLastSubmit(report));
+    }
+    return isOpenReport(report);
+}
+
+// Violations the submitter can no longer fix once a report is submitted. Inbox and Home both use this list.
+function getSubmitterUnfixableViolationNames(report: OnyxEntry<Report>): {excludedViolations: ViolationName[]; excludedNotices: ViolationName[]} {
+    if (!isProcessingReport(report)) {
+        return {excludedViolations: [], excludedNotices: []};
+    }
+    return {
+        excludedViolations: [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED],
+        excludedNotices: [CONST.VIOLATIONS.MODIFIED_AMOUNT],
+    };
+}
+
 /**
  * Checks if a report is in an open/unsubmitted state where its transactions can be deleted.
  * Returns true for:
@@ -2940,15 +2960,21 @@ function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transa
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
 // TODO: isOffline will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
-function isOneTransactionThread(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>, threadParentReportAction: OnyxEntry<ReportAction>, isOffline?: boolean) {
+function isOneTransactionThread(
+    report: OnyxEntry<Report>,
+    parentReport: OnyxEntry<Report>,
+    threadParentReportAction: OnyxEntry<ReportAction>,
+    isOffline?: boolean,
+    parentReportActions?: OnyxEntry<ReportActions> | ReportAction[],
+) {
     if (!report || !parentReport) {
         return false;
     }
 
-    const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`] ?? ([] as ReportAction[]);
+    const resolvedParentReportActions = parentReportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`];
 
     const chatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.chatReportID}`];
-    const transactionThreadReportID = getOneTransactionThreadReportID(parentReport, chatReport, parentReportActions, isOffline);
+    const transactionThreadReportID = getOneTransactionThreadReportID(parentReport, chatReport, resolvedParentReportActions, isOffline);
     return report?.reportID === transactionThreadReportID && !isSentMoneyReportAction(threadParentReportAction);
 }
 
@@ -4162,14 +4188,13 @@ function excludeParticipantsForDisplay(
 
 function getParticipantsAccountIDsForDisplay(
     report: OnyxEntry<Report>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     shouldExcludeHidden = false,
     shouldExcludeDeleted = false,
     shouldForceExcludeCurrentUser = false,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
     personalDetails: OnyxEntry<PersonalDetailsList> = getAllPersonalDetails(),
 ): number[] {
     const reportParticipants = report?.participants ?? {};
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
     let participantsEntries = Object.entries(reportParticipants);
 
     // We should not show participants that have an optimistic entry with the same login in the personal details
@@ -4206,7 +4231,7 @@ function getParticipantsAccountIDsForDisplay(
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
     const shouldExcludeHiddenParticipants = !isGroupChat(report) && !isInvoiceReport(report) && !isMoneyRequestReport(report) && !isMoneyRequest(report) && !isPolicyExpenseChat(report);
-    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata, personalDetails);
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, personalDetails);
 
     return chatParticipants.filter((accountID) => {
         const details = personalDetails?.[accountID];
@@ -5040,7 +5065,7 @@ type GetReasonAndReportActionThatRequiresAttentionParams = {
     allReportActions?: OnyxCollection<ReportActions>;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
-    reportMetadata?: OnyxEntry<ReportMetadata>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
 };
 
@@ -5100,7 +5125,9 @@ function getReasonAndReportActionThatRequiresAttention({
         };
     }
 
-    const optionReportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
+    // TODO: Remove this fallback once every caller threads the metadata, so this stops reading the module-level Onyx.connect. See https://github.com/Expensify/App/issues/66421
+    const reportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
+
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
     // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.
@@ -5114,7 +5141,7 @@ function getReasonAndReportActionThatRequiresAttention({
     const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
         optionOrReport,
         policy,
-        optionReportMetadata,
+        reportMetadata,
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
@@ -5152,7 +5179,7 @@ function getReasonAndReportActionThatRequiresAttention({
                 optionOrReport,
                 undefined,
                 policy,
-                optionReportMetadata,
+                reportMetadata,
                 invoiceReceiverPolicy,
                 currentUserLogin,
                 currentUserAccountID,
@@ -5256,7 +5283,16 @@ function requiresAttentionFromCurrentUser(
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatRequiresAttention({optionOrReport, currentUserLogin, currentUserAccountID, transactionViolations, parentReportAction, isReportArchived});
+    return !!getReasonAndReportActionThatRequiresAttention({
+        optionOrReport,
+        currentUserLogin,
+        currentUserAccountID,
+        transactionViolations,
+        parentReportAction,
+        isReportArchived,
+        // TODO: Pass the real reportMetadata in the next PR. See https://github.com/Expensify/App/issues/66421
+        reportMetadata: undefined,
+    });
 }
 
 /**
@@ -7341,7 +7377,7 @@ function getParentNavigationSubtitle(
 function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
-    const participantAccountID = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountID = getParticipantsAccountIDsForDisplay(report, undefined);
 
     const basePath = isInSidePanel && report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
 
@@ -7360,7 +7396,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false)
  */
 function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: Route, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
-    const participantAccountID = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountID = getParticipantsAccountIDsForDisplay(report, undefined);
 
     if (isOneOnOneChatReport) {
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
@@ -7405,7 +7441,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
     }
     const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
 
         if (isOneOnOneChat(report)) {
             Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountIDs.at(0))));
@@ -8985,11 +9021,11 @@ function buildOptimisticReportPreview(
 /**
  * Builds an optimistic ACTIONABLE_TRACK_EXPENSE_WHISPER action with a randomly generated reportActionID.
  */
-function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
+function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string, optimisticReportActionID?: string): ReportAction {
     const currentTime = DateUtils.getDBTime();
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const actorAccountID = getAccountIDsByLogins([targetEmail]).at(0);
-    const reportActionID = rand64();
+    const reportActionID = optimisticReportActionID ?? rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
         actorAccountID,
@@ -10647,20 +10683,17 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            // Allow both open and processing reports to show RBR for violations
-            if (!isOpenOrProcessingReport(potentialReport)) {
-                return false;
-            }
 
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Keeps the RBR in step with Home's "Review X expenses" row.
+            if (!isReportEligibleForViolationFix(potentialReport, policy)) {
+                return false;
+            }
             // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR. It is
-            // excluded by name because the back end owns its type.
-            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
-            const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
+            const {excludedViolations: excludedViolationNamesForLHN, excludedNotices: excludedNoticeNamesForLHN} = getSubmitterUnfixableViolationNames(potentialReport);
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -13204,7 +13237,7 @@ function getValidateEmailTaskLink(targetChatReportID: string | undefined, should
 }
 
 function getValidateEmailTaskDescription(workEmail: string, targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    const validateEmailTask = getOnboardingMessages().joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
+    const validateEmailTask = buildOnboardingMessagesWithoutManageTeam().joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     if (!validateEmailTask) {
         return '';
     }
@@ -13239,12 +13272,12 @@ function prepareOnboardingOnyxData({
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
-        onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        onboardingMessage = buildOnboardingMessagesWithoutManageTeam().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        onboardingMessage = shouldSkipConciergeOnboarding ? {message: '', tasks: []} : getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
+        onboardingMessage = shouldSkipConciergeOnboarding ? {message: '', tasks: []} : buildOnboardingMessagesWithoutManageTeam().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
@@ -15474,6 +15507,8 @@ export {
     isPolicyExpenseChat,
     isProcessingReport,
     isOpenReport,
+    isReportEligibleForViolationFix,
+    getSubmitterUnfixableViolationNames,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,

@@ -1,18 +1,21 @@
 import {
     filterOutDeprecatedReportActions,
     getIOUActionForTransactionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
     getLinkedTransactionID,
     getOriginalMessage,
     getSortedReportActions,
     isActionOfType,
     isSentMoneyReportAction,
 } from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -153,6 +156,26 @@ const transactionThreadReportIDSelector = (transactionID: string | undefined) =>
 /** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
 const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
 
+/** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
+const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
+
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
+    if (!allReportActions) {
+        return undefined;
+    }
+
+    const result: Record<string, true> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
+            result[reportID] = true;
+        }
+    }
+    return result;
+}
+
 type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
 
 type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
@@ -169,6 +192,7 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 
 export {
     isSentMoneyReportSelector,
+    getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,
@@ -176,6 +200,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,
 };
