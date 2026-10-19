@@ -953,11 +953,13 @@ describe('actions/Report', () => {
     });
 
     it.each([
-        [false, false],
-        [true, false],
-        [false, true],
-        [true, true],
-    ])('honors Mark as unread above an informational export (offline: %s, specific message: %s)', async (isOffline, markSpecificMessage) => {
+        [false, false, false],
+        [true, false, false],
+        [false, true, false],
+        [true, true, false],
+        [false, false, true],
+        [true, false, true],
+    ])('keeps explicit unread anchors at the read boundary (offline: %s, specific message: %s, export at boundary: %s)', async (isOffline, markSpecificMessage, exportAtBoundary) => {
         const reportID = 'report-level-unread-export';
         const submitterAccountID = 1;
         const approverAccountID = 2;
@@ -988,31 +990,34 @@ describe('actions/Report', () => {
             reportID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: submitterAccountID,
-            lastVisibleActionCreated: approved.created,
+            lastVisibleActionCreated: exportAtBoundary ? exported.created : approved.created,
             lastReadTime: '2026-01-01 12:00:00.000',
         });
         await waitForBatchedUpdates();
 
-        const expectedAnchor = markSpecificMessage ? approved : exported;
-        Report.markCommentAsUnread(reportID, reportActions, markSpecificMessage ? approved : createMock<OnyxTypes.ReportAction>({}), submitterAccountID, isOffline);
+        const reportLevelAnchor = exportAtBoundary ? exported : approved;
+        const expectedAnchor = markSpecificMessage ? submitted : reportLevelAnchor;
+        Report.markCommentAsUnread(reportID, reportActions, markSpecificMessage ? submitted : createMock<OnyxTypes.ReportAction>({}), submitterAccountID, isOffline);
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         expect(report?.manuallyMarkedUnreadReportActionID).toBe(expectedAnchor.reportActionID);
-        expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(approved.created, 1));
-        expect(
-            getUnreadMarkerReportAction({
-                visibleReportActions: [exported, approved, submitted],
-                earliestReceivedOfflineMessageIndex: undefined,
-                currentUserAccountID: submitterAccountID,
-                prevSortedVisibleReportActionsObjects: reportActions,
-                unreadMarkerTime: report?.lastReadTime,
-                isScrolledOverThreshold: false,
-                isOffline,
-                isReversed: false,
-                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
-            }),
-        ).toEqual([expectedAnchor.reportActionID, markSpecificMessage ? 1 : 0]);
+        expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(expectedAnchor.created, 1));
+        const scanParams = {
+            visibleReportActions: [exported, approved, submitted],
+            earliestReceivedOfflineMessageIndex: undefined,
+            currentUserAccountID: submitterAccountID,
+            prevSortedVisibleReportActionsObjects: reportActions,
+            unreadMarkerTime: report?.lastReadTime,
+            isScrolledOverThreshold: false,
+            isOffline,
+            isReversed: false,
+            manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+        };
+        expect(getUnreadMarkerReportAction(scanParams)).toEqual([expectedAnchor.reportActionID, [exported, approved, submitted].indexOf(expectedAnchor)]);
+        if (!markSpecificMessage && !exportAtBoundary) {
+            expect(getUnreadMarkerReportAction({...scanParams, manuallyMarkedUnreadReportActionID: null})).toEqual([expectedAnchor.reportActionID, 1]);
+        }
     });
 
     it('Should properly update comment with links', async () => {

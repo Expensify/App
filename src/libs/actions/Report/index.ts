@@ -3273,11 +3273,14 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             ? reportAction.actorAccountID
             : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
 
-    // Report-level marks use the same fallback action as the API request so explicit user commands can anchor informational activity.
     const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
+    // A report-level anchor must match the capped read boundary so navigating between report surfaces does not move the divider.
+    const manuallyMarkedUnreadReportActionID =
+        reportAction?.reportActionID ??
+        ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}), true).find((action) => action.created === actionCreationTime)?.reportActionID;
     const reportValue = {
         lastReadTime,
-        manuallyMarkedUnreadReportActionID: reportActionID ?? null,
+        manuallyMarkedUnreadReportActionID: manuallyMarkedUnreadReportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
