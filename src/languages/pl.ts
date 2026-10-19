@@ -1198,7 +1198,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Zobacz w Wydatkach',
         emptyState: {title: 'Nic do wyświetlenia', subtitle: 'Spróbuj zmienić kryteria powyżej'},
         noExpensesState: {title: 'Zobacz, na co idą twoje pieniądze', subtitle: 'Gdy będziesz mieć wydatki, zobaczysz trendy w wydawaniu, najważniejszych sprzedawców i więcej.'},
-        compare: {label: 'Porównaj', previousPeriod: 'Poprzedni okres', average: 'Średnia'},
+        compare: {
+            label: 'Porównaj',
+            previousPeriod: 'Poprzedni okres',
+            average: 'Średnia',
+            increase: (percentage: string) => `Wzrost o ${percentage}`,
+            decrease: (percentage: string) => `Spadek o ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
