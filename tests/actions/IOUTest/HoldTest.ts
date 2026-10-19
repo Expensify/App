@@ -1110,71 +1110,82 @@ describe('actions/IOU/Hold', () => {
             };
         };
 
-        test.each(['ordinary IOU', 'general action', 'missing original message', 'legacy original message'])('moves and restores %s through real Onyx', async (scenario) => {
-            // Given an ordinary action or a stored action associated with the allowed transaction_undefined key.
-            const report = buildOptimisticIOUReport(1, 2, 100, '99', 'USD', getCurrencyDecimalsLocal);
-            const transaction = buildHeldTransaction(report.reportID, 100);
-            if (scenario !== 'ordinary IOU') {
-                transaction.transactionID = 'undefined';
-            }
-            const action: ReportAction =
-                scenario === 'general action'
-                    ? buildOptimisticCreatedReportAction({emailCreatingAction: RORY_EMAIL})
-                    : buildOptimisticIOUReportAction({
-                          type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                          amount: 100,
-                          currency: 'USD',
-                          comment: '',
-                          participants: [],
-                          transactionID: transaction.transactionID,
-                          getCurrencyDecimals: getCurrencyDecimalsLocal,
-                      });
-            if (scenario === 'missing original message') {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- This case represents stored actions before original-message migration.
-                delete action.originalMessage;
-                action.message = [];
-            }
-            if (scenario === 'legacy original message') {
-                // @ts-expect-error Historical primitive message data is intentionally malformed at this one stored field.
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy actions can store a primitive in this field.
-                action.originalMessage = 'Legacy message';
-            }
-            const chatReport = createMock<Report>({reportID: '99', iouReportID: report.reportID});
-            const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const;
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(actionsKey, {[action.reportActionID]: action});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-            // When the actual report-move seam collects and copies the selected general action.
-            const result = getReportFromHoldRequestsOnyxData({
-                chatReport,
-                iouReport: report,
-                recipient: {accountID: 1},
-                policy: undefined,
-                delegateAccountID: undefined,
-                isASAPSubmitBetaEnabled: false,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                rules: undefined,
-            });
-            expect(result.optimisticHoldReportExpenseActionIDs).toHaveLength(1);
-            const copiedID = result.optimisticHoldReportExpenseActionIDs.at(0)?.optimisticReportActionID;
-            await Onyx.update(result.optimisticData);
-            // Then the actual store contains the copied action and the original lookup was not filtered to IOU only.
-            const copied = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`);
-            expect(copiedID).toBeDefined();
-            if (copiedID === undefined) {
-                throw new Error('Expected the copied hold action ID');
-            }
-            expect(copied?.[copiedID]).toMatchObject({actionName: action.actionName, reportID: result.optimisticHoldReportID});
-            if (scenario === 'missing original message' || scenario === 'legacy original message') {
-                expect(copied?.[copiedID]).not.toHaveProperty('originalMessage');
-            } else {
-                expect(getOriginalMessage(copied?.[copiedID])).toEqual(getOriginalMessage(action));
-            }
-            await Onyx.update(result.failureData);
-            const restored = await getOnyxValue(actionsKey);
-            expect(restored?.[action.reportActionID]).toEqual(action);
-        });
+        test.each(['ordinary IOU', 'general action', 'missing original message', 'legacy original message'])(
+            'selects only IOU actions and restores %s through real Onyx',
+            async (scenario) => {
+                // Given an ordinary action or a stored action associated with the allowed transaction_undefined key.
+                const report = buildOptimisticIOUReport(1, 2, 100, '99', 'USD', getCurrencyDecimalsLocal);
+                const transaction = buildHeldTransaction(report.reportID, 100);
+                if (scenario !== 'ordinary IOU') {
+                    transaction.transactionID = 'undefined';
+                }
+                const action: ReportAction =
+                    scenario === 'general action'
+                        ? buildOptimisticCreatedReportAction({emailCreatingAction: RORY_EMAIL})
+                        : buildOptimisticIOUReportAction({
+                              type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                              amount: 100,
+                              currency: 'USD',
+                              comment: '',
+                              participants: [],
+                              transactionID: transaction.transactionID,
+                              getCurrencyDecimals: getCurrencyDecimalsLocal,
+                          });
+                if (scenario === 'missing original message') {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- This case represents stored actions before original-message migration.
+                    delete action.originalMessage;
+                    action.message = [];
+                }
+                if (scenario === 'legacy original message') {
+                    // @ts-expect-error Historical primitive message data is intentionally malformed at this one stored field.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy actions can store a primitive in this field.
+                    action.originalMessage = 'Legacy message';
+                }
+                const chatReport = createMock<Report>({reportID: '99', iouReportID: report.reportID});
+                const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const;
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(actionsKey, {[action.reportActionID]: action});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+                // When the actual report-move seam selects actions linked to held transactions.
+                const result = getReportFromHoldRequestsOnyxData({
+                    chatReport,
+                    iouReport: report,
+                    recipient: {accountID: 1},
+                    policy: undefined,
+                    delegateAccountID: undefined,
+                    isASAPSubmitBetaEnabled: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                });
+                if (scenario === 'general action') {
+                    // Then a general action cannot be copied through an unrelated transaction_undefined entry.
+                    expect(result.optimisticHoldReportExpenseActionIDs).toEqual([]);
+                    await Onyx.update(result.optimisticData);
+                    expect(await getOnyxValue(actionsKey)).toEqual({[action.reportActionID]: action});
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+                    return;
+                }
+                expect(result.optimisticHoldReportExpenseActionIDs).toHaveLength(1);
+                const copiedID = result.optimisticHoldReportExpenseActionIDs.at(0)?.optimisticReportActionID;
+                await Onyx.update(result.optimisticData);
+                // Then the actual store contains the copied IOU action.
+                const copied = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`);
+                expect(copiedID).toBeDefined();
+                if (copiedID === undefined) {
+                    throw new Error('Expected the copied hold action ID');
+                }
+                expect(copied?.[copiedID]).toMatchObject({actionName: action.actionName, reportID: result.optimisticHoldReportID});
+                if (scenario === 'missing original message' || scenario === 'legacy original message') {
+                    expect(copied?.[copiedID]).not.toHaveProperty('originalMessage');
+                } else {
+                    expect(getOriginalMessage(copied?.[copiedID])).toEqual(getOriginalMessage(action));
+                }
+                await Onyx.update(result.failureData);
+                const restored = await getOnyxValue(actionsKey);
+                expect(restored?.[action.reportActionID]).toEqual(action);
+            },
+        );
 
         const buildScenario = (overrides: {
             total: number;

@@ -624,16 +624,16 @@ describe('ordinary autocomplete parser boundaries', () => {
         {description: 'absent result', result: null},
         {description: 'invalid range value', result: {autocomplete: null, ranges: [{key: 'from', value: null, start: 5, length: 0}]}},
         {description: 'invalid autocomplete offset', result: {autocomplete: {key: 'from', value: '', start: '5', length: 0}, ranges: []}},
-    ])('keeps catch versus propagation for $description', ({result}) => {
+    ])('returns no highlights for $description', ({result}) => {
         // Given an erased result that cannot prove the consumed ordinary fields.
         const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValue(result);
         const log = jest.spyOn(console, 'error').mockImplementation(() => {});
         const emptyList = createSharedValueMock<string[]>([]);
         // When each existing consumer handles the same boundary result.
         expect(parseForAutocomplete('from:alice')).toBeUndefined();
-        // Then autocomplete logs once while live markdown propagates the error.
+        // Then autocomplete logs once while live markdown safely skips highlighting.
         expect(log).toHaveBeenCalledTimes(1);
-        expect(() => parseForLiveMarkdown('from:alice', '', {}, emptyList, emptyList, emptyList, emptyList, emptyList)).toThrow('Invalid autocomplete parser result');
+        expect(parseForLiveMarkdown('from:alice', '', {}, emptyList, emptyList, emptyList, emptyList, emptyList)).toEqual([]);
         expect(parser).toHaveBeenCalledTimes(2);
     });
 

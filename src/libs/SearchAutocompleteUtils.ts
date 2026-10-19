@@ -337,7 +337,7 @@ function parseForLiveMarkdown(
 
     const parsedAutocomplete: unknown = parse(input);
     if (!isAutocompleteParserResult(parsedAutocomplete)) {
-        throw new Error('Invalid autocomplete parser result');
+        return [];
     }
     const ranges = parsedAutocomplete.ranges;
     const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);

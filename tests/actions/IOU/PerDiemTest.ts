@@ -137,51 +137,28 @@ describe('PerDiem', () => {
             return transaction;
         }
 
-        test.each([undefined, null])('writes partial SET data for an absent transaction %p', async (transaction) => {
-            // Given no stored transaction input, while unrelated cached data must be replaced rather than merged.
+        test.each([undefined, null])('does not write a draft for an absent transaction %p', async (transaction) => {
+            // Given an absent transaction and an unrelated orphan key that must remain untouched.
             const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}undefined` as const;
             await Onyx.set(key, {merchant: 'Stored only'});
             const set = jest.spyOn(Onyx, 'set');
-            // When removal still writes the reachable partial draft.
+            // When each editor receives the missing transaction, including otherwise reachable NaN indices.
             if (transaction === null) {
-                // @ts-expect-error A null runtime transaction tests the existing nullable spread at this one input.
+                // @ts-expect-error Null is intentionally malformed at this one runtime transaction argument.
                 removeSubrate(null, '0');
-            } else {
-                removeSubrate(transaction, '0');
-            }
-            await waitForBatchedUpdates();
-            // Then the payload retains the explicit null reset and SET removes fields absent from the input.
-            expect(set).toHaveBeenCalledWith(key, {comment: {customUnit: {subRates: [], quantity: null}}});
-            expect(await getOnyxValue(key)).toEqual({comment: {customUnit: {subRates: []}}});
-            // When adding the first rate through the same absent-input seam.
-            if (transaction === null) {
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                updateSubrate(null, 'not-a-number', 1, 'meal', 'Meal', 500);
                 // @ts-expect-error Keep the malformed null exception at the transaction argument.
                 addSubrate(null, '0', 2, 'meal', 'Meal', 500);
             } else {
+                removeSubrate(transaction, '0');
+                updateSubrate(transaction, 'not-a-number', 1, 'meal', 'Meal', 500);
                 addSubrate(transaction, '0', 2, 'meal', 'Meal', 500);
             }
             await waitForBatchedUpdates();
-            // Then a partial draft is created without inventing transaction model fields.
-            expect(set).toHaveBeenLastCalledWith(key, {comment: {customUnit: {subRates: [{quantity: 2, id: 'meal', name: 'Meal', rate: 500}], quantity: null}}});
-            expect(await getOnyxValue(key)).toEqual({comment: {customUnit: {subRates: [{quantity: 2, id: 'meal', name: 'Meal', rate: 500}]}}});
-            set.mockRestore();
-        });
-
-        it('retains empty-subrate index guards and the reachable NaN update for an absent transaction', async () => {
-            // Given an absent transaction and an empty subrate list derived by the production action.
-            const set = jest.spyOn(Onyx, 'set');
-            // When a normal update index or a NaN add index cannot select a rate.
-            updateSubrate(undefined, '0', 1, 'meal', 'Meal', 500);
-            addSubrate(undefined, 'not-a-number', 1, 'meal', 'Meal', 500);
-            // Then the original no-write branches remain reachable.
+            // Then no partial draft is written and existing data is preserved.
             expect(set).not.toHaveBeenCalled();
-            // When splice receives NaN through update, it inserts the replacement into the empty list.
-            updateSubrate(undefined, 'not-a-number', 1, 'meal', 'Meal', 500);
-            await waitForBatchedUpdates();
-            // Then partial SET still writes the null reset and Onyx removes null from stored data.
-            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}undefined` as const;
-            expect(set).toHaveBeenCalledWith(key, {comment: {customUnit: {subRates: [{quantity: 1, id: 'meal', name: 'Meal', rate: 500}], quantity: null}}});
-            expect(await getOnyxValue(key)).toEqual({comment: {customUnit: {subRates: [{quantity: 1, id: 'meal', name: 'Meal', rate: 500}]}}});
+            expect(await getOnyxValue(key)).toEqual({merchant: 'Stored only'});
             set.mockRestore();
         });
 

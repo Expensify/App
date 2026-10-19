@@ -66,17 +66,18 @@ describe('SearchAutocompleteInput', () => {
     test.each([
         {description: 'string colors', border: 'red', focusedBorder: 'blue', expected: 'rgba(255, 0, 0, 1)', focusedExpected: 'rgba(0, 0, 255, 1)'},
         {description: 'transparent neighbor', border: 'transparent', focusedBorder: 'red', expected: 'rgba(255, 0, 0, 0)', focusedExpected: 'rgba(255, 0, 0, 1)'},
-        {description: 'opaque platform color', border: PlatformColor('label'), focusedBorder: 'red', expected: 'rgba(0, 0, 0, 0)', focusedExpected: 'rgba(255, 0, 0, 1)'},
+        {description: 'opaque platform color fallback', border: PlatformColor('label'), focusedBorder: 'red', expected: 'rgba(26, 61, 50, 1)', focusedExpected: 'rgba(255, 0, 0, 1)'},
         {
-            description: 'opaque dynamic color',
+            description: 'opaque dynamic color fallback',
             border: DynamicColorIOS({light: 'red', dark: 'blue'}),
             focusedBorder: 'red',
-            expected: 'rgba(0, 0, 0, 0)',
+            expected: 'rgba(26, 61, 50, 1)',
             focusedExpected: 'rgba(255, 0, 0, 1)',
         },
+        {description: 'focused opaque color fallback', border: 'red', focusedBorder: PlatformColor('label'), expected: 'rgba(255, 0, 0, 1)', focusedExpected: 'rgba(26, 61, 50, 1)'},
         {description: 'two transparent endpoints', border: 'transparent', focusedBorder: 'transparent', expected: 'rgba(0, 0, 0, 0)', focusedExpected: 'rgba(0, 0, 0, 0)'},
-    ])('preserves $description inside the border worklet', ({border, focusedBorder, expected, focusedExpected}) => {
-        // Given both ViewStyle endpoints, which must be processed in the existing worklet.
+    ])('applies $description inside the border worklet', ({border, focusedBorder, expected, focusedExpected}) => {
+        // Given string endpoints or opaque colors that must fall back to the theme border.
         render(
             <SearchAutocompleteInput
                 value="query"
@@ -93,7 +94,7 @@ describe('SearchAutocompleteInput', () => {
         // When the component's actual focus callback changes the shared value.
         expect(borderWorklet?.()).toEqual({borderColor: expected});
         act(() => props?.onFocus?.(createMock<Parameters<NonNullable<BaseTextInputProps['onFocus']>>[0]>({})));
-        // Then installed RGB interpolation reaches the focused endpoint without replacing opaque values with the theme.
+        // Then installed RGB interpolation preserves string colors and uses the theme for opaque endpoints.
         expect(borderWorklet?.()).toEqual({borderColor: focusedExpected});
     });
 
@@ -133,35 +134,26 @@ describe('SearchAutocompleteInput', () => {
         expect(StyleSheet.flatten([{borderColor: 'red', borderWidth: 2}, styleWorklet?.(), borderWorklet?.()])).toEqual({borderColor: 'rgba(255, 0, 0, 1)', borderWidth: 2});
     });
 
-    it('uses the default border and preserves endpoint error order until worklet execution', () => {
-        // Given default styles and then two invalid color strings, without executing the captured worklets during render.
-        const {unmount} = render(
-            <SearchAutocompleteInput
-                value=""
-                onSearchQueryChange={jest.fn()}
-                substitutionMap={{}}
-            />,
-        );
-        const defaultWorklet = animatedStyle.mock.calls.at(1)?.[0];
-        expect(defaultWorklet).toBeDefined();
-        expect(defaultWorklet?.()).toHaveProperty('borderColor');
-        unmount();
-        jest.clearAllMocks();
+    it('uses the theme border when wrapper colors are absent', () => {
+        // Given no wrapper colors, both endpoints must use the current theme.
+        const {defaultTheme} = jest.requireActual<{defaultTheme: ThemeColors}>('@styles/theme');
         render(
             <SearchAutocompleteInput
                 value=""
                 onSearchQueryChange={jest.fn()}
                 substitutionMap={{}}
-                wrapperStyle={{borderColor: 'first-invalid'}}
-                wrapperFocusedStyle={{borderColor: 'second-invalid'}}
             />,
         );
-        const invalidWorklet = animatedStyle.mock.calls.at(1)?.[0];
-        expect(invalidWorklet).toBeDefined();
-        // When the border worklet finally runs.
-        // Then the first endpoint retains priority and the error was not moved into render.
-        expect(() => invalidWorklet?.()).toThrow('first-invalid');
-        expect(jest.requireActual<{defaultTheme: ThemeColors}>('@styles/theme').defaultTheme.border).toBeTruthy();
+        const borderWorklet = animatedStyle.mock.calls.at(1)?.[0];
+        const props = input.mock.calls.at(0)?.[0];
+        expect(borderWorklet).toBeDefined();
+        expect(props).toBeDefined();
+        // When the default border is evaluated before and after focus.
+        expect(borderWorklet?.()).toEqual({borderColor: 'rgba(26, 61, 50, 1)'});
+        act(() => props?.onFocus?.(createMock<Parameters<NonNullable<BaseTextInputProps['onFocus']>>[0]>({})));
+        // Then focus leaves the default theme border unchanged.
+        expect(defaultTheme.border).toBe('#1A3D32');
+        expect(borderWorklet?.()).toEqual({borderColor: 'rgba(26, 61, 50, 1)'});
     });
 
     test.each(['callback', 'object', 'absent'])('preserves %s ref forwarding and null detach', (variant) => {

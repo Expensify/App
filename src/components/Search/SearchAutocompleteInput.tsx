@@ -25,7 +25,7 @@ import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Animated, {convertToRGBA, interpolateColor, processColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -131,16 +131,7 @@ function SearchAutocompleteInput({
         return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
     });
     const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
-        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => {
-            processColor(color);
-            if (typeof color === 'string') {
-                return color;
-            }
-
-            // Interpolation coerces opaque colors to zero channels. Keep that behavior and the literal transparent marker on string endpoints.
-            const [red, green, blue, alpha] = convertToRGBA(color);
-            return `rgba(${Math.round(red * 255)}, ${Math.round(green * 255)}, ${Math.round(blue * 255)}, ${alpha})`;
-        });
+        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => (typeof color === 'string' ? color : defaultBorderColor));
         return {
             borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], borderColors, 'RGB'),
         };

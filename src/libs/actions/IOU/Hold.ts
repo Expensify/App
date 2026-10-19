@@ -232,15 +232,14 @@ function putOnHold({
 
     // If the transaction thread report wasn't created before, we create it optimistically
     if (createdThread) {
-        const transactionThreadReport = createdThread;
-        transactionThreadReport.pendingFields = {
+        createdThread.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: transactionThreadReport,
+                value: createdThread,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -260,13 +259,13 @@ function putOnHold({
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdThread.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             // We reset the childReportID if the request fails
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdThread.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
             });
         }
@@ -632,11 +631,15 @@ function getHoldReportActionsAndTransactions(
 ) {
     const allTransactions = getAllTransactions();
     const iouReportActions = getAllReportActions(reportID);
-    const holdReportActions: OnyxTypes.ReportAction[] = [];
+    const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
     const holdTransactions: OnyxTypes.Transaction[] = [];
 
     for (const action of Object.values(iouReportActions)) {
-        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (!isMoneyRequestAction(action)) {
+            continue;
+        }
+
+        const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (!transaction) {

@@ -51,7 +51,7 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -72,12 +72,16 @@ import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     const newSubrates = [...existingSubrates];
     newSubrates.splice(index, 1);
@@ -85,28 +89,32 @@ function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+    const newTransaction: OnyxTypes.Transaction = {
         ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index >= existingSubrates.length) {
         return;
@@ -118,19 +126,19 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+    const newTransaction: OnyxTypes.Transaction = {
         ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function clearSubrates(transactionID: string) {
@@ -138,12 +146,16 @@ function clearSubrates(transactionID: string) {
 }
 
 function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index !== existingSubrates.length) {
         return;
@@ -155,19 +167,19 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = {
+    const newTransaction: OnyxTypes.Transaction = {
         ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
