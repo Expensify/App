@@ -1,4 +1,4 @@
-/** Covers optional tab names through reset and the actual odometer hydrator. */
+/** Covers valid tab names through reset and the actual odometer hydrator. */
 import {act, renderHook} from '@testing-library/react-native';
 
 import type * as UseDefaultParticipantsModule from '@hooks/useDefaultParticipants';
@@ -53,14 +53,14 @@ describe('useResetIOUType tab selection', () => {
     });
     afterEach(() => jest.restoreAllMocks());
 
-    it.each([undefined, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER])('preserves initialization, report and hydration effects for %s', (tab) => {
+    it.each([CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER])('preserves initialization, report and hydration effects for %s', (tab) => {
         // Given a manual draft and global-create participants that resolve a destination report.
         const {result} = renderTabReset();
 
-        // When a changed tab, including a missing route name, reaches the actual callback.
+        // When a valid changed tab reaches the actual callback.
         act(() => result.current(tab));
 
-        // Then undefined uses the existing reset path, while only odometer names hydrate its draft fields.
+        // Then the changed tab resets the draft, while only odometer names hydrate its fields.
         expect(Keyboard.dismiss).toHaveBeenCalledTimes(1);
         expect(initMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({newIouRequestType: tab, currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, defaultParticipants: mockParticipants, reportID: '1'}),
@@ -91,14 +91,12 @@ describe('useResetIOUType tab selection', () => {
         }
     });
 
-    it('does not reset unchanged names or an already undefined request type', () => {
-        // Given equality should exclude both ordinary and undefined request types.
+    it('does not reset an unchanged request type', () => {
+        // Given the draft already uses the selected request type.
         const valid = renderTabReset();
-        const absent = renderTabReset({transaction: createMock<Transaction>({transactionID: 'transaction'})});
 
         // When the callback receives the current request type.
         act(() => valid.result.current(CONST.IOU.REQUEST_TYPE.MANUAL));
-        act(() => absent.result.current(undefined));
 
         // Then equality precedes keyboard, initialization, destination and hydration effects.
         expect(Keyboard.dismiss).not.toHaveBeenCalled();

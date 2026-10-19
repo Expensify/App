@@ -17,11 +17,7 @@ let refSave: Pick<ComposerRef, 'focus'> | null | undefined;
 function composerFocusKeepFocusOn(ref: Pick<ComposerRef, 'focus'> | null, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
-        // Preserve the failed focus invocation after Onyx records focus.
-        if (ref === null) {
-            throw new TypeError("Cannot read properties of null (reading 'focus')");
-        }
-        ref.focus();
+        ref?.focus();
     }
     if (isFocused) {
         refSave = ref;

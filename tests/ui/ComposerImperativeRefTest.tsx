@@ -266,7 +266,7 @@ describe('Composer imperative refs', () => {
             throw new Error('Expected live-markdown host and commands');
         }
 
-        // Then DOM identity and common commands exist while value remains absent, so clear must preserve undefined.
+        // Then DOM identity and common commands exist while the producer leaves value absent.
         expect(commands).toBe(input);
         expect('value' in input).toBe(false);
         expect(parser).not.toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe('Composer imperative refs', () => {
             handle.clear();
         });
 
-        // Then underlying clear precedes selection reset and the captured optional value remains unchanged.
+        // Then clear precedes selection reset and a missing input value is normalized to an empty string.
         expect(focus).toHaveBeenCalledTimes(1);
         expect(blur).toHaveBeenCalledTimes(1);
         expect(handle.isFocused()).toBe(false);
@@ -316,7 +316,7 @@ describe('Composer imperative refs', () => {
         expect('scrollTop' in handle && handle.scrollTop).toBe(23);
         expect(input.clear).toHaveBeenCalledTimes(1);
         expect(onSelectionChange).toHaveBeenCalledWith({nativeEvent: {selection: {start: 0, end: 0}}});
-        expect(onClear).toHaveBeenCalledWith(value);
+        expect(onClear).toHaveBeenCalledWith(value ?? '');
         const earlierCallOrder1 = input.clear.mock.invocationCallOrder.at(0);
         const laterCallOrder1 = onSelectionChange.mock.invocationCallOrder.at(0);
         if (earlierCallOrder1 === undefined || laterCallOrder1 === undefined) {
@@ -405,39 +405,16 @@ describe('Composer imperative refs', () => {
         expect(objectRef.current).toBeNull();
     });
 
-    it('forwards native capabilities from the current inner ref and keeps absent common-command failures', () => {
-        // Given the forwarding interface exposes native commands only when its actual inner Composer does.
+    it('keeps the outer commands tied to the current input and safely handles an absent input', () => {
+        // Given the outer handle exposes only the commands its consumers use.
         mockShouldUseNativeComposer = true;
-        const firstClear = jest.fn<ReturnType<TextInput['clear']>, Parameters<TextInput['clear']>>();
         const firstBlur = jest.fn<ReturnType<TextInput['blur']>, Parameters<TextInput['blur']>>();
         const firstFocus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
         const firstSetSelection = jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>();
-        const firstSetNativeProps = jest.fn<ReturnType<TextInput['setNativeProps']>, Parameters<TextInput['setNativeProps']>>();
-        const firstPreventFocusOnFirstResponderOnce = jest.fn<ReturnType<TextInput['preventFocusOnFirstResponderOnce']>, Parameters<TextInput['preventFocusOnFirstResponderOnce']>>();
-        const first = createMock<TextInput>({
-            clear: firstClear,
-            blur: firstBlur,
-            focus: firstFocus,
-            isFocused: () => false,
-            setSelection: firstSetSelection,
-            setNativeProps: firstSetNativeProps,
-            preventFocusOnFirstResponderOnce: firstPreventFocusOnFirstResponderOnce,
-        });
-        const secondClear = jest.fn<ReturnType<TextInput['clear']>, Parameters<TextInput['clear']>>();
+        const firstIsFocused = jest.fn<ReturnType<TextInput['isFocused']>, Parameters<TextInput['isFocused']>>(() => false);
+        const first = createMock<TextInput>({blur: firstBlur, focus: firstFocus, isFocused: firstIsFocused, setSelection: firstSetSelection});
         const secondBlur = jest.fn<ReturnType<TextInput['blur']>, Parameters<TextInput['blur']>>();
-        const secondFocus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
-        const secondSetSelection = jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>();
-        const secondSetNativeProps = jest.fn<ReturnType<TextInput['setNativeProps']>, Parameters<TextInput['setNativeProps']>>();
-        const secondPreventFocusOnFirstResponderOnce = jest.fn<ReturnType<TextInput['preventFocusOnFirstResponderOnce']>, Parameters<TextInput['preventFocusOnFirstResponderOnce']>>();
-        const second = createMock<TextInput>({
-            clear: secondClear,
-            blur: secondBlur,
-            focus: secondFocus,
-            isFocused: () => false,
-            setSelection: secondSetSelection,
-            setNativeProps: secondSetNativeProps,
-            preventFocusOnFirstResponderOnce: secondPreventFocusOnFirstResponderOnce,
-        });
+        const second = createMock<TextInput>({blur: secondBlur, isFocused: () => false});
         mockMarkdownInput = first;
         const ref = React.createRef<ComposerWithSuggestionsRef>();
         const props = forwardingProps(ref);
@@ -446,42 +423,17 @@ describe('Composer imperative refs', () => {
         if (!handle) {
             throw new Error('Expected forwarding interface');
         }
-        expect(Object.keys(handle)).toEqual([
-            'focus',
-            'replaceSelectionWithText',
-            'getCurrentText',
-            'clearWorklet',
-            'resetHeight',
-            'clear',
-            'blur',
-            'isFocused',
-            'setSelection',
-            'setNativeProps',
-            'preventFocusOnFirstResponderOnce',
-            'scrollTop',
-        ]);
-        for (const key of ['setSelection', 'setNativeProps', 'preventFocusOnFirstResponderOnce', 'scrollTop']) {
-            const descriptor = Object.getOwnPropertyDescriptor(handle, key);
-            if (!descriptor) {
-                throw new Error('Expected own forwarding accessor');
-            }
-            expect(descriptor.enumerable).toBe(true);
-            expect(descriptor.configurable).toBe(true);
-            expect(descriptor).toHaveProperty('get', expect.any(Function));
-            expect(descriptor).toHaveProperty('set', undefined);
-            expect('value' in descriptor).toBe(false);
-            expect('writable' in descriptor).toBe(false);
-        }
-        expect(handle.scrollTop).toBeUndefined();
+        expect(Object.keys(handle)).toEqual(['focus', 'replaceSelectionWithText', 'getCurrentText', 'clearWorklet', 'resetHeight', 'blur', 'isFocused']);
         handle.focus(false, {start: 2, end: 4});
+        handle.blur();
         expect(firstFocus).toHaveBeenCalledTimes(1);
         expect(firstSetSelection).toHaveBeenCalledWith(2, 4);
+        expect(firstBlur).toHaveBeenCalledTimes(1);
+        firstIsFocused.mockReturnValue(true);
+        expect(handle.isFocused()).toBe(true);
         expect(ReportActionComposeFocusManager.composerRef.current).toBe(first);
-        expect(handle.setSelection).toBe(firstSetSelection);
-        expect(handle.setNativeProps).toBe(firstSetNativeProps);
-        expect(handle.preventFocusOnFirstResponderOnce).toBe(firstPreventFocusOnFirstResponderOnce);
 
-        // When the input remounts with a replacement native object, the existing handle getters read current.
+        // When the input remounts, the retained handle uses the replacement input.
         mockMarkdownInput = second;
         view.rerender(
             <ComposerWithSuggestions
@@ -489,22 +441,13 @@ describe('Composer imperative refs', () => {
                 inputPlaceholder="replacement"
             />,
         );
-        const currentHandle = handle;
-        if (!currentHandle) {
-            throw new Error('Expected replacement interface');
-        }
-        currentHandle.clear();
-        currentHandle.blur();
+        handle.blur();
 
-        // Then native command identity and clear/blur remain tied to the actual replacement.
+        // Then commands observe the current input and missing inputs are safe.
         expect(ReportActionComposeFocusManager.composerRef.current).toBe(second);
-        expect(currentHandle.setSelection).toBe(secondSetSelection);
-        expect(currentHandle.setNativeProps).toBe(secondSetNativeProps);
-        expect(currentHandle.preventFocusOnFirstResponderOnce).toBe(secondPreventFocusOnFirstResponderOnce);
-        expect(secondClear).toHaveBeenCalledTimes(1);
         expect(secondBlur).toHaveBeenCalledTimes(1);
-        expect(firstClear).not.toHaveBeenCalled();
-
+        expect(firstBlur).toHaveBeenCalledTimes(1);
+        expect(handle.isFocused()).toBe(false);
         mockShouldMountComposer = false;
         view.unmount();
         const absentRef = React.createRef<ComposerWithSuggestionsRef>();
@@ -513,15 +456,10 @@ describe('Composer imperative refs', () => {
         if (!absent) {
             throw new Error('Expected absent-input forwarding interface');
         }
-        expect(() => absent.clear()).toThrow(TypeError);
-        expect(() => absent.blur()).toThrow(TypeError);
-        expect(() => absent.isFocused()).toThrow(TypeError);
-        expect(absent.setSelection).toBeUndefined();
-        expect(absent.setNativeProps).toBeUndefined();
-        expect(absent.preventFocusOnFirstResponderOnce).toBeUndefined();
+        expect(() => absent.blur()).not.toThrow();
+        expect(absent.isFocused()).toBe(false);
         expect(() => absent.focus()).not.toThrow();
         expect(Object.keys(absent)).toEqual(Object.keys(handle));
-        expect(absent.scrollTop).toBeUndefined();
     });
 
     it('preserves native clear values and MIME-derived attachment filenames', async () => {
@@ -664,12 +602,6 @@ describe('Composer imperative refs', () => {
         if (!retainedHandle) {
             throw new Error('Expected retained forwarding interface');
         }
-        expect(retainedHandle.scrollTop).toBe(0);
-        first.scrollTop = 17;
-        expect(retainedHandle.scrollTop).toBe(17);
-        expect(retainedHandle.setSelection).toBeUndefined();
-        expect(retainedHandle.setNativeProps).toBeUndefined();
-        expect(retainedHandle.preventFocusOnFirstResponderOnce).toBeUndefined();
         const firstHandle = ReportActionComposeFocusManager.composerRef.current;
         expect(firstHandle).toBe(ReportActionComposeFocusManager.composerRef.current);
         expect(firstHandle).not.toBeNull();
@@ -686,9 +618,6 @@ describe('Composer imperative refs', () => {
         if (!handle) {
             throw new Error('Expected forwarding interface');
         }
-        expect(retainedHandle.scrollTop).toBe(0);
-        second.scrollTop = 29;
-        expect(retainedHandle.scrollTop).toBe(29);
         const focus = jest.spyOn(second, 'focus');
         act(() => retainedHandle.focus());
         expect(focus).toHaveBeenCalledTimes(1);
@@ -702,9 +631,6 @@ describe('Composer imperative refs', () => {
         expect(second.clear).toHaveBeenCalledTimes(1);
         expect(ReportActionComposeFocusManager.composerRef.current).not.toBe(firstHandle);
         expect(dispatchCommand).toHaveBeenCalledWith(result.current, 'clear');
-        expect(handle.setSelection).toBeUndefined();
-        expect(handle.setNativeProps).toBeUndefined();
-        expect(handle.preventFocusOnFirstResponderOnce).toBeUndefined();
         expect(mockResetScroll).toHaveBeenCalledTimes(1);
         result.current.current = null;
         expect(() => clearWebInput(result.current)).not.toThrow();
@@ -723,13 +649,13 @@ describe('composerFocusKeepFocusOn actual focus commands', () => {
     });
     afterEach(() => jest.restoreAllMocks());
 
-    it('updates Onyx before immediate focus and preserves the null TypeError after that update', () => {
+    it('updates Onyx before immediate focus and safely skips a missing ref', () => {
         // Given the helper consumes only a focus command, not a DOM element.
         const ref = {focus: jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>()} satisfies NonNullable<Parameters<typeof composerFocusKeepFocusOn>[0]>;
 
         // When initial focus executes and a missing ref reaches the same immediate branch.
         composerFocusKeepFocusOn(ref, true, hiddenModal, false);
-        expect(() => composerFocusKeepFocusOn(null, true, hiddenModal, false)).toThrow(TypeError);
+        expect(() => composerFocusKeepFocusOn(null, true, hiddenModal, false)).not.toThrow();
 
         // Then both calls update Onyx first, while only the real command object focuses.
         expect(Onyx.set).toHaveBeenNthCalledWith(1, ONYXKEYS.INPUT_FOCUSED, true);

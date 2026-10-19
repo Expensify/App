@@ -42,9 +42,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear' | 'onSelectionChange'> &
 
         /**
          * Callback when the input was cleared using the .clear ref method.
-         * The text parameter is absent if live-markdown has not initialized its value.
+         * The text parameter is empty if live-markdown has not initialized its value.
          */
-        onClear?: (text: string | undefined) => void;
+        onClear?: (text: string) => void;
 
         /** Callback method handle when the input is changed  */
         onChangeText?: (numberOfLines: string) => void;

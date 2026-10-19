@@ -42,7 +42,7 @@ type OnyxTabNavigatorProps<TTabName extends string> = ChildrenProps & {
     id: string;
 
     defaultSelectedTab?: Extract<TTabName, string>;
-    onTabSelected?: (newTabName: Extract<TTabName, string> | undefined) => void;
+    onTabSelected?: (newTabName: TTabName) => void;
     tabBar: (props: TabSelectorProps) => React.ReactNode;
 
     screenListeners?: ScreenListeners<TabNavigationState<OnyxTabParamList<TTabName>>, MaterialTopTabNavigationEventMap>;
@@ -390,12 +390,10 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
                                     }
                                     const newSelectedTab = routeNames.at(index);
                                     reapplyTabSwitchIfInterrupted(navigation, newSelectedTab);
-                                    if (selectedTab === newSelectedTab) {
+                                    if (!newSelectedTab || selectedTab === newSelectedTab) {
                                         return;
                                     }
-                                    if (newSelectedTab) {
-                                        Tab.setSelectedTab(id, newSelectedTab);
-                                    }
+                                    Tab.setSelectedTab(id, newSelectedTab);
                                     onTabSelected(newSelectedTab);
                                 },
                                 tabPress: (e) => {

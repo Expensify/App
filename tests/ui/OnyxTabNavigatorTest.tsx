@@ -496,7 +496,7 @@ describe('OnyxTabNavigator finite state notifications', () => {
     it('calls the caller first, selects initially once and persists before notifying a changed name', () => {
         // Given caller state effects and the initial selection share the actual navigator listener.
         const callerState = jest.fn<ReturnType<NonNullable<TabListeners['state']>>, Parameters<NonNullable<TabListeners['state']>>>();
-        const selected = jest.fn<void, [TabName | undefined]>();
+        const selected = jest.fn<void, [TabName]>();
         const initialSelect = jest.fn<ReturnType<NonNullable<OnyxTabNavigatorProps<TabName>['onTabSelect']>>, Parameters<NonNullable<OnyxTabNavigatorProps<TabName>['onTabSelect']>>>();
         const view = renderFiniteNavigator({screenListeners: {state: callerState}, onTabSelected: selected, onTabSelect: initialSelect});
         const listeners = navigatorListeners();
@@ -547,9 +547,9 @@ describe('OnyxTabNavigator finite state notifications', () => {
         expect(earlierCallOrder3).toBeLessThan(laterCallOrder3);
     });
 
-    it('notifies changed undefined without persisting it and does not repeat initial selection', () => {
+    it('ignores a missing route name without persisting or notifying and selects initially once', () => {
         // Given a valid persisted tab and a temporarily out-of-range navigator index.
-        const selected = jest.fn<void, [TabName | undefined]>();
+        const selected = jest.fn<void, [TabName]>();
         const initialSelect = jest.fn<ReturnType<NonNullable<OnyxTabNavigatorProps<TabName>['onTabSelect']>>, Parameters<NonNullable<OnyxTabNavigatorProps<TabName>['onTabSelect']>>>();
         renderFiniteNavigator({onTabSelected: selected, onTabSelect: initialSelect});
         const listeners = navigatorListeners();
@@ -558,9 +558,8 @@ describe('OnyxTabNavigator finite state notifications', () => {
         notifyNavigatorState(listeners, 4);
         notifyNavigatorState(listeners, 0);
 
-        // Then absence is delivered rather than skipped, and initialization runs only once.
-        expect(selected).toHaveBeenCalledTimes(1);
-        expect(selected).toHaveBeenCalledWith(undefined);
+        // Then missing names do not escape to consumers, and initialization runs only once.
+        expect(selected).not.toHaveBeenCalled();
         expect(Tab.setSelectedTab).not.toHaveBeenCalled();
         expect(initialSelect).toHaveBeenCalledTimes(1);
         expect(initialSelect).toHaveBeenCalledWith({index: 4});
@@ -584,7 +583,7 @@ describe('OnyxTabNavigator finite state notifications', () => {
     it('reapplies an interrupted press before returning for unchanged selection', () => {
         // Given React Navigation can leave the old selected tab after an allowed press.
         jest.useFakeTimers();
-        const selected = jest.fn<void, [TabName | undefined]>();
+        const selected = jest.fn<void, [TabName]>();
         renderFiniteNavigator({shouldReapplyInterruptedTabPress: true, onTabSelected: selected});
         const listeners = navigatorListeners();
         const press = listeners.tabPress;

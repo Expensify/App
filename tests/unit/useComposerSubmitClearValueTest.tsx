@@ -79,25 +79,32 @@ describe('useComposerSubmit clear values', () => {
         mockEditState.isEditingInComposer = false;
     });
 
-    it.each(['comment', 'edit', 'attachment'] as const)('throws before %s submission effects for an omitted live-markdown value', (submission) => {
-        // Given live-markdown can omit value on its augmented div before initial parsing.
+    it.each(['comment', 'edit', 'attachment'] as const)('handles normalized empty input in the %s branch', (submission) => {
+        // Given web Composer normalizes an omitted live-markdown value to an empty string.
         mockEditState.isEditingInComposer = submission === 'edit';
         if (submission === 'attachment') {
             mockMeta.attachmentFileRef.current = {uri: 'file:///photo.png', name: 'photo.png', type: 'image/png'};
         }
-        const originalAttachment = mockMeta.attachmentFileRef.current;
         const {result} = renderHook(() => useComposerSubmit('1'));
 
-        // When clear supplies undefined rather than fabricating an empty string.
-        expect(() => result.current.validateAndSubmitDraft(undefined)).toThrow(TypeError);
+        // When the normalized clear value reaches the actual submission hook.
+        expect(() => result.current.validateAndSubmitDraft('')).not.toThrow();
 
-        // Then no publication, task processing, attachment reset or composer clear occurs.
-        expect(mockPublishDraft).not.toHaveBeenCalled();
+        // Then empty comments are skipped, while edits and attachments retain their existing empty-text behavior.
         expect(addComment).not.toHaveBeenCalled();
-        expect(addAttachmentWithComment).not.toHaveBeenCalled();
         expect(createTaskFromMarkdown).not.toHaveBeenCalled();
         expect(mockClearComposer).not.toHaveBeenCalled();
-        expect(mockMeta.attachmentFileRef.current).toBe(originalAttachment);
+        if (submission === 'edit') {
+            expect(mockPublishDraft).toHaveBeenCalledWith('');
+            expect(addAttachmentWithComment).not.toHaveBeenCalled();
+        } else if (submission === 'attachment') {
+            expect(addAttachmentWithComment).toHaveBeenCalledWith(expect.objectContaining({text: ''}));
+            expect(mockPublishDraft).not.toHaveBeenCalled();
+        } else {
+            expect(mockPublishDraft).not.toHaveBeenCalled();
+            expect(addAttachmentWithComment).not.toHaveBeenCalled();
+        }
+        expect(mockMeta.attachmentFileRef.current).toBeNull();
     });
 
     it('retains trimmed strings in the edit, comment and attachment branches', () => {
