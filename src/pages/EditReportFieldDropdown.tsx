@@ -89,9 +89,7 @@ function EditReportFieldDropdown({
     // match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized for less content
     // than it holds. Without vertical padding a two line title still fits the row height.
     const compactRowStyle = [styles.optionRowCompactMinHeight, styles.pv0];
-    const sections = shouldUseCompactRows
-        ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: compactRowStyle}))}))
-        : optionSections;
+    const sections = shouldUseCompactRows ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: compactRowStyle}))})) : optionSections;
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
 
