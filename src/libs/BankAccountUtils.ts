@@ -137,10 +137,15 @@ function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>):
 }
 
 /**
- * A verified (OPEN) USD business bank account can start the Wise global reimbursements flow.
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
  */
 function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefined): boolean {
-    return accountData?.additionalData?.currency === CONST.CURRENCY.USD && accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    return (
+        accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
+        accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData.verifications?.corpay &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {

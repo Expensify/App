@@ -265,6 +265,13 @@ describe('BankAccountUtils', () => {
             expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
         });
 
+        it('returns false when the account is already set up with Corpay', () => {
+            // Given a verified USD business account that already has a Corpay verification
+            // When checking eligibility
+            // Then it is not eligible, because global reimbursements are already enabled for it, matching the Wallet menu condition
+            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
+        });
+
         it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'returns false for an account in the %s state',
             (state) => {
