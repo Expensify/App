@@ -376,6 +376,7 @@ export default {
     productMarketingWindowVisualAspectRatio: 7 / 4,
     productMarketingWindowIllustrationSize: 128,
     productMarketingWindowOffset: 20,
+    wiseGlobalReimbursementsIntroIllustrationSize: 250,
     productMarketingWindowOffsetNarrow: 12,
     productMarketingWindowHorizontalOffsetNarrow: 16,
     holdEducationModalWidth: 400,
