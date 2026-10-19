@@ -761,7 +761,7 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, previousDelegate: undefined}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, clearAfter: null, previousDelegate: undefined, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -775,7 +775,7 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -834,6 +834,46 @@ describe('actions/Domain', () => {
         });
     });
 
+    describe('setDomainVacationDelegate with clearAfter', () => {
+        it('sends clearAfter and keeps the old one for rollback', () => {
+            // Given a domain member whose delegate already clears on a date
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainMemberAccountID = 456;
+            const vacationer = 'vacationer@test.com';
+            const clearAfter = '2026-10-02 06:59:59';
+            const vacationDelegate: BaseVacationDelegate = {delegate: 'old@test.com', creator: 'admin@test.com', clearAfter: '2026-09-30 06:59:59'};
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
+
+            // When the admin saves a new delegate with a new clear after datetime
+            setDomainVacationDelegate(domainAccountID, domainMemberAccountID, 'admin@test.com', vacationer, 'new@test.com', vacationDelegate, clearAfter);
+
+            // Then the backend gets the datetime to clear the delegate at, and the old datetime is kept so dismissing an error can restore it
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
+                expect.objectContaining({vacationDelegateEmail: 'new@test.com', clearAfter}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: expect.objectContaining({
+                                    delegate: 'new@test.com',
+                                    clearAfter,
+                                    previousDelegate: 'old@test.com',
+                                    previousClearAfter: '2026-09-30 06:59:59',
+                                }),
+                            },
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
     describe('deleteDomainVacationDelegate', () => {
         it('deleteDomainVacationDelegate - sends DELETE_VACATION_DELEGATE request with correct data', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -853,7 +893,9 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, previousDelegate: vacationDelegate.delegate}},
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, clearAfter: null, previousDelegate: vacationDelegate.delegate, previousClearAfter: null},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

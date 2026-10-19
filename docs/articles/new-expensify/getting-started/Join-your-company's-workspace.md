@@ -5,7 +5,7 @@ keywords: [New Expensify, join workspace, set up profile, add expense, enable tw
 ---
 
 
-Welcome to Expensify! If you've received an invite to join your company's workspace, this guide walks you through setting up your account and getting started.
+Welcome to Expensify! Whether you've received an invite to join your company's workspace or need to instruct your admin to send you one, this guide walks you through setting up your account and getting started.
 
 ---
 
