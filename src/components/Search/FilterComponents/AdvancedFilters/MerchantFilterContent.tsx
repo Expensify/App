@@ -5,8 +5,9 @@ import MerchantMatchTypeSelector from '@components/Search/FilterComponents/Merch
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -69,11 +70,7 @@ function MerchantFilterContent({
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
     const updateMerchantFilter = (newValue: string | undefined, newIsNegated: boolean) => {
-        onChange({
-            [FILTER_KEYS.MERCHANT]: newIsNegated ? undefined : newValue,
-            [FILTER_KEYS.MERCHANT_NOT]: newIsNegated ? newValue : undefined,
-            [FILTER_KEYS.MERCHANT_OPERATOR]: newIsNegated ? undefined : merchantOperator,
-        });
+        onChange(getMerchantFilterFormValues(newValue, newIsNegated, merchantOperator));
     };
 
     // A negated Merchant filter always uses the not-equal operator, so the match type is hidden.

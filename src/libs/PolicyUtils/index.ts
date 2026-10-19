@@ -1,151 +1,30 @@
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {getBankAccountFromID} from '@libs/actions/BankAccounts';
-import {getCategoryApproverRule} from '@libs/CategoryUtils';
-import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover} from '@libs/merge/HRUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
-import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
-import {isPublicDomain, isValidAccountRoute} from '@libs/ValidationUtils';
-import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
+import {isPublicDomain} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
-import type {Card, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, TravelSettings} from '@src/types/onyx';
-import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {ApprovalRule, CommuterExclusions} from '@src/types/onyx/Policy';
+import type {Card, PersonalDetailsList, Policy, PolicyEmployeeList, TravelSettings} from '@src/types/onyx';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
-import type Rule from '@src/types/onyx/Rule';
-import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {hasAccountingConnections} from './connections';
-import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
-import {isTimeTrackingEnabled} from './features';
-import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
-import {isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
-import {getTagApproverRule} from './rules';
-import {isSubmitAndClose} from './workflows';
+import {canMemberWrite} from './permissions';
+import {getActivePolicies, shouldShowPolicy} from './policy';
+import {isPaidGroupPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
-
-type WorkspaceDetails = {
-    policyID: string | undefined;
-    name: string;
-};
-
-/** The report facts an approval workflow rule is matched against. */
-type ApprovalWorkflowContext = {
-    /** Email of the member who submitted the report. */
-    submitterEmail: string;
-
-    /** Email of the approver the report is currently with. Empty when the report has not been approved yet. */
-    currentApproverEmail?: string;
-
-    /** Total of the report, in the backend (cents) amount the rules' `amount` filters are written in. */
-    reportTotal: number;
-};
-
-/** The outcome of matching a report against the policy's approval workflow rules. */
-type ApprovalWorkflowRuleMatch = {
-    /** Email the matched rule forwards the report to. Undefined when the rule finalizes the report instead. */
-    forwardsTo?: string;
-};
-
-/**
- * Returns true if the policy has no fieldList or its fieldList is empty.
- */
-function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
-    return !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
-}
-
-/**
- * Whether the current user can unarchive the workspace: only the owner of an archived workspace can, and only
- * while the archive policies beta is enabled. Takes primitives so it works with both a Policy and a workspace row.
- */
-function canUnarchivePolicy(isArchived: boolean, ownerAccountID: number | undefined, currentUserAccountID: number, isArchivePoliciesBetaEnabled: boolean): boolean {
-    return isArchivePoliciesBetaEnabled && isArchived && ownerAccountID === currentUserAccountID;
-}
-
-/**
- * Filter out the active policies, which will exclude policies with pending deletion
- * and policies the current user doesn't belong to.
- * These are policies that we can use to create reports with in NewDot.
- */
-function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            !!policy &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            !!policy.name &&
-            !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            !isArchivedPolicy(policy),
-    );
-}
-
-/**
- * Filter out the active policies, which will exclude policies with pending deletion
- * and policies the current user doesn't belong to.
- * These will be policies that has expense chat enabled.
- * These are policies that we can use to create reports with in NewDot.
- */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            !!policy &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            !!policy.name &&
-            !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
-            !isArchivedPolicy(policy),
-    );
-}
-
-function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isPerDiemEligiblePolicy);
-}
-
-function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
-}
-
-/**
- * Whether the workspace has a company address
- */
-function hasCompanyAddress(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.address?.addressStreet?.trim();
-}
-
-/**
- * The workspace-wide work arrangement, which members follow unless they were given one of their own.
- */
-function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
-    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
-}
-
-function getPolicyIDOrDefault(policyID?: string) {
-    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
-        return '-1';
-    }
-    return policyID;
-}
 
 /** Return the emails that can receive a shared bank account from the current user. */
 function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): string[] {
@@ -188,26 +67,6 @@ function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> |
 }
 
 /**
- * Check if the policy can be displayed
- * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
- * If shouldShowPendingDeletePolicy is false, show the policy pending deletion only if there is an error.
- * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
- * updating the screen. Passing the offline status from the component.
- */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined, includeArchivedPolicy = false): boolean {
-    if (!includeArchivedPolicy && isArchivedPolicy(policy)) {
-        return false;
-    }
-    return (
-        !!policy?.isJoinRequestPending ||
-        (!!policy &&
-            policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-            (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
-            !!getPolicyRole(policy, currentUserLogin))
-    );
-}
-
-/**
  * Checks if a specific user is a member of the policy.
  * Note that employeeList can be blank when the policy is not the user's default/active policy
  */
@@ -226,69 +85,6 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
 
     const policyEmployee = policy?.employeeList?.[currentUserLogin];
     return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- * Resolve the email of the workspace's Authorized Payer (reimburser), matching the canonical resolution used across the app.
- * Returns undefined when reimbursement is disabled or no payer can be resolved.
- */
-function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
-    if (!policy) {
-        return undefined;
-    }
-
-    const reimbursementChoice = getReimbursementChoice(policy);
-    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-
-    // Reimbursement is disabled for this workspace.
-    if (!isAutoReimbursement && !isManualReimbursement) {
-        return undefined;
-    }
-
-    return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
-}
-
-/**
- * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
- * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
- */
-function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
-    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
-        return {};
-    }
-
-    return {
-        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
-        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
-    };
-}
-
-function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
-    if (!policy) {
-        return false;
-    }
-
-    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const reimbursementChoice = getReimbursementChoice(policy);
-    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-
-    // Reimbursement is disabled for this workspace.
-    if (!isAutoReimbursement && !isManualReimbursement) {
-        return false;
-    }
-
-    const reimburserEmail = getReimburserEmail(policy);
-
-    // No designated reimburser means any workspace admin can pay.
-    if (!reimburserEmail) {
-        return isAdmin;
-    }
-
-    const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-
-    return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee holds an active Expensify Card on the policy, as reported by the backend in the policy's employeeList */
@@ -332,28 +128,6 @@ function createFilteredMemberCountSelector(
             return count + 1;
         }, 0);
     };
-}
-
-/**
- * Creates a selector for useOnyx that returns formatted text for invoice configuration.
- * Returns a primitive string to prevent unnecessary re-renders when unrelated bank account data changes.
- * This matches the filtering logic used by PaymentMethodList with filterType=BUSINESS on the invoices page.
- */
-function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['translate'], invoiceCompany: string) {
-    return (bankAccountList: OnyxEntry<Record<string, {accountData?: {type?: string}}>>): string => {
-        const count = Object.values(bankAccountList ?? {}).filter((account) => account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS).length;
-        const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
-        return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
-    };
-}
-
-/**
- * Get the active group policies where the current user can create policy rooms.
- */
-function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePolicies(policies, currentUserLogin).filter(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
-    );
 }
 
 /**
@@ -600,492 +374,12 @@ function filterGuideAndAccountManager<T extends {login?: string | null; alternat
     });
 }
 
-function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
-    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
-}
-
-/**
- * For Submit workspaces, certain features require upgrading the plan before enabling.
- * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
- * @returns true if upgrade navigation was performed; false otherwise
- */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
-    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
-        return false;
-    }
-    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
-    // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
-    return true;
-}
-
-/**
- * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
- * access a Control-only Rules feature, navigate to the upgrade flow and return true.
- *
- * @param shouldReplace - Replace the current screen instead of pushing the upgrade page on top of it. Use this when
- * the redirect happens from the Control-only page itself, so pressing Back doesn't land back on a page Collect
- * can't use. Press handlers on a page Collect *can* use should keep the default push.
- */
-function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string, shouldReplace = false): boolean {
-    if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
-        return false;
-    }
-
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)), {forceReplace: shouldReplace});
-    return true;
-}
-
-/**
- * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
- * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
- * disabled, which hides Pay on its approved reports.
- */
-function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
-    switch (policy?.reimbursementChoice) {
-        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO:
-            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL:
-            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-        default:
-            return policy?.reimbursementChoice;
-    }
-}
-
-function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-}
-
-/** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
-function isAutoPayApprovedReportsAvailable(policy: OnyxInputOrEntry<Policy>): boolean {
-    return !!policy?.areWorkflowsEnabled && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID;
-}
-
-/**
- * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
- * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
- * group workspace with a non-optional approval flow whom `isPolicyApprover` recognizes (named approver or someone reports submit/forward to).
- */
-function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
-    if (!policies || !currentUserEmail) {
-        return false;
-    }
-    let isSubmitter = false;
-    let isApprover = false;
-    for (const policy of Object.values(policies)) {
-        if (!policy) {
-            continue;
-        }
-        isSubmitter = isSubmitter || isGroupPolicy(policy);
-        if (!isApprover) {
-            const hasApprovalFlow = isGroupPolicy(policy) && !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            isApprover = hasApprovalFlow && isPolicyApprover(policy, currentUserEmail);
-        }
-        if (isSubmitter && isApprover) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
-}
-
-/** Whether the user can add a category to the workspace straight from an expense's category picker */
-function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
-    return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
-}
-
-function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
-}
-
-/**
- * Whether the policy lets an expense with the given `reimbursable` value show the reimbursable toggle.
- *
- * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
- * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
- * An absent `defaultReimbursable` or `isReimbursable` means "reimbursable", matching the expense creation path
- * and `getReimbursable`.
- */
-function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
-    if (!policy?.disabledFields?.reimbursable) {
-        return true;
-    }
-    return (isReimbursable ?? true) !== (policy.defaultReimbursable ?? true);
-}
-
-function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
-    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
-        return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    }
-
-    return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
-}
-
-function getDefaultApprover(policy: OnyxEntry<Policy>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return policy?.approver || policy?.owner || '';
-}
-
 /**
  * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
  * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
  */
 function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
     return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
-}
-
-/**
- * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
- * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
- * - a new workflow was created (a member submits to an approver other than the default approver).
- */
-function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
-    if (!policy) {
-        return false;
-    }
-
-    const defaultApprover = getDefaultApprover(policy);
-
-    // The default workflow's first approver was changed away from the workspace owner.
-    if (!!policy.approver && !!policy.owner && policy.approver !== policy.owner) {
-        return true;
-    }
-
-    const employees = policy.employeeList ?? {};
-
-    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added,
-    // either unconditionally (forwardsTo) or above an approval limit (overLimitForwardsTo).
-    const defaultApproverEmployee = employees[defaultApprover];
-    if (!!defaultApprover && (!!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo)) {
-        return true;
-    }
-
-    // A new workflow exists when a member submits to an approver other than the default approver.
-    return Object.values(employees).some(
-        (employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!employee?.submitsTo && employee.submitsTo !== defaultApprover,
-    );
-}
-
-function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
-    const categoryApprovers: string[] = [];
-    const tagApprovers: string[] = [];
-    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
-
-    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
-    // Category approvers are prioritized, then tag approvers.
-    for (let i = 0; i < allReportTransactions.length; i++) {
-        const transaction = allReportTransactions.at(i);
-        const tag = getTag(transaction);
-        const category = getCategory(transaction);
-        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-        const tagApprover = getTagApproverRule(policy, tag)?.approver;
-        if (categoryApprover) {
-            categoryApprovers.push(categoryApprover);
-        }
-
-        if (tagApprover) {
-            tagApprovers.push(tagApprover);
-        }
-    }
-
-    // Return the unique approvers list
-    return [...new Set([...categoryApprovers, ...tagApprovers])];
-}
-
-function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
-    // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
-    // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
-    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {
-        category: {},
-        tag: {},
-    };
-
-    for (let i = 0; i < approvalRules.length; i++) {
-        const rule = approvalRules.at(i);
-        if (!rule) {
-            continue;
-        }
-        for (let j = 0; j < rule.applyWhen.length; j++) {
-            const applyWhen = rule.applyWhen.at(j);
-            if (applyWhen?.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
-                continue;
-            }
-            if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
-                rulesMap[applyWhen.field][applyWhen.value] = rule.approver;
-            }
-        }
-    }
-
-    if (isEmptyObject(rulesMap.category) && isEmptyObject(rulesMap.tag)) {
-        return '';
-    }
-
-    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
-
-    if (!allReportTransactions.length) {
-        return '';
-    }
-
-    let firstCategoryApprover = '';
-    let firstTagApprover = '';
-
-    for (let i = 0; i < allReportTransactions.length; i++) {
-        const transaction = allReportTransactions.at(i);
-        const category = getCategory(transaction);
-        const categoryApprover = rulesMap.category[category];
-
-        // Category approvers take strict priority over tag approvers.
-        // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
-        if (categoryApprover && categoryApprover !== ownerLogin) {
-            firstCategoryApprover = categoryApprover;
-            break;
-        }
-
-        // Only look for a tag approver if we haven't found one yet — no need to re-check on subsequent transactions.
-        if (!firstTagApprover) {
-            const tag = getTag(transaction);
-            const tagApprover = rulesMap.tag[tag];
-
-            if (tagApprover && tagApprover !== ownerLogin) {
-                firstTagApprover = tagApprover;
-            }
-        }
-    }
-
-    return firstCategoryApprover || firstTagApprover;
-}
-
-function matchesApprovalWorkflowEmailComparison(node: RuleFilterComparison, email: string | undefined): boolean {
-    const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
-    const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
-    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
-}
-
-function matchesApprovalWorkflowAmountComparison(node: RuleFilterComparison, amount: number): boolean {
-    const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
-    if (Number.isNaN(expectedAmount)) {
-        return false;
-    }
-
-    switch (node.operator) {
-        case CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO:
-            return amount === expectedAmount;
-        case CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO:
-            return amount !== expectedAmount;
-        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN:
-            return amount > expectedAmount;
-        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO:
-            return amount >= expectedAmount;
-        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN:
-            return amount < expectedAmount;
-        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO:
-            return amount <= expectedAmount;
-        default:
-            return false;
-    }
-}
-
-function evaluateApprovalWorkflowFilter(node: RuleFilterNode, context: ApprovalWorkflowContext): boolean {
-    if (!isRuleFilterComparison(node)) {
-        const left = evaluateApprovalWorkflowFilter(node.left, context);
-        const right = evaluateApprovalWorkflowFilter(node.right, context);
-        return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
-    }
-
-    switch (node.left) {
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
-            return matchesApprovalWorkflowEmailComparison(node, context.submitterEmail);
-
-        // A report with no current approver has not been approved by anybody yet, so a rule based on who
-        // approved it last cannot apply.
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
-            return !!context.currentApproverEmail && matchesApprovalWorkflowEmailComparison(node, context.currentApproverEmail);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
-            return matchesApprovalWorkflowAmountComparison(node, Math.abs(context.reportTotal));
-
-        default:
-            return false;
-    }
-}
-
-/**
- * True when every condition in the rule's filter tree is true for `context`.
- */
-function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: ApprovalWorkflowContext): boolean {
-    return evaluateApprovalWorkflowFilter(rule.filters, context);
-}
-
-/**
- * Check the policy's approval workflow rules to determine where the report goes next.
- */
-function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
-    if (!policy?.id || !context.submitterEmail) {
-        return undefined;
-    }
-
-    const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
-
-    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
-    const ruleKeys = Object.keys(rules ?? {}).sort();
-    for (const ruleKey of ruleKeys) {
-        const rule = rules?.[ruleKey];
-        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            continue;
-        }
-        if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
-            continue;
-        }
-        if (!evaluateApprovalWorkflowRule(rule, context)) {
-            continue;
-        }
-
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
-    }
-
-    return undefined;
-}
-
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
-    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
-    if (ruleMatch) {
-        return ruleMatch.forwardsTo ?? '';
-    }
-
-    const defaultApprover = getDefaultApprover(policy);
-
-    // For policy using the optional or basic workflow, the manager is the policy default approver.
-    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return defaultApprover;
-    }
-
-    const employee = policy?.employeeList?.[ownerLogin ?? ''];
-    if (!employee && !defaultApprover) {
-        return '';
-    }
-
-    return employee?.submitsTo ?? defaultApprover ?? '';
-}
-
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
-    return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
-}
-
-/**
- * Returns the email the expense report should submit to per workspace approval config
- * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
- */
-function getSubmitToEmail(
-    policy: OnyxEntry<Policy>,
-    expenseReport: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
-    rules: OnyxCollection<Rule>,
-    shouldFallBackWhenManagerIsNotMember = false,
-): string {
-    const approvalRules = policy?.rules?.approvalRules;
-
-    if (!isSubmitAndClose(policy) && approvalRules?.length) {
-        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport, ownerLogin);
-        if (ruleApprover) {
-            return ruleApprover;
-        }
-    }
-
-    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal: expenseReport?.total ?? 0}, rules);
-    if (ruleMatch) {
-        return ruleMatch.forwardsTo ?? '';
-    }
-
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
-
-    // Falls back to the default approver when the manager is unavailable.
-    if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
-        return getDefaultApprover(policy);
-    }
-
-    return managerEmail;
-}
-
-/**
- * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
- */
-function getSubmitToAccountID(
-    policy: OnyxEntry<Policy>,
-    expenseReport: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
-    rules: OnyxCollection<Rule>,
-    shouldFallBackWhenManagerIsNotMember = false,
-): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
-    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-}
-
-function getSubmitReportManagerAccountID(
-    policy: OnyxEntry<Policy>,
-    expenseReport: OnyxEntry<Report>,
-    submitterLogin: string | undefined,
-    rules: OnyxCollection<Rule>,
-    personalDetailsByLogins: PersonalDetailsByLogin,
-): number | undefined {
-    const approvalRules = policy?.rules?.approvalRules;
-    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
-    const hasReliablePolicyRoute =
-        ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
-        !!ruleApprover ||
-        !!policy?.employeeList?.[submitterLogin ?? ''];
-
-    if (!hasReliablePolicyRoute) {
-        return undefined;
-    }
-
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true);
-    const submitToAccountID = submitToEmail ? personalDetailsByLogins[submitToEmail]?.accountID : undefined;
-    if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
-        return undefined;
-    }
-
-    return submitToAccountID;
-}
-
-/**
- * Returns the email of the account to forward the report to depending on the approver's approval limit.
- * Used for advanced approval mode only.
- *
- * `submitterEmail` is needed to consult the workspace's approval workflow rules, which describe each hop in
- * terms of who submitted the report as well as who is approving it. Without it only the legacy employeeList
- * forwardsTo/overLimitForwardsTo is considered.
- */
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, rules: OnyxCollection<Rule>, submitterEmail?: string): string {
-    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}, rules) : undefined;
-    if (ruleMatch) {
-        return ruleMatch.forwardsTo ?? '';
-    }
-
-    if (!isControlOnAdvancedApprovalMode(policy)) {
-        return '';
-    }
-
-    const employee = policy?.employeeList?.[employeeEmail];
-    if (!employee) {
-        return '';
-    }
-
-    const positiveReportTotal = Math.abs(reportTotal);
-    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
-        return employee.overLimitForwardsTo;
-    }
-    return employee.forwardsTo ?? '';
-}
-
-/**
- * Returns the accountID of the policy reimburser, if not available returns -1.
- */
-function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-    return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
@@ -1097,86 +391,11 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
         .filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
-/** Return active policies where current user is an admin */
-function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
-}
-
-/** Return active policies where current user is an employee (of the role "user") */
-function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
-}
-
-/**
- * Checks whether the current user has a policy with admin access
- */
-function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
-    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
-}
-
-/** Whether the user can send invoice from the workspace */
-function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
-    return policy?.areInvoicesEnabled ?? false;
-}
-
-/** Whether the user can submit per diem expense from the workspace */
-function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return isPaidGroupPolicy(policy) && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
-}
-
-/** Whether the user can send invoice */
-function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
-    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy));
-}
-
-/**
- * Sort the workspaces by their name, while keeping the selected one at the beginning.
- * @param workspace1 Details of the first workspace to be compared.
- * @param workspace2 Details of the second workspace to be compared.
- * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
- */
-const sortWorkspacesBySelected = (
-    workspace1: WorkspaceDetails,
-    workspace2: WorkspaceDetails,
-    selectedWorkspaceIDs: string[] | undefined,
-    localeCompare: LocaleContextProps['localeCompare'],
-): number => {
-    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID) && workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
-        return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
-    }
-    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID)) {
-        return -1;
-    }
-    if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
-        return 1;
-    }
-    return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
-};
-
-function goBackWhenEnableFeature() {
-    setTimeout(() => {
-        Navigation.goBack();
-    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
-}
-
-function navigateToExpensifyCardPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-    });
-}
-
 /**
  * Check if the policy member is deleted from the workspace
  */
 function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: boolean) {
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
-}
-
-function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
-    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 function getDomainNameForPolicy(policyID?: string): string {
@@ -1185,171 +404,6 @@ function getDomainNameForPolicy(policyID?: string): string {
     }
 
     return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID.toLowerCase()}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
-}
-
-function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
-    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
-}
-
-function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>, translate: LocalizedTranslate) {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return translate('workspace.type.control');
-        case CONST.POLICY.TYPE.TEAM:
-            return translate('workspace.type.collect');
-        case CONST.POLICY.TYPE.SUBMIT:
-            return translate('workspace.type.submit');
-        default:
-            return translate('workspace.type.free');
-    }
-}
-
-/**
- * Returns the plan type to pre-select when creating a workspace: Corporate when the user already belongs to a
- * Control workspace, otherwise Team.
- */
-function getDefaultWorkspacePlanType(policies: OnyxCollection<Policy> | null): PolicyType {
-    const isMemberOfControlWorkspace = Object.values(policies ?? {}).some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
-    return isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-}
-
-function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string): boolean {
-    return (
-        !isEmptyObject(policy) &&
-        (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) &&
-        !!policy?.id &&
-        policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        !!getPolicyRole(policy, currentUserLogin)
-    );
-}
-
-function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null) {
-    if (isEmptyObject(policies)) {
-        return CONST.EMPTY_ARRAY;
-    }
-    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined));
-}
-
-function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
-    return getGroupPaidPolicies(policies).length > 0;
-}
-
-/**
- * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
- * plus Submit workspaces. Submit workspaces are free but still support report creation, so they belong
- * here even though they're excluded from `getGroupPaidPolicies`.
- */
-function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, currentUserLogin?: string) {
-    if (isEmptyObject(policies)) {
-        return CONST.EMPTY_ARRAY;
-    }
-    return Object.values(policies).filter(
-        (policy): policy is Policy =>
-            !!policy &&
-            !policy.isJoinRequestPending &&
-            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
-            shouldShowPolicy(policy, false, currentUserLogin) &&
-            !isTeachersUnitePolicyID(policy.id),
-    );
-}
-
-/**
- * Resolves the default workspace for report creation: the active policy when it's one of the eligible
- * workspaces, otherwise the only eligible workspace, else undefined.
- */
-function getDefaultChatEnabledPolicy(
-    groupPoliciesWithChatEnabled: ReadonlyArray<OnyxInputOrEntry<Policy>>,
-    activePolicy?: OnyxInputOrEntry<Policy> | null,
-): OnyxInputOrEntry<Policy> | undefined {
-    // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
-    // (e.g. a personal or free workspace) over an eligible fallback.
-    if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
-        return activePolicy;
-    }
-
-    if (groupPoliciesWithChatEnabled.length === 1) {
-        return groupPoliciesWithChatEnabled.at(0);
-    }
-
-    return undefined;
-}
-
-/** Scalar version for useOnyx selectors: an eligible-policy array makes useOnyx deep-compare every policy on each policy_ update */
-function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, activePolicyID: string | undefined) {
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
-    const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
-
-    return {
-        defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
-        hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
-    };
-}
-
-function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
-    const otherControlWorkspaces = adminPolicies?.filter((policy) => policy?.id !== currentPolicyID && isControlPolicy(policy));
-    return (otherControlWorkspaces?.length ?? 0) > 0;
-}
-
-/**
- * Determines whether workspace deletion should be blocked for an Invoicify user.
- *
- * The function normalizes owner policies to a flat `Policy[]` regardless of whether
- * they are provided as an `OnyxCollection` or a precomputed array. For Invoicify users,
- * it ensures that at least one other controllable workspace exists after excluding
- * policies with pending ADD or DELETE actions.
- *
- * The filtering is done lazily to avoid unnecessary work for non-Invoicify users.
- *
- * @param isSubscriptionTypeOfInvoicing - Whether the user is on an Invoicify subscription
- * @param ownerPolicies - Owner policies as an Onyx collection or a normalized array
- * @param currentPolicyID - Policy ID of the workspace being evaluated
- * @param accountID - Account ID used to resolve owned paid policies when needed
- *
- */
-function shouldBlockWorkspaceDeletionForInvoicifyUser(
-    isSubscriptionTypeOfInvoicing: boolean,
-    ownerPolicies: OnyxCollection<Policy> | Policy[] | undefined,
-    currentPolicyID: string | undefined,
-    accountID?: number,
-) {
-    if (!isSubscriptionTypeOfInvoicing || !currentPolicyID) {
-        return false;
-    }
-    const normalizedOwnerPolicies: Policy[] = (() => {
-        if (!ownerPolicies) {
-            return [];
-        }
-
-        if (Array.isArray(ownerPolicies)) {
-            return ownerPolicies;
-        }
-
-        if (accountID) {
-            return getOwnedPaidPolicies(ownerPolicies, accountID);
-        }
-
-        return Object.values(ownerPolicies).filter((policy): policy is Policy => !!policy);
-    })();
-
-    const ownerPoliciesWithoutPendingActions = (normalizedOwnerPolicies ?? []).filter(
-        (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
-
-    return !hasOtherControlWorkspaces(ownerPoliciesWithoutPendingActions, currentPolicyID);
-}
-
-// If no policyID is provided, it indicates the workspace upgrade/downgrade URL
-// is being accessed from the Subscriptions page without a specific policyID.
-// In this case, check if the user is an admin on more than one policy.
-// If the user is an admin for multiple policies, we can render the page as it contains a condition
-// to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
-// If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
-function canModifyPlan(ownerPolicies: Policy[] | undefined, policy: OnyxEntry<Policy>) {
-    if (!policy?.id) {
-        return (ownerPolicies?.length ?? 0) > 1;
-    }
-
-    return !!policy && isPolicyAdmin(policy);
 }
 
 function getAdminsPrivateEmailDomains(policy?: Policy) {
@@ -1480,14 +534,7 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
-    // copy first: callers pass memoized selector output, sorting it in place makes the next deepEqual report a change
-    return [...policies].sort((a, b) => localeCompare(a.name || '', b.name || ''));
-}
-
 export {
-    getActivePolicies,
-    getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getIneligibleInvitees,
     getExcludedUsers,
@@ -1497,86 +544,27 @@ export {
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
-    goBackFromInvalidPolicy,
-    canCreateCategoryInSitu,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
     createFilteredMemberCountSelector,
-    createInvoiceConfigurationTextSelector,
     isDeletedPolicyEmployee,
     hasEligibleBankAccountShareRecipient,
-    canShowReimbursableToggleForPolicy,
-    isPolicyFieldListEmpty,
-    canUnarchivePolicy,
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
-    isPolicyPayer,
-    getReimburserEmail,
-    getOwnerChangePayerSuccessData,
-    arePaymentsEnabled,
-    isAutoPayApprovedReportsAvailable,
-    getReimbursementChoice,
-    isSubmitterAndApprover,
-    shouldShowPolicy,
-    getActiveAdminWorkspaces,
-    hasActiveAdminWorkspaces,
-    getOwnedPaidPolicies,
-    canSendInvoiceFromWorkspace,
-    canSubmitPerDiemExpenseFromWorkspace,
-    canSendInvoice,
     getEligibleBankAccountShareRecipientEmails,
-    hasCompanyAddress,
-    hasOfficeWorkArrangement,
-    getPolicyIDOrDefault,
-    sortWorkspacesBySelected,
-    goBackWhenEnableFeature,
-    navigateToExpensifyCardPage,
-    getDefaultApprover,
     isNonMemberApprover,
-    hasCustomApprovalWorkflow,
-    getApprovalWorkflow,
-    getReimburserAccountID,
-    hasOnlyPersonalPolicies,
-    getGroupPaidPolicies,
-    getGroupPoliciesWhereReportCanBeCreated,
-    getDefaultChatEnabledPolicy,
-    getDefaultChatEnabledPolicySelection,
-    getForwardsToAccount,
-    getForwardsToFromRules,
-    evaluateApprovalWorkflowRule,
-    getSubmitToAccountID,
-    getSubmitReportManagerAccountID,
     getDomainNameForPolicy,
-    getWorkflowApprovalsUnavailable,
-    getUserFriendlyWorkspaceType,
-    getDefaultWorkspacePlanType,
-    isPolicyAccessible,
-    hasOtherControlWorkspaces,
-    shouldBlockWorkspaceDeletionForInvoicifyUser,
-    getManagerAccountEmail,
-    getSubmitToEmail,
-    getRuleApprovers,
-    canModifyPlan,
     getAdminsPrivateEmailDomains,
     getMostFrequentEmailDomain,
     getPolicyIDFromDomainName,
     getPolicyForAssignedCard,
     getDescriptionForPolicyDomainCard,
-    getManagerAccountID,
-    getActiveEmployeeWorkspaces,
     isPolicyMemberWithoutPendingDelete,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getPoliciesForRoomCreation,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,
     isNonUSDPolicy,
-    getActivePoliciesWithExpenseChatAndTimeEnabled,
-    sortPoliciesByName,
     hasActiveExpensifyCard,
-    tryNavigateToSubmitWorkspaceUpgrade,
-    tryNavigateToControlPolicyUpgrade,
-    hasAnyPaidPolicy,
 };
 
 // Re-exported with `export *` rather than through the block above: a named re-export becomes a getter that throws
@@ -1595,5 +583,9 @@ export * from './rules';
 export * from './features';
 export * from './workflows';
 export * from './errors';
+export * from './approvals';
+export * from './payments';
+export * from './policy';
+export * from './navigation';
 
 export type {MemberEmailsToAccountIDs};
