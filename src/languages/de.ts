@@ -9765,10 +9765,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
             removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
             changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
-                `hat den Bürostandort von ${displayName} geändert: ${officeLocation} (zuvor: ${previousOfficeLocation})`,
+                `hat den Bürostandort von ${displayName} in ${officeLocation} geändert (zuvor ${previousOfficeLocation})`,
             quotedName: ({name}: {name: string}) => `„${name}“`,
-            companyAddress: 'Firmenadresse',
-            primaryOffice: 'Hauptstandort',
+            companyAddress: 'die Firmenadresse',
+            primaryOffice: 'das Hauptbüro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,

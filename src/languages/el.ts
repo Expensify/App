@@ -7472,7 +7472,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             officeLocation: 'Τοποθεσία γραφείου',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
-            changeWorkArrangement: 'Αλλαγή διευθέτησης εργασίας',
+            changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -9888,10 +9888,10 @@ ${reportName}`,
             setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
             removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
             changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
-                `άλλαξε την τοποθεσία γραφείου του/της ${displayName}: ${officeLocation} (προηγουμένως: ${previousOfficeLocation})`,
+                `άλλαξε την τοποθεσία γραφείου του/της ${displayName} σε ${officeLocation} (προηγουμένως ${previousOfficeLocation})`,
             quotedName: ({name}: {name: string}) => `«${name}»`,
-            companyAddress: 'διεύθυνση εταιρείας',
-            primaryOffice: 'κύρια τοποθεσία γραφείου',
+            companyAddress: 'η διεύθυνση της εταιρείας',
+            primaryOffice: 'το κύριο γραφείο',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
