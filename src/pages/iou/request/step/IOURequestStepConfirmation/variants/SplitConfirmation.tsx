@@ -5,8 +5,6 @@ import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submis
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
@@ -24,25 +22,12 @@ function SplitConfirmation({submissionParams, orchestratorProps, listProps}: Con
         participants,
         iouType,
         isDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
         isUnreported,
         isPolicyExpenseChat,
         submitLock,
     } = submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
-        transaction,
-        policy,
-        isPolicyExpenseChat,
-        isUnreported,
-        isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
-        isSelfDMDestination,
-        isDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-    });
+    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isUnreported, isDistanceRequest});
 
     const splitSubmission = useSplitSubmission({
         transaction,

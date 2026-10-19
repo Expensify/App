@@ -35,7 +35,6 @@ function TrackConfirmation({submissionParams, orchestratorProps, listProps}: Con
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
-        isPerDiemRequest,
         isTimeRequest,
         isCategorizingTrackExpense,
         isSharingTrackExpense,
@@ -57,7 +56,6 @@ function TrackConfirmation({submissionParams, orchestratorProps, listProps}: Con
         isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
         isSelfDMDestination,
         isDistanceRequest,
-        isPerDiemRequest,
         isTimeRequest,
     });
 

@@ -9,8 +9,6 @@ import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submis
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
@@ -32,9 +30,6 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
         action,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-        isUnreported,
         isPolicyExpenseChat,
         draftTransactionIDs,
         backToReport,
@@ -43,17 +38,7 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
     } = submissionParams;
     const {isSelfDMDestination} = orchestratorProps;
 
-    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
-        transaction,
-        policy,
-        isPolicyExpenseChat,
-        isUnreported,
-        isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
-        isSelfDMDestination,
-        isDistanceRequest: true,
-        isPerDiemRequest,
-        isTimeRequest,
-    });
+    const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isDistanceRequest: true});
 
     const distanceSubmission = useDistanceSubmission({
         transaction,
