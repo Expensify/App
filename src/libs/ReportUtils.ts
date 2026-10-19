@@ -3491,6 +3491,12 @@ function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<R
     );
 }
 
+type GetIOUReportActionWithBadgeOptions = {
+    allReports?: OnyxCollection<Report>;
+    allReportActionsParam?: OnyxCollection<ReportActions>;
+    isChatReportArchived?: boolean;
+};
+
 function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
@@ -3500,13 +3506,12 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<ReportActions>,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
-    allReports?: OnyxCollection<Report>,
-    allReportActionsParam?: OnyxCollection<ReportActions>,
-    isChatReportArchived = false,
+    options?: GetIOUReportActionWithBadgeOptions,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 } {
+    const {allReports, allReportActionsParam, isChatReportArchived = false} = options ?? {};
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
 
@@ -5114,9 +5119,11 @@ function getReasonAndReportActionThatRequiresAttention({
         currentUserAccountID,
         reportActions,
         transactionViolations,
-        reports,
-        allReportActionsParam ?? allReportActions,
-        isReportArchived,
+        {
+            allReports: reports,
+            allReportActionsParam: allReportActionsParam ?? allReportActions,
+            isChatReportArchived: isReportArchived,
+        },
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
