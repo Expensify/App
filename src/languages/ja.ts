@@ -8312,6 +8312,8 @@ ${reportName}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
+                preventPayoutNonReimbursableReportsTitle: '精算対象外のレポートを支払済みにできないようにする',
+                preventPayoutNonReimbursableReportsSubtitle: '管理者が非精算レポートを支払済みにマークできないようにします。',
             },
             agentsPromoBanner: {
                 title: '必要なルールが見つかりませんか？エージェントを追加してください',
@@ -9089,6 +9091,50 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
             noPaymentMethodsFound: '支払方法が見つかりません',
             noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
+            advanced: {
+                autoSyncDescription: 'Dynamics 365 Business Central と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+                accountingMethods: {
+                    label: 'エクスポート方法',
+                    description: '経費をいつエクスポートするか選択します。',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認後にエクスポートされます',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
+                    },
+                },
+                postingMode: {
+                    label: '転記モード',
+                    description: '仕訳を自動で転記するか、先に手動で確認するかを選択します。',
+                    note: '注: Expensify は、Business Central の Expensify Setup ページで選択した一般仕訳帳バッチ内の未転記の仕訳をすべて転記します。Expensify が作成したものだけではありません。Expensify 専用のバッチを使用してください。',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: '作成して転記',
+                            description: 'エクスポート時に仕訳を総勘定元帳へ自動で転記します',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: '作成のみ',
+                            description: 'エクスポート後に Dynamics 365 Business Central で仕訳を手動で転記します',
+                        },
+                    },
+                },
+                autoCreateEntities: '従業員/取引先を自動作成',
+                exportToNextOpenPeriod: '次の未締め期間にエクスポート',
+                exportToNextOpenPeriodDescription: 'レポートの日付が Dynamics 365 Business Central の締め済み期間にある場合、次の未締め期間にエクスポートします。',
+                syncReimbursedReports: '精算済みレポートを同期',
+                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この口座に支払伝票が作成されます。',
+                reimbursementBankAccount: {
+                    label: '請求支払用口座',
+                    description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。',
+                },
+                syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
+                settlementsBankAccount: {
+                    label: 'Expensify カードの決済口座',
+                    description: '精算に使う口座を選択してください。選択された口座で、Dynamics 365 Business Central に支払いを作成します。',
+                },
+            },
             accountsDescription: 'Dynamics 365 Business Central の勘定科目はカテゴリとしてインポートされます。',
             dimensionsImportAsTags: 'すべての Dynamics 365 Business Central のディメンションがタグとしてインポートされます',
             customers: '顧客',
@@ -9797,6 +9843,8 @@ ${reportName}`,
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10041,6 +10089,7 @@ ${reportName}`,
             posted: '投稿日',
             withdrawn: '取下済み',
             billable: '請求可能',
+            rejected: '却下済み',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
             sortOrder: {
