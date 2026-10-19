@@ -32,7 +32,7 @@ type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsN
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
