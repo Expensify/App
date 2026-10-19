@@ -2735,14 +2735,19 @@ function getLastPaidAction(
 }
 
 /**
- * Returns the created time of the report's latest payment action, or blank when the report is not Paid. Unlike
- * the paid-by lookup, a payment the submitter marked as received counts: the report was still paid on that date.
+ * Returns the report's paid date or the latest payment action's created time, whichever is newer, or blank when the
+ * report is not Paid. The Search response only includes payment actions when the Paid by column is requested, so the
+ * report's own date is what fills the column on its own; an offline re-payment leaves that date stale, so a newer
+ * action wins. Unlike the paid-by lookup, a payment the submitter marked as received counts: the report was still
+ * paid on that date.
  */
 function getPaidDate(reportItem: OnyxTypes.Report, snapshotPaidAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): string {
     if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
         return '';
     }
-    return getLastPaymentAction(snapshotPaidAction, actions)?.created ?? '';
+    const {paid: reportPaid = ''} = reportItem;
+    const actionPaid = getLastPaymentAction(snapshotPaidAction, actions)?.created ?? '';
+    return reportPaid >= actionPaid ? reportPaid : actionPaid;
 }
 
 /**

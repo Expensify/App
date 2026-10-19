@@ -8040,6 +8040,72 @@ describe('SearchUIUtils', () => {
                 expect(item?.paid).toBe(receivedAt);
             });
 
+            it('should populate paid from the report paid date when the response has no payment actions', () => {
+                // Given a paid report that carries its paid date but no payment actions, which is what Search returns when the Paid by column is not requested
+                const reportPaidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: reportPaidAt,
+                });
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date comes from the report, so the column fills in without the payment actions
+                expect(item?.paid).toBe(reportPaidAt);
+            });
+
+            it('should prefer a newer payment action over a stale report paid date (offline re-payment)', () => {
+                // Given a paid report whose paid date predates a payment action that is not yet reflected on the report
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: '2024-12-20 08:00:00',
+                });
+                const rePaidAt = '2024-12-22 09:30:00';
+
+                // When the report sections are built with the live payment action
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: rePaidAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the newer payment wins, the same way a newer approval wins over a stale approved date
+                expect(item?.paid).toBe(rePaidAt);
+            });
+
+            it('should ignore the report paid date when the report is not paid', () => {
+                // Given a report that was paid and then reopened, so it still carries its old paid date
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    paid: '2024-12-20 08:00:00',
+                });
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because only a report in the Paid status has a paid date
+                expect(item?.paid).toBe('');
+            });
+
             it('should leave paid blank when the payment was cancelled', () => {
                 // Given a report still marked Paid whose only payment action precedes a reimbursement cancellation
                 const [sections] = callGetReportSections(

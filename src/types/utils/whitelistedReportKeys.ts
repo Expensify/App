@@ -35,6 +35,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         created: unknown;
         submitted: unknown;
         approved: unknown;
+        paid: unknown;
         submitterUserID: unknown;
         submitterPayrollID: unknown;
         orderDealNumbers: unknown;

@@ -319,6 +319,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        paid: report.paid,
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
