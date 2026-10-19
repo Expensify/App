@@ -30,6 +30,7 @@ import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/compo
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
+import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -57,6 +58,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    navigation,
     transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -73,7 +75,6 @@ function IOURequestStepOdometerImage({
 
     const {
         camera,
-        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,
@@ -237,18 +238,26 @@ function IOURequestStepOdometerImage({
                             .catch((error: unknown) => {
                                 cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 isCapturingPhoto.current = false;
-                                showCameraAlert();
+                                if (navigation.isFocused()) {
+                                    showCameraAlert();
+                                }
                                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
                             });
                     })
                     .catch((error: unknown) => {
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         isCapturingPhoto.current = false;
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        const isScreenFocused = navigation.isFocused();
                         // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
-                        if (isScreenFocused.current) {
+                        if (!isScreenFocused && isCameraClosedError(error)) {
+                            Log.info('Photo capture cancelled by leaving the screen', false, {error: errorMessage});
+                        } else {
+                            Log.warn('Error taking photo', errorMessage);
+                        }
+                        if (isScreenFocused) {
                             showCameraAlert();
                         }
-                        Log.warn('Error taking photo', error instanceof Error ? error.message : String(error));
                     });
             });
     };

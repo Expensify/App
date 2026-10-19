@@ -5,50 +5,41 @@ import Camera from '@pages/iou/request/step/IOURequestStepScan/components/Camera
 import React from 'react';
 import {Alert} from 'react-native';
 
-type FocusCallbacks = {onFocusStart?: () => void; onFocusCleanup?: () => void};
-
-let mockFocusCallbacks: FocusCallbacks = {};
-const mockIsScreenFocused = {current: false};
+let mockIsFocused = true;
 let mockCapturePhoto: (() => void) | undefined;
+let mockResolveCapture: (photo: unknown) => void = () => {};
 let mockRejectCapture: (error: unknown) => void = () => {};
 
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
-    default: (options: FocusCallbacks) => {
-        mockFocusCallbacks = {
-            onFocusStart: () => {
-                mockIsScreenFocused.current = true;
-                options.onFocusStart?.();
-            },
-            onFocusCleanup: () => {
-                mockIsScreenFocused.current = false;
-                options.onFocusCleanup?.();
-            },
-        };
-        return {
-            isScreenFocused: mockIsScreenFocused,
-            camera: {current: {}},
-            device: {id: 'back', hasFlash: true},
-            cameraPermissionStatus: 'granted',
-            flash: true,
-            setFlash: jest.fn(),
-            hasFlash: true,
-            didCapturePhoto: false,
-            setDidCapturePhoto: jest.fn(),
-            isAttachmentPickerActive: false,
-            setIsAttachmentPickerActive: jest.fn(),
-            isPlatformMuted: false,
-            askForPermissions: jest.fn(),
-            tapGesture: {},
-            cameraFocusIndicatorAnimatedStyle: {},
-        };
-    },
+    default: () => ({
+        camera: {current: {}},
+        device: {id: 'back', hasFlash: true},
+        cameraPermissionStatus: 'granted',
+        flash: true,
+        setFlash: jest.fn(),
+        hasFlash: true,
+        didCapturePhoto: false,
+        setDidCapturePhoto: jest.fn(),
+        isAttachmentPickerActive: false,
+        setIsAttachmentPickerActive: jest.fn(),
+        isPlatformMuted: false,
+        askForPermissions: jest.fn(),
+        tapGesture: {},
+        cameraFocusIndicatorAnimatedStyle: {},
+    }),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useNavigation: () => ({isFocused: () => mockIsFocused}),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/captureReceipt', () => ({
     __esModule: true,
     default: () =>
-        new Promise((_resolve, reject) => {
+        new Promise((resolve, reject) => {
+            mockResolveCapture = resolve;
             mockRejectCapture = reject;
         }),
     shouldTakePhoto: () => true,
@@ -75,6 +66,17 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanContex
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade', () => ({
     __esModule: true,
     default: () => ({hasPendingPhotoCapture: false, startPhotoCapture: jest.fn(), upgradeReceiptWithPhoto: jest.fn(), discardPendingPhoto: jest.fn()}),
+}));
+
+jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan', () => ({__esModule: true, default: jest.fn()}));
+
+let mockAdopt: () => Promise<string> = () => Promise.resolve('receipt.jpg');
+jest.mock('@libs/ReceiptStorage', () => ({
+    __esModule: true,
+    default: {
+        adopt: () => mockAdopt(),
+        toLocalUri: (durableName: string) => `file:///receipts/${durableName}`,
+    },
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry', () => ({
@@ -121,9 +123,6 @@ function renderFocusedCamera() {
             onPicked={jest.fn()}
         />,
     );
-    act(() => {
-        mockFocusCallbacks.onFocusStart?.();
-    });
 }
 
 function pressShutter() {
@@ -132,9 +131,15 @@ function pressShutter() {
     });
 }
 
-async function failCapture() {
+async function failCapture(error: unknown = CAMERA_CLOSED_ERROR) {
     await act(async () => {
-        mockRejectCapture(CAMERA_CLOSED_ERROR);
+        mockRejectCapture(error);
+    });
+}
+
+async function finishCapture() {
+    await act(async () => {
+        mockResolveCapture({path: '/tmp/photo.jpg', width: 1512, height: 2016});
     });
 }
 
@@ -143,9 +148,9 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockFocusCallbacks = {};
-        mockIsScreenFocused.current = false;
+        mockIsFocused = true;
         mockCapturePhoto = undefined;
+        mockAdopt = () => Promise.resolve('receipt.jpg');
         alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     });
 
@@ -159,14 +164,13 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
         pressShutter();
 
         // When the user leaves the screen and the camera closing cancels that capture
-        act(() => {
-            mockFocusCallbacks.onFocusCleanup?.();
-        });
+        mockIsFocused = false;
         await failCapture();
 
-        // Then no alert appears on the screen the user went to, but the failure is still logged so real errors stay visible
+        // Then no alert appears on the screen the user went to, and the expected cancellation is logged as info, not as a warning
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR);
+        expect(mockLogInfo).toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', false, {error: CAMERA_CLOSED_ERROR});
+        expect(mockLogWarn).not.toHaveBeenCalled();
     });
 
     it('still shows the camera error alert when the capture fails while the user is on the scan screen', async () => {
@@ -177,8 +181,41 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
         // When the capture fails while the user is still there
         await failCapture();
 
-        // Then the user is told the camera failed, as before
+        // Then the user is told the camera failed, and the failure is logged as a warning, as before
         expect(alertSpy).toHaveBeenCalledWith('receipt.cameraErrorTitle', 'receipt.cameraErrorMessage');
         expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR);
+    });
+
+    it('still logs a warning, without an alert, when the camera fails for another reason after the user left the scan screen', async () => {
+        // Given a capture is still in progress on the focused scan screen
+        renderFocusedCamera();
+        pressShutter();
+
+        // When the user leaves the screen and the capture fails with an error that is not the camera closing
+        mockIsFocused = false;
+        const writeError = {code: 'capture/file-io-error', message: 'Failed to write the photo to disk'};
+        await failCapture(writeError);
+
+        // Then no alert appears on the screen the user went to, but the failure stays a warning because it is a real camera error, not a cancellation
+        expect(alertSpy).not.toHaveBeenCalled();
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', writeError);
+        expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
+    });
+
+    it('still logs a warning, without an alert, when saving the photo fails after the user left the scan screen', async () => {
+        // Given a capture is still in progress on the focused scan screen, and saving the photo will fail
+        const saveError = new Error('Could not move the photo into the receipts folder');
+        mockAdopt = () => Promise.reject(saveError);
+        renderFocusedCamera();
+        pressShutter();
+
+        // When the user leaves the screen and the photo is taken but fails to save
+        mockIsFocused = false;
+        await finishCapture();
+
+        // Then no alert appears on the screen the user went to, but this is a real storage failure, so it stays a warning instead of being logged as a cancellation
+        expect(alertSpy).not.toHaveBeenCalled();
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', saveError);
+        expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
     });
 });

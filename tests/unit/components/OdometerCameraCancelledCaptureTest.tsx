@@ -7,51 +7,37 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {Alert} from 'react-native';
 
-type FocusCallbacks = {onFocusStart?: () => void; onFocusCleanup?: () => void};
-
-let mockFocusCallbacks: FocusCallbacks = {};
-const mockIsScreenFocused = {current: false};
+let mockIsFocused = true;
 let mockCapturePhoto: (() => void) | undefined;
+let mockResolveCapture: (photo: unknown) => void = () => {};
 let mockRejectCapture: (error: unknown) => void = () => {};
 
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
-    default: (options: FocusCallbacks) => {
-        mockFocusCallbacks = {
-            onFocusStart: () => {
-                mockIsScreenFocused.current = true;
-                options.onFocusStart?.();
+    default: () => ({
+        camera: {
+            current: {
+                takePhoto: () =>
+                    new Promise((resolve, reject) => {
+                        mockResolveCapture = resolve;
+                        mockRejectCapture = reject;
+                    }),
             },
-            onFocusCleanup: () => {
-                mockIsScreenFocused.current = false;
-                options.onFocusCleanup?.();
-            },
-        };
-        return {
-            isScreenFocused: mockIsScreenFocused,
-            camera: {
-                current: {
-                    takePhoto: () =>
-                        new Promise((_resolve, reject) => {
-                            mockRejectCapture = reject;
-                        }),
-                },
-            },
-            device: {id: 'back', hasFlash: true},
-            cameraPermissionStatus: 'granted',
-            flash: true,
-            setFlash: jest.fn(),
-            hasFlash: true,
-            didCapturePhoto: false,
-            setDidCapturePhoto: jest.fn(),
-            isAttachmentPickerActive: false,
-            setIsAttachmentPickerActive: jest.fn(),
-            isPlatformMuted: false,
-            askForPermissions: jest.fn(),
-            tapGesture: {},
-            cameraFocusIndicatorAnimatedStyle: {},
-        };
-    },
+        },
+        device: {id: 'back', hasFlash: true},
+        cameraPermissionStatus: 'granted',
+        flash: true,
+        setFlash: jest.fn(),
+        hasFlash: true,
+        didCapturePhoto: false,
+        setDidCapturePhoto: jest.fn(),
+        isAttachmentPickerActive: false,
+        setIsAttachmentPickerActive: jest.fn(),
+        isPlatformMuted: false,
+        askForPermissions: jest.fn(),
+        tapGesture: {},
+        cameraFocusIndicatorAnimatedStyle: {},
+    }),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar', () => ({
@@ -69,6 +55,10 @@ jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => ({
 jest.mock('@pages/iou/request/step/StepScreenWrapper', () => ({
     __esModule: true,
     default: ({children}: {children: ReactNode}) => children,
+}));
+let mockCrop: (image: unknown) => Promise<unknown> = (image) => Promise.resolve(image);
+jest.mock('@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio', () => ({
+    cropImageToAspectRatio: (image: unknown) => mockCrop(image),
 }));
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraViewport', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt', () => () => null);
@@ -95,6 +85,14 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
 }));
 
+jest.mock('@libs/ReceiptStorage', () => ({
+    __esModule: true,
+    default: {
+        adopt: () => Promise.resolve('odometer.jpg'),
+        toLocalUri: (durableName: string) => `file:///receipts/${durableName}`,
+    },
+}));
+
 const mockLogInfo = jest.fn<void, unknown[]>();
 const mockLogWarn = jest.fn<void, unknown[]>();
 jest.mock('@libs/Log', () => ({
@@ -119,11 +117,10 @@ const ROUTE_PARAMS = {
 
 function renderFocusedOdometerCamera() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const props = {route: {params: ROUTE_PARAMS}, transaction: undefined} as unknown as React.ComponentProps<typeof IOURequestStepOdometerImage>;
+    const props = {route: {params: ROUTE_PARAMS}, navigation: {isFocused: () => mockIsFocused}, transaction: undefined} as unknown as React.ComponentProps<
+        typeof IOURequestStepOdometerImage
+    >;
     render(<IOURequestStepOdometerImage {...props} />);
-    act(() => {
-        mockFocusCallbacks.onFocusStart?.();
-    });
 }
 
 async function pressShutter() {
@@ -132,9 +129,15 @@ async function pressShutter() {
     });
 }
 
-async function failCapture() {
+async function failCapture(error: unknown = CAMERA_CLOSED_ERROR) {
     await act(async () => {
-        mockRejectCapture(CAMERA_CLOSED_ERROR);
+        mockRejectCapture(error);
+    });
+}
+
+async function finishCapture() {
+    await act(async () => {
+        mockResolveCapture({path: '/tmp/photo.jpg', width: 1512, height: 2016});
     });
 }
 
@@ -143,9 +146,9 @@ describe('Odometer camera capture cancelled by leaving the screen', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockFocusCallbacks = {};
-        mockIsScreenFocused.current = false;
+        mockIsFocused = true;
         mockCapturePhoto = undefined;
+        mockCrop = (image) => Promise.resolve(image);
         alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     });
 
@@ -159,14 +162,13 @@ describe('Odometer camera capture cancelled by leaving the screen', () => {
         await pressShutter();
 
         // When the user leaves the screen and the camera closing cancels that capture
-        act(() => {
-            mockFocusCallbacks.onFocusCleanup?.();
-        });
+        mockIsFocused = false;
         await failCapture();
 
-        // Then no alert appears on the screen the user went to, but the failure is still logged so real errors stay visible
+        // Then no alert appears on the screen the user went to, and the expected cancellation is logged as info, not as a warning
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR.message);
+        expect(mockLogInfo).toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', false, {error: CAMERA_CLOSED_ERROR.message});
+        expect(mockLogWarn).not.toHaveBeenCalled();
     });
 
     it('still shows the camera error alert when the capture fails while the user is on the odometer camera', async () => {
@@ -177,8 +179,40 @@ describe('Odometer camera capture cancelled by leaving the screen', () => {
         // When the capture fails while the user is still there
         await failCapture();
 
-        // Then the user is told the camera failed, as before
+        // Then the user is told the camera failed, and the failure is logged as a warning, as before
         expect(alertSpy).toHaveBeenCalledWith('receipt.cameraErrorTitle', 'receipt.cameraErrorMessage');
         expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR.message);
+    });
+
+    it('still logs a warning, without an alert, when the camera fails for another reason after the user left the odometer camera', async () => {
+        // Given a capture is still in progress on the focused odometer camera
+        renderFocusedOdometerCamera();
+        await pressShutter();
+
+        // When the user leaves the screen and the capture fails with an error that is not the camera closing
+        mockIsFocused = false;
+        const writeError = new Error('Failed to write the photo to disk');
+        await failCapture(writeError);
+
+        // Then no alert appears on the screen the user went to, but the failure stays a warning because it is a real camera error, not a cancellation
+        expect(alertSpy).not.toHaveBeenCalled();
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', writeError.message);
+        expect(mockLogInfo).not.toHaveBeenCalled();
+    });
+
+    it('does not show the camera error alert when processing the photo fails after the user left the odometer camera', async () => {
+        // Given a capture is still in progress on the focused odometer camera, and cropping the photo will fail
+        const cropError = new Error('Could not crop the photo');
+        mockCrop = () => Promise.reject(cropError);
+        renderFocusedOdometerCamera();
+        await pressShutter();
+
+        // When the user leaves the screen and the photo is taken but fails to process
+        mockIsFocused = false;
+        await finishCapture();
+
+        // Then no alert appears on the screen the user went to, but the failure is still logged as a warning because it is a real error
+        expect(alertSpy).not.toHaveBeenCalled();
+        expect(mockLogWarn).toHaveBeenCalledWith('Error cropping photo', cropError.message);
     });
 });
