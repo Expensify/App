@@ -531,6 +531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Impossibile caricare il grafico. Aggiorna la pagina e riprova.',
         apiKey: 'Chiave API',
         exportsTo: 'Esporta in',
+        shareReport: 'Condividi report',
+        reportShared: 'Report condiviso',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -981,6 +983,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
+            addDepositAccount: {title: 'Aggiungi un conto bancario per ricevere pagamenti'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Carta Expensify',
@@ -8421,6 +8424,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Aggiungi ${featureName} per sbloccare questa funzione.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vai su [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
+                preventPayoutNonReimbursableReportsTitle: 'Impedisci di contrassegnare come pagati i report non rimborsabili',
+                preventPayoutNonReimbursableReportsSubtitle: 'Non consentire agli amministratori di contrassegnare come pagati i report non rimborsabili.',
             },
             agentsPromoBanner: {
                 title: 'Non vedi la regola che ti serve? Aggiungi un agente',
@@ -9002,7 +9007,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     toggleTitle: 'Uffici',
                     allSelected: 'Tutti gli uffici',
                 },
-                enableJobStagesOrTags: 'Abilita le fasi di lavoro o i tag per continuare',
+                enableJobStagesOrTags: 'Seleziona almeno una fase del lavoro o un tag per continuare',
             },
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
             syncResults: {
@@ -9217,6 +9222,50 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noBankAccountsFoundDescription: 'Aggiungi conti bancari in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
             noPaymentMethodsFound: 'Nessun metodo di pagamento trovato',
             noPaymentMethodsFoundDescription: 'Aggiungi metodi di pagamento in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
+            advanced: {
+                autoSyncDescription: 'Sincronizza Dynamics 365 Business Central ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
+                accountingMethods: {
+                    label: 'Metodo di esportazione',
+                    description: 'Scegli quando esportare le spese.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Competenza',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate al momento dell’approvazione finale',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
+                    },
+                },
+                postingMode: {
+                    label: 'Modalità di registrazione',
+                    description: 'Scegli se le registrazioni vengono contabilizzate automaticamente o richiedono prima una revisione manuale.',
+                    note: 'Nota: Expensify registra ogni giornale aperto nel batch di giornale generale che hai scelto nella pagina Expensify Setup di Business Central, non solo quelli che ha creato. Usa un batch dedicato solo a Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Crea e registra',
+                            description: 'Registra automaticamente le scritture nella contabilità generale al momento dell’esportazione',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Solo crea',
+                            description: 'Registra manualmente le scritture in Dynamics 365 Business Central dopo l’esportazione',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Crea automaticamente dipendenti/fornitori',
+                exportToNextOpenPeriod: 'Esporta nel prossimo periodo aperto',
+                exportToNextOpenPeriodDescription: 'Quando un report ha una data in un periodo chiuso di Dynamics 365 Business Central, viene esportato nel periodo aperto successivo.',
+                syncReimbursedReports: 'Sincronizza i report rimborsati',
+                syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento di fattura in questo conto.',
+                reimbursementBankAccount: {
+                    label: 'Conto per il pagamento delle bollette',
+                    description: 'Scegli da dove pagare le fatture e creeremo il pagamento in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
+                settlementsBankAccount: {
+                    label: 'Conto di regolamento Carta Expensify',
+                    description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'I tuoi conti Dynamics 365 Business Central verranno importati come categorie.',
             dimensionsImportAsTags: 'Tutte le dimensioni di Dynamics 365 Business Central vengono importate come tag',
             customers: 'Clienti',
@@ -9943,6 +9992,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato l'accordo di lavoro di ${displayName} in ${newArrangement} (in precedenza ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `ha modificato la modalità di lavoro predefinita in ${newArrangement} (precedentemente ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `aggiornato "Impedisci di contrassegnare come pagati i report non rimborsabili" in "${newValue === 'true' ? 'Abilitato' : 'Disabilitato'}" (precedentemente "${oldValue === 'true' ? 'Abilitato' : 'Disabilitato'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -10178,6 +10229,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             past: 'Passato',
             submitted: 'Inviato',
             approved: 'Approvato',
+            anyApproval: 'Qualsiasi approvazione',
             firstApprover: 'Primo approvatore',
             firstApproved: 'Approvato per primo',
             paidBy: 'Pagato da',
@@ -10186,6 +10238,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             posted: 'Pubblicato',
             withdrawn: 'Ritirata',
             billable: 'Fatturabile',
+            rejected: 'Rifiutato',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
             sortOrder: {
@@ -11206,6 +11259,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'ha associato una ricevuta a questa transazione',
+        mergedExpenseDeleted: 'ha unito delle spese e ne ha spostata una in Eliminate',
     },
     subscription: {
         authenticatePaymentCard: 'Autentica carta di pagamento',
@@ -11445,6 +11499,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 refundedOn: ({date}: {date: string}) => `Rimborsato il ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Rimborsati ${amount} il ${date}`,
             },
+            billedTo: 'Fatturato a',
+            viewReceipt: 'Visualizza ricevuta',
+            viewInvoice: 'Visualizza fattura',
         },
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
@@ -12005,22 +12062,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         addPaymentCardButton: 'Aggiungi carta di pagamento',
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nuovo in Concierge AI',
-        confirmText: 'Andiamo!',
-        spendAnalysis: {
-            title: 'Analisi interattiva delle spese',
-            description: `<muted-text>Concierge mette in evidenza approfondimenti sulla spesa mensile e ti permette di approfondire i dettagli dietro ogni numero. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Scopri di più</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Incontra il tuo nuovo assistente per le spese',
-            description: `<muted-text>Chatta con Concierge per creare e aggiornare le spese direttamente nell’app o via email o SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Scopri di più</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crea i tuoi agenti',
-            description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problema email',
         intro: (login: string) => `Il nostro provider di posta elettronica ha sospeso l’invio a <strong>${login}</strong> a causa di problemi di consegna. Per risolvere questo problema:`,
