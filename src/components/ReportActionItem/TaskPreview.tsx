@@ -7,7 +7,7 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -68,7 +68,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const accountIDToName = useAccountIDToNameMap();
     const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
     const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
     const originalMessage = getOriginalMessage(action);
@@ -77,6 +76,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitle);
     const taskContextReport =
         taskReport ??
         ({

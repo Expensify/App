@@ -48,8 +48,9 @@ type RoomDescriptionPageProps = {
 function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
+    const reportDescription = getReportDescription(report);
     const accountIDToName = useAccountIDToNameMap();
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report), {accountIDToName}));
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(reportDescription, {accountIDToName}));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
