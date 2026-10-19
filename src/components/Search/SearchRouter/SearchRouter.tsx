@@ -189,11 +189,21 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const queryChangedAtRef = useRef<number | undefined>(undefined);
     const isQueryChangeTypedRef = useRef(true);
     const lastAutocompleteQueryRef = useRef(initialQuery);
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // The router stays mounted while it closes through navigation (e.g. hardware back or swipe on native) and while a chat opened from it is on top
+    const isSearchRouterActive = !!isSearchRouterDisplayed || isSearchRouterScreen;
     // Debounced value gates expensive filtering in the autocomplete list
     // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
     // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
     const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
-        onDebouncedValueChange: (value) => startSearchRouterQuerySpan(value, queryChangedAtRef.current, isQueryChangeTypedRef.current),
+        onDebouncedValueChange: (value) => {
+            // A debounce that fires after the router was closed would measure the list render during the closing transition
+            if (!isSearchRouterActive) {
+                cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+                return;
+            }
+            startSearchRouterQuerySpan(value, queryChangedAtRef.current, isQueryChangeTypedRef.current);
+        },
     });
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
@@ -205,12 +215,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         beginSearchRouterQuerySession();
         return endSearchRouterQuerySession;
     }, []);
+
+    useEffect(() => {
+        if (isSearchRouterActive) {
+            return;
+        }
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+    }, [isSearchRouterActive]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
     // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
-    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, isSearchRouterActive);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {

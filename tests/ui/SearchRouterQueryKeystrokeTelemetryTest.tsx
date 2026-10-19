@@ -137,16 +137,21 @@ function getEndedQuerySpans() {
     return mockEnded.filter((span) => span.op === ROOT);
 }
 
-async function renderSearchRouter() {
-    render(
+function getSearchRouter(isSearchRouterDisplayed = true) {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchRouter
                 onRouterClose={jest.fn()}
-                isSearchRouterDisplayed
+                isSearchRouterDisplayed={isSearchRouterDisplayed}
             />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+async function renderSearchRouter() {
+    const {rerender} = render(getSearchRouter());
     await waitForBatchedUpdatesWithAct();
+    return {closeSearchRouter: () => rerender(getSearchRouter(false))};
 }
 
 function type(text: string) {
@@ -299,6 +304,34 @@ describe('SearchRouter query telemetry from the keystroke', () => {
         expect(endedSpans).toHaveLength(1);
         expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
         expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
+    });
+
+    it('does not start a span for a debounce that fires after the router was closed', async () => {
+        // Given the user typed a query whose debounce is still pending
+        const {closeSearchRouter} = await renderSearchRouter();
+        type('ab');
+
+        // When the router closes while it stays mounted (e.g. popped by hardware back on native) and the debounce delay passes
+        closeSearchRouter();
+        advance(DEBOUNCE_TIME);
+
+        // Then no span starts, because the list render during the closing transition is not a query evaluation the user waits for
+        expect(getStartedQuerySpans()).toHaveLength(0);
+    });
+
+    it('cancels the open span as closed when the router closes while it stays mounted', async () => {
+        // Given a settled query whose span is open because the list has not committed it yet
+        const {closeSearchRouter} = await renderSearchRouter();
+        type('ab');
+        advance(DEBOUNCE_TIME);
+
+        // When the router closes without unmounting
+        closeSearchRouter();
+
+        // Then the span is cancelled as closed, so a commit during the closing transition cannot end it
+        const endedSpans = getEndedQuerySpans();
+        expect(endedSpans).toHaveLength(1);
+        expect(endedSpans.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
     });
 
     it('does not measure a query retyped right after clearing it, before the debounce fires', async () => {
