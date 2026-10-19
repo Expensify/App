@@ -3184,7 +3184,7 @@ describe('getViolationsOnyxData', () => {
 
         // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
         // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
-        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
+        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v_active', name: 'Acme Co', currency: 'USD'}]) =>
             createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
@@ -3251,7 +3251,7 @@ describe('getViolationsOnyxData', () => {
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v_active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3263,8 +3263,8 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
                 policyVendors: {
-                    'v-active': {
-                        externalID: 'v-active',
+                    'v_active': {
+                        externalID: 'v_active',
                         name: 'Acme Co',
                         enabled: true,
                     },
@@ -3275,7 +3275,7 @@ describe('getViolationsOnyxData', () => {
 
         it('preserves an existing violation when policyVendors is not provided even if the vendor is in the raw integration list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v_active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3291,7 +3291,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('adds the violation when the vendor remains in the raw integration list but is disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'v_active';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3317,7 +3317,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('retains an existing violation through an optimistic update while the vendor remains disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'v_active';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3343,7 +3343,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('removes an existing violation when the vendor is re-enabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'v_active';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3369,7 +3369,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('leaves the violation untouched when the active integration vendor list is not loaded yet even if policyVendors is present', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'v_active';
             policy = policyWithQBOVendorFeature(null);
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3418,11 +3418,11 @@ describe('getViolationsOnyxData', () => {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
-                        data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
+                        data: {vendors: [{id: 'v_active', name: 'Acme Co', currency: 'USD'}]},
                     },
                 },
             });
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v_active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3496,7 +3496,7 @@ describe('getViolationsOnyxData', () => {
         it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
             // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v_active', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -3520,7 +3520,7 @@ describe('getViolationsOnyxData', () => {
             // hydrating. Intacct vendors carry the display name in `value`.
             const policyWithIntacctVendorFeature = (
                 nonReimbursable: SageIntacctExportConfig['nonReimbursable'] = CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
-                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv-active', name: 'V001', value: 'Acme Intacct'}],
+                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv_active', name: 'V001', value: 'Acme Intacct'}],
             ) =>
                 createMock<Policy>({
                     requiresTag: false,
@@ -3555,7 +3555,7 @@ describe('getViolationsOnyxData', () => {
             it('does not add the violation when the Intacct vendor is in the synced list', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithIntacctVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-active', wasManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv_active', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     isVendorMatchingBetaEnabled: false,
@@ -3683,7 +3683,7 @@ describe('getViolationsOnyxData', () => {
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                            data: {vendors: [{id: 'v_active', name: 'Acme QBO', currency: 'USD'}]},
                         },
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                             config: {isConfigured: true},
@@ -3839,7 +3839,7 @@ describe('getViolationsOnyxData', () => {
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                            data: {vendors: [{id: 'v_active', name: 'Acme QBO', currency: 'USD'}]},
                         },
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                             config: {},
