@@ -342,6 +342,7 @@ function applyRequireFieldsReceiptSettings(
         return;
     }
 
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger two API.write calls below.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (isReceiptOverrideValue(receiptTarget)) {
@@ -371,6 +372,7 @@ function saveRequireFieldsRule(
     const category = policyCategories?.[categoryName];
     const initialForm = getRequireFieldsFormFromCategory(category);
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger up to five API.write calls below.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.DESCRIPTION_SETTING, clearedFields)) {
@@ -435,6 +437,7 @@ function deleteRequireFieldsRule(
         return;
     }
 
+    // Drained to {} after the first write so this delete's optimistic task tick fires exactly once, even though it can trigger up to four API.write calls below.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (isDescriptionRequiredForCategory(category)) {

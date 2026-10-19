@@ -1969,6 +1969,7 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
         ],
     };
 
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it writes one call per category.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of categoryNames) {
         const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
@@ -2033,6 +2034,7 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
         ],
     };
 
+    // Drained to {} after the first write so this delete's optimistic task tick fires exactly once, even though it writes one call per category.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of targets) {
         const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID: defaultExternalID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};

@@ -78,6 +78,7 @@ function saveFlagForReviewRule(
         return;
     }
 
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger two API.write calls below.
     let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (originalCategoryName && originalCategoryName !== categoryName) {
