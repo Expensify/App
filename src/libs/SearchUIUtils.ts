@@ -868,6 +868,17 @@ function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
 
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: OnyxTypes.SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReportUtil(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
+}
+
 /**
  * @private
  */
@@ -7441,6 +7452,7 @@ export {
     isGroupedItemArray,
     isGroupEntry,
     isReportEntry,
+    getExpenseReportIDs,
     isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
