@@ -818,6 +818,8 @@ function getPolicyExpenseReportOption(
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
+        // Passing transactionThreadIDs as undefined is intentional, it is only read to build the chat preview line, which `showChatPreviewLine: false` disables.
+        transactionThreadIDs: undefined,
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
