@@ -87,7 +87,14 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            {!!changePercentage && isNewSpend && <Text style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}>{changePercentage}</Text>}
+                            {!!changePercentage && isNewSpend && (
+                                <Text
+                                    style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}
+                                    accessibilityLabel={translate('common.new')}
+                                >
+                                    {changePercentage}
+                                </Text>
+                            )}
                             {!!changePercentage && !isNewSpend && (
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}
