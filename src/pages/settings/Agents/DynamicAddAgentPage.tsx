@@ -165,14 +165,18 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         let backToAgentsListRoute: Route | undefined;
 
         if (policyID) {
-            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+            const result = uploadedAvatar?.uri
                 ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
-                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID()));
+                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID());
+            optimisticReportID = result.optimisticReportID;
+            optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
             backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
         } else {
-            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+            const result = uploadedAvatar?.uri
                 ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID));
+                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+            optimisticReportID = result.optimisticReportID;
+            optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
             backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
         }
 
