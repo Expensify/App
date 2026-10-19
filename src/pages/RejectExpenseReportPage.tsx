@@ -23,7 +23,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 
 import variables from '@styles/variables';
@@ -35,8 +36,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
-import type {PersonalDetailsList, ReportActions} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetailsList, Policy, ReportActions} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -46,7 +47,7 @@ import {View} from 'react-native';
 
 type RejectExpenseReportPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REPORT_REJECT>;
 
-function lastForwardedActorAccountIDSelector(reportActions: OnyxEntry<ReportActions>) {
+function currentCycleForwardedActorAccountIDsSelector(reportActions: OnyxEntry<ReportActions>): number[] | undefined {
     if (!reportActions) {
         return undefined;
     }
@@ -55,25 +56,35 @@ function lastForwardedActorAccountIDSelector(reportActions: OnyxEntry<ReportActi
 
     // Walk reverse chronologically. A SUBMITTED action marks the start of the current
     // approval cycle — any FORWARDED actions older than that are stale (from a prior
-    // submit→approve→reject→resubmit cycle) and must be ignored.
-    let lastForwardedActorAccountID: number | undefined;
+    // submit→approve→reject→resubmit cycle) and must be ignored. Collect every forward
+    // in the cycle, newest first, so ineligible approvers can be skipped.
+    const forwardedActorAccountIDs: number[] = [];
     for (const action of sortedActions) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
             break;
         }
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID) {
-            lastForwardedActorAccountID = action.actorAccountID;
-            break;
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID && !forwardedActorAccountIDs.includes(action.actorAccountID)) {
+            forwardedActorAccountIDs.push(action.actorAccountID);
         }
     }
 
-    return lastForwardedActorAccountID;
+    return forwardedActorAccountIDs;
 }
 
-function submitterAndLastForwardedActorEmailSelector(submitterAccountID: number | undefined, lastForwardedActorAccountID: number | undefined) {
+function submitterAndLastForwardedActorEmailSelector(
+    submitterAccountID: number | undefined,
+    forwardedActorAccountIDs: number[] | undefined,
+    currentUserAccountID: number | undefined,
+    policy: OnyxEntry<Policy>,
+) {
+    const canCheckMembership = !isEmptyObject(policy?.employeeList);
     return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => ({
         submitterEmail: personalDetailsLoginSelector(submitterAccountID)(personalDetailsList),
-        lastForwardedActorEmail: personalDetailsLoginSelector(lastForwardedActorAccountID)(personalDetailsList),
+        // Skip the current user, the submitter, and approvers who have since been removed from the workspace
+        lastForwardedActorEmail: forwardedActorAccountIDs
+            ?.filter((accountID) => accountID !== currentUserAccountID && accountID !== submitterAccountID)
+            .map((accountID) => getLoginByAccountID(accountID, personalDetailsList))
+            .find((login) => !!login && (!canCheckMembership || isPolicyMember(policy, login))),
     });
 }
 
@@ -86,9 +97,12 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [forwardedActorAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: currentCycleForwardedActorAccountIDsSelector,
+    });
     const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useAllPersonalDetails(
-        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
+        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, forwardedActorAccountIDs, currentUserPersonalDetails?.accountID, policy),
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -109,7 +123,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
           };
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID && previousApprover.accountID !== submitterAccountID;
+    const hasPreviousApprover = previousApprover !== null;
 
     const options = [];
 
