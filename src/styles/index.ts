@@ -765,20 +765,70 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
-            flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long
+            // label gets the room it needs and, once the labels no longer all fit, the long ones truncate to the same
+            // width while the short ones keep theirs.
+            display: 'grid',
+            gridTemplateColumns: `repeat(${variables.floatingTabBarTabCount}, minmax(0, auto))`,
+            // react-native-web defaults alignContent to flex-start, which would leave the row at its content's height.
+            alignContent: 'stretch',
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.appBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
+            // Insets the row so the selected item's capsule keeps the same margin inside the bar's rounded edge on
+            // every side, past the overhang it reaches beyond the first and last tabs.
+            ...spacing.pv1,
+            paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
         },
 
+        // A grid item is otherwise never narrower than its label, so the label could not truncate.
+        navigationTabBarSlot: {
+            minWidth: 0,
+        },
+
+        // Stretches every tab to its slot, so a long label truncates inside the slot instead of spilling into its neighbors.
+        navigationTabBarItemNarrow: {
+            alignSelf: 'stretch',
+            paddingHorizontal: variables.floatingTabBarLabelInset,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // The extra padding matches the negative margin, so the label keeps the same width selected or not.
+            paddingHorizontal: variables.floatingTabBarLabelInset + variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
+        },
+
+        androidNativeTabBarSpacer: {
+            height: variables.androidNativeTabBarHeight,
+        },
+
+        // The gap between the floating bar and the bottom edge of the screen.
+        floatingTabBarBottomInset: {
+            paddingBottom: variables.floatingTabBarBottomInset,
+        },
+
+        // Used both for a tab's pressable and for the wrapper around its icon and label.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
+        },
+
+        // Sits the avatar's bottom edge where the glyphs next to it end, inside their box, and lets its extra height
+        // reach above the box, so its label lines up with theirs and is the same distance from the avatar.
+        navigationTabBarAvatar: {
+            marginTop: variables.iconFloatingTabBar - variables.avatarFloatingTabBar - variables.floatingTabBarGlyphBottomInset,
+            marginBottom: variables.floatingTabBarGlyphBottomInset,
         },
 
         navigationTabBarFABItem: {
@@ -1153,6 +1203,15 @@ const staticStyles = (theme: ThemeColors) =>
         badgeDanger: {
             backgroundColor: theme.badgeDangerBG,
             borderColor: theme.badgeDangerBG,
+        },
+
+        badgeOffer: {
+            backgroundColor: theme.badgeOfferBG,
+            borderColor: theme.badgeOfferBG,
+        },
+
+        badgeOfferText: {
+            color: theme.badgeOfferText,
         },
 
         badgeDangerStrong: {
@@ -2216,25 +2275,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
-        },
-
-        optionRowCompactMinHeight: {
-            minHeight: variables.optionRowHeightCompact,
-        },
-
-        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
-        // right border reads as a divider and the two look like one segmented field.
-        reportFieldDeleteButton: {
-            width: variables.componentSizeLarge,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: theme.appBG,
-            borderWidth: 1,
-            borderLeftWidth: 0,
-            borderTopRightRadius: variables.componentBorderRadiusNormal,
-            borderBottomRightRadius: variables.componentBorderRadiusNormal,
-            borderColor: theme.bordersBold,
         },
 
         optionsListSectionHeader: {
@@ -3365,14 +3405,6 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
-        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
-        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
-        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
-        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
-        flipUpsideDownInPlace: {
-            transform: [{scaleY: -1}],
-        },
-
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -3910,6 +3942,10 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
         },
 
         longTermsRow: {
@@ -5112,6 +5148,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
+        },
+
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
+            flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
+        },
+
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
         },
 
         tabSelector: {
@@ -6963,6 +7019,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.label,
             color: theme.text,
         },
+        chartTooltipDot: {
+            borderRadius: '50%',
+            width: 8,
+            height: 8,
+        },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -7025,6 +7086,61 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
+        // content that runs under the footer.
+        offlineIndicatorAboveFooter: (footerHeight: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: footerHeight,
+                left: 0,
+                zIndex: variables.searchFooterZIndex,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
+        // offline indicator and the bar.
+        tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
+        // footer's content sits above the bar.
+        tabRootFooter: (tabBarCoveredHeight: number) =>
+            ({
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                height: 0,
+            }) satisfies ViewStyle,
+
+        // Covers Material's bar and the gesture inset under it, and casts the shadow up over the screen content.
+        androidNativeTabBarShadow: (bottomInset: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: variables.androidNativeTabBarHeight + bottomInset,
+                boxShadow: theme.androidTabBarShadow,
+            }) satisfies ViewStyle,
+
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
@@ -7624,6 +7740,10 @@ const plainStyles = (theme: ThemeColors) =>
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
+        },
+
+        searchFooterZIndexStyle: {
+            zIndex: variables.searchFooterZIndex,
         },
 
         getWidgetContainerTitleStyle: (color: string) =>
