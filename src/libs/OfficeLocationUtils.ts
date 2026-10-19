@@ -65,4 +65,3 @@ function getMemberOfficeLocation(officeLocations: AssignableOfficeLocation[], of
 }
 
 export {hasOfficeLocations, getAssignableOfficeLocations, getMemberOfficeLocation};
-export type {AssignableOfficeLocation};
