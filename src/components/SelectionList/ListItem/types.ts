@@ -191,6 +191,10 @@ type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
     shouldSyncFocus?: boolean;
     shouldHighlightSelectedItem?: boolean;
     shouldDisableHoverStyle?: boolean;
+
+    /** Whether descendants can use native text selection inside the row */
+    shouldAllowTextSelection?: boolean;
+
     pressableStyle?: StyleProp<ViewStyle>;
     pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 

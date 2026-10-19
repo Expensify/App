@@ -33,6 +33,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.DYNAMIC_CARD_AUTHENTICATION]: DYNAMIC_ROUTES.CARD_AUTHENTICATION.path,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
+        [SCREENS.BILLING_RECEIPT]: ROUTES.BILLING_RECEIPT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
@@ -57,11 +58,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path,
-            },
-        },
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO.path,
             },
         },
 
@@ -379,37 +375,37 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.NEW]: {
-                            path: ROUTES.SETTINGS_AGENTS_NEW.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
+                            path: DYNAMIC_ROUTES.AGENT_NEW.path,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD.path,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD_AVATAR,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD_AVATAR.path,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_NAME.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_NAME.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path,
                             parse: {
                                 accountID: Number,
                             },
@@ -541,6 +537,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES,
                             exact: true,
@@ -579,6 +579,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
                             path: ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.route,
                         },
+                        [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: {path: ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_HR]: {path: ROUTES.WORKSPACE_CONNECTIONS_HR.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -916,6 +920,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
@@ -1152,12 +1160,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.SPEND_CATEGORY_SELECTOR.path,
                         [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.path,
                         [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
@@ -1318,6 +1323,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -1614,6 +1621,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VACATION_DELEGATE]: {
                             path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
                         },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.route,
+                        },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,
                         },
@@ -1703,6 +1713,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_DETAILS.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path,
+                        [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_REPORT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {
@@ -1735,7 +1746,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
                     screens: {
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path,
-                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path,
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT]: {
@@ -1754,7 +1764,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
                     screens: {
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path,
@@ -2498,6 +2507,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
                                     path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
                                 },
+                                [SCREENS.WORKSPACE.CONNECTIONS]: {
+                                    path: ROUTES.WORKSPACE_CONNECTIONS.route,
+                                },
                                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                                 },
@@ -2506,6 +2518,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.MEMBERS]: {
                                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                                },
+                                [SCREENS.WORKSPACE.AGENTS]: {
+                                    path: ROUTES.WORKSPACE_AGENTS.route,
                                 },
                                 [SCREENS.WORKSPACE.ROOMS]: {
                                     path: ROUTES.WORKSPACE_ROOMS.route,

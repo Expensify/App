@@ -260,6 +260,44 @@ describe('ContextMenuActions copy message', () => {
         expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
     });
 
+    it.each([
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
+            {officeID: 'OFFICE1', name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}},
+            'workspaceActions.officeLocation.added',
+        ],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION,
+            {officeID: 'OFFICE1', name: 'HQ', updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.NAME, newValue: 'HQ', oldValue: 'Headquarters'},
+            'workspaceActions.officeLocation.renamed',
+        ],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, 'workspaceActions.officeLocation.removed'],
+    ] as const)('copies the localized message for a %s action', (actionName, originalMessage, translationKey) => {
+        // Given an office location change log, whose stored text is Auth's English message
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('office change');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When its message is copied
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName,
+                    message: [{text: 'stored message', html: 'stored message'}],
+                    originalMessage,
+                }),
+            ),
+        );
+
+        // Then the translated change log text is copied instead of the stored text
+        expect(mockGetClipboardText).toHaveBeenCalledWith(translationKey, undefined);
+        expect(mockSetString).toHaveBeenCalledWith('office change');
+    });
+
     it('copies the localized member work arrangement message as html when supported', () => {
         // Given the clipboard supports HTML, when the member arrangement message is copied, then the shared rich clipboard path is used.
         mockCanSetHtml.mockReturnValue(true);

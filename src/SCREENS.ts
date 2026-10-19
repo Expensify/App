@@ -22,6 +22,7 @@ const SCREENS = {
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
+    BILLING_RECEIPT: 'BillingReceipt',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -117,7 +118,8 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
-            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
+            VACATION_DELEGATE: 'Settings_Profile_Vacation_Delegate',
+            VACATION_DELEGATE_SELECT: 'Settings_Profile_Vacation_Delegate_Select',
             VACATION_DELEGATE_MISSING_WORKSPACES: 'Settings_Status_Vacation_Delegate_Missing_Workspaces',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
@@ -141,13 +143,13 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
-            NEW: 'Settings_Agents_New',
-            ADD: 'Settings_Agents_Add',
-            ADD_AVATAR: 'Settings_Agents_Add_Avatar',
-            EDIT: 'Settings_Agents_Edit',
-            EDIT_NAME: 'Settings_Agents_Edit_Name',
-            EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
-            EDIT_AVATAR: 'Settings_Agents_Edit_Avatar',
+            DYNAMIC_NEW: 'Dynamic_Settings_Agents_New',
+            DYNAMIC_ADD: 'Dynamic_Settings_Agents_Add',
+            DYNAMIC_ADD_AVATAR: 'Dynamic_Settings_Agents_Add_Avatar',
+            DYNAMIC_EDIT: 'Dynamic_Settings_Agents_Edit',
+            DYNAMIC_EDIT_NAME: 'Dynamic_Settings_Agents_Edit_Name',
+            DYNAMIC_EDIT_PROMPT: 'Dynamic_Settings_Agents_Edit_Prompt',
+            DYNAMIC_EDIT_AVATAR: 'Dynamic_Settings_Agents_Edit_Avatar',
         },
 
         RULES: {
@@ -430,7 +432,6 @@ const SCREENS = {
 
     SETTINGS_CATEGORIES: {
         DYNAMIC_SETTINGS_CATEGORY_SETTINGS: 'Dynamic_Settings_Category_Settings',
-        DYNAMIC_SETTINGS_CATEGORIES_SETTINGS: 'Dynamic_Settings_Categories_Settings',
         DYNAMIC_SETTINGS_CATEGORY_CREATE: 'Dynamic_Settings_Category_Create',
         DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
@@ -454,7 +455,6 @@ const SCREENS = {
 
     SETTINGS_TAGS: {
         SETTINGS_TAGS_ROOT: 'Settings_Tags',
-        DYNAMIC_SETTINGS_TAGS_SETTINGS: 'Dynamic_Settings_Tags_Settings',
         DYNAMIC_SETTINGS_TAGS_EDIT: 'Dynamic_Settings_Tags_Edit',
         DYNAMIC_SETTINGS_TAG_CREATE: 'Dynamic_Settings_Tag_Create',
         DYNAMIC_SETTINGS_TAG_EDIT: 'Dynamic_Settings_Tag_Edit',
@@ -509,6 +509,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
         DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
         DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
+        DYNAMIC_SHARE_REPORT: 'Dynamic_Report_Details_Share_Report',
     },
 
     REPORT_CHANGE_WORKSPACE: {
@@ -774,6 +775,10 @@ const SCREENS = {
             BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Business_Central_Export_Company_Card_Account',
             BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: 'Policy_Accounting_Business_Central_Export_Default_Vendor',
             BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: 'Policy_Accounting_Business_Central_Export_Payment_Method',
+            BUSINESS_CENTRAL_ADVANCED: 'Policy_Accounting_Business_Central_Advanced',
+            BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'Policy_Accounting_Business_Central_Accounting_Method',
+            BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: 'Policy_Accounting_Business_Central_Advanced_Posting_Mode',
+            BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: 'Policy_Accounting_Business_Central_Bank_Account_Selector',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
@@ -856,6 +861,7 @@ const SCREENS = {
         DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE: 'Dynamic_Invoice_Fields_Initial_List_Value',
         INVOICE_FIELDS_TYPE_SELECTOR: 'Workspace_InvoiceFields_TypeSelector',
         MEMBERS: 'Workspace_Members',
+        AGENTS: 'Workspace_Agents',
         ROOMS: 'Workspace_Rooms',
         ROOM_CREATE: 'Workspace_Room_Create',
         MEMBERS_IMPORT: 'Members_Import',
@@ -868,7 +874,6 @@ const SCREENS = {
         CATEGORIES: 'Workspace_Categories',
         VENDORS: 'Workspace_Vendors',
         TAGS: 'Workspace_Tags',
-        DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         DYNAMIC_TAGS_EDIT: 'Dynamic_Tags_Edit',
         DYNAMIC_TAGS_IMPORT: 'Dynamic_Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
@@ -924,6 +929,8 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
+        OFFICE_LOCATION_ADD: 'Workspace_Overview_Office_Location_Add',
+        OFFICE_LOCATION_EDIT: 'Workspace_Overview_Office_Location_Edit',
         CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
         DYNAMIC_CATEGORY_CREATE: 'Dynamic_Category_Create',
@@ -949,10 +956,8 @@ const SCREENS = {
         DYNAMIC_CATEGORY_TAX_RULE_NEW: 'Dynamic_Category_Tax_Rule_New',
         DYNAMIC_CATEGORY_TAX_RULE_EDIT: 'Dynamic_Category_Tax_Rule_Edit',
         CATEGORIES_SETTINGS: 'Categories_Settings',
-        DYNAMIC_CATEGORIES_SETTINGS: 'Dynamic_Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',
         DYNAMIC_CATEGORIES_IMPORTED: 'Dynamic_Categories_Imported',
-        DYNAMIC_SPEND_CATEGORY_SELECTOR: 'Dynamic_Spend_Category_Selector',
         DYNAMIC_DEFAULT_CATEGORY_SELECTOR: 'Dynamic_Default_Category_Selector',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
@@ -989,6 +994,11 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_DOWNGRADE: 'Dynamic_Workspace_Downgrade',
         DYNAMIC_PAY_AND_DOWNGRADE: 'Dynamic_Workspace_Pay_And_Downgrade',
         MCP: 'Workspace_MCP',
+        CONNECTIONS: 'Workspace_Connections',
+        CONNECTIONS_ACCOUNTING: 'Workspace_Connections_Accounting',
+        CONNECTIONS_HR: 'Workspace_Connections_HR',
+        CONNECTIONS_RECRUITING: 'Workspace_Connections_Recruiting',
+        CONNECTIONS_RECEIPT_PARTNERS: 'Workspace_Connections_Receipt_Partners',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
         DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',
@@ -1120,10 +1130,6 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
     },
 
-    AI_FEATURES_PROMO_MODAL: {
-        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
-    },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -1222,6 +1228,7 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         VACATION_DELEGATE: 'Vacation_Delegate',
+        VACATION_DELEGATE_SELECT: 'Vacation_Delegate_Select',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
         MEMBERS_SETTINGS: 'Members_Settings',
