@@ -82,6 +82,9 @@ type TransactionListItemType = ListItem &
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was paid */
+        paid?: string;
+
         /** The date the report was posted */
         posted?: string;
 
@@ -144,6 +147,11 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was approved in past years
          */
         shouldShowYearApproved: boolean;
+
+        /** Whether we should show the year for the paid date.
+         * This is true if at least one transaction in the dataset belongs to a report paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** Whether we should show the year for the posted date.
          * This is true if at least one transaction in the dataset was posted in past years

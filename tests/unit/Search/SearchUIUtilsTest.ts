@@ -881,6 +881,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2024-12-21',
         submitted: '',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -910,6 +911,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         isAmountColumnWide: false,
@@ -946,6 +948,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -974,6 +977,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         isAmountColumnWide: false,
@@ -1021,6 +1025,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1056,6 +1061,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         keyForList: '3',
@@ -1091,6 +1097,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1126,6 +1133,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         keyForList: '4',
@@ -1240,6 +1248,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 date: '2024-12-21',
                 submitted: '',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 formattedFrom: 'Admin',
@@ -1266,6 +1275,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 isAmountColumnWide: false,
@@ -1377,6 +1387,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2024-12-21',
                 submitted: '2024-12-21 13:05:20',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'USD',
@@ -1410,6 +1421,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 isAmountColumnWide: false,
@@ -1532,6 +1544,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2025-03-05',
                 submitted: '2025-03-05',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1566,6 +1579,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 keyForList: '3',
@@ -1601,6 +1615,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2025-03-05',
                 submitted: '2025-03-05',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1635,6 +1650,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 keyForList: '4',
@@ -3027,7 +3043,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 61;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -3070,7 +3086,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 60;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -7285,6 +7301,42 @@ describe('SearchUIUtils', () => {
                 expect(item?.submitted).toBe('');
             });
 
+            it("should show the report's paid date on its expenses and widen the Paid column when it was paid in a past year", () => {
+                // Given an expense on a report the backend returned as paid in a past year
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, paid: paidAt});
+
+                // When the expense rows and the header's year flags are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data);
+
+                // Then the expense shows its report's paid date, and both the row and the header use the wide Paid column so the year fits
+                expect(item?.paid).toBe(paidAt);
+                expect(item?.shouldShowYearPaid).toBe(true);
+                expect(yearFlags.shouldShowYearPaid).toBe(true);
+            });
+
+            it('should keep the Paid date blank and the column narrow on expenses whose report is not paid', () => {
+                // Given an expense on an approved report, which the backend returns with a blank paid date
+                const data = makeFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    paid: '',
+                });
+
+                // When the expense rows and the header's year flags are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data);
+
+                // Then the cell is blank and the column stays narrow, since the report hasn't been paid
+                expect(item?.paid).toBe('');
+                expect(item?.shouldShowYearPaid).toBe(false);
+                expect(yearFlags.shouldShowYearPaid).toBe(false);
+            });
+
             it('should keep the negative sign on formattedTotal for an unreported (tracked) credit', () => {
                 const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 5000});
                 const [sections] = callGetTransactionsSections(data);
@@ -8163,21 +8215,13 @@ describe('SearchUIUtils', () => {
             });
 
             it('should widen the Paid column when a report was paid in a past year', () => {
-                // Given a report paid in a past year
-                const data = makeReportFilterTestData(
-                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
-                    {},
-                    {
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
-                            'reimbursed-1': {
-                                reportActionID: 'reimbursed-1',
-                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                                actorAccountID: approverAccountID,
-                                created: '2024-12-22 09:30:00',
-                            },
-                        },
-                    },
-                );
+                // Given a report the backend returned as paid in a past year
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: '2024-12-22 09:30:00',
+                });
 
                 // When the report sections and the header's year flags are built
                 const [sections] = callGetReportSections(data);
@@ -8190,21 +8234,13 @@ describe('SearchUIUtils', () => {
             });
 
             it('should keep the Paid column narrow when every report was paid this year', () => {
-                // Given a report paid this year
-                const data = makeReportFilterTestData(
-                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
-                    {},
-                    {
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
-                            'reimbursed-1': {
-                                reportActionID: 'reimbursed-1',
-                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                                actorAccountID: approverAccountID,
-                                created: `${new Date().getFullYear()}-01-02 09:30:00`,
-                            },
-                        },
-                    },
-                );
+                // Given a report the backend returned as paid this year
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: `${new Date().getFullYear()}-01-02 09:30:00`,
+                });
 
                 // When the report sections and the header's year flags are built
                 const [sections] = callGetReportSections(data);

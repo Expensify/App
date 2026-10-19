@@ -60,8 +60,7 @@ function ExpenseReportListItemRowWide({
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
-    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
-    const {paid: paidDate = ''} = item;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency, paid: paidDate = ''} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,

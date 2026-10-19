@@ -7818,6 +7818,11 @@ const CONST = {
                     search: true,
                     reportView: false,
                 },
+                PAID: {
+                    column: this.TABLE_COLUMNS.PAID,
+                    search: true,
+                    reportView: false,
+                },
                 POSTED: {
                     column: this.TABLE_COLUMNS.POSTED,
                     search: true,
