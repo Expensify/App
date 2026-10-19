@@ -613,7 +613,7 @@ type GetReportOptionParams = {
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
     pendingDeleteMemberAccountIDs: string[] | undefined;
-    // TODO: Make required once buildReportParticipants passes it. Refactor issue: https://github.com/Expensify/App/issues/66381
+    /** Optional until buildReportParticipants threads it through (tracked in https://github.com/Expensify/App/issues/66381). */
     transactionThreadIDs?: Record<string, string | undefined>;
 };
 
