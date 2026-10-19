@@ -167,11 +167,11 @@ function isWideTabPreMountInTopFullscreen(): boolean {
 }
 
 /** Hands the pre-mount over to the reveal, which shows the pre-mounted screen as the destination. */
-function finishWideTabPreMountReveal(routeKey: string) {
+function finishWideTabPreMountReveal(routeKey: string, modalRouteKey?: string) {
     if (livePreMount?.routeKey !== routeKey) {
         return;
     }
-    markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey);
+    markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey, modalRouteKey);
     livePreMount = undefined;
     setLiveWideTabPreMountRouteKey(undefined);
     setLiveWideTabPreMountPreloadedRouteKey(undefined);
@@ -197,5 +197,16 @@ function cancelWideTabPreMount() {
     setLiveWideTabPreMountTabRouteKey(undefined);
 }
 
-export {buildWideTabPreMount, buildCancelledWideTabPreMount, finishWideTabPreMountReveal, cancelWideTabPreMount, isWideTabPreMountInTopFullscreen};
+/** Forgets a pre-mount the reveal did not show. The replace has already removed its screen from the stack. */
+function discardWideTabPreMount() {
+    if (!livePreMount) {
+        return;
+    }
+    livePreMount = undefined;
+    setLiveWideTabPreMountRouteKey(undefined);
+    setLiveWideTabPreMountPreloadedRouteKey(undefined);
+    setLiveWideTabPreMountTabRouteKey(undefined);
+}
+
+export {buildWideTabPreMount, buildCancelledWideTabPreMount, finishWideTabPreMountReveal, cancelWideTabPreMount, discardWideTabPreMount, isWideTabPreMountInTopFullscreen};
 export type {LiveWideTabPreMount, TabStateWithPreloads};

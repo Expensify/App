@@ -36,7 +36,7 @@ import Onyx from 'react-native-onyx';
 import type {LinkToOptions} from './helpers/linkTo/types';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RightModalNavigatorParamList, State} from './types';
 
-import {getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {consumePreMountReplaceOutcome, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
@@ -69,7 +69,7 @@ import {
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {cancelWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
+import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
 import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
@@ -1216,35 +1216,39 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
     }
 
     // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
-    const afterTransition =
-        options?.afterTransition || preMountedRouteKey
-            ? () => {
-                  setIsRevealingPreMountedFullscreen(false);
-                  if (!preMountedRouteKey) {
-                      options?.afterTransition?.();
-                      return;
-                  }
+    const afterTransition = preMountedRouteKey
+        ? () => {
+              setIsRevealingPreMountedFullscreen(false);
 
-                  // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
-                  runAfterClosingScreenUnmount(() => {
-                      releasePendingSearchWriteFlush();
-                      options?.afterTransition?.();
-                  });
-              }
-            : undefined;
+              // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
+              runAfterClosingScreenUnmount(() => {
+                  releasePendingSearchWriteFlush();
+                  options?.afterTransition?.();
+              });
+          }
+        : options?.afterTransition;
 
     requestAnimationFrame(() => {
-        const stateBeforeReplace = navigationRef.getRootState();
+        // History entries that still contain this RHP were saved before the reveal. Cross-tab pre-mounts rely on it.
+        const modalRouteKey = navigationRef.getRootState()?.routes.at(-1)?.key;
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route, preMountedRouteKey},
         });
 
-        // A replace rejected because the RHP was closed first (e.g. Browser Back) would leave the pre-mount hidden in the stack.
-        if (preMountedRouteKey && navigationRef.getRootState() === stateBeforeReplace) {
+        // No outcome means the replace was rejected (e.g. Browser Back closed the RHP first), leaving the pre-mount hidden.
+        // Otherwise the router reports whether it showed the pre-mount.
+        const preMountOutcome = preMountedRouteKey ? consumePreMountReplaceOutcome() : undefined;
+        if (preMountedRouteKey && preMountOutcome?.routeKey !== preMountedRouteKey) {
             cancelWideTabPreMount();
+
+            // Nothing is revealed, so a Search focus before the dismiss ends must not skip its overlay or wait for the flush.
+            setIsRevealingPreMountedFullscreen(false);
+            releasePendingSearchWriteFlush();
+        } else if (preMountedRouteKey && preMountOutcome?.isRevealed) {
+            finishWideTabPreMountReveal(preMountedRouteKey, modalRouteKey);
         } else if (preMountedRouteKey) {
-            finishWideTabPreMountReveal(preMountedRouteKey);
+            discardWideTabPreMount();
         }
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches

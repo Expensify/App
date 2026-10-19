@@ -1178,16 +1178,16 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
+                const rearm = () => {
+                    rearmTracking();
+                    setSkeletonWasDisplayed(true);
+                };
 
                 // A revealed wide pre-mount focuses mid RHP slide. A transition keeps the slide painting.
                 if (Navigation.getIsRevealingPreMountedFullscreen()) {
-                    startTransition(() => {
-                        rearmTracking();
-                        setSkeletonWasDisplayed(true);
-                    });
+                    startTransition(rearm);
                 } else {
-                    rearmTracking();
-                    setSkeletonWasDisplayed(true);
+                    rearm();
                 }
             }
 

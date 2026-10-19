@@ -1,6 +1,7 @@
 import getPlatform from '@libs/getPlatform';
 import {
     clearPreInsertedOriginalTabRoute,
+    consumePreMountReplaceOutcome,
     removeStalePreMountsFromResetAction,
     handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
@@ -398,6 +399,9 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
         expect(getReportsSplitState(result)?.routes.map((route) => route.key)).toEqual(['inbox-key', 'Report-wide-pre-mount-1']);
         expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
+
+        // And the reveal is told the pre-mounted screen was shown, so it can hand the pre-mount over
+        expect(consumePreMountReplaceOutcome()).toEqual({routeKey: 'Report-wide-pre-mount-1', isRevealed: true});
     });
 
     it('reveals the wide pre-mount in the mounted stack state with the params of the built destination', () => {
@@ -512,6 +516,30 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitState(result)?.routes.map((route) => route.key)).toEqual(['inbox-key', undefined, 'Report-wide-pre-mount-6']);
     });
 
+    it('takes an unrevealed pre-mount out of the preserved native history', () => {
+        // Given a wide native layout with a pre-mount under the focused report A that does not match the revealed destination
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const state = makeExistingReportsState(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'Report-wide-pre-mount-7'),
+                makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+            ],
+            2,
+        );
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-7'}};
+
+        // When report B is revealed under the RHP, which on native keeps the history through the focused report A
+        const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
+
+        // Then the pre-mount is gone, since the reveal forgets it and it would otherwise stay hidden in the stack
+        expect(getReportsSplitState(result)?.routes.map((route) => route.key)).not.toContain('Report-wide-pre-mount-7');
+        expect(getReportIDs(result)).toEqual([undefined, 'A', 'B']);
+        expect(consumePreMountReplaceOutcome()).toEqual({routeKey: 'Report-wide-pre-mount-7', isRevealed: false});
+    });
+
     it('reveals a report pre-mounted in a covered tab and stops keeping that tab preloaded', () => {
         // Given the Search tab focused and report B pre-mounted on top of the covered Reports tab, which is marked preloaded
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
@@ -608,6 +636,9 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
         expect(getReportsSplitState(result)?.routes.at(-1)?.key).toBeUndefined();
+
+        // And the reveal is told the pre-mount was not shown, so it is not marked revealed
+        expect(consumePreMountReplaceOutcome()).toEqual({routeKey: 'Report-wide-pre-mount-gone', isRevealed: false});
     });
 
     it('stops keeping the destination tab preloaded when the pre-mount is gone before a cross-tab reveal', () => {
@@ -911,6 +942,31 @@ describe('removeStalePreMountsFromResetAction', () => {
         // Then report B is gone and report A stays focused, so in-app back from A does not open a report the user never opened there
         expect(reportsStack?.routes.map((route) => route.key)).toEqual(['inbox-key', 'a-key']);
         expect(reportsStack?.index).toBe(1);
+    });
+
+    it('drops a cross-tab revealed pre-mount from a history entry saved before the reveal, where its RHP is still open', () => {
+        // Given report B pre-mounted on top of a covered Reports tab behind the RHP and revealed, so no screen was above it
+        const revealedKey = 'Report-wide-pre-mount-8';
+        markWideTabPreMountRouteKeyRevealed(revealedKey, undefined, 'rhp-key');
+        const action = makeResetWithReportsStack([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, revealedKey)], 1);
+
+        // When browser back resets to an entry saved before the reveal, which still holds that RHP
+        const reportsStack = getResetReportsStack(removeStalePreMountsFromResetAction(action));
+
+        // Then report B is gone, so selecting the Reports tab later does not show a screen that entry never had
+        expect(reportsStack?.routes.map((route) => route.key)).toEqual(['inbox-key']);
+        expect(reportsStack?.index).toBe(0);
+    });
+
+    it('keeps a cross-tab revealed pre-mount once the RHP it was mounted behind is gone', () => {
+        // Given report B revealed from behind an RHP that was closed by the reveal, and a later entry with another RHP open
+        const revealedKey = 'Report-wide-pre-mount-9';
+        markWideTabPreMountRouteKeyRevealed(revealedKey, undefined, 'closed-rhp-key');
+        const action = makeResetWithReportsStack([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, revealedKey)], 1);
+
+        // When the root router sanitizes the RESET
+        // Then nothing changes, because report B is a regular screen after the reveal
+        expect(removeStalePreMountsFromResetAction(action)).toBe(action);
     });
 
     it('keeps a revealed pre-mount that another report was opened on top of after the reveal', () => {

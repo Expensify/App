@@ -7,8 +7,16 @@ let liveTabRouteKey: string | undefined;
 
 const ROUTE_KEY_INFIX = '-wide-pre-mount-';
 
-// A revealed pre-mount becomes a regular screen but keeps its key. Mapped to the route it was mounted under, if any.
-const revealedRouteKeys = new Map<string, string | undefined>();
+type RevealedPreMount = {
+    /** Key of the screen the pre-mount was mounted under in the focused tab, if any */
+    coveringRouteKey?: string;
+
+    /** Key of the root modal (e.g. RHP) the pre-mount was mounted behind. Only entries saved before the reveal contain it */
+    modalRouteKey?: string;
+};
+
+// A revealed pre-mount becomes a regular screen but keeps its key. Maps it to keys marking entries saved before the reveal.
+const revealedRouteKeys = new Map<string, RevealedPreMount>();
 
 // Tab route keys a pre-mount marked preloaded, so a saved browser history entry cannot keep a covered tab unfrozen forever.
 const preloadedRouteKeysAddedByPreMount = new Set<string>();
@@ -30,23 +38,26 @@ function isLiveWideTabPreMountTabRouteKey(key: string | undefined): boolean {
     return !!key && key === liveTabRouteKey;
 }
 
-function markWideTabPreMountRouteKeyRevealed(key: string, coveringRouteKey?: string) {
-    revealedRouteKeys.set(key, coveringRouteKey);
+function markWideTabPreMountRouteKeyRevealed(key: string, coveringRouteKey?: string, modalRouteKey?: string) {
+    revealedRouteKeys.set(key, {coveringRouteKey, modalRouteKey});
 }
 
 /**
  * True for a pre-mount nobody owns, e.g. restored from a saved browser history entry. That is one neither revealed nor live,
- * or a revealed one still under the route it was mounted under (`nextRouteKey`), which only an entry saved before the reveal has.
+ * or a revealed one in an entry saved before the reveal. Such an entry still has the route it was mounted under right
+ * above it (`nextRouteKey`), or the modal it was mounted behind among the root routes (`rootRouteKeys`).
  */
-function isStaleWideTabPreMountRouteKey(key: string | undefined, nextRouteKey?: string): boolean {
+function isStaleWideTabPreMountRouteKey(key: string | undefined, nextRouteKey?: string, rootRouteKeys?: string[]): boolean {
     if (!key || !key.includes(ROUTE_KEY_INFIX) || key === liveRouteKey) {
         return false;
     }
-    if (!revealedRouteKeys.has(key)) {
+    const revealed = revealedRouteKeys.get(key);
+    if (!revealed) {
         return true;
     }
-    const coveringRouteKey = revealedRouteKeys.get(key);
-    return !!coveringRouteKey && coveringRouteKey === nextRouteKey;
+    const isUnderCoveringRoute = !!revealed.coveringRouteKey && revealed.coveringRouteKey === nextRouteKey;
+    const isBehindModal = !!revealed.modalRouteKey && !!rootRouteKeys?.includes(revealed.modalRouteKey);
+    return isUnderCoveringRoute || isBehindModal;
 }
 
 function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {

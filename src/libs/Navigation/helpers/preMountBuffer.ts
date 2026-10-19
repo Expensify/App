@@ -255,9 +255,11 @@ function getPreInsertedFullscreenRouteName() {
     return preInsertedFullscreenRouteName;
 }
 
-/** Called once the pre-inserted destination is confirmed, so it should stay - only the Buffer route in front of it needs cleaning up. */
+/**
+ * Called when the destination is shown without a reveal. A narrow pre-insert is that destination, so it stays and only the
+ * Buffer route in front of it is cleaned up. A wide pre-mount is removed, since only a reveal can show it.
+ */
 function clearFullscreenPreInsertedFlag() {
-    // A wide pre-mount is only shown by a reveal, which takes it first. Left here it would stay hidden in the stack.
     if (preMountedFullscreen) {
         removePreInsertedFullscreenIfNeeded();
     }

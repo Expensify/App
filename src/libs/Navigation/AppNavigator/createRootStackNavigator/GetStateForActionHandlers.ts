@@ -115,6 +115,23 @@ function clearPreInsertedOriginalTabRoute() {
     preInsertedOriginalTabRoute = undefined;
 }
 
+type PreMountReplaceOutcome = {
+    /** Key of the wide pre-mount the replace was asked to reveal */
+    routeKey: string;
+
+    /** Whether the replace showed the pre-mounted screen, or built the destination without it */
+    isRevealed: boolean;
+};
+
+/** Whether the last REPLACE_FULLSCREEN_UNDER_RHP showed its wide pre-mount. Read once by the reveal after dispatching. */
+let lastPreMountReplaceOutcome: PreMountReplaceOutcome | undefined;
+
+function consumePreMountReplaceOutcome(): PreMountReplaceOutcome | undefined {
+    const outcome = lastPreMountReplaceOutcome;
+    lastPreMountReplaceOutcome = undefined;
+    return outcome;
+}
+
 /** Shape of `action.payload.params` when pushing the root tab navigator with a nested tab route (`screen` + optional `params`). */
 type TabNavigatorPushPayloadParams = {
     screen: string;
@@ -500,7 +517,7 @@ function withFocusedTabInHistory(tabState: TabStateForReplacement): TabStateForR
  * Puts the wide pre-mounted destination screen in place of the freshly built one, so the reveal shows the mounted instance.
  * Everything else comes from the regular replace, so the stack, tab history and back navigation end up the same as without it.
  */
-function withPreMountedDestination(builtTabState: TabStateForReplacement, existingTabState: NavigationState | undefined, preMountedRouteKey: string): TabStateForReplacement {
+function withPreMountedDestination(builtTabState: TabStateForReplacement, existingTabState: NavigationState | undefined, preMountedRouteKey: string): TabStateForReplacement | undefined {
     const targetTabRoute = builtTabState.routes[builtTabState.index];
     const existingTargetTabRoute = existingTabState?.routes.find((route) => route.name === targetTabRoute?.name);
     const existingNestedState = isNavigationStateWithRoutes(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
@@ -509,7 +526,7 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     const builtDestination = builtNestedState?.routes.at(-1);
     if (!targetTabRoute || !preMountedRoute || !builtNestedState || builtDestination?.name !== preMountedRoute.name) {
         Log.hmmm('[Navigation] Wide pre-mount does not match the revealed destination, replacing without it', {preMountedRouteKey});
-        return withoutFocusedTabPreload(builtTabState);
+        return undefined;
     }
 
     // Native keeps the focused report's history, which holds the pre-mount under it, so that copy is dropped to keep keys unique.
@@ -534,6 +551,19 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
         routes[builtTabState.index] = {...targetTabRoute, state: {...builtNestedState, routes: nestedRoutes, index: nestedRoutes.length - 1}};
     }
     return withoutFocusedTabPreload({...builtTabState, routes});
+}
+
+/** Removes an unrevealed pre-mount from the destination stack, where the preserved native report history can keep it. */
+function withoutPreMountedRoute(tabState: TabStateForReplacement, preMountedRouteKey: string): TabStateForReplacement {
+    const targetTabRoute = tabState.routes[tabState.index];
+    const nestedState = isNavigationStateWithRoutes(targetTabRoute?.state) ? targetTabRoute.state : undefined;
+    if (!targetTabRoute || !nestedState?.routes.some((route) => 'key' in route && route.key === preMountedRouteKey)) {
+        return tabState;
+    }
+    const nestedRoutes = nestedState.routes.filter((route) => !('key' in route) || route.key !== preMountedRouteKey);
+    const routes = [...tabState.routes];
+    routes[tabState.index] = {...targetTabRoute, state: {...nestedState, routes: nestedRoutes, index: nestedRoutes.length - 1}};
+    return {...tabState, routes};
 }
 
 /** The pre-mount kept a covered tab unfrozen. It is focused from here, so it no longer needs that. */
@@ -616,7 +646,14 @@ function handleReplaceFullscreenUnderRHP(
             return null;
         }
         const {preMountedRouteKey} = action.payload;
-        const updatedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : builtTabState;
+        const preMountedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : undefined;
+        lastPreMountReplaceOutcome = preMountedRouteKey ? {routeKey: preMountedRouteKey, isRevealed: !!preMountedTabState} : undefined;
+        let updatedTabState = builtTabState;
+        if (preMountedTabState) {
+            updatedTabState = preMountedTabState;
+        } else if (preMountedRouteKey) {
+            updatedTabState = withoutFocusedTabPreload(withoutPreMountedRoute(builtTabState, preMountedRouteKey));
+        }
 
         // The remount guards against a push-transition flash on narrow layout (#90985). A wide pre-mount reveal keeps the key,
         // because a remount would drop the pre-mounted screen. Wide renders split screens without a push animation.
@@ -853,13 +890,13 @@ function isResetPayloadState(state: unknown): state is ResetPayloadState {
 }
 
 /** Drops stale wide pre-mounts from a (nested) state, returning the same object when there is none. */
-function removeStalePreMountsFromState<S extends ResetPayloadState>(state: S): S {
+function removeStalePreMountsFromState<S extends ResetPayloadState>(state: S, rootRouteKeys: string[]): S {
     let hasChangedNestedState = false;
     const routes = state.routes.map((route) => {
         if (!isResetPayloadState(route.state)) {
             return route;
         }
-        const nestedState = removeStalePreMountsFromState(route.state);
+        const nestedState = removeStalePreMountsFromState(route.state, rootRouteKeys);
         if (nestedState === route.state) {
             return route;
         }
@@ -870,7 +907,7 @@ function removeStalePreMountsFromState<S extends ResetPayloadState>(state: S): S
     });
     const hasStalePreload = !!state.preloadedRouteKeys?.some(isStaleWideTabPreMountPreloadedRouteKey);
     const preloads = hasStalePreload ? {preloadedRouteKeys: state.preloadedRouteKeys?.filter((key) => !isStaleWideTabPreMountPreloadedRouteKey(key))} : {};
-    const staleFlags = routes.map((route, routeIndex) => isStaleWideTabPreMountRouteKey(route.key, routes.at(routeIndex + 1)?.key));
+    const staleFlags = routes.map((route, routeIndex) => isStaleWideTabPreMountRouteKey(route.key, routes.at(routeIndex + 1)?.key, rootRouteKeys));
     if (!staleFlags.includes(true)) {
         return hasChangedNestedState || hasStalePreload ? {...state, routes, ...preloads} : state;
     }
@@ -887,7 +924,8 @@ function removeStalePreMountsFromResetAction(action: RootStackNavigatorAction): 
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !action.payload || !isResetPayloadState(action.payload)) {
         return action;
     }
-    const payload = removeStalePreMountsFromState(action.payload);
+    const rootRouteKeys = action.payload.routes.flatMap((route) => (route.key ? [route.key] : []));
+    const payload = removeStalePreMountsFromState(action.payload, rootRouteKeys);
     return payload === action.payload ? action : ({...action, payload} as RootStackNavigatorAction);
 }
 
@@ -904,6 +942,7 @@ export {
     handleToggleMfaModalNavigatorWithHistoryAction,
     handleToggleModalWithHistoryAction,
     getPreInsertedOriginalTabRoute,
+    consumePreMountReplaceOutcome,
     clearPreInsertedOriginalTabRoute,
     MODAL_ROUTES_TO_DISMISS,
     getTargetTabRoute,
