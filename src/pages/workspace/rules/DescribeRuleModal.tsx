@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {isMobile} from '@libs/Browser';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
 import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
@@ -172,7 +171,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 submitButtonText={translate('common.next')}
                 style={[styles.mt5, styles.mh5]}
                 addBottomSafeAreaPadding={isSmallScreenWidth}
-                shouldUseScrollView={isSmallScreenWidth && isMobile()}
+                shouldUseScrollView={false}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
