@@ -66,6 +66,9 @@ type ChartPeriod = {start: string; end: string};
 type ChartComparisonPeriods = {
     primary: ChartPeriod;
     comparison: ChartPeriod;
+
+    /** Set when the periods compare month for month, so a day pairs with the same date that many months before */
+    monthsApart?: number;
 };
 
 /** date-fns patterns naming paired buckets by what they share, like "January" for January 2026 and January 2025 */
@@ -116,11 +119,6 @@ function getBucketStart(bucketUnit: ChartBucketUnit, date: Date, weekStart: Date
     }
 }
 
-/** Whole months between the periods' starts when they begin on the same day of the month, like a month or a year apart */
-function getMonthShift(primaryStart: Date, comparisonStart: Date): number | undefined {
-    return getDate(primaryStart) === getDate(comparisonStart) ? differenceInCalendarMonths(primaryStart, comparisonStart) : undefined;
-}
-
 /**
  * The bucket a current bucket is compared with, or undefined when the comparison period has none, like October 31
  * against September, February 29 against a year without one, or a sixth week against a month of five.
@@ -129,12 +127,11 @@ function getCounterpartBucketRange(bucketRange: ChartBucketRange, periods: Chart
     const bucketStart = parseISO(bucketRange.start);
     const primaryStart = parseISO(periods.primary.start);
     const comparisonStart = parseISO(periods.comparison.start);
-    const monthShift = getMonthShift(primaryStart, comparisonStart);
 
     let counterpartStart: Date;
-    if (bucketUnit === 'day' && monthShift !== undefined) {
-        // Periods a calendar month or year apart compare a day with the same date, which a shorter month can lack.
-        counterpartStart = subMonths(bucketStart, monthShift);
+    if (bucketUnit === 'day' && periods.monthsApart !== undefined) {
+        counterpartStart = subMonths(bucketStart, periods.monthsApart);
+        // Going back a month turns October 31 into September 30, since September has no 31st, so that day has no counterpart.
         if (getDate(counterpartStart) !== getDate(bucketStart)) {
             return undefined;
         }

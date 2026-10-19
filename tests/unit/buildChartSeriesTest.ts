@@ -1,6 +1,7 @@
 import type {ChartDataPoint} from '@components/Charts/types';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
+import type {ChartComparisonPeriods} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {
     TransactionDayGroupListItemType,
@@ -514,10 +515,10 @@ describe('buildChartSeries labels for compared time buckets', () => {
     });
 
     /** Builds the plotted values of a chart comparing the window on screen against the one before it, which had no expenses. */
-    function buildValues(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+    function buildValues(rows: GroupedItem[], groupBy: SearchGroupBy, periods: ChartComparisonPeriods) {
         return buildChartSeries({
             data: rows,
-            comparison: {data: [], color: themeColors.green200, periods: {primary: current, comparison: previous}},
+            comparison: {data: [], color: themeColors.green200, periods},
             view: CONST.SEARCH.VIEW.LINE,
             groupBy,
             getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
@@ -529,15 +530,25 @@ describe('buildChartSeries labels for compared time buckets', () => {
 
     it('plots nothing for the compared period where it has no matching day, unlike a day with no expenses', () => {
         // Given October plotted by day against September, which has no 31st
-        const values = buildValues(
-            [dayGroup('2026-10-30'), dayGroup('2026-10-31')],
-            CONST.SEARCH.GROUP_BY.DAY,
-            {start: '2026-10-01', end: '2026-10-31'},
-            {start: '2026-09-01', end: '2026-09-30'},
-        );
+        const values = buildValues([dayGroup('2026-10-30'), dayGroup('2026-10-31')], CONST.SEARCH.GROUP_BY.DAY, {
+            primary: {start: '2026-10-01', end: '2026-10-31'},
+            comparison: {start: '2026-09-01', end: '2026-09-30'},
+            monthsApart: 1,
+        });
 
         // Then October 30 is compared with an empty September 30, and October 31 with nothing
         expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
+    });
+
+    it('pairs the days of a custom range by their position, even when both periods start on the same date', () => {
+        // Given January 31 to March 2 plotted by day against the 31 days before it, December 31 to January 30
+        const values = buildValues([dayGroup('2026-03-01')], CONST.SEARCH.GROUP_BY.DAY, {
+            primary: {start: '2026-01-31', end: '2026-03-02'},
+            comparison: {start: '2025-12-31', end: '2026-01-30'},
+        });
+
+        // Then March 1, the range's 30th day, is compared with January 29 rather than with February 1, outside the compared range
+        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}]);
     });
 
     /** Builds the dates the tooltip shows for each period at every point. */
