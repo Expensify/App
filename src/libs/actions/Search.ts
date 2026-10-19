@@ -2723,6 +2723,7 @@ export {
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
+    openSearchVendorFiltersPage,
     openSearchTagFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
