@@ -210,9 +210,9 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                     <AddressFields
                                         street1={street1}
                                         street2={street2}
-                                        city={shippingAddress?.addressCity}
+                                        city={inputValues.city ?? shippingAddress?.addressCity}
                                         state={inputValues.state ?? shippingAddress?.addressState}
-                                        zip={shippingAddress?.addressZip}
+                                        zip={inputValues.zipPostCode ?? shippingAddress?.addressZip}
                                         defaultCountry={defaultCountry}
                                         country={inputValues.country ?? defaultCountry}
                                     />

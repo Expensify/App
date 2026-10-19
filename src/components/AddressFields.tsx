@@ -44,18 +44,29 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [stateValue, setStateValue] = useState(state ?? '');
+    const [cityValue, setCityValue] = useState(city ?? '');
+    const [zipValue, setZipValue] = useState(zip ?? '');
 
     // The state list only has US states, so a state kept from another country shows as empty
     const usStateValue = stateValue in COMMON_CONST.STATES ? stateValue : '';
 
-    // A state from another country isn't valid for the new one
-    const updateState = (value: unknown, key: unknown) => {
+    // A state, city or zip from another country isn't valid for the new one
+    const updateAddress = (value: unknown, key: unknown) => {
         if (key === INPUT_IDS.COUNTRY && value !== country) {
             setStateValue('');
+            setCityValue('');
+            setZipValue('');
             return;
         }
-        if (key === INPUT_IDS.STATE && typeof value === 'string') {
+        if (typeof value !== 'string') {
+            return;
+        }
+        if (key === INPUT_IDS.STATE) {
             setStateValue(value);
+        } else if (key === INPUT_IDS.CITY) {
+            setCityValue(value);
+        } else if (key === INPUT_IDS.ZIP_POST_CODE) {
+            setZipValue(value);
         }
     };
 
@@ -66,7 +77,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                 inputID={INPUT_IDS.ADDRESS_LINE_1}
                 label={translate('common.addressLine', 1)}
                 defaultValue={street1}
-                onValueChange={updateState}
+                onValueChange={updateAddress}
                 renamedInputKeys={{
                     street: INPUT_IDS.ADDRESS_LINE_1,
                     street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -94,7 +105,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     InputComponent={CountryPicker}
                     inputID={INPUT_IDS.COUNTRY}
                     defaultValue={defaultCountry}
-                    onValueChange={updateState}
+                    onValueChange={updateAddress}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -104,7 +115,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                         InputComponent={StatePicker}
                         inputID={INPUT_IDS.STATE}
                         value={usStateValue}
-                        onValueChange={updateState}
+                        onValueChange={updateAddress}
                     />
                 </View>
             ) : (
@@ -115,7 +126,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
                     value={stateValue}
-                    onValueChange={updateState}
+                    onValueChange={updateAddress}
                     spellCheck={false}
                 />
             )}
@@ -126,7 +137,8 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                 label={translate('common.city')}
                 aria-label={translate('common.city')}
                 role={CONST.ROLE.PRESENTATION}
-                defaultValue={city}
+                value={cityValue}
+                onValueChange={updateAddress}
                 spellCheck={false}
             />
             <View style={styles.formSpaceVertical} />
@@ -137,7 +149,8 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                 aria-label={translate('common.zipPostCode')}
                 role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="characters"
-                defaultValue={zip}
+                value={zipValue}
+                onValueChange={updateAddress}
                 hint={translate('common.zipCodeExampleFormat', getCountryZipRegexDetails(country)?.samples ?? '')}
                 autoComplete="postal-code"
             />
