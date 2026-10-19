@@ -32,7 +32,6 @@ import {
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getGroupPoliciesWhereReportCanBeCreated,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getApprovalWorkflow,
