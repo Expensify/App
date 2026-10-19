@@ -66,15 +66,30 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toBeUndefined();
     });
 
-    it('drops the row of a compared series that has nothing at the point', () => {
+    it('leaves the tooltip as it is when the average has nothing at the point', () => {
         // Given April's spend, compared against an average that has no value for April
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};
+
+        // When the tooltip for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then there is no comparison, so the tooltip shows April's amount and expense count rather than one unnamed row
+        expect(comparison).toBeUndefined();
+    });
+
+    it('drops the row of a previous period that has nothing at the point', () => {
+        // Given October 31, which the shorter previous month has no day for
+        const point: ChartDataPoint = {
+            label: 'Oct 31',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300},
+            seriesLabels: {[CHART_SERIES_KEY.PRIMARY]: 'Oct 31, 2026'},
+        };
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then only April's amount is listed, under the April title, with no change to show
-        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, amount: '$300', percentage: undefined}], change: undefined});
+        // Then only October 31's amount is listed, named by its date, with no change to show
+        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: 'Oct 31, 2026', amount: '$300', percentage: undefined}], change: undefined});
     });
 
     it('shows how much the primary series grew against the compared one', () => {
