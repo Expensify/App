@@ -19,8 +19,8 @@ Work that runs during a navigation, modal or keyboard transition competes with t
 
 `TransitionTracker.runAfterTransitions({callback})` runs the callback synchronously when no transition is active. When it is called before the transition starts (for example, right after a navigation call), pass `waitForUpcomingTransition`. These primitives wait for tracked transitions to settle, with a fallback timeout if none starts. Two of them can also release earlier:
 
-- `KeyboardUtils.dismiss` calls `afterTransition` right away when the keyboard is not visible
-- `API.writeWhenReady` runs the write right away when the app goes to the background
+- `KeyboardUtils.dismiss` calls `afterTransition` right away when the keyboard is not visible, and always on desktop web
+- `API.writeWhenReady` runs the write right away when the app goes inactive or to the background
 
 Inline timing (a guessed `setTimeout`, `requestAnimationFrame` calls, state flags flushed on focus) guesses when the transition ends instead of knowing it, and every new flow adds another variant. See [DEFER_AFTER_PAINT.md](../../../../contributingGuides/DEFER_AFTER_PAINT.md) for which primitive fits which case, and for when `API.writeWhenReady` is not a safe replacement for `API.write`.
 
@@ -133,9 +133,9 @@ Flag these patterns in added or changed lines:
 
     Tell the author the fix must keep the old behavior:
     - the navigation call still runs in the same cases as before, and the delayed work keeps the same guards. A guard that sat between the navigation call and the timer must not start skipping the navigation
-    - if the timer was cleared somewhere (for example on unmount), keep that with a cancelled flag checked inside the callback, because `afterTransition` has no cancel handle
+    - if the timer was cleared somewhere (for example on unmount), keep that. `afterTransition` has no cancel handle, so either check a cancelled flag inside the callback, or schedule the work with `Navigation.runAfterUpcomingTransition` right after the navigation call and call `cancel()` on the handle it returns in the cleanup
     - some of the `Navigation` methods above can return early on some paths without calling `afterTransition`, while the old timer always ran. For example: `goBack` at the root of the stack, or when it falls back to resetting to the app root; `revealRouteBeforeDismissingModal` when navigation is not ready; `dismissToPreviousRHP` when there is nothing to dismiss. If the work must still run on those paths, it needs its own path
-    - the timing can change. `KeyboardUtils.dismiss` runs `afterTransition` synchronously when the keyboard is already hidden, so the work runs before the next line instead of later. When no transition starts, `afterTransition` waits up to `CONST.MAX_TRANSITION_START_WAIT_MS` (1000 ms), which can be later than the old timer
+    - the timing can change. `KeyboardUtils.dismiss` runs `afterTransition` synchronously when the keyboard is already hidden, and always on desktop web, so the work runs before the next line instead of later. When no transition starts, `afterTransition` waits up to `CONST.MAX_TRANSITION_START_WAIT_MS` (1000 ms), which can be later than the old timer
 
     Do not flag pattern 1 when the delay is a UI duration that doesn't depend on a transition, such as a tooltip hover delay or how long a toast stays on screen. A tooltip or toast delayed to wait for a navigation, modal or keyboard transition is not exempt. If the purpose is unclear, do not flag.
 
@@ -160,8 +160,6 @@ Flag these patterns in added or changed lines:
 
     Do not flag pattern 3 when the delay is a UI duration that doesn't depend on a transition (a tooltip hover delay, a toast that shows after N ms). A tooltip or toast delayed to wait for a navigation, modal or keyboard transition is not exempt. Also do not flag when a comment says the code needs a first frame or layout pass for a reason other than a transition (measuring, hydration).
 
-4. **`InteractionManager`.** A newly added import of `InteractionManager` from `react-native`, or a newly added call to any of its methods. Comments, strings, and existing uses on a line that was only touched for another reason do not count. It is deprecated in React Native, and on native `runAfterInteractions` no longer waits for interactions: the callback runs on the next `setImmediate`. Web still uses the `react-native-web` implementation, so the same call behaves differently per platform. See [INTERACTION_MANAGER.md](../../../../contributingGuides/INTERACTION_MANAGER.md).
-
 **Caveats for suggesting `API.writeWhenReady`:** only suggest it when the delayed work is a single `API.write` call with no fourth `conflictResolver` argument, no condition inside the delayed callback, and no cancellation of the old timer (a `writeWhenReady` call can't be cancelled), and the diff shows no other API write in the same function. A deferred write is lost if the app is killed before it runs, so don't suggest it for writes the user can't simply redo (payments, approvals, deletions). If you can't tell from the diff, suggest `afterTransition` instead. Not seeing another write in the diff does not prove there is none, and `writeWhenReady` calls do not keep their order relative to each other. If you can't tell whether ordering matters, suggest `afterTransition` instead.
 
 **DO NOT flag if:**
@@ -176,4 +174,3 @@ Flag these patterns in added or changed lines:
 - `requestAnimationFrame(`
 - `useFocusEffect(`
 - `useState(false)`
-- `InteractionManager`
