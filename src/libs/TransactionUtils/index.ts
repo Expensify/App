@@ -293,7 +293,25 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         }
 
         const rateText = storedReducedMerchant.slice(storedReducedMerchant.indexOf(CONST.DISTANCE_MERCHANT_SEPARATOR) + CONST.DISTANCE_MERCHANT_SEPARATOR.length).trim();
-        const fullAmount = Math.round((Math.abs(storedReducedAmount ?? 0) * fullDistance) / reducedDistance);
+        let fullAmount = Math.round((Math.abs(storedReducedAmount ?? 0) * fullDistance) / reducedDistance);
+        const savedCurrency = getCurrency(transaction);
+        const currencyPrefix = [getCurrencySymbol(savedCurrency), `${savedCurrency} `].find((prefix) => !!prefix && rateText.startsWith(prefix));
+        const unitSuffix = ` / ${storedUnit}`;
+        if (currencyPrefix && rateText.endsWith(unitSuffix)) {
+            const numericRateText = rateText.slice(currencyPrefix.length, -unitSuffix.length);
+            // Distance rate labels have no grouping separators. Verify the entire saved value before using it.
+            if (/^\d+(?:[.,]\d{1,4})?$/.test(numericRateText)) {
+                const savedRate = Number(numericRateText.replace(',', '.')) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET;
+                const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
+                if (
+                    Number.isFinite(savedRate) &&
+                    savedRate > 0 &&
+                    DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, savedRate) === Math.abs(storedReducedAmount)
+                ) {
+                    fullAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, savedRate);
+                }
+            }
+        }
         return {
             ...transaction,
             amount: (storedReducedAmount ?? 0) < 0 ? -fullAmount : fullAmount,

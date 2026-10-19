@@ -2037,9 +2037,11 @@ describe('TransactionUtils', () => {
         });
 
         it.each([
-            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50'},
-            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50'},
-        ])('keeps the full amount when switching from $fromLocale to $toLocale after a manual distance edit', ({fromLocale, toLocale, savedRateText}) => {
+            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50', liveRate: 50},
+            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50', liveRate: 50},
+            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50', liveRate: 100},
+            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50', liveRate: 100},
+        ])('keeps the full amount from $fromLocale to $toLocale with live rate $liveRate after a manual distance edit', ({fromLocale, toLocale, savedRateText, liveRate}) => {
             // Given a saved expense whose manual distance edit left an old base merchant and a rounded commuter amount
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
@@ -2066,7 +2068,7 @@ describe('TransactionUtils', () => {
                         ...policyWithDistanceRate.customUnits?.distance,
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                         customUnitID: 'distance',
-                        rates: {custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: 50}},
+                        rates: {custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: liveRate}},
                     },
                 },
             };
@@ -2094,6 +2096,47 @@ describe('TransactionUtils', () => {
             // Then both locales use the selected rate, not a ratio of the already rounded two cents
             expect(originalDisplay?.amount).toBe(-52);
             expect(translatedDisplay?.amount).toBe(-52);
+            if (liveRate !== 50) {
+                expect(originalDisplay?.merchant).toBe(`1.03 mi @ ${savedRateText} / mi`);
+                expect(translatedDisplay?.merchant).toBe(`1.03 mi @ ${savedRateText} / mi`);
+            }
+        });
+
+        it('preserves the restored amount for a saved ISO currency prefix when currency data loads', () => {
+            // Given a reduced snapshot saved with an ISO currency prefix and a rounded two-cent amount
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 541,
+                modifiedAmount: -2,
+                currency: CONST.CURRENCY.USD,
+                merchant: '10.82 mi @ USD 0.50 / mi',
+                modifiedMerchant: '0.03 mi @ USD 0.50 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'custom',
+                        quantity: 1.03,
+                        reimbursableDistance: 0.03,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            // When the same saved transaction renders before and after its currency symbol loads
+            const displays = [undefined, '$'].map((symbol) =>
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    translate: (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters),
+                    getCurrencySymbol: () => symbol,
+                }),
+            );
+
+            // Then loading currency data does not change the restored total or historical rate
+            for (const display of displays) {
+                expect(display?.amount).toBe(-52);
+                expect(display?.merchant).toBe('1.03 mi @ USD 0.50 / mi');
+            }
         });
 
         it('keeps the saved transaction when the rate currency has the same symbol', () => {
