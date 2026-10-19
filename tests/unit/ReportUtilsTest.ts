@@ -376,6 +376,7 @@ jest.mock('@libs/PolicyUtils', () => {
         // aren't on it yet. Spread them from their own modules, which load fully.
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
