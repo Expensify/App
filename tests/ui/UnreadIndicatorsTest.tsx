@@ -950,7 +950,8 @@ describe('Unread Indicators', () => {
         });
     });
 
-    it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {
+    it('marks the latest comment unread from the inbox even when it was sent by the current user', async () => {
+        // Given a read chat whose latest message was sent by the current user
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOptionWithoutAct(0);
 
@@ -978,21 +979,25 @@ describe('Unread Indicators', () => {
                 },
             });
         });
-        // Then USER_A mark the report as unread
-        markCommentAsUnread(
-            REPORT_ID,
-            reportActions,
-            createMock<ReportAction>({
-                // @ts-expect-error -- Deliberately pass the numeric LHN invalid sentinel through MarkAsUnreadParams to exercise the runtime path.
-                reportActionID: -1,
-            }),
-            USER_A_ACCOUNT_ID,
-            false,
-        );
+        const latestReport = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        await navigateToSidebar();
+
+        // When USER_A marks the non-selected report as unread from the inbox
+        markCommentAsUnread(REPORT_ID, reportActions, createMock<ReportAction>({}), USER_A_ACCOUNT_ID, false);
         await waitForBatchedUpdates();
 
-        // Then the lastReadTime of report should same as last action from USER_B
+        // Then the read cursor is just before the latest self-authored comment and the inbox row is bold
         const updatedReport = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-        expect(updatedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportAction9CreatedDate, 1));
+        expect(updatedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(latestReport?.lastVisibleActionCreated ?? '', 1));
+        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
+        await waitFor(() => {
+            expect(screen.getByLabelText(hintText)).toEqual(
+                expect.objectContaining({
+                    props: expect.objectContaining({
+                        style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                    }),
+                }),
+            );
+        });
     });
 });

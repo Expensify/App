@@ -21,6 +21,7 @@ let mockIsAnonymousUser = false;
 let mockLastReadTime: string = LAST_READ_TIME;
 let mockLastReadTimeByReportID: Record<string, string> = {};
 let mockManuallyMarkedUnreadReportActionID: string | null = null;
+let mockManuallyMarkedUnreadTime: string | null = null;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -32,10 +33,10 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
-// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice with different selectors, so the mock
-// applies the passed selector to a fake report. The implementation is set in beforeEach so it can use ONYXKEYS
+// The hook subscribes to report data and metadata with different selectors, so the mock
+// applies the passed selector to fake data. The implementation is set in beforeEach so it can use ONYXKEYS
 // freely (a jest.mock factory cannot reference out-of-scope variables).
-type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'>;
+type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'> & Pick<OnyxTypes.ReportMetadata, 'manuallyMarkedUnreadTime'>;
 type UseOnyxOptions = {selector?: (value: FakeReport | undefined) => unknown};
 const mockUseOnyx = jest.fn<[unknown], [string, UseOnyxOptions?]>();
 jest.mock('@hooks/useOnyx', () => ({
@@ -73,10 +74,15 @@ describe('useUnreadMarker', () => {
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
         mockManuallyMarkedUnreadReportActionID = null;
+        mockManuallyMarkedUnreadTime = null;
         jest.restoreAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime, manuallyMarkedUnreadReportActionID: mockManuallyMarkedUnreadReportActionID};
+            const report: FakeReport = {
+                lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime,
+                manuallyMarkedUnreadReportActionID: mockManuallyMarkedUnreadReportActionID,
+                manuallyMarkedUnreadTime: mockManuallyMarkedUnreadTime,
+            };
             return [options?.selector ? options.selector(report) : report];
         });
     });
@@ -93,6 +99,31 @@ describe('useUnreadMarker', () => {
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
 
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('resolves a report-level unread mark when self-authored history finishes loading', () => {
+        // Given an inbox mark made before this chat's actions were loaded
+        mockManuallyMarkedUnreadTime = LAST_READ_TIME;
+        const action = makeAction('own-message', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+        const {result, rerender} = renderHook(
+            ({actions}: {actions: OnyxTypes.ReportAction[]}) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: actions.length > 0,
+                }),
+            {initialProps: {actions: [] as OnyxTypes.ReportAction[]}},
+        );
+
+        // When the chat's history arrives
+        rerender({actions: [action]});
+
+        // Then the explicit mark bypasses self-message auto-read suppression
+        expect(result.current.unreadMarkerReportActionID).toBe(action.reportActionID);
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
     });
 
