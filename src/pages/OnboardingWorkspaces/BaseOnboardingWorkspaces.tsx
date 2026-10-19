@@ -81,9 +81,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         hasOutstandingChildTask: joinWorkspaceTaskHasOutstandingChildTask,
         parentReportAction: joinWorkspaceTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
@@ -96,6 +93,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isSelfTourViewed = hasSeenTourSelector(onboardingValues);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: route.params?.isJoinWorkspaceTask === 'true'});
@@ -110,7 +108,17 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [accessiblePoliciesRequestID, setAccessiblePoliciesRequestID] = useState<string | undefined>();
     const isFinishingOnboarding = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
-    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding();
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding({
+        session,
+        loginList,
+        onboardingValues,
+        onboardingPersonalDetails,
+        introSelected,
+        conciergeReportID,
+        conciergeChat,
+        reportNameValuePairs,
+        delegateAccountID,
+    });
     const returnToOriginReport = useReturnToOriginReport();
     // Nothing in this stack to go back to. The work email merge and the private domain screen force-replace into this
     // screen, so it is the only route there. `canGoBack()` can't answer this: it bubbles to the root stack.
@@ -252,7 +260,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
-    // Empty deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
+    // Stable setter deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
     // clears when the screen is actually left and a later focus can retry.
     useFocusEffect(
         useCallback(
@@ -260,7 +268,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 setHasRequestedAccessiblePolicies(false);
                 setAccessiblePoliciesRequestID(undefined);
             },
-            [],
+            [setHasRequestedAccessiblePolicies, setAccessiblePoliciesRequestID],
         ),
     );
 
@@ -285,7 +293,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
             setHasRequestedAccessiblePolicies(true);
             setAccessiblePoliciesRequestID(getAccessiblePolicies());
-        }, [accessiblePoliciesActionRequestID, hasRequestedAccessiblePolicies, isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
+        }, [
+            accessiblePoliciesActionRequestID,
+            hasRequestedAccessiblePolicies,
+            isValidated,
+            joinablePoliciesLength,
+            joinablePoliciesLoading,
+            setHasRequestedAccessiblePolicies,
+            setAccessiblePoliciesRequestID,
+        ]),
     );
 
     const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
