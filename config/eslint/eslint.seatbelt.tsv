@@ -760,7 +760,6 @@
 "../../src/libs/fileDownload/getImageResolution.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/fileDownload/index.android.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/fileDownload/index.ios.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/fileDownload/validateReceiptFile/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/filterArrayByMatch.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/focusComposerWithDelay/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/focusComposerWithDelay/setTextInputSelection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
