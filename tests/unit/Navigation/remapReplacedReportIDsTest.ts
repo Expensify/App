@@ -31,6 +31,11 @@ describe('remapReplacedReportIDs', () => {
             ],
         };
         const action = CommonActions.reset(savedState);
+        const workspaceRoute = savedState.routes.at(0);
+        const modalRoute = savedState.routes.at(1);
+        if (!workspaceRoute || !modalRoute) {
+            throw new Error('Expected workspace and modal routes in the saved state');
+        }
         registerReportReplacement('1100', '1200');
 
         // When Forward restores that entry after reconnection
@@ -41,9 +46,9 @@ describe('remapReplacedReportIDs', () => {
             CommonActions.reset({
                 ...savedState,
                 routes: [
-                    savedState.routes[0],
+                    workspaceRoute,
                     {
-                        ...savedState.routes[1],
+                        ...modalRoute,
                         state: {
                             index: 1,
                             routes: [
@@ -60,7 +65,7 @@ describe('remapReplacedReportIDs', () => {
                 ],
             }),
         );
-        expect(savedState.routes[1]?.state?.routes[1]?.params.reportID).toBe('1100');
+        expect(savedState.routes.at(1)?.state?.routes.at(1)?.params.reportID).toBe('1100');
         expect(action.payload).toBe(savedState);
         expect(remapReplacedReportIDs(action)).toEqual(result);
         expect(remapReplacedReportIDs(result)).toBe(result);
