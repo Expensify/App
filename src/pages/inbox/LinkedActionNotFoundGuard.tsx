@@ -30,26 +30,27 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const routeParams = route.params as {reportActionID?: string} | undefined;
     const reportActionIDFromRoute = routeParams?.reportActionID;
 
-    if (!reportActionIDFromRoute) {
-        return children;
-    }
-
+    // The gate is a sibling rather than a wrapper so that setting, changing or clearing the linked action never remounts
+    // the report subtree (header, actions list, composer) and drops its local state, e.g. the composer text.
+    // It comes after children so its recovery effects still run after theirs, as they did when it wrapped them.
     return (
-        <LinkedActionNotFoundGate
-            key={reportActionIDFromRoute}
-            reportActionIDFromRoute={reportActionIDFromRoute}
-        >
+        <>
             {children}
-        </LinkedActionNotFoundGate>
+            {!!reportActionIDFromRoute && (
+                <LinkedActionNotFoundGate
+                    key={reportActionIDFromRoute}
+                    reportActionIDFromRoute={reportActionIDFromRoute}
+                />
+            )}
+        </>
     );
 }
 
 type LinkedActionNotFoundGateProps = {
     reportActionIDFromRoute: string;
-    children: ReactNode;
 };
 
-function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
+function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
     const navigation = useNavigation();
     const navigatorKey = navigation.getState()?.key;
@@ -147,7 +148,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);
 
-    return children;
+    return null;
 }
 
 LinkedActionNotFoundGuard.displayName = 'LinkedActionNotFoundGuard';
