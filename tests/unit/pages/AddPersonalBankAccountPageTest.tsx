@@ -547,5 +547,62 @@ describe('AddPersonalBankAccountPage', () => {
             const draft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
             expect(draft).not.toHaveProperty('confirmedOwnershipDetails');
         });
+
+        it.each(['Incorrect or invalid magic code. Please try again or request a new code.', 'Too many failed attempts. Please try again later.'])(
+            'clears a magic code error once the user goes back to the confirmation step: %s',
+            async (magicCodeError) => {
+                // Given a user who went back to the confirmation step from the magic code step, where their code was rejected
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                    await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+                    await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: magicCodeError}});
+                });
+
+                // When the confirmation step is shown
+                await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+                // Then the error is cleared, since it is about the magic code and not the details shown there
+                expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
+            },
+        );
+
+        it('keeps any other error on the confirmation step', async () => {
+            // Given a user who went back to the confirmation step from the magic code step, where the submission failed for a reason other than the magic code
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'This bank account has already been added.'}});
+            });
+
+            // When the confirmation step is shown
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // Then the error stays, so it shows next to the details to fix
+            expect(clearPersonalBankAccountErrors).not.toHaveBeenCalled();
+            expect(screen.getByText('This bank account has already been added.')).toBeTruthy();
+        });
+
+        it('clears the error kept for the confirmation step once the user goes back to a details step, so they can go forward again', async () => {
+            // Given the account ownership error kept for the confirmation step, and a user who went back from it to the bank account details step
+            jest.mocked(clearPersonalBankAccountErrors).mockImplementationOnce(() => {
+                Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199', confirmedOwnershipDetails: true});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they submit the details step
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error is cleared and they move on, since the details form shares the error's Onyx key and won't submit while it has one
+            expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText('Unable to verify bank account ownership.')).toBeNull();
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 });
