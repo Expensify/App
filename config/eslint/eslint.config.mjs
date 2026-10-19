@@ -743,7 +743,7 @@ const config = defineConfig([
 
     {
         files: ['src/**/*'],
-        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts', 'src/libs/Navigation/types.ts'],
         rules: {
             'max-lines': ['error', 4000],
         },
