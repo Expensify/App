@@ -1,26 +1,31 @@
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
+import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
+import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {INSIGHTS_CHART_STATE} from '@pages/Insights/resolveChartData';
+import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,15 +33,22 @@ import {View} from 'react-native';
 import InsightsDataTable from './InsightsDataTable';
 
 type InsightsChartWidgetProps = {
-    dashboardID: InsightsDashboardID;
-
     chart: InsightsChartSpec;
+
+    /** The chart's own query, with the page's filters applied */
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's own query */
+    snapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's query for the typical amounts */
+    averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the typical amounts */
+    averageSnapshot: OnyxEntry<SearchResults>;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
-
-    /** Hash of the dashboard-wide query, which the record naming this chart's snapshot is stored under */
-    hash: number | undefined;
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
@@ -45,31 +57,32 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
+function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {queryJSON, data, state} = useInsightsChartData(dashboardID, hash, chart, filters);
-    const groupBy = queryJSON?.groupBy;
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}, filters);
+    const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
 
-    if (!queryJSON || !groupBy) {
-        return null;
-    }
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
 
-    const groupByControl = onGroupByChange ? (
-        <InsightsGroupByDropdown
-            groupBy={filters.groupBy}
-            onChange={onGroupByChange}
-        />
-    ) : null;
+    const groupByControl =
+        onGroupByChange && groupByOptions.length > 1 ? (
+            <InsightsGroupByDropdown
+                groupBy={getQueryGroupBy(filters)}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
 
     const headerMenu =
-        state === INSIGHTS_CHART_STATE.READY || isLoading ? (
+        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
+                size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
                 menuItems={[
@@ -88,32 +101,33 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGrou
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {groupByControl}
                         {headerMenu}
                     </View>
                 ) : null
             }
         >
+            {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
+                <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={chart.view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
-                        color={chart.color}
-                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        comparison={comparison}
+                        chartContainerStyle={cardPaddingHorizontal}
+                        shouldShowSinglePointAsBar
+                        shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? (rows) => (
+                                ? ({rows}) => (
                                       <InsightsDataTable
                                           rows={rows}
-                                          view={chart.view}
-                                          groupBy={groupBy}
                                           isLoading={isLoading}
                                       />
                                   )

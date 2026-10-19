@@ -1,9 +1,9 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +29,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: categoryForComparison,
         onSave,
@@ -52,6 +52,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             text={categoryForDisplay}
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
+            isSelectable
         />
     );
 
@@ -68,7 +69,10 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                 />
             }

@@ -9,10 +9,12 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import {getCategoryTaxRuleTaxID, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
+import {getTaxByID} from './PolicyUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -56,6 +58,7 @@ function getFlagForReviewContextualSummary(
  */
 function getCategoryContextualRules({
     policy,
+    policyCategories,
     category,
     categoryName,
     translate,
@@ -63,6 +66,8 @@ function getCategoryContextualRules({
     isOffline,
 }: {
     policy: Policy | undefined;
+    /** Read for the pending delete of the category a tax default depends on. */
+    policyCategories: PolicyCategories | undefined;
     category: PolicyCategory | undefined;
     categoryName: string;
     translate: LocaleContextProps['translate'];
@@ -106,6 +111,24 @@ function getCategoryContextualRules({
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
                 pendingAction: requireFieldsPendingAction,
                 isDisabled: isRequireFieldsPendingDelete,
+            });
+        }
+    }
+
+    // A tax default lives in `policy.rules.expenseRules` rather than on the category, and carries no pending state of
+    // its own, so it follows the Expense defaults table and borrows the delete of the category or rate it depends on.
+    const taxID = getCategoryTaxRuleTaxID(policy.rules?.expenseRules, categoryName);
+    if (taxID) {
+        const taxPendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
+        const isTaxPendingDelete = taxPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        if (isOffline || !isTaxPendingDelete) {
+            const taxDisplayName = getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
+            rules.push({
+                key: `tax-${categoryName}`,
+                summary: translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), taxDisplayName),
+                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
+                pendingAction: taxPendingAction,
+                isDisabled: isTaxPendingDelete,
             });
         }
     }

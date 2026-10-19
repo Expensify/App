@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -34,6 +35,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameTagInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearPolicyTagErrors,
     deletePolicyTags,
@@ -61,6 +63,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -101,6 +104,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -322,6 +326,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
+    const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.reduce<WorkspaceTagTableRowData[]>((acc, policyTagList) => {
@@ -350,6 +356,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
+                    // Inline renaming targets single-level tags only; tag lists are renamed from their settings page.
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onClose: () => {},
                 });
@@ -391,8 +398,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 pending: shouldShowPendingSwitch && tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
+                canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
+                onRenameName: (newName: string) => showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled)),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
@@ -400,6 +409,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }, []);
     }, [
         canWriteTags,
+        isSelectionModeActive,
+        policyData,
         handleTagEnabledToggle,
         isMultiLevelTags,
         isOffline,
@@ -407,11 +418,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policy,
         policyID,
         policyTagLists,
+        translate,
         policyTags,
         shouldShowApproverColumn,
         tagApproverEmails,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const tagRowsKeyedByName = useMemo(
@@ -797,7 +810,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     >
                         {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                     </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
                     {(!hasVisibleTags || isLoading) && headerContent}
                     {isLoading && (
                         <ActivityIndicator

@@ -1,9 +1,11 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-import useListItemHighlight from '@components/SelectionList/ListItemComposed/hooks/useListItemHighlight';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -38,12 +40,21 @@ function ChatListItem<TItem extends ListItem>({
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportActionItem?.reportID);
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
+    const StyleUtils = useStyleUtils();
     const {isSelected} = useRowSelection(item.keyForList);
-    const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-    });
+    const pressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.p0,
+        styles.textAlignLeft,
+        styles.overflowHidden,
+        // Background is applied on the parent wrapper, so keep this transparent
+        styles.bgTransparent,
+        isSelected && styles.activeComponentBG,
+        styles.mh0,
+    ];
 
     const fsClass = FS.getChatFSClass(reportStable);
 
@@ -52,7 +63,7 @@ function ChatListItem<TItem extends ListItem>({
     return (
         <ListItemComposed
             item={item}
-            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden, item.cursorStyle]}
+            pressableStyle={pressableStyle}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
@@ -63,7 +74,7 @@ function ChatListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={pressableWrapperStyle}
+            pressableWrapperStyle={[pageGutterMargin, StyleUtils.getSearchRowBackgroundStyle(isSelected), styles.br2]}
             hoverStyle={isSelected && styles.activeComponentBG}
         >
             <View
@@ -82,6 +93,7 @@ function ChatListItem<TItem extends ListItem>({
                     isFirstVisibleReportAction={false}
                     shouldDisplayContextMenu={false}
                     shouldShowBorder
+                    reportsParentHierarchy={reportsParentHierarchy}
                 />
             </View>
         </ListItemComposed>

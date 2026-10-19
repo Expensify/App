@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -16,10 +17,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {
     canEditRoomVisibility,
     canEditWriteCapability,
-    getReportNotificationPreference,
+    getReportNotificationPreferenceForSettings,
     isAdminRoom,
     isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
-    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
@@ -45,22 +45,21 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS.path);
     const isReportArchived = useReportIsArchived(reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
-    const notificationPreferenceValue = getReportNotificationPreference(report);
-    const notificationPreference =
-        notificationPreferenceValue && !isHiddenForCurrentUser(notificationPreferenceValue)
-            ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
-            : '';
+    const notificationPreferenceValue = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
+    const notificationPreference = notificationPreferenceValue ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`) : '';
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
     const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport), [linkedWorkspace, isArchivedNonExpenseReport]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 

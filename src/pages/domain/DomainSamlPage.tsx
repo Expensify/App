@@ -76,7 +76,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     );
 
     if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (

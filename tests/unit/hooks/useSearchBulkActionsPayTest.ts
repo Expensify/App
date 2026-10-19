@@ -36,6 +36,7 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 jest.mock('@libs/actions/Search', () => {
     const actualSearch = jest.requireActual<typeof SearchActions>('@libs/actions/Search');
     return {
+        openSearchCardFiltersPage: jest.fn(),
         getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),
@@ -121,6 +122,12 @@ let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: mockIsOffline}),
+}));
+
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -337,7 +344,7 @@ describe('useSearchBulkActions - Pay option', () => {
         });
 
         // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
-        expect(result.current.isOfflineModalVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
