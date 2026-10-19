@@ -1126,6 +1126,8 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            transactionThreadIDs: undefined,
         }),
         isHydrated: true,
     };
@@ -1866,6 +1868,8 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
+        transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,
