@@ -80,7 +80,6 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     onSecondaryButtonPress={goBackToWallet}
                     shouldShowButton
                     buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                    // TODO: Navigate to the next Wise onboarding step once it exists
                     onButtonPress={() => {}}
                 />
             </FullPageNotFoundView>
