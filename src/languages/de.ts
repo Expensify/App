@@ -3954,6 +3954,11 @@ ${amount} für ${merchant} – ${date}`,
                 `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
             youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
             youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+            chooseDelegate: 'Vertretung auswählen',
+            clearAfterRecommended: 'Löschen nach (empfohlen)',
+            willClearOn: (date: string) => `Die Urlaubsvertretung wird am ${date} entfernt`,
+            until: (date: string) => `Bis ${date}`,
+            removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4046,6 +4051,10 @@ ${amount} für ${merchant} – ${date}`,
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `${name} bearbeiten`,
+        removeItem: ({name}: {name: string}) => `${name} entfernen`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4057,7 +4066,13 @@ ${amount} für ${merchant} – ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
             invalidOption: 'Wähle eine der verfügbaren Optionen',
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+            tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
+            tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `${item} hinzufügen`,
+        removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
+        removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -6655,6 +6670,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',
+                commuterExclusionsOnTitle: 'Pendlerfahrten-Ausschlüsse sind aktiviert',
+                disableLockedByCommuterExclusionsPrompt: 'Um Entfernungsraten zu deaktivieren, stellen Sie zuerst „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             },
             perDiem: {
                 title: 'Tagegeld',
@@ -9040,7 +9057,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     toggleTitle: 'Büros',
                     allSelected: 'Alle Büros',
                 },
-                enableJobStagesOrTags: 'Aktivieren Sie Jobphasen oder Tags, um fortzufahren',
+                enableJobStagesOrTags: 'Wählen Sie mindestens eine Jobphase oder ein Tag aus, um fortzufahren',
             },
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
@@ -10030,6 +10047,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         fallbackTitle: 'Support-Ticket',
         resolved: 'Dieses Support-Ticket ist gelöst.',
         surveyPrompt: 'Wie war Ihre Erfahrung mit dem Support?',
+        great: 'Großartig',
+        poor: 'Schlecht',
         reopenTicket: 'Ticket erneut öffnen',
     },
     statementPage: {

@@ -176,6 +176,9 @@ const ONYXKEYS = {
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
 
+    /** Delegator the acting copilot is removing themselves from, kept until the removal is queued so a kill can't lose it */
+    PENDING_SELF_COPILOT_REMOVAL: 'pendingSelfCopilotRemoval',
+
     BETAS: 'betas',
     BETA_CONFIGURATION: 'betaConfiguration',
 
@@ -1222,6 +1225,8 @@ const ONYXKEYS = {
         COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT: 'collectDepositAccountFormDraft',
         INTERNATIONAL_BANK_ACCOUNT_FORM: 'internationalBankAccountForm',
         INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
+        DYNAMIC_FORM_LIST_ITEM_FORM: 'dynamicFormListItemForm',
+        DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT: 'dynamicFormListItemFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         NEW_TASK_FORM: 'newTaskForm',
@@ -1254,6 +1259,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM_DRAFT: 'settingsStatusSetFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        VACATION_DELEGATE_FORM: 'vacationDelegateForm',
+        VACATION_DELEGATE_FORM_DRAFT: 'vacationDelegateFormDraft',
         CHANGE_BILLING_CURRENCY_FORM: 'billingCurrencyForm',
         CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'billingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
@@ -1498,6 +1505,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.VACATION_DELEGATE_FORM]: FormTypes.VacationDelegateForm;
     [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
@@ -1563,6 +1571,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM]: FormTypes.CollectDepositAccountForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
+    [ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: FormTypes.DynamicFormListItemForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
     [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM]: FormTypes.SearchEditMultipleDescriptionForm;
@@ -1759,6 +1768,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL]: string;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
     [ONYXKEYS.AGENT_TEMPLATES]: OnyxTypes.SuggestedAgent[];

@@ -265,7 +265,12 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, previousCommuterExclusions?: CommuterExclusions) {
+    const newDistanceUnit = newCustomUnit.attributes?.unit;
+    const shouldUpdateCommuterExclusionUnit =
+        previousCommuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && typeof previousCommuterExclusions.fixedDistance === 'number' && !!newDistanceUnit;
+    const optimisticCommuterExclusions = shouldUpdateCommuterExclusionUnit ? {...previousCommuterExclusions, fixedDistanceUnit: newDistanceUnit} : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -277,6 +282,13 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: optimisticCommuterExclusions,
+                          pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                          errorFields: {commuterExclusions: null},
+                      }
+                    : {}),
             },
         },
     ];
@@ -291,6 +303,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions ? {pendingFields: {commuterExclusions: null}} : {}),
             },
         },
     ];
@@ -307,6 +320,16 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: {
+                              ...previousCommuterExclusions,
+                              fixedDistanceUnit: previousCommuterExclusions?.fixedDistanceUnit ?? null,
+                          },
+                          pendingFields: {commuterExclusions: null},
+                          errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                      }
+                    : {}),
             },
         },
     ];

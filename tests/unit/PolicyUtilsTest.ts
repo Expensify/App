@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
+    areSettingsInErrorFields,
     canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
@@ -27,11 +28,13 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getApprovalWorkflow,
     getConnectedIntegration,
     getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
+    getDefaultApprover,
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
@@ -62,6 +65,7 @@ import {
     getReimbursementChoice,
     isPolicyPayer,
     getReimburserEmail,
+    getRuleApprovers,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -117,6 +121,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -1347,354 +1352,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getSubmitToAccountID', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        describe('Has no rule approver', () => {
-            it('should return the policy approver/owner if the policy use the basic workflow', () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.TEAM,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: employeeAccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
-            });
-            it('should return the policy approver/owner if the policy use the optional workflow', () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.TEAM,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: employeeAccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
-            });
-            it('should return the employee submitsTo if the policy use the advance workflow', () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    employeeList,
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: employeeAccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
-            });
-        });
-        describe('Has category/tag approver', () => {
-            it('should return the first category approver if has any transaction category match with category approver rule', async () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    employeeList,
-                    rules,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: employeeAccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                const transaction1: Transaction = {
-                    ...createRandomTransaction(0),
-                    category: 'cat1',
-                    reportID: expenseReport.reportID,
-                };
-                const transaction2: Transaction = {
-                    ...createRandomTransaction(1),
-                    category: '',
-                    reportID: expenseReport.reportID,
-                };
-                const transactionData: TransactionCollectionDataSet = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                };
-                await Onyx.multiSet({...transactionData});
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover1AccountID);
-            });
-            it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    employeeList,
-                    rules,
-                    preventSelfApproval: true,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: categoryApprover1AccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                const transaction: Transaction = {
-                    ...createRandomTransaction(0),
-                    category: 'cat1',
-                    reportID: expenseReport.reportID,
-                    tag: '',
-                };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(adminAccountID);
-            });
-            it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    employeeList,
-                    rules,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: employeeAccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                const transaction1: Transaction = {
-                    ...createRandomTransaction(0),
-                    category: 'cat1',
-                    created: testDate,
-                    reportID: expenseReport.reportID,
-                };
-                const transaction2: Transaction = {
-                    ...createRandomTransaction(1),
-                    category: 'cat2',
-                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                    reportID: expenseReport.reportID,
-                };
-                const transactionData: TransactionCollectionDataSet = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                };
-                await Onyx.multiSet({...transactionData});
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover2AccountID);
-            });
-            it('should return the first rule approver who is not the current submitter', async () => {
-                const policy: Policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'owner@test.com',
-                    owner: 'owner@test.com',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    employeeList,
-                    rules,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                const expenseReport: Report = {
-                    ...createRandomReport(0, undefined),
-                    ownerAccountID: categoryApprover1AccountID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-                const transaction1: Transaction = {
-                    ...createRandomTransaction(0),
-                    category: 'cat1',
-                    reportID: expenseReport.reportID,
-                    tag: '',
-                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
-                };
-
-                const transaction2: Transaction = {
-                    ...createRandomTransaction(1),
-                    category: 'cat3',
-                    reportID: expenseReport.reportID,
-                    tag: '',
-                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                };
-
-                const transaction3: Transaction = {
-                    ...createRandomTransaction(2),
-                    category: '',
-                    reportID: expenseReport.reportID,
-                    tag: 'tag1',
-                    created: testDate,
-                };
-
-                const transactionData: TransactionCollectionDataSet = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
-                };
-                await Onyx.multiSet({...transactionData});
-
-                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(tagApprover1AccountID);
-            });
-            describe('Has no transaction match with the category approver rule', () => {
-                it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
-                    const policy: Policy = {
-                        ...createRandomPolicy(0),
-                        approver: 'owner@test.com',
-                        owner: 'owner@test.com',
-                        type: CONST.POLICY.TYPE.CORPORATE,
-                        employeeList,
-                        rules,
-                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                    };
-                    const expenseReport: Report = {
-                        ...createRandomReport(0, undefined),
-                        ownerAccountID: employeeAccountID,
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                    };
-                    const transaction1: Transaction = {
-                        ...createRandomTransaction(0),
-                        category: '',
-                        tag: 'tag1',
-                        created: testDate,
-                        reportID: expenseReport.reportID,
-                    };
-                    const transaction2: Transaction = {
-                        ...createRandomTransaction(1),
-                        category: '',
-                        tag: '',
-                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                        reportID: expenseReport.reportID,
-                    };
-                    const transactionData: TransactionCollectionDataSet = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    };
-                    await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover1AccountID);
-                });
-                it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
-                    const policy: Policy = {
-                        ...createRandomPolicy(0),
-                        approver: 'owner@test.com',
-                        owner: 'owner@test.com',
-                        type: CONST.POLICY.TYPE.CORPORATE,
-                        employeeList,
-                        rules,
-                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                    };
-                    const expenseReport: Report = {
-                        ...createRandomReport(0, undefined),
-                        ownerAccountID: employeeAccountID,
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                    };
-                    const transaction1: Transaction = {
-                        ...createRandomTransaction(0),
-                        category: '',
-                        tag: 'tag1',
-                        created: testDate,
-                        reportID: expenseReport.reportID,
-                    };
-                    const transaction2: Transaction = {
-                        ...createRandomTransaction(1),
-                        category: '',
-                        tag: 'tag2',
-                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                        reportID: expenseReport.reportID,
-                    };
-                    const transactionData: TransactionCollectionDataSet = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    };
-                    await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover2AccountID);
-                });
-            });
-        });
-    });
-    describe('getSubmitReportManagerAccountID', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        it('should return undefined for an advanced policy where the submitter is missing from the employee list, even if the report has a valid managerID', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approver: 'owner@test.com',
-                owner: 'owner@test.com',
-                // The submitter isn't in the employee list, which is the case for reports migrated from Expensify Classic.
-                employeeList: {},
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-                // The stale Classic-era manager stamped on the migrated report.
-                managerID: categoryApprover1AccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
-        });
-        it('should return the known approver accountID when the policy route is reliable', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approver: 'owner@test.com',
-                owner: 'owner@test.com',
-                employeeList,
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-                managerID: categoryApprover1AccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
-        });
-        it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approver: 'owner@test.com',
-                owner: 'owner@test.com',
-                employeeList: {
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        role: 'user',
-                        submitsTo: 'unknown@test.com',
-                    },
-                    // The approver is still a policy member, so the submit-to route stays put instead of falling back to the default approver.
-                    'unknown@test.com': {
-                        email: 'unknown@test.com',
-                        role: 'user',
-                    },
-                },
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-                managerID: categoryApprover1AccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
-        });
-    });
     describe('shouldShowPolicy', () => {
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();
@@ -1740,375 +1397,879 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getManagerAccountID', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
+    describe('approvals', () => {
+        describe('getApprovalWorkflow', () => {
+            it('should return the optional approval mode for a personal policy', () => {
+                // Given a personal policy that has the advanced approval mode stored on it
+                const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
 
-        it('should return default approver for personal workspaces', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.PERSONAL,
-                approver: categoryApprover1Email,
-            };
-            const result = getManagerAccountID(policy, '', undefined);
+                // When the approval workflow is read
+                // Then it is optional, because personal policies never require approval
+                expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            });
 
-            expect(result).toBe(categoryApprover1AccountID);
-        });
+            it('should return the approval mode set on a group policy', () => {
+                // Given a group policy that uses the basic approval mode
+                const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
 
-        it('should return -1 if there is no employee or default approver', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                approver: undefined,
-                owner: '',
-            };
+                // When the approval workflow is read
+                // Then the policy's own approval mode is returned
+                expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            });
 
-            const result = getManagerAccountID(policy, '', undefined);
+            it('should default to the advanced approval mode when a group policy has no approval mode', () => {
+                // Given a group policy without an approval mode
+                const policy = createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE});
 
-            expect(result).toBe(-1);
-        });
+                // When the approval workflow is read
+                // Then it falls back to advanced approvals
+                expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+            });
 
-        it('should return submitsTo account ID', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                employeeList: {
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        submitsTo: adminEmail,
-                    },
-                },
-            };
-
-            const result = getManagerAccountID(policy, employeeEmail, undefined);
-
-            expect(result).toBe(adminAccountID);
+            it('should default to the advanced approval mode when the policy is undefined', () => {
+                // Given no policy
+                // When the approval workflow is read
+                // Then it falls back to advanced approvals
+                expect(getApprovalWorkflow(undefined)).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+            });
         });
 
-        it('should return submitsTo email from workspace approval config', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                employeeList: {
-                    [adminEmail]: {
-                        email: adminEmail,
-                    },
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        submitsTo: adminEmail,
-                    },
-                },
-            };
-            const report: Report = {
+        describe('getDefaultApprover', () => {
+            it('should return the policy approver when one is set', () => {
+                // Given a policy whose approver is someone other than the owner
+                const policy = createMock<Policy>({approver: approverEmail, owner: 'owner@test.com'});
+
+                // When the default approver is read
+                // Then the approver wins over the owner
+                expect(getDefaultApprover(policy)).toBe(approverEmail);
+            });
+
+            it('should fall back to the policy owner when there is no approver', () => {
+                // Given a policy with an owner but no approver
+                const policy = createMock<Policy>({owner: 'owner@test.com'});
+
+                // When the default approver is read
+                // Then the owner is used
+                expect(getDefaultApprover(policy)).toBe('owner@test.com');
+            });
+
+            it('should fall back to the policy owner when the approver is an empty string', () => {
+                // Given a policy whose approver was cleared to an empty string
+                const policy = createMock<Policy>({approver: '', owner: 'owner@test.com'});
+
+                // When the default approver is read
+                // Then the empty approver is skipped and the owner is used
+                expect(getDefaultApprover(policy)).toBe('owner@test.com');
+            });
+
+            it('should return an empty string when the policy has no approver or owner', () => {
+                // Given a policy with neither an approver nor an owner, and no policy at all
+                const policy = createMock<Policy>({});
+
+                // When the default approver is read
+                // Then there is no one to fall back to
+                expect(getDefaultApprover(policy)).toBe('');
+                expect(getDefaultApprover(undefined)).toBe('');
+            });
+        });
+
+        describe('getRuleApprovers', () => {
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE, rules});
+            const expenseReport: Report = {
                 ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            expect(getSubmitToEmail(policy, report, employeeEmail, undefined)).toBe(adminEmail);
-        });
-
-        it('should return the default approver', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                approver: categoryApprover1Email,
-            };
-
-            const result = getManagerAccountID(policy, '', undefined);
-
-            expect(result).toBe(categoryApprover1AccountID);
-        });
-    });
-
-    describe('approval workflow rules', () => {
-        const policyID = 'RULES_POLICY_1';
-        const submitFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employeeEmail]};
-
-        const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
-
-        const submitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-            filters: submitFilter,
-            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
-        };
-
-        // After the admin approves, an under-limit report continues to the approver and an over-limit one is
-        // escalated to the category approver instead.
-        const underLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: submitFilter,
-                right: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
-                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
-                },
-            },
-            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: approverEmail}},
-        };
-        const overLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: submitFilter,
-                right: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
-                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
-                },
-            },
-            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: categoryApprover1Email}},
-        };
-        const terminalRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: submitFilter,
-                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
-            },
-            actions: {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}},
-        };
-
-        // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
-        // from the legacy fallback.
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            id: policyID,
-            type: CONST.POLICY.TYPE.CORPORATE,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            approver: categoryApprover1Email,
-            employeeList: {
-                [employeeEmail]: {email: employeeEmail, submitsTo: categoryApprover1Email},
-            },
-        };
-
-        const rulesCollection: OnyxCollection<Rule> = {
-            [`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule(submitRule),
-            [`${ONYXKEYS.COLLECTION.RULE}2`]: buildRule(underLimitRule),
-            [`${ONYXKEYS.COLLECTION.RULE}3`]: buildRule(overLimitRule),
-            [`${ONYXKEYS.COLLECTION.RULE}4`]: buildRule(terminalRule),
-        };
-
-        beforeEach(async () => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}1` as const, buildRule(submitRule));
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}2` as const, buildRule(underLimitRule));
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}3` as const, buildRule(overLimitRule));
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}4` as const, buildRule(terminalRule));
-            await waitForBatchedUpdatesWithAct();
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        describe('evaluateApprovalWorkflowRule', () => {
-            it('matches the submit rule for a submitter it covers', () => {
-                expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
             });
 
-            it('does not match the submit rule for another submitter', () => {
-                expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: adminEmail, reportTotal: 0})).toBe(false);
+            it('should return no approvers when the report has no transactions', () => {
+                // Given an expense report with no transactions in Onyx
+                // When the rule approvers are read
+                // Then there is no transaction to match a rule against
+                expect(getRuleApprovers(policy, expenseReport)).toEqual([]);
             });
 
-            it('does not match a rule gated on the current approver when the report has none', () => {
-                expect(evaluateApprovalWorkflowRule(underLimitRule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+            it('should return no approvers when the policy has no approval rules', async () => {
+                // Given a report whose transaction has a category and tag, on a policy without approval rules
+                const transaction: Transaction = {...createRandomTransaction(0), category: 'cat1', tag: 'tag1', reportID: expenseReport.reportID};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+                // When the rule approvers are read
+                // Then nothing matches, because there are no rules
+                expect(getRuleApprovers(createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE}), expenseReport)).toEqual([]);
             });
 
-            it('splits on the report total, comparing the absolute amount', () => {
-                const context = {submitterEmail: employeeEmail, currentApproverEmail: adminEmail};
-                expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -5000})).toBe(true);
-                expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -5000})).toBe(false);
-                expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -20000})).toBe(false);
-                expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -20000})).toBe(true);
+            it('should put category approvers before tag approvers', async () => {
+                // Given an earlier transaction that only matches a tag rule and a later one that only matches a category rule
+                const tagTransaction: Transaction = {...createRandomTransaction(0), category: '', tag: 'tag1', created: '2025-01-01', reportID: expenseReport.reportID};
+                const categoryTransaction: Transaction = {...createRandomTransaction(1), category: 'cat1', tag: '', created: '2025-01-02', reportID: expenseReport.reportID};
+                const transactionData: TransactionCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${tagTransaction.transactionID}`]: tagTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${categoryTransaction.transactionID}`]: categoryTransaction,
+                };
+                await Onyx.multiSet({...transactionData});
+
+                // When the rule approvers are read
+                // Then the category approver comes first even though its transaction is newer, because category approvers are prioritized
+                expect(getRuleApprovers(policy, expenseReport)).toEqual(['categoryapprover1@test.com', 'tagapprover1@test.com']);
             });
 
-            const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
+            it('should order approvers of the same kind by transaction created date', async () => {
+                // Given two transactions matching different category rules, where the cat2 transaction is the newer one
+                const newerTransaction: Transaction = {...createRandomTransaction(0), category: 'cat2', tag: '', created: '2025-01-02', reportID: expenseReport.reportID};
+                const olderTransaction: Transaction = {...createRandomTransaction(1), category: 'cat1', tag: '', created: '2025-01-01', reportID: expenseReport.reportID};
+                const transactionData: TransactionCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${newerTransaction.transactionID}`]: newerTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${olderTransaction.transactionID}`]: olderTransaction,
+                };
+                await Onyx.multiSet({...transactionData});
+
+                // When the rule approvers are read
+                // Then the approver of the older transaction comes first
+                expect(getRuleApprovers(policy, expenseReport)).toEqual(['categoryapprover1@test.com', 'categoryapprover2@test.com']);
+            });
+
+            it('should return each approver only once', async () => {
+                // Given two transactions whose categories (cat1 and cat3) both route to the same approver
+                const transaction1: Transaction = {...createRandomTransaction(0), category: 'cat1', tag: '', created: '2025-01-01', reportID: expenseReport.reportID};
+                const transaction2: Transaction = {...createRandomTransaction(1), category: 'cat3', tag: '', created: '2025-01-02', reportID: expenseReport.reportID};
+                const transactionData: TransactionCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                };
+                await Onyx.multiSet({...transactionData});
+
+                // When the rule approvers are read
+                // Then the shared approver is listed once
+                expect(getRuleApprovers(policy, expenseReport)).toEqual(['categoryapprover1@test.com']);
+            });
+        });
+
+        describe('getSubmitToAccountID', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+            describe('Has no rule approver', () => {
+                it('should return the policy approver/owner if the policy use the basic workflow', () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+                });
+                it('should return the policy approver/owner if the policy use the optional workflow', () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+                });
+                it('should return the employee submitsTo if the policy use the advance workflow', () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        employeeList,
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+                });
+            });
+            describe('Has category/tag approver', () => {
+                it('should return the first category approver if has any transaction category match with category approver rule', async () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    const transaction1: Transaction = {
+                        ...createRandomTransaction(0),
+                        category: 'cat1',
+                        reportID: expenseReport.reportID,
+                    };
+                    const transaction2: Transaction = {
+                        ...createRandomTransaction(1),
+                        category: '',
+                        reportID: expenseReport.reportID,
+                    };
+                    const transactionData: TransactionCollectionDataSet = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    };
+                    await Onyx.multiSet({...transactionData});
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover1AccountID);
+                });
+                it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        rules,
+                        preventSelfApproval: true,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: categoryApprover1AccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    const transaction: Transaction = {
+                        ...createRandomTransaction(0),
+                        category: 'cat1',
+                        reportID: expenseReport.reportID,
+                        tag: '',
+                    };
+
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(adminAccountID);
+                });
+                it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    const transaction1: Transaction = {
+                        ...createRandomTransaction(0),
+                        category: 'cat1',
+                        created: testDate,
+                        reportID: expenseReport.reportID,
+                    };
+                    const transaction2: Transaction = {
+                        ...createRandomTransaction(1),
+                        category: 'cat2',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        reportID: expenseReport.reportID,
+                    };
+                    const transactionData: TransactionCollectionDataSet = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    };
+                    await Onyx.multiSet({...transactionData});
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover2AccountID);
+                });
+                it('should return the first rule approver who is not the current submitter', async () => {
+                    const policy: Policy = {
+                        ...createRandomPolicy(0),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(0, undefined),
+                        ownerAccountID: categoryApprover1AccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    const transaction1: Transaction = {
+                        ...createRandomTransaction(0),
+                        category: 'cat1',
+                        reportID: expenseReport.reportID,
+                        tag: '',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                    };
+
+                    const transaction2: Transaction = {
+                        ...createRandomTransaction(1),
+                        category: 'cat3',
+                        reportID: expenseReport.reportID,
+                        tag: '',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                    };
+
+                    const transaction3: Transaction = {
+                        ...createRandomTransaction(2),
+                        category: '',
+                        reportID: expenseReport.reportID,
+                        tag: 'tag1',
+                        created: testDate,
+                    };
+
+                    const transactionData: TransactionCollectionDataSet = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
+                    };
+                    await Onyx.multiSet({...transactionData});
+
+                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(tagApprover1AccountID);
+                });
+                describe('Has no transaction match with the category approver rule', () => {
+                    it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
+                        const policy: Policy = {
+                            ...createRandomPolicy(0),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(0, undefined),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(0),
+                            category: '',
+                            tag: 'tag1',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(1),
+                            category: '',
+                            tag: '',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                        };
+                        const transactionData: TransactionCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        };
+                        await Onyx.multiSet({...transactionData});
+                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover1AccountID);
+                    });
+                    it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
+                        const policy: Policy = {
+                            ...createRandomPolicy(0),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(0, undefined),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(0),
+                            category: '',
+                            tag: 'tag1',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(1),
+                            category: '',
+                            tag: 'tag2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                        };
+                        const transactionData: TransactionCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        };
+                        await Onyx.multiSet({...transactionData});
+                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover2AccountID);
+                    });
+                });
+            });
+        });
+        describe('getSubmitReportManagerAccountID', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+            it('should return undefined for an advanced policy where the submitter is missing from the employee list, even if the report has a valid managerID', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    // The submitter isn't in the employee list, which is the case for reports migrated from Expensify Classic.
+                    employeeList: {},
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    // The stale Classic-era manager stamped on the migrated report.
+                    managerID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
+            });
+            it('should return the known approver accountID when the policy route is reliable', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    employeeList,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    managerID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
+            });
+            it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    employeeList: {
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            role: 'user',
+                            submitsTo: 'unknown@test.com',
+                        },
+                        // The approver is still a policy member, so the submit-to route stays put instead of falling back to the default approver.
+                        'unknown@test.com': {
+                            email: 'unknown@test.com',
+                            role: 'user',
+                        },
+                    },
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    managerID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
+            });
+        });
+
+        describe('getManagerAccountID', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            it('should return default approver for personal workspaces', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    approver: categoryApprover1Email,
+                };
+                const result = getManagerAccountID(policy, '', undefined);
+
+                expect(result).toBe(categoryApprover1AccountID);
+            });
+
+            it('should return -1 if there is no employee or default approver', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: undefined,
+                    approver: undefined,
+                    owner: '',
+                };
+
+                const result = getManagerAccountID(policy, '', undefined);
+
+                expect(result).toBe(-1);
+            });
+
+            it('should return submitsTo account ID', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: undefined,
+                    employeeList: {
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                };
+
+                const result = getManagerAccountID(policy, employeeEmail, undefined);
+
+                expect(result).toBe(adminAccountID);
+            });
+
+            it('should return submitsTo email from workspace approval config', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: undefined,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                        },
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                };
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                };
+
+                expect(getSubmitToEmail(policy, report, employeeEmail, undefined)).toBe(adminEmail);
+            });
+
+            it('should return the default approver', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: undefined,
+                    approver: categoryApprover1Email,
+                };
+
+                const result = getManagerAccountID(policy, '', undefined);
+
+                expect(result).toBe(categoryApprover1AccountID);
+            });
+        });
+
+        describe('approval workflow rules', () => {
+            const policyID = 'RULES_POLICY_1';
+            const submitFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employeeEmail]};
+
+            const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
+
+            const submitRule: ApprovalWorkflowRule = {
                 triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-                filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
+                filters: submitFilter,
                 actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
-            });
+            };
 
-            it.each([
-                ['eq matches an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -5000, true],
-                ['eq rejects a different amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -6000, false],
-                ['neq rejects an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -5000, false],
-                ['neq matches a different amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -6000, true],
-                ['gt rejects an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5000, false],
-                ['gt matches a strictly greater amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5001, true],
-                ['lte matches an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5000, true],
-                ['lte rejects a greater amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5001, false],
-            ])('%s', (_description, operator, right, reportTotal, expected) => {
-                expect(evaluateApprovalWorkflowRule(buildAmountRule(operator, right), {submitterEmail: employeeEmail, reportTotal})).toBe(expected);
-            });
-
-            it('does not match an amount filter whose right side is not numeric', () => {
-                const rule = buildAmountRule(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, Number('not-a-number'));
-                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
-            });
-
-            it('does not match an amount filter using an operator this client does not understand', () => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The unrecognized operator is the scenario under test (a future backend operator this client predates).
-                const rule = buildAmountRule('unsupportedOperator' as ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, 5000);
-                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
-            });
-
-            it('does not match a filter on a field this client does not understand', () => {
-                const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
-                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
-                };
-                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
-            });
-
-            it('matches an OR filter when either side matches', () => {
-                const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-                    filters: {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
-                        left: submitFilter,
-                        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
-                    },
-                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
-                };
-
-                // Only the left side matches this submitter, but OR only needs one side.
-                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
-                // Neither side names this submitter.
-                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: guideEmail, reportTotal: 0})).toBe(false);
-            });
-        });
-
-        describe('getForwardsToFromRules', () => {
-            it('returns the first approver from the submit rule', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toEqual({forwardsTo: adminEmail});
-            });
-
-            it('returns the next approver from the matching approve rule', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -5000}, rulesCollection)).toEqual({
-                    forwardsTo: approverEmail,
-                });
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -20000}, rulesCollection)).toEqual({
-                    forwardsTo: categoryApprover1Email,
-                });
-            });
-
-            it('matches with no forwardsTo when the rule finalizes the report', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: approverEmail, reportTotal: -5000}, rulesCollection)).toEqual({
-                    forwardsTo: undefined,
-                });
-            });
-
-            it('returns undefined when no rule covers the submitter', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: guideEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
-            });
-
-            it('ignores rules belonging to another workspace', () => {
-                expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
-            });
-        });
-
-        it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
-            expect(getManagerAccountID(policy, employeeEmail, rulesCollection)).toBe(adminAccountID);
-        });
-
-        it('getForwardsToAccount follows the rules for the next hop', () => {
-            expect(getForwardsToAccount(policy, adminEmail, -5000, rulesCollection, employeeEmail)).toBe(approverEmail);
-            expect(getForwardsToAccount(policy, adminEmail, -20000, rulesCollection, employeeEmail)).toBe(categoryApprover1Email);
-            expect(getForwardsToAccount(policy, approverEmail, -5000, rulesCollection, employeeEmail)).toBe('');
-        });
-
-        it('getApprovalChain walks the whole rule chain', () => {
-            const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
-            expect(getApprovalChain(policy, report, employeeEmail, rulesCollection)).toEqual([adminEmail, approverEmail]);
-        });
-
-        it('getSubmitToEmail keeps the rules approver when that approver has no employeeList entry', () => {
-            const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
-            expect(getSubmitToEmail(policy, report, employeeEmail, rulesCollection, true)).toBe(adminEmail);
-        });
-    });
-
-    describe('getSubmitReportManagerAccountID', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        it('should return the default approver if the employee submitsTo is no longer a policy member and the policy use the advance workflow', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approver: 'owner@test.com',
-                owner: 'owner@test.com',
-                employeeList: {
-                    'owner@test.com': {
-                        email: 'owner@test.com',
-                        role: 'admin',
-                        submitsTo: '',
-                    },
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        role: 'user',
-                        submitsTo: 'removed-approver@test.com',
+            // After the admin approves, an under-limit report continues to the approver and an over-limit one is
+            // escalated to the category approver instead.
+            const underLimitRule: ApprovalWorkflowRule = {
+                triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: submitFilter,
+                    right: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
+                        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                     },
                 },
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: approverEmail}},
             };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
-        });
-        it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approver: 'owner@test.com',
-                owner: 'owner@test.com',
-                employeeList: {
-                    'owner@test.com': {
-                        email: 'owner@test.com',
-                        role: 'admin',
-                        submitsTo: '',
-                    },
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        role: 'user',
-                        submitsTo: adminEmail,
+            const overLimitRule: ApprovalWorkflowRule = {
+                triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: submitFilter,
+                    right: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
+                        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                     },
                 },
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {
-                        config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.MANAGER, finalApprover: 'owner@test.com'},
-                    },
-                } as Policy['connections'],
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: categoryApprover1Email}},
+            };
+            const terminalRule: ApprovalWorkflowRule = {
+                triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: submitFilter,
+                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
+                },
+                actions: {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}},
+            };
+
+            // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
+            // from the legacy fallback.
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                id: policyID,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: categoryApprover1Email,
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, submitsTo: categoryApprover1Email},
+                },
             };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
+
+            const rulesCollection: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule(submitRule),
+                [`${ONYXKEYS.COLLECTION.RULE}2`]: buildRule(underLimitRule),
+                [`${ONYXKEYS.COLLECTION.RULE}3`]: buildRule(overLimitRule),
+                [`${ONYXKEYS.COLLECTION.RULE}4`]: buildRule(terminalRule),
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
+
+            beforeEach(async () => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}1` as const, buildRule(submitRule));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}2` as const, buildRule(underLimitRule));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}3` as const, buildRule(overLimitRule));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}4` as const, buildRule(terminalRule));
+                await waitForBatchedUpdatesWithAct();
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            describe('evaluateApprovalWorkflowRule', () => {
+                it('matches the submit rule for a submitter it covers', () => {
+                    expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
+                });
+
+                it('does not match the submit rule for another submitter', () => {
+                    expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: adminEmail, reportTotal: 0})).toBe(false);
+                });
+
+                it('does not match a rule gated on the current approver when the report has none', () => {
+                    expect(evaluateApprovalWorkflowRule(underLimitRule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+                });
+
+                it('splits on the report total, comparing the absolute amount', () => {
+                    const context = {submitterEmail: employeeEmail, currentApproverEmail: adminEmail};
+                    expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -5000})).toBe(true);
+                    expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -5000})).toBe(false);
+                    expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -20000})).toBe(false);
+                    expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -20000})).toBe(true);
+                });
+
+                const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
+                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+                    filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
+                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
+                });
+
+                it.each([
+                    ['eq matches an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -5000, true],
+                    ['eq rejects a different amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -6000, false],
+                    ['neq rejects an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -5000, false],
+                    ['neq matches a different amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -6000, true],
+                    ['gt rejects an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5000, false],
+                    ['gt matches a strictly greater amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5001, true],
+                    ['lte matches an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5000, true],
+                    ['lte rejects a greater amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5001, false],
+                ])('%s', (_description, operator, right, reportTotal, expected) => {
+                    expect(evaluateApprovalWorkflowRule(buildAmountRule(operator, right), {submitterEmail: employeeEmail, reportTotal})).toBe(expected);
+                });
+
+                it('does not match an amount filter whose right side is not numeric', () => {
+                    const rule = buildAmountRule(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, Number('not-a-number'));
+                    expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+                });
+
+                it('does not match an amount filter using an operator this client does not understand', () => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The unrecognized operator is the scenario under test (a future backend operator this client predates).
+                    const rule = buildAmountRule('unsupportedOperator' as ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, 5000);
+                    expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+                });
+
+                it('does not match a filter on a field this client does not understand', () => {
+                    const rule: ApprovalWorkflowRule = {
+                        triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
+                        actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
+                    };
+                    expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
+                });
+
+                it('matches an OR filter when either side matches', () => {
+                    const rule: ApprovalWorkflowRule = {
+                        triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+                        filters: {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                            left: submitFilter,
+                            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
+                        },
+                        actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
+                    };
+
+                    // Only the left side matches this submitter, but OR only needs one side.
+                    expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
+                    // Neither side names this submitter.
+                    expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: guideEmail, reportTotal: 0})).toBe(false);
+                });
+            });
+
+            describe('getForwardsToFromRules', () => {
+                it('returns the first approver from the submit rule', () => {
+                    expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toEqual({forwardsTo: adminEmail});
+                });
+
+                it('returns the next approver from the matching approve rule', () => {
+                    expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -5000}, rulesCollection)).toEqual({
+                        forwardsTo: approverEmail,
+                    });
+                    expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -20000}, rulesCollection)).toEqual({
+                        forwardsTo: categoryApprover1Email,
+                    });
+                });
+
+                it('matches with no forwardsTo when the rule finalizes the report', () => {
+                    expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: approverEmail, reportTotal: -5000}, rulesCollection)).toEqual({
+                        forwardsTo: undefined,
+                    });
+                });
+
+                it('returns undefined when no rule covers the submitter', () => {
+                    expect(getForwardsToFromRules(policy, {submitterEmail: guideEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
+                });
+
+                it('ignores rules belonging to another workspace', () => {
+                    expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
+                });
+            });
+
+            it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
+                expect(getManagerAccountID(policy, employeeEmail, rulesCollection)).toBe(adminAccountID);
+            });
+
+            it('getForwardsToAccount follows the rules for the next hop', () => {
+                expect(getForwardsToAccount(policy, adminEmail, -5000, rulesCollection, employeeEmail)).toBe(approverEmail);
+                expect(getForwardsToAccount(policy, adminEmail, -20000, rulesCollection, employeeEmail)).toBe(categoryApprover1Email);
+                expect(getForwardsToAccount(policy, approverEmail, -5000, rulesCollection, employeeEmail)).toBe('');
+            });
+
+            it('getApprovalChain walks the whole rule chain', () => {
+                const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
+                expect(getApprovalChain(policy, report, employeeEmail, rulesCollection)).toEqual([adminEmail, approverEmail]);
+            });
+
+            it('getSubmitToEmail keeps the rules approver when that approver has no employeeList entry', () => {
+                const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
+                expect(getSubmitToEmail(policy, report, employeeEmail, rulesCollection, true)).toBe(adminEmail);
+            });
+        });
+
+        describe('getSubmitReportManagerAccountID', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+            it('should return the default approver if the employee submitsTo is no longer a policy member and the policy use the advance workflow', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    employeeList: {
+                        'owner@test.com': {
+                            email: 'owner@test.com',
+                            role: 'admin',
+                            submitsTo: '',
+                        },
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            role: 'user',
+                            submitsTo: 'removed-approver@test.com',
+                        },
+                    },
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
+            });
+            it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    employeeList: {
+                        'owner@test.com': {
+                            email: 'owner@test.com',
+                            role: 'admin',
+                            submitsTo: '',
+                        },
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            role: 'user',
+                            submitsTo: adminEmail,
+                        },
+                    },
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {
+                            config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.MANAGER, finalApprover: 'owner@test.com'},
+                        },
+                    } as Policy['connections'],
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
+            });
         });
     });
 
@@ -2996,415 +3157,309 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getReimburserEmail', () => {
-        it('should return undefined when reimbursement is disabled', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-                reimburser: 'reimburser@example.com',
-                achAccount: {reimburser: 'ach@example.com'},
-                owner: 'owner@example.com',
-            });
-            expect(getReimburserEmail(policy)).toBeUndefined();
-        });
-
-        it('should resolve the payer for manual (indirect) reimbursement from achAccount.reimburser', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                achAccount: {reimburser: 'ach@example.com'},
-                owner: 'owner@example.com',
-            });
-            expect(getReimburserEmail(policy)).toBe('ach@example.com');
-        });
-
-        it('should prefer policy.reimburser over achAccount.reimburser', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                reimburser: 'reimburser@example.com',
-                achAccount: {reimburser: 'ach@example.com'},
-            });
-            expect(getReimburserEmail(policy)).toBe('reimburser@example.com');
-        });
-
-        it('should fall back to the owner for manual reimbursement when no reimburser is set', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                owner: 'owner@example.com',
-            });
-            expect(getReimburserEmail(policy)).toBe('owner@example.com');
-        });
-
-        it('should not fall back to the owner for auto reimbursement when no reimburser is set', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                owner: 'owner@example.com',
-            });
-            expect(getReimburserEmail(policy)).toBeUndefined();
-        });
-
-        it('should resolve the payer for deprecated manual reimbursement', () => {
-            // Given a workspace on Indirect reimbursement that reports the deprecated value and names no payer
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                owner: 'owner@example.com',
+    describe('payments', () => {
+        describe('getReimburserEmail', () => {
+            it('should return undefined when reimbursement is disabled', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    reimburser: 'reimburser@example.com',
+                    achAccount: {reimburser: 'ach@example.com'},
+                    owner: 'owner@example.com',
+                });
+                expect(getReimburserEmail(policy)).toBeUndefined();
             });
 
-            // When the payer is resolved
-            const reimburserEmail = getReimburserEmail(policy);
-
-            // Then it falls back to the owner, because the deprecated value means Indirect just like the plain one
-            expect(reimburserEmail).toBe('owner@example.com');
-        });
-
-        it('should return undefined when deprecated reimbursement is disabled', () => {
-            // Given a workspace that reports the deprecated disabled value but still names a payer
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-                reimburser: 'reimburser@example.com',
-                owner: 'owner@example.com',
+            it('should resolve the payer for manual (indirect) reimbursement from achAccount.reimburser', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    achAccount: {reimburser: 'ach@example.com'},
+                    owner: 'owner@example.com',
+                });
+                expect(getReimburserEmail(policy)).toBe('ach@example.com');
             });
 
-            // When the payer is resolved
-            const reimburserEmail = getReimburserEmail(policy);
+            it('should prefer policy.reimburser over achAccount.reimburser', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: 'reimburser@example.com',
+                    achAccount: {reimburser: 'ach@example.com'},
+                });
+                expect(getReimburserEmail(policy)).toBe('reimburser@example.com');
+            });
 
-            // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
-            expect(reimburserEmail).toBeUndefined();
+            it('should fall back to the owner for manual reimbursement when no reimburser is set', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    owner: 'owner@example.com',
+                });
+                expect(getReimburserEmail(policy)).toBe('owner@example.com');
+            });
+
+            it('should not fall back to the owner for auto reimbursement when no reimburser is set', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    owner: 'owner@example.com',
+                });
+                expect(getReimburserEmail(policy)).toBeUndefined();
+            });
+
+            it('should resolve the payer for deprecated manual reimbursement', () => {
+                // Given a workspace on Indirect reimbursement that reports the deprecated value and names no payer
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    owner: 'owner@example.com',
+                });
+
+                // When the payer is resolved
+                const reimburserEmail = getReimburserEmail(policy);
+
+                // Then it falls back to the owner, because the deprecated value means Indirect just like the plain one
+                expect(reimburserEmail).toBe('owner@example.com');
+            });
+
+            it('should return undefined when deprecated reimbursement is disabled', () => {
+                // Given a workspace that reports the deprecated disabled value but still names a payer
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    reimburser: 'reimburser@example.com',
+                    owner: 'owner@example.com',
+                });
+
+                // When the payer is resolved
+                const reimburserEmail = getReimburserEmail(policy);
+
+                // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
+                expect(reimburserEmail).toBeUndefined();
+            });
         });
-    });
 
-    describe('getReimbursementChoice', () => {
-        it('should return undefined when there is no policy', () => {
-            // Given no policy, which happens while a workspace is still loading
+        describe('getReimbursementChoice', () => {
+            it('should return undefined when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
 
-            // When the choice is resolved
-            const choice = getReimbursementChoice(undefined);
+                // When the choice is resolved
+                const choice = getReimbursementChoice(undefined);
 
-            // Then nothing is returned, so callers fall back to their own defaults instead of guessing a choice
-            expect(choice).toBeUndefined();
-        });
+                // Then nothing is returned, so callers fall back to their own defaults instead of guessing a choice
+                expect(choice).toBeUndefined();
+            });
 
-        it('should return undefined when the policy has no choice', () => {
-            // Given a workspace that reports no reimbursement choice at all
-            const policy = createMock<Policy>({id: '1'});
+            it('should return undefined when the policy has no choice', () => {
+                // Given a workspace that reports no reimbursement choice at all
+                const policy = createMock<Policy>({id: '1'});
 
-            // When the choice is resolved
-            const choice = getReimbursementChoice(policy);
+                // When the choice is resolved
+                const choice = getReimbursementChoice(policy);
 
-            // Then nothing is returned, because an absent choice must stay absent rather than become a real value
-            expect(choice).toBeUndefined();
-        });
+                // Then nothing is returned, because an absent choice must stay absent rather than become a real value
+                expect(choice).toBeUndefined();
+            });
 
-        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
-            'should pass through the current value %s',
-            (choice) => {
-                // Given a workspace on one of the three values the app already understands
-                const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should pass through the current value %s',
+                (choice) => {
+                    // Given a workspace on one of the three values the app already understands
+                    const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+
+                    // When the choice is resolved
+                    const resolvedChoice = getReimbursementChoice(policy);
+
+                    // Then it is returned untouched, so resolving cannot change the meaning of a workspace that was already correct
+                    expect(resolvedChoice).toBe(choice);
+                },
+            );
+
+            it.each([
+                [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
+                [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+            ])('should resolve %s to %s', (deprecatedChoice, expectedChoice) => {
+                // Given a workspace that reports a deprecated value
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: deprecatedChoice});
 
                 // When the choice is resolved
                 const resolvedChoice = getReimbursementChoice(policy);
 
-                // Then it is returned untouched, so resolving cannot change the meaning of a workspace that was already correct
-                expect(resolvedChoice).toBe(choice);
-            },
-        );
+                // Then it becomes the plain value it means, so every comparison downstream treats the workspace correctly
+                expect(resolvedChoice).toBe(expectedChoice);
+            });
 
-        it.each([
-            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO],
-            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
-        ])('should resolve %s to %s', (deprecatedChoice, expectedChoice) => {
-            // Given a workspace that reports a deprecated value
-            const policy = createMock<Policy>({id: '1', reimbursementChoice: deprecatedChoice});
+            it('should not resolve a value that merely starts with the deprecated prefix', () => {
+                // Given a workspace on an unknown value that only shares the deprecated prefix
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The value outside the type is the scenario under test.
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: 'deprecated_reimburseSomethingElse' as Policy['reimbursementChoice']});
 
-            // When the choice is resolved
-            const resolvedChoice = getReimbursementChoice(policy);
+                // When the choice is resolved
+                const resolvedChoice = getReimbursementChoice(policy);
 
-            // Then it becomes the plain value it means, so every comparison downstream treats the workspace correctly
-            expect(resolvedChoice).toBe(expectedChoice);
+                // Then it is passed through, because matching on the prefix would silently invent a meaning for a value we do not know
+                expect(resolvedChoice).toBe('deprecated_reimburseSomethingElse');
+            });
         });
 
-        it('should not resolve a value that merely starts with the deprecated prefix', () => {
-            // Given a workspace on an unknown value that only shares the deprecated prefix
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The value outside the type is the scenario under test.
-            const policy = createMock<Policy>({id: '1', reimbursementChoice: 'deprecated_reimburseSomethingElse' as Policy['reimbursementChoice']});
+        describe('arePaymentsEnabled', () => {
+            it.each([
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+            ])('should return %s -> %s', (choice, expected) => {
+                // Given a workspace on one of the current or deprecated values
+                const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
 
-            // When the choice is resolved
-            const resolvedChoice = getReimbursementChoice(policy);
+                // When payments availability is checked
+                const paymentsEnabled = arePaymentsEnabled(policy);
 
-            // Then it is passed through, because matching on the prefix would silently invent a meaning for a value we do not know
-            expect(resolvedChoice).toBe('deprecated_reimburseSomethingElse');
+                // Then only a disabled workspace turns payments off, whichever of the two values it reports
+                expect(paymentsEnabled).toBe(expected);
+            });
         });
-    });
 
-    describe('arePaymentsEnabled', () => {
-        it.each([
-            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
-            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
-            [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
-            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
-            [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
-        ])('should return %s -> %s', (choice, expected) => {
-            // Given a workspace on one of the current or deprecated values
-            const policy = createMock<Policy>({id: '1', reimbursementChoice: choice});
+        describe('isPolicyPayer', () => {
+            // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should treat the owner as the payer for %s',
+                (choice) => {
+                    // Given an owner who administers a workspace on Indirect reimbursement
+                    const policy = createMock<Policy>({
+                        id: '1',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        reimbursementChoice: choice,
+                        owner: 'owner@example.com',
+                    });
 
-            // When payments availability is checked
-            const paymentsEnabled = arePaymentsEnabled(policy);
+                    // When they are checked against the workspace
+                    const isPayer = isPolicyPayer(policy, 'owner@example.com');
 
-            // Then only a disabled workspace turns payments off, whichever of the two values it reports
-            expect(paymentsEnabled).toBe(expected);
+                    // Then they can pay, so the deprecated value does not strip an owner of the Pay button
+                    expect(isPayer).toBe(true);
+                },
+            );
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+                'should treat nobody as the payer for %s',
+                (choice) => {
+                    // Given an owner who administers a workspace with reimbursement disabled
+                    const policy = createMock<Policy>({
+                        id: '1',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        reimbursementChoice: choice,
+                        owner: 'owner@example.com',
+                    });
+
+                    // When they are checked against the workspace
+                    const isPayer = isPolicyPayer(policy, 'owner@example.com');
+
+                    // Then not even the owner can pay, so resolving the deprecated value does not hand out Pay where it was switched off
+                    expect(isPayer).toBe(false);
+                },
+            );
         });
-    });
 
-    describe('isPolicyPayer', () => {
-        // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
-        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
-            'should treat the owner as the payer for %s',
-            (choice) => {
-                // Given an owner who administers a workspace on Indirect reimbursement
+        describe('getOwnerChangePayerSuccessData', () => {
+            it('should reassign policy.reimburser when the outgoing owner is the payer', () => {
                 const policy = createMock<Policy>({
                     id: '1',
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    reimbursementChoice: choice,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    reimburser: 'owner@example.com',
                     owner: 'owner@example.com',
                 });
 
-                // When they are checked against the workspace
-                const isPayer = isPolicyPayer(policy, 'owner@example.com');
+                expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({reimburser: 'new@example.com'});
+            });
 
-                // Then they can pay, so the deprecated value does not strip an owner of the Pay button
-                expect(isPayer).toBe(true);
-            },
-        );
-
-        it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
-            'should treat nobody as the payer for %s',
-            (choice) => {
-                // Given an owner who administers a workspace with reimbursement disabled
+            it('should reassign achAccount.reimburser when that is where the payer is stored', () => {
                 const policy = createMock<Policy>({
                     id: '1',
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    reimbursementChoice: choice,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    achAccount: {reimburser: 'owner@example.com'},
                     owner: 'owner@example.com',
                 });
 
-                // When they are checked against the workspace
-                const isPayer = isPolicyPayer(policy, 'owner@example.com');
-
-                // Then not even the owner can pay, so resolving the deprecated value does not hand out Pay where it was switched off
-                expect(isPayer).toBe(false);
-            },
-        );
-    });
-
-    describe('getOwnerChangePayerSuccessData', () => {
-        it('should reassign policy.reimburser when the outgoing owner is the payer', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                reimburser: 'owner@example.com',
-                owner: 'owner@example.com',
+                expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({achAccount: {reimburser: 'new@example.com'}});
             });
 
-            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({reimburser: 'new@example.com'});
-        });
+            it('should not reassign when the workspace has a bank account, because the backend keeps the former payer', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    reimburser: 'owner@example.com',
+                    achAccount: {bankAccountID: 1234, reimburser: 'owner@example.com'},
+                    owner: 'owner@example.com',
+                });
 
-        it('should reassign achAccount.reimburser when that is where the payer is stored', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                achAccount: {reimburser: 'owner@example.com'},
-                owner: 'owner@example.com',
+                expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
             });
 
-            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({achAccount: {reimburser: 'new@example.com'}});
-        });
+            it('should not reassign when someone other than the outgoing owner is the payer', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    reimburser: 'payer@example.com',
+                    owner: 'owner@example.com',
+                });
 
-        it('should not reassign when the workspace has a bank account, because the backend keeps the former payer', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                reimburser: 'owner@example.com',
-                achAccount: {bankAccountID: 1234, reimburser: 'owner@example.com'},
-                owner: 'owner@example.com',
+                expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
             });
 
-            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
-        });
+            it('should not reassign when reimbursement is disabled', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    reimburser: 'owner@example.com',
+                    owner: 'owner@example.com',
+                });
 
-        it('should not reassign when someone other than the outgoing owner is the payer', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                reimburser: 'payer@example.com',
-                owner: 'owner@example.com',
+                expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
             });
 
-            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
-        });
-
-        it('should not reassign when reimbursement is disabled', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-                reimburser: 'owner@example.com',
-                owner: 'owner@example.com',
+            it('should return no payer fields for an undefined policy', () => {
+                expect(getOwnerChangePayerSuccessData(undefined, 'new@example.com')).toEqual({});
             });
-
-            expect(getOwnerChangePayerSuccessData(policy, 'new@example.com')).toEqual({});
-        });
-
-        it('should return no payer fields for an undefined policy', () => {
-            expect(getOwnerChangePayerSuccessData(undefined, 'new@example.com')).toEqual({});
         });
     });
 
-    describe('getPolicyBrickRoadIndicatorStatus', () => {
-        const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
-            id: 'ABC123',
-            name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {},
-            connections: {},
-            errors: {},
-            errorFields: {},
-        });
-
-        const baseUserPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
-            id: 'DEF456',
-            name: 'User Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {},
-            connections: {},
-            errors: {},
-            errorFields: {},
-        });
-
-        it('does return an ERROR RBR when a sync error exists for an admin', () => {
-            const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                // Failed sync
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: false,
-                        lastSync: {
-                            errorDate: new Date().toISOString(),
-                            errorMessage: 'Error',
-                            isAuthenticationError: true,
-                            isConnected: false,
-                            isSuccessful: false,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
+    describe('errors', () => {
+        describe('getPolicyBrickRoadIndicatorStatus', () => {
+            const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
+                id: 'ABC123',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {},
+                connections: {},
+                errors: {},
+                errorFields: {},
             });
 
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
-            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-        });
-
-        it('does not return an ERROR RBR when a sync error exists for a user', () => {
-            const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                // Failed sync
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: false,
-                        lastSync: {
-                            errorDate: new Date().toISOString(),
-                            errorMessage: 'Error',
-                            isAuthenticationError: true,
-                            isConnected: false,
-                            isSuccessful: false,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
+            const baseUserPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
+                id: 'DEF456',
+                name: 'User Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
+                connections: {},
+                errors: {},
+                errorFields: {},
             });
 
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
-            expect(result).toBeUndefined();
-        });
-
-        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
-            const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                connections: createMock<Connections>({}),
-            });
-
-            const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: true,
-                        lastSync: {
-                            errorDate: '',
-                            errorMessage: '',
-                            isAuthenticationError: false,
-                            isConnected: true,
-                            isSuccessful: true,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
-            });
-
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
-            expect(result).toBeUndefined();
-
-            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
-            expect(result2).toBeUndefined();
-        });
-
-        it('does not return an ERROR RBR when no sync error exists for a user', () => {
-            const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                connections: createMock<Connections>({}),
-            });
-
-            const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: true,
-                        lastSync: {
-                            errorDate: '',
-                            errorMessage: '',
-                            isAuthenticationError: false,
-                            isConnected: true,
-                            isSuccessful: true,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
-            });
-
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
-            expect(result).toBeUndefined();
-
-            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
-            expect(result2).toBeUndefined();
-        });
-
-        describe('QBO Export Errors', () => {
-            it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+            it('does return an ERROR RBR when a sync error exists for an admin', () => {
+                const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseAdminPolicy,
+                    // Failed sync
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
                             lastSync: {
                                 errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
+                                errorMessage: 'Error',
                                 isAuthenticationError: true,
                                 isConnected: false,
                                 isSuccessful: false,
@@ -3415,18 +3470,20 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
                 expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             });
 
-            it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+            it('does not return an ERROR RBR when a sync error exists for a user', () => {
+                const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseUserPolicy,
+                    // Failed sync
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
                             lastSync: {
                                 errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
+                                errorMessage: 'Error',
                                 isAuthenticationError: true,
                                 isConnected: false,
                                 isSuccessful: false,
@@ -3437,15 +3494,21 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
                 expect(result).toBeUndefined();
             });
 
-            it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
-                const policyWithSuccessfulQBOSync = createMock<OnyxEntry<Policy>>({
+            it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+                const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
+                    ...baseAdminPolicy,
+                    connections: createMock<Connections>({}),
+                });
+
+                const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseAdminPolicy,
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
                             lastSync: {
                                 errorDate: '',
                                 errorMessage: '',
@@ -3453,27 +3516,36 @@ describe('PolicyUtils', () => {
                                 isConnected: true,
                                 isSuccessful: true,
                                 source: 'NEWEXPENSIFY',
-                                successfulDate: new Date().toISOString(),
+                                successfulDate: '',
                             },
                         },
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
                 expect(result).toBeUndefined();
+
+                const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+                expect(result2).toBeUndefined();
             });
 
-            it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
+            it('does not return an ERROR RBR when no sync error exists for a user', () => {
+                const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
+                    ...baseUserPolicy,
+                    connections: createMock<Connections>({}),
+                });
+
+                const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
+                    ...baseUserPolicy,
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
                             lastSync: {
-                                errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
-                                isAuthenticationError: true,
-                                isConnected: false,
-                                isSuccessful: false,
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
                                 source: 'NEWEXPENSIFY',
                                 successfulDate: '',
                             },
@@ -3481,140 +3553,431 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                // When sync is in progress (second parameter is true), should not show error
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
                 expect(result).toBeUndefined();
+
+                const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+                expect(result2).toBeUndefined();
             });
 
-            it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
-                const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: undefined,
+            describe('QBO Export Errors', () => {
+                it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                    expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
-                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
-                const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
-                    ...baseUserPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: undefined,
+                it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseUserPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
-                const policyWithQBOConfigured = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
+                    const policyWithSuccessfulQBOSync = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: new Date().toISOString(),
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
-                const policyWithoutQBOConnection = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: {},
-                });
-
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
-                const policyWithQBONoExportDestination = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: undefined,
-                                reimbursableExpensesAccount: undefined,
+                it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    // When sync is in progress (second parameter is true), should not show error
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
+                    const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                    expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
+                    const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
+                        ...baseUserPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
+                    const policyWithQBOConfigured = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
+                    const policyWithoutQBOConnection = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: {},
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
+                    const policyWithQBONoExportDestination = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: undefined,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                    expect(result).toBeUndefined();
+                });
+            });
+        });
+
+        describe('hasPolicyRulesError', () => {
+            // Whether a merchant rule failed is reduced by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
+            const POLICY_ID = 'policy-with-rules';
+
+            it('returns false for an undefined policy', () => {
+                expect(hasPolicyRulesError(undefined, false)).toBe(false);
+            });
+
+            it('returns false when no merchant or agent rules exist', () => {
+                const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+                expect(hasPolicyRulesError(policy, false)).toBe(false);
+            });
+
+            it('returns false when agent rules exist but none have errors', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    id: POLICY_ID,
+                    rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
+                };
+                expect(hasPolicyRulesError(policy, false)).toBe(false);
+            });
+
+            it('returns true when a merchant rule has errors', () => {
+                const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+                expect(hasPolicyRulesError(policy, true)).toBe(true);
+            });
+
+            it('returns true when an agent rule has errors', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    id: POLICY_ID,
+                    rules: {
+                        agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                    },
+                };
+                expect(hasPolicyRulesError(policy, false)).toBe(true);
+            });
+        });
+
+        describe('isQBORefreshTokenExpiringSoonSelector', () => {
+            const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
+                Object.assign(createRandomPolicy(1), {
+                    role,
+                    connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
+                });
+            const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
+
+            it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
+            });
+
+            it('returns false for a member, since only admins can reconnect', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
+            });
+
+            it('returns false when the token is still far from expiring or the policy is undefined', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
+                expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
+            });
+        });
+
+        describe('isMergeHRCompleteSetupNeededSelector', () => {
+            // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
+            // to a real policy without an unsafe cast.
+            type MergeHRTestConnection = {
+                lastSync?: {syncStatus?: string};
+                data?: {groups?: unknown[]};
+                config?: {groups?: unknown[] | null};
+            };
+            const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
+            const mergeHRBase = {
+                lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
+                data: {groups: [{id: 'g1', name: 'Engineering'}]},
+            };
+
+            it('returns false when policy is undefined', () => {
+                expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
+            });
+
+            it('returns false when policy has no merge_hris connection', () => {
+                const policy = createRandomPolicy(1);
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when sync is not done', () => {
+                const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when sync is done but there are no groups', () => {
+                const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when setup is already complete (groups configured)', () => {
+                const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
+                const policy = buildMergeHRPolicy(5, mergeHRBase);
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
+            });
+        });
+
+        describe('areSettingsInErrorFields', () => {
+            it('returns false when the settings or the error fields are undefined', () => {
+                // Given settings without error fields, and error fields without settings
+                const errorFields = {autoSync: {error: 'Sync failed'}};
+
+                // When checking either incomplete input
+                // Then there is nothing to match, so no error is reported
+                expect(areSettingsInErrorFields(undefined, errorFields)).toBe(false);
+                expect(areSettingsInErrorFields(['autoSync'], undefined)).toBe(false);
+            });
+
+            it('returns true when one of the settings has an error field', () => {
+                // Given error fields where only one of the requested settings has an error
+                const errorFields = {exporter: {error: 'Invalid exporter'}};
+
+                // When checking a list of settings that includes it
+                const result = areSettingsInErrorFields(['autoSync', 'exporter'], errorFields);
+
+                // Then the error is reported because a single matching setting is enough
+                expect(result).toBe(true);
+            });
+
+            it('returns false when none of the settings has an error field', () => {
+                // Given error fields for a setting that was not requested
+                const errorFields = {exporter: {error: 'Invalid exporter'}};
+
+                // When checking unrelated settings
+                const result = areSettingsInErrorFields(['autoSync', 'syncReimbursedReports'], errorFields);
+
+                // Then no error is reported for those settings
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('settingsPendingAction', () => {
+            it('returns null when the settings or the pending fields are undefined', () => {
+                // Given settings without pending fields, and pending fields without settings
+                const pendingFields = {autoSync: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action from either incomplete input
+                // Then null is returned to signal there is no pending action to show
+                expect(settingsPendingAction(undefined, pendingFields)).toBeNull();
+                expect(settingsPendingAction(['autoSync'], undefined)).toBeNull();
+            });
+
+            it('returns the pending action of the setting that has one', () => {
+                // Given pending fields where one of the requested settings is being updated
+                const pendingFields = {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action for a list of settings that includes it
+                const result = settingsPendingAction(['autoSync', 'exporter'], pendingFields);
+
+                // Then that setting's pending action is returned so the UI can show it as pending
+                expect(result).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('returns undefined when none of the settings has a pending field', () => {
+                // Given pending fields for a setting that was not requested
+                const pendingFields = {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action for unrelated settings
+                const result = settingsPendingAction(['autoSync', 'syncReimbursedReports'], pendingFields);
+
+                // Then no pending action is returned
                 expect(result).toBeUndefined();
             });
         });
     });
 
-    describe('hasDynamicExternalWorkflow', () => {
-        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(true);
+    describe('workflows', () => {
+        describe('hasDynamicExternalWorkflow', () => {
+            it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(true);
+            });
+
+            it('should return false when policy has BASIC approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has ADVANCED approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has OPTIONAL approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy is undefined', () => {
+                const result = hasDynamicExternalWorkflow(undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has no approvalMode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: undefined,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
         });
 
-        it('should return false when policy has BASIC approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+        describe('shouldHideDynamicExternalWorkflowPeople', () => {
+            it('returns false when the policy is undefined', () => {
+                expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+            });
 
-        it('should return false when policy has ADVANCED approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+            it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+            });
 
-        it('should return false when policy has OPTIONAL approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+            // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+            it('returns false for a Dynamic External Workflow policy without the flag', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+            });
 
-        it('should return false when policy is undefined', () => {
-            const result = hasDynamicExternalWorkflow(undefined);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when policy has no approvalMode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: undefined,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
+            it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+            });
         });
     });
 
@@ -4019,19 +4382,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getTagApproverRule', () => {
-        it('should return undefined when no approval rules are present', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                rules: {
-                    approvalRules: [],
-                },
-            };
-            const result = getTagApproverRule(policy, '');
-            expect(result).toBeUndefined();
-        });
-    });
-
     describe('tax', () => {
         describe('getAllTaxRatesNamesAndValues', () => {
             it('returns empty object when there are no policies or no tax rates', () => {
@@ -4346,93 +4696,130 @@ describe('PolicyUtils', () => {
         });
     });
 
-    it('should return undefined when no tag approver rule is present', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            rules: {
-                approvalRules: [
-                    {
-                        id: 'rule-1',
-                        applyWhen: [
-                            {
-                                field: CONST.POLICY.FIELDS.TAG,
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                value: 'Fake tag',
-                            },
-                        ],
-                        approver: 'lol@hhh.com',
+    describe('features', () => {
+        describe('getDefaultTimeTrackingRate', () => {
+            it('should return rate in subunits', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    units: {
+                        time: {
+                            enabled: true,
+                            rate: 20,
+                        },
                     },
-                ],
-            },
-        };
-        const result = getTagApproverRule(policy, 'NonExistentTag');
-        expect(result).toBeUndefined();
-    });
+                };
+                expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+            });
 
-    it('should return the tag approver rule when present', () => {
-        const tagName = 'ImportantTag';
-        const policy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            rules: {
-                approvalRules: [
-                    {
-                        id: 'rule-1',
-                        applyWhen: [
-                            {
-                                field: CONST.POLICY.FIELDS.TAG,
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                value: tagName,
-                            },
-                        ],
-                        approver: 'approver@example.com',
+            it('should return 0 when the rate is 0, not undefined', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    units: {
+                        time: {
+                            enabled: true,
+                            rate: 0,
+                        },
                     },
-                ],
-            },
-        };
-        const result = getTagApproverRule(policy, tagName);
-        expect(result).toEqual({
-            id: 'rule-1',
-            applyWhen: [
-                {
-                    field: CONST.POLICY.FIELDS.TAG,
-                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    value: tagName,
-                },
-            ],
-            approver: 'approver@example.com',
-        });
-    });
+                };
+                expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+            });
 
-    describe('getDefaultTimeTrackingRate', () => {
-        it('should return rate in subunits', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1),
-                units: {
-                    time: {
-                        enabled: true,
-                        rate: 20,
-                    },
-                },
-            };
-            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+            it('should return undefined when the rate is not defined on the policy', () => {
+                const policy = createRandomPolicy(1);
+                expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+            });
         });
 
-        it('should return 0 when the rate is 0, not undefined', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1),
-                units: {
-                    time: {
-                        enabled: true,
-                        rate: 0,
-                    },
-                },
-            };
-            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        describe('isInvoiceFieldsEnabled', () => {
+            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
+            });
+
+            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
         });
 
-        it('should return undefined when the rate is not defined on the policy', () => {
-            const policy = createRandomPolicy(1);
-            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
+            it('returns true for a control policy with invoice fields enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+
+            it('returns false for a control policy with invoice fields disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+        });
+
+        describe('arePolicyRulesEnabled', () => {
+            const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
+            const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
+
+            it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
+                const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
+                const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
+                const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns false for a team policy with areRulesEnabled undefined', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('returns true for a team policy with areRulesEnabled explicitly true', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
+            });
+
+            it('returns false for a team policy with areRulesEnabled explicitly false', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
+            });
         });
     });
 
@@ -4547,44 +4934,6 @@ describe('PolicyUtils', () => {
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
         });
-
-        describe('isInvoiceFieldsEnabled', () => {
-            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
-            });
-
-            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
-            });
-
-            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
-            });
-
-            it('returns false for an undefined policy', () => {
-                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
-            });
-        });
-
-        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
-            it('returns true for a control policy with invoice fields enabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
-            });
-
-            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
-            });
-
-            it('returns false for a control policy with invoice fields disabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
-            });
-        });
     });
 
     describe('sortPoliciesByName', () => {
@@ -4636,198 +4985,288 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasConfiguredRules', () => {
-        it('returns false when policy is undefined', () => {
-            expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
-        });
-
-        it('returns false when policy has no rules configured', () => {
-            expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
-        });
-
-        describe('customRules', () => {
-            it('returns true when customRules is non-empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when customRules is an empty string', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when customRules is only whitespace', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('rules.approvalRules', () => {
-            it('returns true when approvalRules has items', () => {
-                const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
-            });
-
-            it('returns false when approvalRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('rules.expenseRules', () => {
-            it('returns true when expenseRules has items', () => {
-                const policy = createMock<Policy>({
+    describe('rules', () => {
+        describe('getTagApproverRule', () => {
+            it('should return undefined when no approval rules are present', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     rules: {
-                        expenseRules: [
+                        approvalRules: [],
+                    },
+                };
+                const result = getTagApproverRule(policy, '');
+                expect(result).toBeUndefined();
+            });
+
+            it('should return undefined when no tag approver rule is present', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    rules: {
+                        approvalRules: [
                             {
-                                id: '1',
-                                applyWhen: [],
-                                tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                                id: 'rule-1',
+                                applyWhen: [
+                                    {
+                                        field: CONST.POLICY.FIELDS.TAG,
+                                        condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                        value: 'Fake tag',
+                                    },
+                                ],
+                                approver: 'lol@hhh.com',
                             },
                         ],
                     },
+                };
+                const result = getTagApproverRule(policy, 'NonExistentTag');
+                expect(result).toBeUndefined();
+            });
+
+            it('should return the tag approver rule when present', () => {
+                const tagName = 'ImportantTag';
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    rules: {
+                        approvalRules: [
+                            {
+                                id: 'rule-1',
+                                applyWhen: [
+                                    {
+                                        field: CONST.POLICY.FIELDS.TAG,
+                                        condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                        value: tagName,
+                                    },
+                                ],
+                                approver: 'approver@example.com',
+                            },
+                        ],
+                    },
+                };
+                const result = getTagApproverRule(policy, tagName);
+                expect(result).toEqual({
+                    id: 'rule-1',
+                    applyWhen: [
+                        {
+                            field: CONST.POLICY.FIELDS.TAG,
+                            condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                            value: tagName,
+                        },
+                    ],
+                    approver: 'approver@example.com',
                 });
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
-            });
-
-            it('returns false when expenseRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
             });
         });
 
-        describe('merchant rules', () => {
-            // Which rules count towards this is decided by the caller's selector and covered in
-            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
-            const policy = createMock<Policy>({id: 'policy1', rules: {}});
-
-            it('returns true when the policy has a merchant rule', () => {
-                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
+        describe('hasConfiguredRules', () => {
+            it('returns false when policy is undefined', () => {
+                expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
             });
 
-            it('returns false when it has none', () => {
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
+            it('returns false when policy has no rules configured', () => {
+                expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
+            });
+
+            describe('customRules', () => {
+                it('returns true when customRules is non-empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when customRules is an empty string', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when customRules is only whitespace', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('rules.approvalRules', () => {
+                it('returns true when approvalRules has items', () => {
+                    const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
+                });
+
+                it('returns false when approvalRules is empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('rules.expenseRules', () => {
+                it('returns true when expenseRules has items', () => {
+                    const policy = createMock<Policy>({
+                        rules: {
+                            expenseRules: [
+                                {
+                                    id: '1',
+                                    applyWhen: [],
+                                    tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                                },
+                            ],
+                        },
+                    });
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
+                });
+
+                it('returns false when expenseRules is empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('merchant rules', () => {
+                // Which rules count towards this is decided by the caller's selector and covered in
+                // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
+                const policy = createMock<Policy>({id: 'policy1', rules: {}});
+
+                it('returns true when the policy has a merchant rule', () => {
+                    expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
+                });
+
+                it('returns false when it has none', () => {
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmount', () => {
+                it('returns true when maxExpenseAmount is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmount is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmount is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAge', () => {
+                it('returns true when maxExpenseAge is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAge is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAge is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmountNoReceipt', () => {
+                it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmountNoItemizedReceipt', () => {
+                it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('defaultBillable', () => {
+                it('returns true when defaultBillable is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when defaultBillable is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('defaultReimbursable', () => {
+                it('returns true when defaultReimbursable is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when defaultReimbursable is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('eReceipts', () => {
+                it('returns true when eReceipts is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when eReceipts is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('requireCompanyCardsEnabled', () => {
+                it('returns true when requireCompanyCardsEnabled is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when requireCompanyCardsEnabled is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('prohibitedExpenses', () => {
+                it('returns true when a prohibitedExpenses value differs from its default', () => {
+                    // alcohol defaults to false — setting it to true triggers the rule
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
+                });
+
+                it('returns true when gambling is disabled (differs from default true)', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when prohibitedExpenses matches all defaults', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when prohibitedExpenses is an empty object', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
+                });
+            });
+
+            it('returns true when only Classic category rules exist', () => {
+                const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+                expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
+            });
+
+            it('returns false when categories have no active rule fields', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+                expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
             });
         });
 
-        describe('maxExpenseAmount', () => {
-            it('returns true when maxExpenseAmount is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
+        describe('isMaxExpenseAmountSet', () => {
+            it('returns false when the amount was never set', () => {
+                expect(isMaxExpenseAmountSet(undefined)).toBe(false);
             });
 
-            it('returns false when maxExpenseAmount is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
+            it('returns false when the amount is explicitly disabled', () => {
+                expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
             });
 
-            it('returns false when maxExpenseAmount is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAge', () => {
-            it('returns true when maxExpenseAge is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
+            it('returns true for an explicit 0, which means the receipt is always required', () => {
+                expect(isMaxExpenseAmountSet(0)).toBe(true);
             });
 
-            it('returns false when maxExpenseAge is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
+            it('returns true for a positive amount', () => {
+                expect(isMaxExpenseAmountSet(5000)).toBe(true);
             });
-
-            it('returns false when maxExpenseAge is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAmountNoReceipt', () => {
-            it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAmountNoItemizedReceipt', () => {
-            it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('defaultBillable', () => {
-            it('returns true when defaultBillable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when defaultBillable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('defaultReimbursable', () => {
-            it('returns true when defaultReimbursable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when defaultReimbursable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('eReceipts', () => {
-            it('returns true when eReceipts is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when eReceipts is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('requireCompanyCardsEnabled', () => {
-            it('returns true when requireCompanyCardsEnabled is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when requireCompanyCardsEnabled is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('prohibitedExpenses', () => {
-            it('returns true when a prohibitedExpenses value differs from its default', () => {
-                // alcohol defaults to false — setting it to true triggers the rule
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
-            });
-
-            it('returns true when gambling is disabled (differs from default true)', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when prohibitedExpenses matches all defaults', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when prohibitedExpenses is an empty object', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
-            });
-        });
-
-        it('returns true when only Classic category rules exist', () => {
-            const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
-        });
-
-        it('returns false when categories have no active rule fields', () => {
-            const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
         });
     });
 
@@ -6227,46 +6666,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasPolicyRulesError', () => {
-        // Whether a merchant rule failed is reduced by the caller's selector and covered in
-        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
-        const POLICY_ID = 'policy-with-rules';
-
-        it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined, false)).toBe(false);
-        });
-
-        it('returns false when no merchant or agent rules exist', () => {
-            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, false)).toBe(false);
-        });
-
-        it('returns false when agent rules exist but none have errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                id: POLICY_ID,
-                rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
-            };
-            expect(hasPolicyRulesError(policy, false)).toBe(false);
-        });
-
-        it('returns true when a merchant rule has errors', () => {
-            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, true)).toBe(true);
-        });
-
-        it('returns true when an agent rule has errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                id: POLICY_ID,
-                rules: {
-                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
-                },
-            };
-            expect(hasPolicyRulesError(policy, false)).toBe(true);
-        });
-    });
-
     describe('getExcludedUsers', () => {
         it('marks every active policy member as excluded', () => {
             const result = getExcludedUsers(employeeList);
@@ -6301,72 +6700,6 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
-        });
-    });
-
-    describe('isQBORefreshTokenExpiringSoonSelector', () => {
-        const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
-            Object.assign(createRandomPolicy(1), {
-                role,
-                connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
-            });
-        const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
-
-        it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
-        });
-
-        it('returns false for a member, since only admins can reconnect', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
-        });
-
-        it('returns false when the token is still far from expiring or the policy is undefined', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
-            expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
-        });
-    });
-
-    describe('isMergeHRCompleteSetupNeededSelector', () => {
-        // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
-        // to a real policy without an unsafe cast.
-        type MergeHRTestConnection = {
-            lastSync?: {syncStatus?: string};
-            data?: {groups?: unknown[]};
-            config?: {groups?: unknown[] | null};
-        };
-        const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
-        const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
-            data: {groups: [{id: 'g1', name: 'Engineering'}]},
-        };
-
-        it('returns false when policy is undefined', () => {
-            expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
-        });
-
-        it('returns false when policy has no merge_hris connection', () => {
-            const policy = createRandomPolicy(1);
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when sync is done but there are no groups', () => {
-            const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when setup is already complete (groups configured)', () => {
-            const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
-            const policy = buildMergeHRPolicy(5, mergeHRBase);
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
     });
 
@@ -6751,78 +7084,6 @@ describe('PolicyUtils', () => {
     });
 });
 
-describe('isMaxExpenseAmountSet', () => {
-    it('returns false when the amount was never set', () => {
-        expect(isMaxExpenseAmountSet(undefined)).toBe(false);
-    });
-
-    it('returns false when the amount is explicitly disabled', () => {
-        expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
-    });
-
-    it('returns true for an explicit 0, which means the receipt is always required', () => {
-        expect(isMaxExpenseAmountSet(0)).toBe(true);
-    });
-
-    it('returns true for a positive amount', () => {
-        expect(isMaxExpenseAmountSet(5000)).toBe(true);
-    });
-});
-
-describe('arePolicyRulesEnabled', () => {
-    const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
-    const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
-
-    it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
-        const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
-        const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
-        const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
-        const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
-        const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns false for a team policy with areRulesEnabled undefined', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
-    });
-
-    it('returns true for a team policy with areRulesEnabled explicitly true', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
-    });
-
-    it('returns false for a team policy with areRulesEnabled explicitly false', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
-    });
-});
-
 describe('getDefaultChatEnabledPolicy', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -7049,28 +7310,6 @@ describe('isMemberInHomeAndOfficeWorkspace', () => {
         expect(isEligibleMember).toBe(true);
         expect(isEligibleForOtherWorkspaceMode).toBe(false);
         expect(isEligibleForUnknownMember).toBe(false);
-    });
-});
-
-describe('shouldHideDynamicExternalWorkflowPeople', () => {
-    it('returns false when the policy is undefined', () => {
-        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
-    });
-
-    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
-    });
-
-    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
-    it('returns false for a Dynamic External Workflow policy without the flag', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
-    });
-
-    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
     });
 });
 

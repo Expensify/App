@@ -4118,6 +4118,11 @@ const translations = {
                 `<strong>${delegate}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
             youAreAMemberOf: 'You are a member of these workspaces:',
             youAreAnAdminOf: 'You are an admin of these workspaces:',
+            chooseDelegate: 'Choose delegate',
+            clearAfterRecommended: 'Clear after (recommended)',
+            willClearOn: (date: string) => `Vacation delegate will clear on ${date}`,
+            until: (date: string) => `Until ${date}`,
+            removeDelegate: 'Remove vacation delegate',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4210,6 +4215,10 @@ const translations = {
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Edit ${name}`,
+        removeItem: ({name}: {name: string}) => `Remove ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4221,7 +4230,13 @@ const translations = {
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
             invalidOption: 'Choose one of the available options',
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `Add ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
+        removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -6987,6 +7002,8 @@ const translations = {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+                commuterExclusionsOnTitle: 'Commute exclusions are on',
+                disableLockedByCommuterExclusionsPrompt: 'To turn off Distance rates, first set Exclude commutes to “Do not exclude commutes.”',
             },
             perDiem: {
                 title: 'Per diem',
@@ -8172,7 +8189,7 @@ const translations = {
             },
             filters: {
                 description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
-                enableJobStagesOrTags: 'Enable Job stages or Tags to continue',
+                enableJobStagesOrTags: 'Select at least one Job stage or Tag to continue',
                 stages: {
                     title: 'Job stage',
                     toggleTitle: 'Job stages',
@@ -10227,6 +10244,8 @@ const translations = {
         fallbackTitle: 'Support ticket',
         resolved: 'This support ticket is resolved.',
         surveyPrompt: 'How was your support experience?',
+        great: 'Great',
+        poor: 'Poor',
         reopenTicket: 'Reopen ticket',
     },
     statementPage: {

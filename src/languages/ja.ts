@@ -3903,6 +3903,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
             youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
             youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+            chooseDelegate: '代理人を選択',
+            clearAfterRecommended: 'クリア日（推奨）',
+            willClearOn: (date: string) => `休暇代理人は${date}に解除されます`,
+            until: (date: string) => `${date}まで`,
+            removeDelegate: '休暇代理人を削除',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -3992,6 +3997,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
         unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `${name}を編集`,
+        removeItem: ({name}: {name: string}) => `${name}を削除`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `例：${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4003,7 +4012,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
             invalidOption: '利用可能な選択肢から選んでください',
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
+            tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
+            tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
         },
+        addItem: ({item}: {item: string}) => `${item}を追加`,
+        removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
+        removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -6531,6 +6546,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',
+                commuterExclusionsOnTitle: '通勤除外が有効になっています',
+                disableLockedByCommuterExclusionsPrompt: '距離レートをオフにするには、まず「通勤を除外しない」に通勤の除外設定を変更してください。',
             },
             perDiem: {
                 title: '日当',
@@ -8864,7 +8881,7 @@ ${reportName}`,
                     allSelected: 'すべてのタグ',
                 },
                 offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
-                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+                enableJobStagesOrTags: '続行するには、少なくとも 1 つのジョブのステージまたはタグを選択してください',
             },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
@@ -9840,6 +9857,8 @@ ${reportName}`,
         fallbackTitle: 'サポートチケット',
         resolved: 'このサポートチケットは解決済みです。',
         surveyPrompt: 'サポートの対応はいかがでしたか？',
+        great: '素晴らしい',
+        poor: '悪い',
         reopenTicket: 'チケットを再開',
     },
     statementPage: {
