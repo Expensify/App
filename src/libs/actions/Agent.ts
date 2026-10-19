@@ -44,6 +44,7 @@ function prepareNewAgentOnyxData(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
+    policy?: Policy,
     firstName?: string,
     customExpensifyAvatarID?: string,
     optimisticAvatarURI?: string,
@@ -87,7 +88,11 @@ function prepareNewAgentOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
-            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            value: {
+                prompt,
+                ownerAccountID: policy?.policyAccountID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -127,8 +132,6 @@ function prepareNewAgentOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
             value: {
-                prompt,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
@@ -165,6 +168,7 @@ function createAgent(
         currentUserAccountID,
         currentUserLogin,
         prompt,
+        undefined,
         firstName,
         customExpensifyAvatarID,
         optimisticAvatarURI,
@@ -196,6 +200,7 @@ function createCompanyAgent(
         currentUserAccountID,
         currentUserLogin,
         prompt,
+        policy,
         firstName,
         customExpensifyAvatarID,
         optimisticAvatarURI,
