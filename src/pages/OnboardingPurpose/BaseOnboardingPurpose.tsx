@@ -32,6 +32,7 @@ import {clearOnboardingMergeAccountBlocked, setOnboardingErrorMessage, setOnboar
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -86,6 +87,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [workEmailForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
+    const workEmail = workEmailForm?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -220,6 +223,17 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
+    const getErrorMessage = () => {
+        if (!onboardingErrorMessage) {
+            return undefined;
+        }
+        // These merge-block messages interpolate the work email, so translate them with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle' || onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
+            return translate(onboardingErrorMessage, workEmail);
+        }
+        return translate(onboardingErrorMessage);
+    };
+
     if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
     }
@@ -250,7 +264,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 </View>
             </ScrollView>
             <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                <FormHelpMessage message={onboardingErrorMessage ? translate(onboardingErrorMessage) : undefined} />
+                <FormHelpMessage message={getErrorMessage()} />
             </View>
         </ScreenWrapper>
     );

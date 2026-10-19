@@ -33,6 +33,10 @@ abstract class HybridContactsModuleSpec: HybridObject() {
   @DoNotStrip
   @Keep
   abstract fun getAll(keys: Array<ContactFields>): Promise<Array<Contact>>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun pick(keys: Array<ContactFields>): Promise<Array<Contact>>
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

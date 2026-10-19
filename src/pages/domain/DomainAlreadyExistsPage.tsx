@@ -70,7 +70,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     }, [domainAccountID]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
