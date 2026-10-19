@@ -1,3 +1,4 @@
+import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -9,7 +10,6 @@ import CONST from '@src/CONST';
 import type {AutoFocusSystem, CameraDevice, CameraSessionConfig} from 'react-native-vision-camera';
 
 import {useEffect, useRef} from 'react';
-import {Platform} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {RESULTS} from 'react-native-permissions';
 
@@ -87,7 +87,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
         };
     }, []);
 
-    const handleCameraInitialized = () => {
+    const handleCameraConfigured = () => {
         // Prevent duplicate span endings if callback fires multiple times
         if (cameraInitialized.current) {
             return;
@@ -122,16 +122,15 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
             });
     };
 
-    // VisionCamera calls this during configure, before `onConfigured` ends the span. Android always reports
-    // 'phase-detection' (hard-coded in VisionCamera), so only iOS reports a real autofocus system.
+    // VisionCamera calls this during configure, before `onConfigured` ends the span.
     const handleSessionConfigSelected = (config: CameraSessionConfig) => {
-        if (Platform.OS !== 'ios') {
+        if (!cameraPlatformConfig.reportsAutoFocusSystem) {
             return;
         }
         autoFocusSystem.current = config.autoFocusSystem;
     };
 
-    return {handleCameraInitialized, handleSessionConfigSelected};
+    return {handleCameraConfigured, handleSessionConfigSelected};
 }
 
 export default useCameraInitTelemetry;

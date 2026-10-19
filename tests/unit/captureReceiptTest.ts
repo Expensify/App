@@ -1,10 +1,9 @@
 import type CapturedPhoto from '@libs/cameraCapture/types';
 
-import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import captureReceiptIOS from '@pages/iou/request/step/IOURequestStepScan/captureReceipt/index.ios';
+import type {CaptureReceipt} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt/types';
 
 import type {CameraPhotoOutput, CameraRef} from 'react-native-vision-camera';
-
-import {Platform} from 'react-native';
 
 const mockCapturePhotoToPath = jest.fn<Promise<CapturedPhoto>, unknown[]>(() => Promise.resolve({path: '/receipts/receipt.jpg', width: 1944, height: 2592}));
 const mockCaptureSnapshotToPath = jest.fn<Promise<CapturedPhoto>, unknown[]>(() => Promise.resolve({path: '/receipts/receipt.jpg', width: 1080, height: 1440}));
@@ -13,6 +12,9 @@ jest.mock('@libs/cameraCapture', () => ({
     capturePhotoToPath: (...args: unknown[]) => mockCapturePhotoToPath(...args),
     captureSnapshotToPath: (...args: unknown[]) => mockCaptureSnapshotToPath(...args),
 }));
+
+// Jest resolves the bare path to index.ios.ts, so the Android implementation is loaded by its file name.
+const captureReceiptAndroid = jest.requireActual<{default: CaptureReceipt}>('@pages/iou/request/step/IOURequestStepScan/captureReceipt/index.ts').default;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const camera = {} as CameraRef;
@@ -25,22 +27,15 @@ function getSettings() {
 }
 
 describe('captureReceipt', () => {
-    const originalOS = Platform.OS;
-
     afterEach(() => {
-        Platform.OS = originalOS;
         jest.clearAllMocks();
     });
 
     describe('on iOS', () => {
-        beforeEach(() => {
-            Platform.OS = 'ios';
-        });
-
         it('takes a silent photo for a plain portrait scan, like the v4 snapshot it replaces', () => {
             // Given a portrait scan without flash, which was a silent snapshot on VisionCamera v4
             // When the receipt is captured
-            captureReceipt(camera, photoOutput, BASE_OPTIONS);
+            captureReceiptIOS(camera, photoOutput, BASE_OPTIONS);
 
             // Then it is a full photo with no shutter sound
             expect(mockCaptureSnapshotToPath).not.toHaveBeenCalled();
@@ -50,11 +45,11 @@ describe('captureReceipt', () => {
         it('plays the shutter sound for flash and landscape photos unless the phone is muted', () => {
             // Given the flash and landscape captures, which were sounding photos on v4 as well
             // When each is captured, unmuted and then muted
-            captureReceipt(camera, photoOutput, {...BASE_OPTIONS, flash: true});
+            captureReceiptIOS(camera, photoOutput, {...BASE_OPTIONS, flash: true});
             const flashSettings = getSettings();
-            captureReceipt(camera, photoOutput, {...BASE_OPTIONS, isInLandscapeMode: true});
+            captureReceiptIOS(camera, photoOutput, {...BASE_OPTIONS, isInLandscapeMode: true});
             const landscapeSettings = getSettings();
-            captureReceipt(camera, photoOutput, {...BASE_OPTIONS, flash: true, isPlatformMuted: true});
+            captureReceiptIOS(camera, photoOutput, {...BASE_OPTIONS, flash: true, isPlatformMuted: true});
             const mutedSettings = getSettings();
 
             // Then the sound follows the mute switch, as v4's takePhoto did
@@ -65,14 +60,10 @@ describe('captureReceipt', () => {
     });
 
     describe('on Android', () => {
-        beforeEach(() => {
-            Platform.OS = 'android';
-        });
-
         it('keeps the preview snapshot for a plain portrait scan', () => {
             // Given a portrait scan without flash, where a full photo is slow on many Android cameras
             // When the receipt is captured
-            captureReceipt(camera, photoOutput, BASE_OPTIONS);
+            captureReceiptAndroid(camera, photoOutput, BASE_OPTIONS);
 
             // Then the fast snapshot is used, written into the receipts folder
             expect(mockCapturePhotoToPath).not.toHaveBeenCalled();

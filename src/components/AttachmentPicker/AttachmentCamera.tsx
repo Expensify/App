@@ -12,11 +12,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
-import useCameraPhotoAspectRatio from '@hooks/useCameraPhotoAspectRatio';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {requestCameraPermission, useTapToFocusGesture} from '@hooks/useNativeCamera';
+import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -46,9 +46,7 @@ import {Alert, AppState, StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
-import {useCameraDevice, useCameraDevices, usePhotoOutput, Camera as VisionCamera} from 'react-native-vision-camera';
-
-const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
+import {useCameraDevice, useCameraDevices, Camera as VisionCamera} from 'react-native-vision-camera';
 
 type CapturedPhoto = {
     uri: string;
@@ -106,11 +104,8 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const device = selectWideCameraDevice(cameraDevices, cameraPosition, defaultDevice);
     const canFlipCamera = cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back');
 
-    // Owned by the component that renders the camera: an output shared between sessions aborts (VisionCamera #4156).
-    // v5's default 'native' container is HEIC on iOS.
-    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization: 'quality'});
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput('balanced', isLandscape);
     const hasFlash = !!device?.hasFlash;
-    const {cameraAspectRatio, updatePhotoResolution} = useCameraPhotoAspectRatio(photoOutput, PHOTO_TARGET_RESOLUTION, isLandscape);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, !!device?.supportsFocusMetering && !capturedPhoto);
 
@@ -322,7 +317,6 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                                             device={device}
                                             outputs={[photoOutput]}
                                             onConfigured={updatePhotoResolution}
-                                            onStarted={updatePhotoResolution}
                                             style={styles.flex1}
                                             zoom={getZoomProp(device)}
                                             isActive={isVisible && !capturedPhoto}

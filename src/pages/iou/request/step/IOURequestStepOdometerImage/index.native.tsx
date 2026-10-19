@@ -4,12 +4,12 @@ import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
-import useCameraPhotoAspectRatio from '@hooks/useCameraPhotoAspectRatio';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,9 +50,6 @@ import {Alert, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {usePhotoOutput} from 'react-native-vision-camera';
-
-const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -97,8 +94,7 @@ function IOURequestStepOdometerImage({
     });
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
-    // v5's default 'native' container is HEIC on iOS.
-    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization: 'quality'});
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput('balanced', isInLandscapeMode);
 
     const title = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const snapPhotoText = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.snapPhotoStart') : translate('distance.odometer.snapPhotoEnd');
@@ -258,8 +254,6 @@ function IOURequestStepOdometerImage({
             });
     };
 
-    const {cameraAspectRatio, updatePhotoResolution} = useCameraPhotoAspectRatio(photoOutput, PHOTO_TARGET_RESOLUTION, isInLandscapeMode);
-
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -297,9 +291,7 @@ function IOURequestStepOdometerImage({
                             camera={camera}
                             device={device}
                             outputs={[photoOutput]}
-                            constraints={[{fps: 30}]}
                             onConfigured={updatePhotoResolution}
-                            onStarted={updatePhotoResolution}
                             cameraAspectRatio={cameraAspectRatio}
                             isInLandscapeMode={isInLandscapeMode}
                             shouldFillPortraitViewport={false}

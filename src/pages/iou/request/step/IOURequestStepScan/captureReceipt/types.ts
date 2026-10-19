@@ -6,8 +6,8 @@ type CaptureReceiptOptions = {
     flash: boolean;
     hasFlash: boolean;
     isPlatformMuted: boolean | undefined;
-    isInLandscapeMode: boolean;
     path: string;
+    isInLandscapeMode: boolean;
 };
 
 type CaptureReceipt = (camera: CameraRef, photoOutput: CameraPhotoOutput, options: CaptureReceiptOptions) => Promise<CapturedPhoto>;

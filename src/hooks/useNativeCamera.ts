@@ -1,7 +1,9 @@
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import getFirstLine from '@libs/cameraCapture/getFirstLine';
 import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
@@ -123,13 +125,13 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     };
 }
 
+// How CameraX (Android) and VisionCamera (iOS) reject a focus request that a newer tap replaced.
+const FOCUS_CANCELLED_MESSAGES = ['Cancelled by another startFocusAndMetering()', 'The metering operation has been canceled!'];
+
 /**
  * Module-level so React Compiler never sees the `cameraRef.current` read. Doing it inside a hook body
  * trips the "no ref access during render" rule, making OXC bail on the file and diverge from Babel.
  */
-// How CameraX (Android) and VisionCamera (iOS) reject a focus request that a newer tap replaced.
-const FOCUS_CANCELLED_MESSAGES = ['Cancelled by another startFocusAndMetering()', 'The metering operation has been canceled!'];
-
 function focusCameraAtPoint(cameraRef: React.RefObject<CameraRef | null>, point: Point) {
     if (!cameraRef.current) {
         return;
@@ -137,11 +139,11 @@ function focusCameraAtPoint(cameraRef: React.RefObject<CameraRef | null>, point:
 
     // Android throws "MeteringModes cannot be empty!" for the default options.
     cameraRef.current.focusTo(point, {modes: ['AF', 'AE']}).catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
         if (FOCUS_CANCELLED_MESSAGES.some((cancelled) => message.includes(cancelled))) {
             return;
         }
-        Log.warn('Error focusing camera', {message: message.split('\n').at(0)});
+        Log.warn('Error focusing camera', {message: getFirstLine(message)});
     });
 }
 

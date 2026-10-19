@@ -1,13 +1,15 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
-import useCameraPhotoAspectRatio from '@hooks/useCameraPhotoAspectRatio';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import type CapturedPhoto from '@libs/cameraCapture/types';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
@@ -29,20 +31,13 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React, {useRef} from 'react';
-import {Alert, Platform, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
-import {usePhotoOutput} from 'react-native-vision-camera';
 
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
-
-const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
-
-const QUALITY_PRIORITIZATION = Platform.OS === 'ios' ? 'speed' : 'quality';
-
-const PREPARED_IOS_PHOTO_SETTINGS = [{flashMode: 'off' as const, enableShutterSound: false}];
 
 /**
  * Camera — native capture variant.
@@ -87,12 +82,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    // v5's default 'native' container is HEIC on iOS.
-    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization: QUALITY_PRIORITIZATION});
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode);
     const outputs = [photoOutput];
-    // `<Camera>` already adds a `resolutionBias` for every output.
-    const constraints = [{fps: 30}];
-    const {cameraAspectRatio, updatePhotoResolution} = useCameraPhotoAspectRatio(photoOutput, PHOTO_TARGET_RESOLUTION, isInLandscapeMode);
 
     // Blink animation for shutter feedback
     const blinkOpacity = useSharedValue(0);
@@ -105,17 +96,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized, handleSessionConfigSelected} = useCameraInitTelemetry({cameraPermissionStatus, device});
+    const {handleCameraConfigured, handleSessionConfigSelected} = useCameraInitTelemetry({cameraPermissionStatus, device});
 
     // VisionCamera replaces the prepared settings on every reconfigure.
-    const handleCameraConfigured = () => {
+    const finishCameraSetup = () => {
         updatePhotoResolution();
-        handleCameraInitialized();
-        if (Platform.OS !== 'ios') {
+        handleCameraConfigured();
+        const {preparedPhotoSettings} = cameraPlatformConfig;
+        if (!preparedPhotoSettings) {
             return;
         }
-        photoOutput.prepareSettings(PREPARED_IOS_PHOTO_SETTINGS).catch((error: unknown) => {
-            Log.info('[Camera] could not prepare the photo settings', false, {error: error instanceof Error ? error.message : String(error)});
+        photoOutput.prepareSettings(preparedPhotoSettings).catch((error: unknown) => {
+            Log.info('[Camera] could not prepare the photo settings', false, {error: getErrorMessage(error)});
         });
     };
 
@@ -215,7 +207,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 isCapturingPhoto.current = false;
                 maybeCancelShutterSpan();
                 showCameraAlert();
-                Log.warn('Error taking photo', {message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined});
+                Log.warn('Error taking photo', {message: getErrorMessage(error), stack: error instanceof Error ? error.stack : undefined});
                 discardPendingPhoto();
             });
 
@@ -256,7 +248,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             camera={camera}
                             device={device}
                             outputs={outputs}
-                            constraints={constraints}
                             cameraAspectRatio={cameraAspectRatio}
                             isInLandscapeMode={isInLandscapeMode}
                             tapGesture={tapGesture}
@@ -265,8 +256,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
                             hasPendingPhotoCapture={hasPendingPhotoCapture}
-                            onConfigured={handleCameraConfigured}
-                            onStarted={updatePhotoResolution}
+                            onConfigured={finishCameraSetup}
                             onSessionConfigSelected={handleSessionConfigSelected}
                             shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}

@@ -63,7 +63,6 @@ function buildPhoto(path = PHOTO_PATH): CapturedPhoto {
     return {path, width: 1920, height: 1440};
 }
 
-/** A photo output whose captures the test resolves or rejects on demand, in the order they were started. */
 function buildPhotoOutput() {
     const started: Array<{resolve: (photo: CapturedPhoto) => void; reject: (error: Error) => void}> = [];
     const capturePhoto = jest.fn(
@@ -74,7 +73,6 @@ function buildPhotoOutput() {
     );
 
     return {
-        // The mocked `capturePhotoToPath` only calls `capture`, so a stub of the one method is all the test needs.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         photoOutput: {capture: capturePhoto} as unknown as CameraPhotoOutput,
         capturePhoto,

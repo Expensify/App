@@ -23,22 +23,18 @@ function preparePath(filePath: string) {
     return RNFS.mkdir(path.slice(0, path.lastIndexOf('/'))).then(() => path);
 }
 
-/**
- * Starts a Nitro call inside a promise, so a synchronous throw (as from `takeSnapshot`) becomes a rejection.
- *
- * Followed with `.then`, not `await`: with a frame output running on a worklet runtime, an `await` on a Nitro promise
- * resumed with `undefined` before the native call finished on Android, while `.then` received the result.
- */
-function fromNitro<T>(start: () => Promise<T>): Promise<T> {
+/** Starts the call inside a promise, so a synchronous throw (as from `takeSnapshot`) becomes a rejection. */
+function callAsPromise<T>(start: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         start().then(resolve, reject);
     });
 }
 
-/** Takes a full photo and writes it to `filePath`, or to a temporary file. */
 function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePhotoSettings, filePath?: string): Promise<CapturedPhoto> {
-    return fromNitro(() => photoOutput.capturePhoto(settings, {})).then((photo) => {
-        const save = filePath ? preparePath(filePath).then((path) => fromNitro(() => photo.saveToFileAsync(path)).then(() => path)) : fromNitro(() => photo.saveToTemporaryFileAsync());
+    return callAsPromise(() => photoOutput.capturePhoto(settings, {})).then((photo) => {
+        const save = filePath
+            ? preparePath(filePath).then((path) => callAsPromise(() => photo.saveToFileAsync(path)).then(() => path))
+            : callAsPromise(() => photo.saveToTemporaryFileAsync());
 
         return save
             .then((path) => ({path, ...getDisplaySize(photo)}))
@@ -51,8 +47,8 @@ function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePho
 /** Android only: VisionCamera v5's `takeSnapshot` throws on iOS, and throws synchronously before the preview attaches. */
 function captureSnapshotToPath(camera: CameraRef, filePath: string): Promise<CapturedPhoto> {
     const path = fileURIToPath(filePath);
-    return fromNitro(() => camera.takeSnapshot()).then((image) =>
-        fromNitro(() => image.saveToFileAsync(path, 'jpg', SNAPSHOT_JPEG_QUALITY))
+    return callAsPromise(() => camera.takeSnapshot()).then((image) =>
+        callAsPromise(() => image.saveToFileAsync(path, 'jpg', SNAPSHOT_JPEG_QUALITY))
             .then(() => ({path, width: image.width, height: image.height}))
             .finally(() => {
                 image.dispose();
