@@ -9,6 +9,7 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
+import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
@@ -25,14 +26,8 @@ type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
     label: string;
 
-    /** Formatted amount (e.g., "$1,820.00") */
-    amount: string;
-
-    /** Optional percentage to display (e.g., "12%") */
-    percentage?: string;
-
-    /** Optional translated expense count (e.g., "841 expenses") */
-    expenseCount?: string;
+    /** Shown under the label, like ChartTooltipSummary */
+    children: ReactNode;
 
     /** The width of the chart container as displayed in the window */
     chartWidth: number;
@@ -58,28 +53,7 @@ type ChartTooltipProps = {
     onContentLayout?: () => void;
 };
 
-function getAmountContent(amount: string, percentage?: string): string {
-    if (!amount || !percentage) {
-        return amount;
-    }
-
-    return `${amount} (${percentage})`;
-}
-
-function ChartTooltip({
-    label,
-    amount,
-    percentage,
-    expenseCount,
-    chartWidth,
-    initialTooltipPosition,
-    isVisible,
-    isContentCurrent,
-    onChartMoved,
-    onDismiss,
-    contentKey,
-    onContentLayout,
-}: ChartTooltipProps) {
+function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
 
@@ -97,8 +71,6 @@ function ChartTooltip({
 
     /** JS mirror of isVisible, which turns the anchor's position tracking on and off */
     const [isShown, setIsShown] = useState(false);
-
-    const amountContent = getAmountContent(amount, percentage);
 
     // The size is set before the content is reported as laid out, so the tooltip is never revealed with the previous content's size
     const handleContentLayout = (event: LayoutChangeEvent) => {
@@ -199,8 +171,7 @@ function ChartTooltip({
                         onLayout={handleContentLayout}
                     >
                         <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
-                        {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
+                        {children}
                     </View>
                 </Animated.View>
             </ChartTooltipPortal>
