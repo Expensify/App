@@ -1790,6 +1790,32 @@ describe('MoneyRequest', () => {
             expect(participants.length).toBeGreaterThan(0);
         });
 
+        it('should build the same participant option whether or not the report has a one-transaction thread ID', () => {
+            // Given the shared params for a policy expense chat participant
+            const params = {
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            };
+
+            // When the options are built with and without a one-transaction thread ID for the participant's report
+            const withoutThreadID = getMoneyRequestParticipantOptions({...params, transactionThreadIDs: {}});
+            const withThreadID = getMoneyRequestParticipantOptions({...params, transactionThreadIDs: {[fakeReport.reportID]: 'transactionThread1'}});
+
+            // Then the option is unchanged, because participant options never build the chat preview line that reads the thread ID
+            expect(withThreadID.length).toBeGreaterThan(0);
+            expect(withThreadID).toEqual(withoutThreadID);
+        });
+
         it('should return participants with privateIsArchived passed through', () => {
             const participants = getMoneyRequestParticipantOptions({
                 transactionThreadIDs: {},
