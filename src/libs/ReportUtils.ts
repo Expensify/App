@@ -4926,7 +4926,7 @@ function getLastVisibleMessage(
     reportID: string | undefined,
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    // Optional while some callers (e.g. generateIsEmptyReport) still omit currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
@@ -14025,13 +14025,7 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(
-    reportID: string,
-    isReportArchived: boolean | undefined,
-    actionsToMerge?: ReportActions,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
-) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge: ReportActions | undefined, currentUserAccountID: number) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
