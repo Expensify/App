@@ -11,22 +11,23 @@ import type {ThemeStylesActionsContextType, ThemeStylesStateContextType} from '.
 let cachedState: ThemeStylesStateContextType | undefined;
 let cachedActions: ThemeStylesActionsContextType | undefined;
 
+function getDefaultState(): ThemeStylesStateContextType {
+    if (!cachedState) {
+        cachedState = {styles: styles(defaultTheme)};
+    }
+    return cachedState;
+}
+
 const defaultThemeStylesStateContextValue: ThemeStylesStateContextType = {
     get styles() {
-        if (!cachedState) {
-            cachedState = {styles: styles(defaultTheme)};
-        }
-        return cachedState.styles;
+        return getDefaultState().styles;
     },
 };
 
 const defaultThemeStylesActionsContextValue: ThemeStylesActionsContextType = {
     get StyleUtils() {
         if (!cachedActions) {
-            if (!cachedState) {
-                cachedState = {styles: styles(defaultTheme)};
-            }
-            cachedActions = {StyleUtils: createStyleUtils(defaultTheme, cachedState.styles)};
+            cachedActions = {StyleUtils: createStyleUtils(defaultTheme, getDefaultState().styles)};
         }
         return cachedActions.StyleUtils;
     },
