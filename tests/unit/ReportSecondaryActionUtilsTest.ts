@@ -566,7 +566,7 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             total: -10000,
             isWaitingOnBankAccount: false,
-            // Auth reports the bank reimbursement as still cancellable so the outcome depends on the access gate alone.
+            // Auth reports whether this viewer can cancel the bank reimbursement.
             canCancelReimbursement: true,
         });
         const transaction = createMock<Transaction>({reportID: REPORT_ID, amount: 10000});
@@ -576,16 +576,17 @@ describe('getSecondaryAction', () => {
                 reportActionID: PAY_ACTION_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: ADMIN_ACCOUNT_ID,
-                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID},
+                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID, accountNumber: 'XXXX1234'},
                 created: '2020-01-01 00:00:00.000',
             });
         }
 
-        async function getActionsForAdmin(payAction: ReportAction, bankAccountList: BankAccountList) {
+        async function getActionsForAdmin(payAction: ReportAction, bankAccountList: BankAccountList, reportOverrides: Partial<Report> = {}) {
+            const viewerReport = {...report, ...reportOverrides};
             // beforeEach's Onyx.clear isn't awaited; explicit clear guarantees a clean policy collection for this seed.
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, viewerReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[PAY_ACTION_ID]: payAction});
             await waitForBatchedUpdates();
 
@@ -594,7 +595,7 @@ describe('getSecondaryAction', () => {
                 currentUserLogin: ADMIN_EMAIL,
                 currentUserAccountID: ADMIN_ACCOUNT_ID,
                 submitterLogin: EMPLOYEE_EMAIL,
-                report,
+                report: viewerReport,
                 chatReport,
                 reportTransactions: [transaction],
                 originalTransaction: createMock<Transaction>({}),
@@ -607,47 +608,59 @@ describe('getSecondaryAction', () => {
             });
         }
 
-        it('includes CANCEL_PAYMENT when the report was marked as paid', async () => {
-            // Given a non-payer admin viewing a completed payment.
-            // When cancellation eligibility is resolved using the payment action and accessible bank accounts.
-            // Then manual payments can be cancelled and bank payments require access to the funding account.
-            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE), {});
+        it('includes CANCEL_PAYMENT for a paid-elsewhere payment without server cancellation permission', async () => {
+            // Given a non-payer admin whose report was marked as paid elsewhere.
+            // When Auth does not mark a bank reimbursement as cancellable.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE), {}, {canCancelReimbursement: false});
+
+            // Then the admin can still undo the manual payment.
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
         });
 
-        it('includes CANCEL_PAYMENT when the bank account used to pay is shared with the admin', async () => {
-            // Given a non-payer admin viewing a completed payment.
-            // When cancellation eligibility is resolved using the payment action and accessible bank accounts.
-            // Then manual payments can be cancelled and bank payments require access to the funding account.
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with a matching bank account ID', async () => {
+            // Given a non-payer admin with the bank account recorded on an optimistic pay action.
+            // When Auth permits cancellation for this viewer.
             const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
                 [ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
             });
+
+            // Then cancellation remains available before the pay action is reloaded.
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
         });
 
-        it('does not include CANCEL_PAYMENT when the bank account used to pay is not shared with the admin', async () => {
-            // Given a non-payer admin viewing a completed payment.
-            // When cancellation eligibility is resolved using the payment action and accessible bank accounts.
-            // Then manual payments can be cancelled and bank payments require access to the funding account.
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with different shared bank account IDs', async () => {
+            // Given a payment whose funding account ID differs from the viewer's shared account ID.
+            // When Auth permits cancellation for this viewer.
             const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
                 [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
             });
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+
+            // Then the per-viewer account IDs do not hide cancellation.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
         });
 
-        it('falls back to the workspace bank account when the pay action does not name one', async () => {
-            // Given a non-payer admin viewing a completed payment.
-            // When cancellation eligibility is resolved using the payment action and accessible bank accounts.
-            // Then manual payments can be cancelled and bank payments require access to the funding account.
+        it('includes CANCEL_PAYMENT after reloading a pay action without a bank account ID', async () => {
+            // Given a persisted pay action with accountNumber but no bankAccountID and no loaded bank accounts.
             const payAction = buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA);
 
-            const withWorkspaceAccount = await getActionsForAdmin(payAction, {
-                [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            });
-            expect(withWorkspaceAccount.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+            // When Auth permits cancellation for this viewer after a cold load.
+            const result = await getActionsForAdmin(payAction, {});
 
-            const withoutWorkspaceAccount = await getActionsForAdmin(payAction, {});
-            expect(withoutWorkspaceAccount.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+            // Then cancellation does not depend on optimistic payment metadata or locally loaded accounts.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it.each([false, undefined])('excludes CANCEL_PAYMENT when server cancellation permission is %s despite a matching bank account', async (canCancelReimbursement) => {
+            // Given a non-payer admin with the funding account in their bank account list.
+            // When Auth does not grant cancellation permission for this viewer.
+            const result = await getActionsForAdmin(
+                buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID),
+                {[ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US}},
+                {canCancelReimbursement},
+            );
+
+            // Then local access cannot enable cancellation of a bank reimbursement.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
         });
     });
 
