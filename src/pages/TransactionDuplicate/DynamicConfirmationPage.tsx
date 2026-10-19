@@ -128,9 +128,7 @@ function DynamicConfirmationPage() {
         // The merge removes the discarded expenses. A single-expense report in the table view also uses the super wide RHP,
         // and once its only expense is discarded it is gone, so going back to it would show "Not here".
         const discardedTransactionIDs = new Set(mergeParams.transactionList.map((transaction) => transaction.transactionID));
-        const superWideRHPReportTransactionList = Object.values(superWideRHPReportTransactions);
-        const doesSuperWideRHPReportKeepExpenses =
-            superWideRHPReportTransactionList.length === 0 || superWideRHPReportTransactionList.some((transaction) => !discardedTransactionIDs.has(transaction.transactionID));
+        const doesSuperWideRHPReportKeepExpenses = TransactionUtils.doesReportKeepExpensesAfterMerge(Object.values(superWideRHPReportTransactions), discardedTransactionIDs);
         if (isSuperWideRHPDisplayed && doesSuperWideRHPReportKeepExpenses) {
             Navigation.dismissToSuperWideRHP();
             return;
