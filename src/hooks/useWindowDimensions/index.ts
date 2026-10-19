@@ -25,9 +25,10 @@ const isMobile = isMobileBrowser();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
+    const unlockedWindowDimensionsRef: RefObject<ResponsiveLayoutProperties | null> = {current: null};
     const {isFullScreen, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? {
         isFullScreen: false,
-        lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
+        lockedWindowDimensionsRef: unlockedWindowDimensionsRef,
     };
     const {lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenActionsContext) ?? {
         lockWindowDimensions: () => {},
@@ -61,8 +62,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
     const handleFocusIn = useRef((event: FocusEvent) => {
-        const targetElement = event.target as HTMLElement;
-        if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        const targetElement = event.target;
+        if (targetElement instanceof Element && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(cachedViewportHeightWithKeyboardRef.current);
         }
     });
@@ -80,8 +81,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     }, [isCachedViewportHeight]);
 
     const handleFocusOut = useRef((event: FocusEvent) => {
-        const targetElement = event.target as HTMLElement;
-        if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        const targetElement = event.target;
+        if (targetElement instanceof Element && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(initialViewportHeight);
         }
     });
