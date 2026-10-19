@@ -294,7 +294,12 @@ function getAlternateText(
         if (report) {
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
-            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(
+                report,
+                isReportArchived,
+                visibleReportActionsData,
+                oneTransactionThreadReportID ?? '',
+            );
             return getReportAlternateText({
                 report,
                 lastAction,

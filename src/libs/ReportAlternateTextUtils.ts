@@ -425,8 +425,7 @@ function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    oneTransactionThreadReportID: string | undefined = deprecatedCachedOneTransactionThreadReportIDs[report.reportID],
+    oneTransactionThreadReportID: string,
 ): LastActionContext {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);

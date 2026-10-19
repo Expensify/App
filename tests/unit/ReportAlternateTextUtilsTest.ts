@@ -493,13 +493,13 @@ describe('ReportAlternateTextUtils', () => {
             expect(lastAction?.reportActionID).toBe(threadComment.reportActionID);
         });
 
-        it('falls back to the cached one-transaction thread ID when no thread ID is passed', () => {
-            // Given a caller from a flow that does not pass the one-transaction thread ID yet
-            // When the last action context is resolved without it
-            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, undefined);
+        it('only uses the parent report actions when the report has no one-transaction thread', () => {
+            // Given the caller has no one-transaction thread for the report (e.g. the derived value has no entry for it)
+            // When the last action context is resolved with an empty thread ID
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, '');
 
-            // Then the cached thread ID is used, so the newer transaction thread action still wins
-            expect(lastAction?.reportActionID).toBe(threadComment.reportActionID);
+            // Then only the parent's own actions are considered, because the thread ID is no longer read from a module-level cache
+            expect(lastAction?.reportActionID).toBe(parentComment.reportActionID);
         });
     });
 

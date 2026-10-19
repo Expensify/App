@@ -6770,7 +6770,6 @@ describe('OptionsListUtils', () => {
                 ],
             };
 
-            // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
             await setReport(expenseReport);
             await setReport(transactionThreadReport);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -6788,7 +6787,8 @@ describe('OptionsListUtils', () => {
                 isMoneyRequestReport: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            // When the alternate text is built with the one-transaction thread IDs from the sorted report actions derived value
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({transactionThreadIDs: {[EXPENSE_REPORT_ID]: TRANSACTION_THREAD_REPORT_ID}}));
 
             // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
             expect(result).toBe('Spider-Man: thread comment');
