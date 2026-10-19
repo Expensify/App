@@ -81,7 +81,7 @@ function useAgents() {
             const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
             ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
-            const policy = policiesByAccountID.get(agent.ownerAccountID);
+            const policy = agent.ownerAccountID ? policiesByAccountID.get(agent.ownerAccountID) : undefined;
             ownerDisplayName = policy?.name;
             ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
