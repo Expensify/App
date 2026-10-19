@@ -285,6 +285,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportDetailsPage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareCodePage').default,
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareReportPage').default,
 });
 
 const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
@@ -546,7 +547,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetTimePage').default,
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegatePage').default,
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateFormPage').default,
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegatePage').default,
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateMissingWorkspacesPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
@@ -581,6 +583,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
     [SCREENS.WORKSPACE.NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceNamePage').default,
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOfficeLocationAddPage').default,
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOfficeLocationEditPage').default,
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewDescriptionPage').default,
     [SCREENS.WORKSPACE.CLIENT_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewClientIDPage').default,
     [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewSharePage').default,
@@ -1070,6 +1074,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralDefaultVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/export/BusinessCentralPaymentMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralAccountingMethodSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralPostingModeSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/advanced/BusinessCentralBankAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1315,7 +1327,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
     [SCREENS.DOMAIN.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberDetailsPage').default,
     [SCREENS.DOMAIN.RESET_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/DomainResetPage').default,
-    [SCREENS.DOMAIN.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegatePage').default,
+    [SCREENS.DOMAIN.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegateFormPage').default,
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegatePage').default,
     [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersSettingsPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,

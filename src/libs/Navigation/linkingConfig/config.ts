@@ -33,6 +33,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.DYNAMIC_CARD_AUTHENTICATION]: DYNAMIC_ROUTES.CARD_AUTHENTICATION.path,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
+        [SCREENS.BILLING_RECEIPT]: ROUTES.BILLING_RECEIPT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
@@ -57,11 +58,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path,
-            },
-        },
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO.path,
             },
         },
 
@@ -541,6 +537,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES,
                             exact: true,
@@ -920,6 +920,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
@@ -1322,6 +1326,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -1618,6 +1624,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VACATION_DELEGATE]: {
                             path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
                         },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.route,
+                        },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,
                         },
@@ -1707,6 +1716,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_DETAILS.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path,
+                        [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_REPORT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {

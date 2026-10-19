@@ -22,6 +22,7 @@ const SCREENS = {
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
+    BILLING_RECEIPT: 'BillingReceipt',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -117,7 +118,8 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
-            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
+            VACATION_DELEGATE: 'Settings_Profile_Vacation_Delegate',
+            VACATION_DELEGATE_SELECT: 'Settings_Profile_Vacation_Delegate_Select',
             VACATION_DELEGATE_MISSING_WORKSPACES: 'Settings_Status_Vacation_Delegate_Missing_Workspaces',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
@@ -509,6 +511,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
         DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
         DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
+        DYNAMIC_SHARE_REPORT: 'Dynamic_Report_Details_Share_Report',
     },
 
     REPORT_CHANGE_WORKSPACE: {
@@ -774,6 +777,10 @@ const SCREENS = {
             BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Business_Central_Export_Company_Card_Account',
             BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: 'Policy_Accounting_Business_Central_Export_Default_Vendor',
             BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: 'Policy_Accounting_Business_Central_Export_Payment_Method',
+            BUSINESS_CENTRAL_ADVANCED: 'Policy_Accounting_Business_Central_Advanced',
+            BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'Policy_Accounting_Business_Central_Accounting_Method',
+            BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: 'Policy_Accounting_Business_Central_Advanced_Posting_Mode',
+            BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: 'Policy_Accounting_Business_Central_Bank_Account_Selector',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
@@ -925,6 +932,8 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
+        OFFICE_LOCATION_ADD: 'Workspace_Overview_Office_Location_Add',
+        OFFICE_LOCATION_EDIT: 'Workspace_Overview_Office_Location_Edit',
         CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
         DYNAMIC_CATEGORY_CREATE: 'Dynamic_Category_Create',
@@ -1126,10 +1135,6 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
     },
 
-    AI_FEATURES_PROMO_MODAL: {
-        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
-    },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -1228,6 +1233,7 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         VACATION_DELEGATE: 'Vacation_Delegate',
+        VACATION_DELEGATE_SELECT: 'Vacation_Delegate_Select',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
         MEMBERS_SETTINGS: 'Members_Settings',
