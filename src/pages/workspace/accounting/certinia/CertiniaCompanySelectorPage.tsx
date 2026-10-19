@@ -17,7 +17,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -58,7 +57,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
         if (row.value !== companyID && policyID) {
             updateFinancialForceCompany(policyID, row.value, companyID ?? null, !!config?.hasPSA);
         }
-        Navigation.goBack(policyID ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID) : undefined);
+        Navigation.goBack();
     };
 
     return (
@@ -72,7 +71,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectCompany}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={companyID}
-            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID) : undefined)}
+            onBackButtonPress={() => Navigation.goBack()}
             title="workspace.certinia.company"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}

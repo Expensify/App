@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +44,9 @@ import {
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isResolvedSupportTicket,
     isTaskReport,
+    isSupportTicket,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -177,6 +180,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
     const linkedReportActionID = reportActionIDFromRoute;
 
@@ -216,7 +220,13 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
           )
         : undefined;
 
-    const renderedVisibleReportActions = (() => {
+    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
+    const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+    const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
+        ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
+        : undefined;
+
+    const visibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
         }
@@ -253,6 +263,21 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
     })();
+
+    const shouldFilterSupportTicketSurveys =
+        isSupportTicket(report) &&
+        visibleReportActions.some(
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
+                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
+        );
+    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
+        ? visibleReportActions.filter(
+              (action) =>
+                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
+                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
+          )
+        : visibleReportActions;
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -404,6 +429,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             return !isCanceledTaskReport(report, parentReportAction);
         }
 
+        if (isSupportTicket(report)) {
+            return true;
+        }
+
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
@@ -435,6 +464,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                    reportsParentHierarchy={reportsParentHierarchy}
                 />
                 {!!reportStable?.reportID && (
                     <ShowPreviousMessagesButton
@@ -560,6 +590,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
+                        flushPendingScrollToBottom();
                     }}
                 />
             </ReportActionsListPaddingView>

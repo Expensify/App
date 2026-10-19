@@ -41,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
@@ -59,6 +60,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
+import {getLatestError} from './ErrorUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
@@ -122,7 +124,12 @@ const COMPANY_CARD_BANK_ICON_NAMES = [
 type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>;
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
-const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+const CUSTOM_FEED_PREFIXES = [
+    CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+];
 
 type CardConnectionStatusDisplay = {
     statusKey: TranslationPaths;
@@ -149,6 +156,7 @@ type CardConnectionStatusDisplayParams = {
 
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MOCK_COMMERCIAL,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MASTERCARD,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
@@ -1041,6 +1049,7 @@ const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
 
 const COMMERCIAL_FEED_DISPLAY_BASES = [
     {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
@@ -1611,7 +1620,13 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return hasAssignedCardMatching(cardsList, (card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
-const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
+const CUSTOM_FEEDS = [
+    CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+];
 
 function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
     const numbers: number[] = [];
@@ -1915,6 +1930,20 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         getMergedProgramSettings(CONST.COUNTRY.GB) ??
         (cardSettings as NestedExpensifyCardSettings)
     );
+}
+
+/**
+ * Error to show under the Expensify Card settlement account, or undefined when no card settlement change failed.
+ * Only a card failure sets the program error, while the root one also holds the backend message and Travel Billing errors.
+ */
+function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): Errors | undefined {
+    const programErrors = programKey ? cardSettings?.[programKey]?.errorFields?.paymentBankAccountID : undefined;
+    if (!programErrors) {
+        return undefined;
+    }
+    // The backend message lives in the root field, the program one is the App's generic fallback
+    const rootErrors = cardSettings?.errorFields?.paymentBankAccountID;
+    return isEmptyObject(rootErrors) ? getLatestError(programErrors) : getLatestError(rootErrors);
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
@@ -2618,6 +2647,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getSettlementAccountErrors,
     getCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,

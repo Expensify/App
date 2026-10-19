@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
+import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,9 @@ type SearchResultsInfo = {
 
     /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
     inputQuery?: string;
+
+    /** Client-only footer breakdown the snapshot's `total` answers. Written once a response lands, as it can replace `snapshot.search` */
+    footerTotal?: SearchFooterTotal;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -217,6 +220,12 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
 
     /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
 };
 
 /** Model of category grouped search result */
