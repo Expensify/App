@@ -13,7 +13,10 @@ type AccountAvatarWithCardFeedProps = {
     /** Account ID of the cardholder. `CONST.DEFAULT_NUMBER_ID` renders a placeholder avatar, so the card icon keeps its slot when the cardholder is unknown. */
     accountID: number;
 
-    /** Raw bank text is resolved by getCardFeedIcon, including legacy feeds and unknown values. */
+    /**
+     * Bank name of the card feed displayed as the avatar subscript.
+     * Raw text is accepted because getCardFeedIcon resolves legacy and unknown values.
+     */
     cardFeed: string;
 
     /** Size of the subscript card feed icon */

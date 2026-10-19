@@ -887,17 +887,18 @@ function getCardFeedIcon(cardFeed: string | undefined, illustrations: Illustrati
         return companyCardIllustrations.ExpensifyCardImage;
     }
 
+    const feedEntries = Object.entries(feedIcons);
     // Raw bank text can match inherited property names, so only owned feed entries can supply an icon.
-    const [, feedIcon] = Object.entries(feedIcons).find(([feed]) => feed === cardFeed) ?? [];
+    const [, feedIcon] = feedEntries.find(([feed]) => feed === cardFeed) ?? [];
     if (feedIcon) {
         return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
+    const feedEntry = feedEntries.find(([feed]) => cardFeed.startsWith(feed));
 
-    if (feedKey) {
-        return feedIcons[feedKey];
+    if (feedEntry) {
+        return feedEntry[1];
     }
 
     if (cardFeed.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {

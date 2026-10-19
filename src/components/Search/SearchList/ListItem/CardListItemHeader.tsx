@@ -50,10 +50,6 @@ type CardListItemHeaderProps = {
     columns?: SearchColumnType[];
 };
 
-/**
- * Non-generic implementation so OXC's React Compiler can memoize the component.
- * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
- */
 function CardListItemHeader({
     card: cardItem,
     onCheckboxPress,

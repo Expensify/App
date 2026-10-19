@@ -48,10 +48,6 @@ type MemberListItemHeaderProps = {
     isLargeScreenWidth?: boolean;
 };
 
-/**
- * Non-generic implementation so OXC's React Compiler can memoize the component.
- * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
- */
 function MemberListItemHeader({
     member: memberItem,
     onCheckboxPress,

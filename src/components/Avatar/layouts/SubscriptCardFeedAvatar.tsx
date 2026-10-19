@@ -26,7 +26,10 @@ import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
     primaryAvatar: IconType;
 
-    /** Raw bank text is resolved by getCardFeedIcon, including legacy feeds and unknown values. */
+    /**
+     * Bank name of the card feed displayed as the avatar subscript.
+     * Raw text is accepted because getCardFeedIcon resolves legacy and unknown values.
+     */
     cardFeed: string;
 
     cardFeedIconSize?: {width: number; height: number};
