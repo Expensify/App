@@ -178,15 +178,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const [textInputValue, setTextInputValue] = useState(initialQuery);
-    // When the autocomplete query last changed, so the ManualSearchRouterQuery span can start at the keystroke and include
-    // the debounce delay. Tracked here rather than in useDebouncedState to keep that hook generic.
+    // When the autocomplete query last changed and whether the user typed that change, so the ManualSearchRouterQuery span can
+    // start at the keystroke and include the debounce delay. Tracked here rather than in useDebouncedState to keep that hook generic.
     const queryChangedAtRef = useRef<number | undefined>(undefined);
+    const isQueryChangeTypedRef = useRef(true);
     const lastAutocompleteQueryRef = useRef(initialQuery);
     // Debounced value gates expensive filtering in the autocomplete list
     // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
     // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
     const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
-        onDebouncedValueChange: (value) => startSearchRouterQuerySpan(value, queryChangedAtRef.current),
+        onDebouncedValueChange: (value) => startSearchRouterQuerySpan(value, queryChangedAtRef.current, isQueryChangeTypedRef.current),
     });
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
@@ -390,7 +391,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
-        (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number) => {
+        // `isTypedInput` is false when the query is set without typing in the input, such as by picking a suggestion
+        (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number, isTypedInput = true) => {
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
@@ -401,6 +403,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
                 lastAutocompleteQueryRef.current = updatedUserQuery;
                 queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
+                isQueryChangeTypedRef.current = isTypedInput;
             }
             setAutocompleteQueryValue(updatedUserQuery);
 
@@ -478,7 +481,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item, contextualPoliciesMap, contextualReportsMap);
                     const newSearchQuery = `${searchQuery}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
+                    onSearchQueryChange(newSearchQuery, true, undefined, false);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item, contextualPoliciesMap, contextualReportsMap);
@@ -491,7 +494,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                     const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
+                    onSearchQueryChange(newSearchQuery, true, undefined, false);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     updateAutocompleteSubstitutionsForSelection({

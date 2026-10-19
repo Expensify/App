@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 
 import {cancelAllSpans} from '@libs/telemetry/activeSpans';
@@ -60,10 +61,16 @@ jest.mock('@sentry/core', () => ({
     timestampInSeconds: () => performance.now() / 1000,
 }));
 
+let mockOnListItemPress: ((item: SearchQueryItem) => void) | undefined;
+
 // The list never commits, so every measured query stays open until the next one supersedes it.
+// Its row press handler is kept so tests can pick a suggestion.
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => ({
     __esModule: true,
-    default: () => null,
+    default: ({onListItemPress}: {onListItemPress: (item: SearchQueryItem) => void}) => {
+        mockOnListItemPress = onListItemPress;
+        return null;
+    },
 }));
 
 jest.mock('@src/libs/Log');
@@ -257,5 +264,35 @@ describe('SearchRouter query telemetry from the keystroke', () => {
         const startedSpans = getStartedQuerySpans();
         expect(startedSpans).toHaveLength(1);
         expect(startedSpans.at(0)?.startTime).toBeCloseTo(eventTimeStamp / 1000, 3);
+    });
+
+    it('does not measure a picked suggestion or count it toward the per-open cap', async () => {
+        // Given the user typed a query that the list has not committed yet
+        await renderSearchRouter();
+        type('ab');
+        advance(DEBOUNCE_TIME);
+
+        // When the user picks a contextual suggestion and the debounce delay passes
+        act(() => {
+            mockOnListItemPress?.({
+                text: 'General',
+                keyForList: 'contextual-general',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                roomType: CONST.SEARCH.DATA_TYPES.CHAT,
+                searchQuery: 'General',
+            });
+        });
+        advance(DEBOUNCE_TIME);
+
+        // Then no span starts for the pick, which is not a keystroke, and the typed query's span is cancelled as superseded
+        expect(getStartedQuerySpans()).toHaveLength(1);
+        expect(getEndedQuerySpans().at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED);
+
+        // When the user types another query
+        type('abc');
+        advance(DEBOUNCE_TIME);
+
+        // Then the pick used no slot of the cap, so the typed query is the second attempt
+        expect(getStartedQuerySpans().at(1)?.attributes[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(2);
     });
 });

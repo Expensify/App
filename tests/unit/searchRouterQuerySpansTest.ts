@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import {parse as parseSearchQuery} from '@libs/SearchParser/searchParser';
 import {cancelAllSpans, getSpan} from '@libs/telemetry/activeSpans';
 import {
     beginSearchRouterQuerySession,
@@ -11,6 +12,8 @@ import {
 } from '@libs/telemetry/searchRouterQuerySpans';
 
 import CONST from '@src/CONST';
+
+import {AppState} from 'react-native';
 
 type FakeSpan = {
     op?: string;
@@ -235,6 +238,44 @@ describe('searchRouterQuerySpans', () => {
         expect(getSpan(ROOT)).toBeDefined();
     });
 
+    it('does not measure a query set without typing, nor count it toward the cap', () => {
+        // Given a typed query whose list commit is still pending
+        startSearchRouterQuerySpan('ab');
+
+        // When the query changes without typing, as when the user picks a suggestion
+        startSearchRouterQuerySpan('type:chat in:General ', undefined, false);
+
+        // Then the pending span is cancelled as superseded, since the list will never commit its query, and no span starts for the pick
+        expect(getSpan(ROOT)).toBeUndefined();
+        expect(getRootAttributes()?.[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.SUPERSEDED);
+
+        // When the user types again
+        startSearchRouterQuerySpan('abc');
+
+        // Then the pick used no slot of the per-open cap, so the next typed query is the second attempt
+        expect(getSpan(ROOT)).toBeDefined();
+        expect(mockStarted.findLast((span) => span.op === ROOT)?.attributes[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(2);
+    });
+
+    it('does not count a query that started while the app was backgrounded toward the cap', () => {
+        // Given the app is in the background, where startSpan skips starting spans
+        const appStateSpy = jest.spyOn(AppState, 'currentState', 'get').mockReturnValue(CONST.APP_STATE.BACKGROUND);
+
+        // When a typed query settles
+        startSearchRouterQuerySpan('ab');
+
+        // Then no span starts
+        expect(getSpan(ROOT)).toBeUndefined();
+
+        // When the app returns to the foreground and the user types again
+        appStateSpy.mockRestore();
+        startSearchRouterQuerySpan('abc');
+
+        // Then the skipped query used no slot of the per-open cap, so this one is the first attempt
+        expect(getSpan(ROOT)).toBeDefined();
+        expect(mockStarted.findLast((span) => span.op === ROOT)?.attributes[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(1);
+    });
+
     it('cancels a span that outlives the max duration as timed_out', () => {
         // Given an active span that never commits
         startSearchRouterQuerySpan('abc');
@@ -403,6 +444,10 @@ describe('searchRouterQuerySpans', () => {
     it('measures a query the search parser rejects without logging it', () => {
         // Given a query the search parser throws on, because the `keyword` value is a list, with private free text next to it
         const query = 'keyword:a,b secret.person@example.com';
+        // If the parser starts accepting this query, pick another one it rejects, or this test no longer covers the failure path
+        expect(() => {
+            parseSearchQuery(query);
+        }).toThrow();
         const logSpies = [jest.spyOn(Log, 'info'), jest.spyOn(Log, 'alert'), jest.spyOn(Log, 'warn'), jest.spyOn(Log, 'hmmm')];
 
         // When the whole lifecycle runs

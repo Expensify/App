@@ -146,12 +146,17 @@ function getSearchRouterQueryChangedAt(eventTimeStamp: number | undefined, now: 
     return eventTimeStamp;
 }
 
-function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) {
+/**
+ * Starts the span for a query the autocomplete list is about to evaluate. `isTypedInput` is false for a query set without
+ * typing, such as a picked suggestion: that is not a keystroke, so it supersedes the pending span without being measured
+ * or counting toward the per-open cap.
+ */
+function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number, isTypedInput = true) {
     if (!debouncedQuery.trim()) {
         cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
         return;
     }
-    if (measuredCount >= CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN) {
+    if (!isTypedInput || measuredCount >= CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN) {
         cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED);
         return;
     }
@@ -170,7 +175,7 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
         : parsableQuery;
 
     cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED);
-    measuredCount += 1;
+    const queryOrdinal = measuredCount + 1;
     const elapsedMs = changedAt !== undefined ? Math.max(0, performance.now() - changedAt) : 0;
     startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY, {
         name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY,
@@ -181,13 +186,14 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]: getSearchRouterQueryLengthBucket([...freeText.trim()].length),
             [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: !!autocomplete || !!parsedFilters?.some((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
             [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: getAutocompleteKey(autocomplete?.key),
-            [CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]: measuredCount,
+            [CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]: queryOrdinal,
         },
     });
     if (!getSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY)) {
-        // startSpan skips while the app is backgrounded.
+        // startSpan skips while the app is backgrounded, so this query uses no slot of the per-open cap.
         return;
     }
+    measuredCount = queryOrdinal;
     activeQuery = debouncedQuery;
     activeQueryDebouncedAt = performance.now();
     timeoutID = setTimeout(
