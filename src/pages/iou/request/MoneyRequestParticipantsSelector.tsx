@@ -2,10 +2,9 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
-
-import {openRecipientPicker} from '@userActions/Report';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -16,7 +15,7 @@ import type {Ref} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {Activity, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Activity, useImperativeHandle, useRef, useState} from 'react';
 
 import ParticipantSearchResults from './ParticipantSearchResults';
 
@@ -103,12 +102,7 @@ function MoneyRequestParticipantsSelector({
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 
-    useEffect(() => {
-        if (shouldExcludeWorkspaces) {
-            return;
-        }
-        openRecipientPicker();
-    }, [shouldExcludeWorkspaces]);
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
 
     useImperativeHandle(ref, () => ({
         focus: () => {

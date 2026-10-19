@@ -19,6 +19,7 @@ import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,7 +41,6 @@ import {isPerDiemRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 
-import {openRecipientPicker} from '@userActions/Report';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import {setNameValuePair} from '@userActions/User';
 
@@ -201,9 +201,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         },
     });
 
-    useEffect(() => {
-        openRecipientPicker();
-    }, []);
+    useOpenRecipientPicker();
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
