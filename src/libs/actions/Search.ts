@@ -387,6 +387,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                iouReportTransactions: allReportTransactions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -636,6 +637,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    iouReportTransactions: Transaction[];
 };
 
 function getPayActionCallback({
@@ -666,6 +668,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    iouReportTransactions,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -698,6 +701,7 @@ function getPayActionCallback({
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
+        iouReportTransactions,
         introSelected,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
@@ -1265,7 +1269,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * columns to a backend-supported date sort.
  */
 function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
-    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
               ...queryJSONWithoutFlatFilters,
@@ -1279,7 +1283,7 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
               ),
           }
         : queryJSONWithoutFlatFilters;
-    return {backendQueryJSON, limit, exactMatchFilterKeys};
+    return {backendQueryJSON, limit};
 }
 
 function search({
@@ -1364,7 +1368,7 @@ function search({
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
-    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1375,7 +1379,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
+    const jsonQuery = serializeQueryJSONForBackend(query);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1554,15 +1558,12 @@ function getFooterConvertedAmounts({
 
     // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
     // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
-    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
-    const jsonQuery = serializeQueryJSONForBackend(
-        {
-            ...backendQueryJSON,
-            searchKey,
-            filters: backendQueryJSON.filters ?? null,
-        },
-        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
-    );
+    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...backendQueryJSON,
+        searchKey,
+        filters: backendQueryJSON.filters ?? null,
+    });
 
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
@@ -1872,6 +1873,7 @@ function rejectMoneyRequestInBulk(
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
+    reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1903,6 +1905,7 @@ function rejectMoneyRequestInBulk(
             getCurrencyDecimals,
             rules,
             shouldUseBulkAction: true,
+            reportTransactionsCollection,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1984,11 +1987,10 @@ function rejectMoneyRequestsOnSearch({
             Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
         }
         const totalReportTransactions = report?.transactionCount ?? 0;
+        const reportTransactionsCollection = allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {};
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
-            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        ).length;
+        const pendingDeleteCount = Object.values(reportTransactionsCollection).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -2005,6 +2007,7 @@ function rejectMoneyRequestsOnSearch({
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
+                reportTransactionsCollection,
                 hash,
             );
         } else {
@@ -2015,13 +2018,23 @@ function rejectMoneyRequestsOnSearch({
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest({
+                    transactionID,
+                    reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    delegateAccountID,
+                    getCurrencyDecimals,
                     rules,
                     options: {
                         sharedRejectedToReportID,
                         existingRejectedReport,
                         setExistingRejectedReport,
                     },
+                    reportTransactionsCollection,
                 });
             }
         }

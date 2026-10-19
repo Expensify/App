@@ -19,6 +19,7 @@ import type {
     DynamicFormChoiceField,
     DynamicFormField,
     DynamicFormFieldType,
+    DynamicFormListField,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,
@@ -26,9 +27,11 @@ import type {
 
 import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields, {getLoneField} from './getVisibleFields';
+import getVisibleFields from './getVisibleFields';
 import isSupportedField from './isSupportedField';
+import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
+import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
@@ -100,6 +103,27 @@ function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'cou
     return !hasNonStringEntry && keys.every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
+/** The list shows one error, so the first entry with a problem gives it, prefixed by the entry title so the user knows which one to open. The flow keeps sensitive answers in memory apart from their entry, so one lost with the memory is asked for again. */
+function getListErrors(field: DynamicFormListField, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
+    const items = getListItems(values[field.key]);
+    const messages: string[] = [];
+    if (field.minItems !== undefined && items.length < field.minItems) {
+        messages.push(translate('dynamicForm.error.tooFewItems', {min: field.minItems}));
+    }
+    if (field.maxItems !== undefined && items.length > field.maxItems) {
+        messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
+    }
+    const fallbackTitle = getListItemFallbackTitle(field, translate);
+    for (const item of items) {
+        const error = Object.values(getDynamicFieldErrors(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}, translate)).at(0);
+        if (error) {
+            messages.push(translate('dynamicForm.error.itemError', {item: summarizeListItem(item, field.itemFields, translate, fallbackTitle).title, error}));
+            break;
+        }
+    }
+    return messages;
+}
+
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
 
@@ -153,6 +177,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         const percent = Number(getStringAnswer(field, values));
         return Number.isFinite(percent) && percent >= PERCENT_MIN && percent <= PERCENT_MAX ? [] : [translate('dynamicForm.error.outOfRange', {min: PERCENT_MIN, max: PERCENT_MAX})];
     },
+    list: getListErrors,
 };
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
@@ -191,11 +216,13 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
     return validate(field, values, translate);
 }
 
-/** Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns. */
-function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate): Record<string, string> {
+/**
+ * Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns.
+ * Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
+ */
+function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate, allFields?: DynamicFormField[]): Record<string, string> {
     const errors: Record<string, string> = {};
-    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values);
-    const loneField = getLoneField(visibleFields);
+    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields);
     for (const field of visibleFields) {
         if (field.readonly) {
             continue;
@@ -205,7 +232,7 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
+        if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
             if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }
