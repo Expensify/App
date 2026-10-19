@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useEnvironment from '@hooks/useEnvironment';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReconciliationFundID from '@hooks/useReconciliationFundID';
@@ -26,7 +25,6 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -55,7 +53,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {environmentURL} = useEnvironment();
 
     // Continuous Reconciliation is configured per card feed, and this workspace can sit on more than one: its own
@@ -150,7 +147,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.cardReconciliation')}
-                    onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pb5}

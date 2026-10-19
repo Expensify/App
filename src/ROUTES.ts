@@ -3609,9 +3609,14 @@ const ROUTES = {
             integrationToDisconnect?: ConnectionName,
             shouldDisconnectIntegrationBeforeConnecting?: boolean,
             isIntuitEnterpriseSuite?: boolean,
+            tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>,
         ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
+            }
+
+            if (tab) {
+                return `workspaces/${policyID}/connections?tab=${tab}` as const;
             }
 
             let queryParams = '';

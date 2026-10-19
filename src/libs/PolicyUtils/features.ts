@@ -103,4 +103,4 @@ function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number 
     return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
-export {isAttendeeTrackingEnabled, arePolicyRulesEnabled, isInvoiceFieldsEnabled, isPolicyFeatureEnabled, isTimeTrackingEnabled, isMCPEnabled, getDefaultTimeTrackingRate};
+export {isAttendeeTrackingEnabled, arePolicyRulesEnabled, isInvoiceFieldsEnabled, isPolicyFeatureEnabled, isTimeTrackingEnabled, getDefaultTimeTrackingRate};

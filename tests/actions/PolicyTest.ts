@@ -5808,7 +5808,6 @@ describe('actions/Policy', () => {
             // Given a workspace with Connections off, which means it has no connections to fetch
             const policy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areConnectionsEnabled: false, connections: undefined};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            mockFetch?.pause?.();
 
             // When connecting an integration from the Connections page turns Connections on
             Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);

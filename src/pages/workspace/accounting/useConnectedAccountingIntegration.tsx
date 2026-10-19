@@ -8,7 +8,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -86,7 +85,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {showConfirmModal} = useConfirmModal();
     const {activeIntegration} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
@@ -458,7 +456,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             cardFeeds,
             cardList: cardLists,
             isIntuitEnterpriseSuiteOverride: isConnectedToIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         let connectionMessage;
         if (isSyncInProgress && connectionSyncStage) {

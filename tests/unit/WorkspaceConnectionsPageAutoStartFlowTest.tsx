@@ -22,9 +22,11 @@ type RouteParams = {
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
+    tab?: string;
 };
 
 let mockRouteParams: RouteParams = {};
+let mockActiveTabKey: string | undefined;
 
 const mockStartIntegrationFlow = jest.fn();
 
@@ -94,7 +96,13 @@ jest.mock('@components/ScrollView', () => ({
 }));
 
 jest.mock('@components/SidePanel/SidePanelButton', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/TabSelector/TabSelectorBase', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/TabSelector/TabSelectorBase', () => ({
+    __esModule: true,
+    default: ({activeTabKey}: {activeTabKey?: string}) => {
+        mockActiveTabKey = activeTabKey;
+        return null;
+    },
+}));
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/ConnectionsGrid', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/useAccountingConnectionListings', () => ({__esModule: true, default: () => []}));
@@ -182,5 +190,31 @@ describe('WorkspaceConnectionsPage auto-started connect flow', () => {
         // Then it is honoured rather than swallowed as a repeat of the first run, or the connect flow would silently
         // do nothing the second time round
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(2);
+    });
+});
+
+describe('WorkspaceConnectionsPage tab from the route', () => {
+    it('should open on the tab the link asks for', async () => {
+        // Given a link to Connections that asks for the Accounting tab, like the onboarding accounting task
+        mockRouteParams = {tab: CONST.TAB.CONNECTIONS.ACCOUNTING};
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the Accounting tab is selected, so the user lands on the integrations the link was about
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
+    });
+
+    it('should fall back to All for a tab it does not know', async () => {
+        // Given a link with a tab value that is not one of the page's tabs
+        mockRouteParams = {tab: 'unknown'};
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the page opens on All instead of an empty selection
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ALL);
     });
 });

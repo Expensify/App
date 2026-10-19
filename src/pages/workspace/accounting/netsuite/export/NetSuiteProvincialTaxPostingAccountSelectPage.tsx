@@ -2,7 +2,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions} from '@libs/NetSuiteUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -33,9 +31,8 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const netSuiteExportBackPath = policyID
-        ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))
+        ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))
         : ROUTES.HOME;
 
     const config = policy?.connections?.netsuite?.options.config;
