@@ -31,6 +31,7 @@ function WorkspaceAutoReportingSemiMonthlyOffsetPage({policy, route}: WorkspaceA
             unavailableOffset={isSecondSubmission ? undefined : secondOffset}
             // Without a first date yet, the 1st stays free for it.
             listOnlyAfterOffset={isSecondSubmission ? (offset ?? 1) : undefined}
+            listOnlyBeforeOffset={isSecondSubmission ? undefined : CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH}
             shouldShowMonthlyOnlyEntries={false}
             onSave={(newOffset) => {
                 setDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM, {[isSecondSubmission ? INPUT_IDS.SECOND_OFFSET : INPUT_IDS.OFFSET]: String(newOffset)});

@@ -46,6 +46,9 @@ type AutoReportingDayOfMonthPickerProps = {
     /** Only days after this one are listed, so the second twice a month date can't be picked before the first */
     listOnlyAfterOffset?: AutoReportingOffset;
 
+    /** Only days before this one are listed, so the first twice a month date always leaves a later day for the second */
+    listOnlyBeforeOffset?: AutoReportingOffset;
+
     /** Called with the picked day when the admin saves */
     onSave: (offset: AutoReportingOffset) => void;
 };
@@ -58,6 +61,7 @@ function AutoReportingDayOfMonthPicker({
     shouldShowMonthlyOnlyEntries,
     unavailableOffset,
     listOnlyAfterOffset,
+    listOnlyBeforeOffset,
     onSave,
 }: AutoReportingDayOfMonthPickerProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
@@ -73,7 +77,9 @@ function AutoReportingDayOfMonthPicker({
         ...(shouldShowMonthlyOnlyEntries ? [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH, ...LAST_WEEKDAY_OFFSETS] : []),
     ];
     const offsets: AutoReportingOffset[] = [...Array.from({length: CONST.POLICY.AUTO_REPORTING_MAX_DAY_OF_MONTH}, (value, index) => index + 1), ...namedOffsets].filter(
-        (offset) => listOnlyAfterOffset === undefined || isSemiMonthlyOffsetOrderValid({offset: listOnlyAfterOffset, secondOffset: offset}),
+        (offset) =>
+            (listOnlyAfterOffset === undefined || isSemiMonthlyOffsetOrderValid({offset: listOnlyAfterOffset, secondOffset: offset})) &&
+            (listOnlyBeforeOffset === undefined || isSemiMonthlyOffsetOrderValid({offset, secondOffset: listOnlyBeforeOffset})),
     );
 
     const items = offsets.map((offset) => ({
