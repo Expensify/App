@@ -1,10 +1,11 @@
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo, listTokens, resumeAddCardToGoogleWallet} from '@expensify/react-native-wallet';
 
@@ -15,36 +16,36 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 }
 
 /** Returns the reference ID of the card's Google Wallet token when it still waits for identity verification (yellow path) */
-function getTokenReferenceIDAwaitingVerification(card: Card): Promise<string | undefined> {
+async function getTokenReferenceIDAwaitingVerification(card: Card): Promise<string | undefined> {
     const lastFourPAN = card.lastFourPAN;
     if (!lastFourPAN) {
-        return Promise.resolve(undefined);
+        return undefined;
     }
-    return getCardStatusBySuffix(lastFourPAN)
-        .then((status: CardStatus) => {
-            if (status !== 'requireActivation') {
-                return undefined;
-            }
-
-            // getCardStatusBySuffix reads the first token matching the suffix, so pick the same one here
-            return listTokens().then((tokens) => tokens.find((token) => token.lastDigits === lastFourPAN)?.identifier);
-        })
-        .catch((error) => {
-            Log.warn(`getTokenReferenceIDAwaitingVerification error: ${error}`);
+    try {
+        const status = await getCardStatusBySuffix(lastFourPAN);
+        if (status !== 'requireActivation') {
             return undefined;
-        });
+        }
+
+        // getCardStatusBySuffix reads the first token matching the suffix, so pick the same one here
+        const tokens = await listTokens();
+        return tokens.find((token) => token.lastDigits === lastFourPAN)?.identifier;
+    } catch (error) {
+        Log.warn(`getTokenReferenceIDAwaitingVerification error: ${getErrorMessage(error)}`);
+        return undefined;
+    }
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
-    return getTokenReferenceIDAwaitingVerification(card).then((tokenReferenceID) => {
-        // Resume verification of the existing token instead of provisioning the card again
-        if (tokenReferenceID) {
-            return resumeAddCardToGoogleWallet({network: CONST.COMPANY_CARDS.CARD_TYPE.VISA, tokenReferenceID, cardHolderName, lastDigits: card.lastFourPAN});
-        }
-        return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
-            createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
-        );
-    });
+async function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
+    const tokenReferenceID = await getTokenReferenceIDAwaitingVerification(card);
+
+    // Resume verification of the existing token instead of provisioning the card again
+    if (tokenReferenceID) {
+        return resumeAddCardToGoogleWallet({network: CONST.COMPANY_CARDS.CARD_TYPE.VISA, tokenReferenceID, cardHolderName, lastDigits: card.lastFourPAN});
+    }
+    const walletData = await getSecureWalletInfo();
+    const cardData = await createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData});
+    return addCardToGoogleWallet(cardData);
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
