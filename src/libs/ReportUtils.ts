@@ -7586,7 +7586,7 @@ function replaceLocalAttachmentReferences(
 
     const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
     if (isStillUploading) {
-        return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
+        return draftMarkdown.replaceAll(localAttachmentReferenceRegex, '').trim();
     }
 
     const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
@@ -7601,7 +7601,7 @@ function replaceLocalAttachmentReferences(
     // Matching by position is only safe when the draft kept every attachment.
     const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
-    return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
+    return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
         const syncedAttachmentTag =
