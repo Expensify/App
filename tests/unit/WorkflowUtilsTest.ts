@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import {filterRulesForPolicy} from '@libs/RuleUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {getForwardsToFromRules} from '@src/libs/PolicyUtils';
@@ -11,7 +13,6 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    filterRulesForPolicy,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
