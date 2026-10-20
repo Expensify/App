@@ -46,7 +46,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ComponentRef} from 'react';
-import type {HostInstance, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
@@ -161,7 +161,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isE
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
-    const animatedRef = useAnimatedRef<HostInstance>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
 
     const containerRef = useRef<ComponentRef<typeof View>>(null);
 

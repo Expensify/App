@@ -24,6 +24,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 
+import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,8 +38,10 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
@@ -58,7 +61,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -175,6 +178,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Optional component to render before the description text (e.g. a badge pill) */
         descriptionAddon?: ReactNode;
 
+        /** Content shown right after the title, on the same line */
+        titleAddon?: ReactNode;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -190,6 +196,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Hint to display at the bottom of the component */
         hintText?: string | ReactNode;
+
+        /** Any additional styles to pass to hint text. */
+        hintTextStyle?: StyleProp<TextStyle>;
 
         /** Should the error text red dot indicator be shown */
         shouldShowRedDotIndicator?: boolean;
@@ -226,7 +235,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         titleComponent?: ReactElement;
-        titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
@@ -241,6 +249,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+        /** Additional styles for the avatar image when the icon type is an avatar */
+        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -359,6 +370,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the tooltip should stay hidden on first display when the item starts off screen */
+        shouldCheckTooltipVisibilityOnFirstDisplay?: boolean;
+
+        /** Whether the tooltip should hide when the screen loses navigation focus */
+        shouldHideTooltipOnNavigate?: boolean;
+
         shouldShowLoadingSpinnerIcon?: boolean;
         shouldShowRadioButton?: boolean;
 
@@ -379,6 +396,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should enable copy to clipboard action */
         copyable?: boolean;
 
+        /** Whether the title text should be directly selectable */
+        isTitleSelectable?: boolean;
+
         /** Plaid image for the bank */
         plaidUrl?: string;
 
@@ -396,6 +416,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** The accessibility role to use for this menu item */
         role?: Role;
+
+        /** Overrides the computed accessibilityState (e.g. `{checked}` for a row that acts as a switch) */
+        accessibilityState?: AccessibilityState;
 
         shouldShowBadgeInSeparateRow?: boolean;
 
@@ -422,6 +445,7 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
     }
 };
 
+/** @deprecated Compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages. */
 function MenuItem({
     interactive = true,
     onPress,
@@ -468,12 +492,14 @@ function MenuItem({
     furtherDetailsComponent,
     description,
     descriptionAddon,
+    titleAddon,
     helperText,
     helperTextStyle,
     errorText,
     errorTextStyle,
     shouldShowRedDotIndicator,
     hintText,
+    hintTextStyle,
     success = false,
     iconReportID,
     focused = false,
@@ -482,7 +508,6 @@ function MenuItem({
     title,
     accessibilityLabel,
     titleComponent,
-    titleContainerStyle,
     subtitle,
     subtitleStyle,
     shouldShowBasicTitle,
@@ -499,6 +524,7 @@ function MenuItem({
     leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    avatarImageStyles,
     isSmallAvatarSubscriptMenu = false,
     brickRoadIndicator,
     shouldRenderAsHTML = false,
@@ -530,6 +556,8 @@ function MenuItem({
     shouldRenderTooltip = false,
     shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
+    shouldCheckTooltipVisibilityOnFirstDisplay = false,
+    shouldHideTooltipOnNavigate = true,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -545,6 +573,7 @@ function MenuItem({
     plaidUrl,
     copyValue = title,
     copyable = false,
+    isTitleSelectable = false,
     hasSubMenuItems = false,
     forwardedFSClass,
     ref,
@@ -552,6 +581,7 @@ function MenuItem({
     shouldUseNativeHoverEvents = false,
     sentryLabel,
     role = CONST.ROLE.BUTTON,
+    accessibilityState,
     shouldBeAccessible = true,
     tabIndex = 0,
     titleAccessibilityRole,
@@ -569,6 +599,15 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {
+        didTouchStartOnCopyableText,
+        handleCopyableTextRowPressIn,
+        isPressStartOnCopyableText,
+        markMouseDownOnCopyableText,
+        markTouchStartOnCopyableText,
+        shouldSuppressCopyableTextRowLongPress,
+        shouldSuppressCopyableTextRowPress,
+    } = useCopyableTextRowPress({shouldTrackTouchStart: true});
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -651,6 +690,7 @@ function MenuItem({
                     <Text
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
                     >
                         {description}
                     </Text>
@@ -674,6 +714,7 @@ function MenuItem({
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
+    const shouldEnableTextSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -741,6 +782,10 @@ function MenuItem({
             return;
         }
 
+        if (shouldSuppressCopyableTextRowPress(isTitleSelectable)) {
+            return;
+        }
+
         if (event?.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
@@ -759,6 +804,9 @@ function MenuItem({
     };
 
     const secondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
+        if (isTitleSelectable && (shouldSuppressCopyableTextRowLongPress() || isPressStartOnCopyableText(event))) {
+            return;
+        }
         if (!copyValue) {
             return;
         }
@@ -770,6 +818,7 @@ function MenuItem({
         });
         onSecondaryInteraction?.(event);
     };
+    const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
@@ -795,6 +844,8 @@ function MenuItem({
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
                 shouldHideOnScroll={shouldHideOnScroll}
+                shouldCheckVisibilityOnFirstDisplay={shouldCheckTooltipVisibilityOnFirstDisplay}
+                shouldHideOnNavigate={shouldHideTooltipOnNavigate}
             >
                 <View>
                     <Hoverable
@@ -804,9 +855,23 @@ function MenuItem({
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                                onMouseDown={(event) => {
+                                    markMouseDownOnCopyableText(event?.target, isTitleSelectable);
+                                }}
+                                onTouchStart={(event) => {
+                                    markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
+                                }}
+                                shouldAllowTextSelection={isTitleSelectable}
+                                preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}
+                                onPressIn={() =>
+                                    handleCopyableTextRowPressIn({
+                                        shouldEnableTextSelection,
+                                        shouldBlockSelection: shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen(),
+                                    })
+                                }
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
+                                // Keep the native selection menu available through press-out; reset on the next pointer start.
+                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={variables.instantAnimationDuration}
@@ -838,7 +903,7 @@ function MenuItem({
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
+                                accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -942,7 +1007,7 @@ function MenuItem({
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
                                                                 <UserAvatar
-                                                                    imageStyles={styles.alignSelfCenter}
+                                                                    imageStyles={[styles.alignSelfCenter, avatarImageStyles]}
                                                                     source={icon}
                                                                     accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
@@ -976,12 +1041,7 @@ function MenuItem({
                                                         </View>
                                                     )}
                                                     <View
-                                                        style={[
-                                                            styles.justifyContentCenter,
-                                                            styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
-                                                            titleContainerStyle,
-                                                        ]}
+                                                        style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact)]}
                                                     >
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
@@ -990,12 +1050,23 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
+                                                                    <View
+                                                                        style={[
+                                                                            styles.renderHTMLTitle,
+                                                                            styles.textAlignLeft,
+                                                                            isTitleSelectable && styles.userSelectText,
+                                                                            shouldApplyIconPaddingToHTMLTitle && iconLeftPadding,
+                                                                        ]}
+                                                                        dataSet={isTitleSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
+                                                                    >
                                                                         {/* Use Text instead of RenderHTML when the title is plain text.
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
                                                                         */}
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
-                                                                            <RenderHTML html={processedTitle} />
+                                                                            <RenderHTML
+                                                                                html={processedTitle}
+                                                                                isSelectable={shouldEnableTextSelection ? true : undefined}
+                                                                            />
                                                                         ) : (
                                                                             <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
                                                                         )}
@@ -1008,7 +1079,10 @@ function MenuItem({
                                                                             shouldUseNavigationRowStyles && isHovered && interactive && !focused && styles.navigationRowHoveredText,
                                                                         ]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                            ...(isTitleSelectable ? COPYABLE_TEXT_DATA_SET : {}),
+                                                                        }}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
@@ -1022,6 +1096,7 @@ function MenuItem({
                                                                         />
                                                                     </View>
                                                                 )}
+                                                                {titleAddon}
                                                             </View>
                                                         )}
                                                         {!shouldShowDescriptionOnTop && renderDescriptionView()}
@@ -1207,6 +1282,7 @@ function MenuItem({
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
+                                                dataSet={isTitleSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
                                                 shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
@@ -1216,6 +1292,8 @@ function MenuItem({
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
                                                 style={styles.menuItemError}
+                                                messageStyle={hintTextStyle}
+                                                dataSet={isTitleSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
                                                 shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
@@ -1239,4 +1317,5 @@ function MenuItem({
 }
 
 export type {MenuItemBaseProps, MenuItemProps};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Exporting the deprecated component itself is not a usage.
 export default MenuItem;

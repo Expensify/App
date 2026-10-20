@@ -1,23 +1,20 @@
 import {PressableWithFeedback} from '@components/Pressable';
 
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import navigateToInboxTab from './navigateToInboxTab';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
-import useWideInboxNavigation, {startNavigateToInboxTabSpan} from './useWideInboxNavigation';
+import useWideInboxNavigation from './useWideInboxNavigation';
 
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -63,17 +60,9 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
 function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-
-    let statusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        statusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        statusIndicatorColor = theme.danger;
-    }
 
     const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
 
@@ -91,9 +80,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
-
-        startNavigateToInboxTabSpan({isWideLayout: false});
-        Navigation.navigate(ROUTES.INBOX);
+        navigateToInboxTab();
     };
 
     return (
@@ -102,7 +89,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >

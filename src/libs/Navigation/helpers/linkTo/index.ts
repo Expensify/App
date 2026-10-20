@@ -1,8 +1,9 @@
-import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 
@@ -57,7 +58,16 @@ function addSkipInitialSidebarParamToAction(action: NavigationAction): Navigatio
  * Leaf screen names that represent the root/landing view of each tab.
  * Used to distinguish plain tab switches from cross-tab deep navigations.
  */
-const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.ASK_CONCIERGE, SCREENS.MORE, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
+const ROOT_TAB_SCREENS = new Set<string>([
+    SCREENS.HOME,
+    SCREENS.INBOX,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.INSIGHTS,
+    SCREENS.ASK_CONCIERGE,
+    SCREENS.MORE,
+    SCREENS.SETTINGS.ROOT,
+    SCREENS.WORKSPACES_LIST,
+]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -204,7 +214,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig);
 
     // If there is no action, just reset the whole state.
     if (!action) {

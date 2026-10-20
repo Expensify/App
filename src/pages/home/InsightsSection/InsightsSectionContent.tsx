@@ -1,3 +1,4 @@
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
@@ -14,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -56,7 +58,12 @@ function InsightsSectionContent() {
         return null;
     }
 
-    return (
+    const navigateToInsights = () =>
+        Navigation.navigate(
+            isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
+        );
+
+    const widget = (
         <WidgetContainer
             titleContent={
                 <InsightTitleDropdown
@@ -74,12 +81,7 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () =>
-                                    Navigation.navigate(
-                                        isInsightsPageEnabled
-                                            ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)
-                                            : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-                                    ),
+                                onSelected: navigateToInsights,
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -98,11 +100,27 @@ function InsightsSectionContent() {
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        shouldShowSinglePointAsBar={isInsightsPageEnabled}
                         shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>
             )}
         </WidgetContainer>
+    );
+
+    if (!isInsightsPageEnabled || canUseTouchScreen()) {
+        return widget;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            accessible={false}
+            onPress={navigateToInsights}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+        >
+            {widget}
+        </PressableWithoutFeedback>
     );
 }
 

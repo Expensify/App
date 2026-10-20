@@ -20,8 +20,8 @@ function TopBarWithLoadingBar({breadcrumbLabel, shouldDisplaySearch, shouldDispl
             shouldDisplaySearch={shouldDisplaySearch}
             shouldDisplayHelpButton={shouldDisplayHelpButton}
             cancelSearch={cancelSearch}
-            shouldShowLoadingBar={shouldShowLoadingBar}
             onBackButtonPress={onBackButtonPress}
+            shouldShowLoadingBar={shouldShowLoadingBar}
         >
             {children}
         </TopBar>

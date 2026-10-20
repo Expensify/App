@@ -12,6 +12,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -41,6 +42,9 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
     shouldUseThreadDividerLine?: boolean;
+
+    /** Parent links of the thread and its ancestors, shared by every ancestor shown above it */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionItemParentAction({
@@ -52,6 +56,7 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    reportsParentHierarchy,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -137,6 +142,7 @@ function ReportActionItemParentAction({
                         shouldAllowConciergeFeedback={!conciergeFeedbackForReportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
+                        reportsParentHierarchy={reportsParentHierarchy}
                     />
                 ))}
             </OfflineWithFeedback>

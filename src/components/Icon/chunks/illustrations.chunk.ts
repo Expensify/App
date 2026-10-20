@@ -63,6 +63,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithCoins from '@assets/images/product-illustrations/earth-with-coins.svg';
 import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateDomainExists from '@assets/images/product-illustrations/empty-state-domain-exists.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
@@ -119,6 +120,7 @@ import ShareBank from '@assets/images/simple-illustrations/simple-illustration__
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import BriefcaseHandshake from '@assets/images/simple-illustrations/simple-illustration__briefcase-handshake.svg';
 import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -301,6 +303,7 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithCoins,
     EarthWithControls,
     EmptyStateDomainExists,
     Fireworks,
@@ -411,6 +414,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Briefcase,
+    BriefcaseHandshake,
     Pencil,
     ShareBank,
     Luggage,

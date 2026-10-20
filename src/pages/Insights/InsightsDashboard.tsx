@@ -1,7 +1,8 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -15,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,6 +36,7 @@ import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
@@ -72,6 +75,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
+    const triggerScrollEvent = useScrollEventEmitter();
+    const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
+    // The dashboard applies the gutter to the cards alone, so the filter pills above them can run edge to edge.
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, styles.pb5], {
+        hasBottomSafeAreaPadding: true,
+        hasOfflineIndicatorPadding: true,
+        fillsVisibleArea: isEmptyState,
+    });
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -119,10 +130,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         );
     }
 
-    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+    if (isEmptyState) {
         return (
             <ScrollView
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                {...scrollProps}
                 addBottomSafeAreaPadding
             >
                 {/* A user with no expenses has nothing to filter, so the pills stay out of their way. */}
@@ -138,7 +149,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            contentContainerStyle={[styles.flexGrow1, styles.pb5]}
+            onScroll={triggerScrollEvent}
+            {...scrollProps}
             addBottomSafeAreaPadding
         >
             {controls}
@@ -150,6 +162,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
+                        previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
+                        previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
+                        averageQueryJSON={headlineChart.averageQueryJSON}
+                        averageSnapshot={headlineChart.averageSnapshot}
                         filters={filters}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
@@ -161,12 +177,16 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         chart={chart}
                                         queryJSON={queryJSON}
                                         snapshot={snapshot}
+                                        previousPeriodQueryJSON={previousPeriodQueryJSON}
+                                        previousPeriodSnapshot={previousPeriodSnapshot}
+                                        averageQueryJSON={averageQueryJSON}
+                                        averageSnapshot={averageSnapshot}
                                         filters={filters}
                                         onRetry={onRetry}
                                     />
@@ -182,6 +202,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -223,11 +244,17 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     // Until the filters resolve, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
-        : [headlineSpec, ...eligibleCharts].map((chart) => ({chart, queryJSON: undefined}));
-    const snapshots = useMultipleSnapshots(visibleChartQueries.flatMap(({queryJSON}) => (queryJSON ? [String(queryJSON.hash)] : [])));
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
+    const snapshots = useMultipleSnapshots(
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        ),
+    );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
@@ -236,7 +263,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
+            {...tabRootScreenWrapperProps}
             testID="InsightsPage"
         >
             <TopBar
