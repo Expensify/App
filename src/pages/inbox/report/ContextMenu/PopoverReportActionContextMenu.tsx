@@ -436,18 +436,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             });
         } else if (reportAction) {
             callbackWhenDeleteModalHide.current = () => {
-                deleteReportComment(
+                deleteReportComment({
                     report,
                     reportAction,
                     originalReportActions,
                     reportActions,
-                    ancestorsRef.current,
+                    ancestors: ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
-                    email ?? '',
+                    currentEmail: email ?? '',
                     isOffline,
-                    visibleReportActionsData ?? undefined,
-                );
+                    currentUserAccountID,
+                    visibleReportActionsData: visibleReportActionsData ?? undefined,
+                });
             };
         }
 

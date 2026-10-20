@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- Accounting connection types stay together in the policy type. */
 import type MergeSyncResult from '@libs/API/MergeSyncResult';
 
 import type CONST from '@src/CONST';
@@ -335,6 +336,9 @@ type MergeConnectionLastSync = ConnectionLastSync & {
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
+
+    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
+    isConfigurationError?: boolean;
 };
 
 /**
@@ -2156,6 +2160,9 @@ type DualEntrySync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountID: string;
 
+    /** Expense account the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountID?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 
@@ -2512,6 +2519,309 @@ type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /**
+ * An organization configured in Zoho Books.
+ */
+type ZohoBooksOrganization = {
+    /** Unique identifier of the organization. */
+    id: string;
+
+    /** Name of the organization. */
+    name: string;
+
+    /** Currency associated with the organization. */
+    currency: string;
+
+    /** Multi-location organizations are not supported. The organization selector uses this to show an error. */
+    isMultiLocation?: boolean;
+};
+
+/**
+ * Available account types.
+ */
+type ZohoBooksAccountType = ValueOf<typeof CONST.ZOHO_BOOKS_ACCOUNT_TYPE>;
+
+/**
+ * Account retrieved from Zoho Books.
+ */
+type ZohoBooksAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Account number. */
+    number?: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Zoho Books account_type. */
+    accountType: ZohoBooksAccountType;
+
+    /** Currency associated with the account. */
+    currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
+ * Reporting tag retrieved from Zoho Books.
+ */
+type ZohoBooksReportingTag = {
+    /** Unique identifier of the reporting tag. */
+    id: string;
+
+    /** Name of the reporting tag. */
+    name: string;
+};
+
+/**
+ * Available vendor types.
+ */
+type ZohoBooksVendorType = ValueOf<typeof CONST.ZOHO_BOOKS_VENDOR_TYPE>;
+
+/**
+ * Vendor retrieved from Zoho Books.
+ */
+type ZohoBooksVendor = {
+    /** Unique identifier of the vendor. */
+    id: string;
+
+    /** Name of the vendor. */
+    name: string;
+
+    /** Email address associated with the vendor. */
+    email?: string;
+
+    /** Type of the vendor. */
+    vendorType: ZohoBooksVendorType;
+
+    /** Whether the vendor is active. */
+    isActive: boolean;
+};
+
+/**
+ * Tax rate line retrieved from Zoho Books.
+ */
+type ZohoBooksTaxRateLine = {
+    /** Value of the tax rate. */
+    rate: string;
+
+    /** Tax account ID. */
+    taxAccountID?: string;
+
+    /** Whether to use expense account itself instead of taxAccountID */
+    useExpenseAccount: boolean;
+};
+
+/**
+ * Tax rate retrieved from Zoho Books.
+ */
+type ZohoBooksTaxRate = {
+    /** Unique identifier of the tax rate. */
+    id: string;
+
+    /** Name of the tax rate. */
+    name: string;
+
+    /** Value of the tax rate. */
+    rate: string;
+
+    /** Code used to identify the tax rate. */
+    code?: string;
+
+    /**
+     *  A rate is made of lines, and each line says where its share of the tax goes:
+     *  a named tax account, or the expense account itself when useExpenseAccount is set.
+     */
+    lines: ZohoBooksTaxRateLine[];
+};
+
+/**
+ * Connection data retrieved from Zoho Books.
+ */
+type ZohoBooksConnectionData = {
+    /** Collection of eligible organizations in Zoho Books. */
+    organizations?: ZohoBooksOrganization[];
+
+    /** Accounts available in Zoho Books. */
+    accounts?: ZohoBooksAccount[];
+
+    /** Reporting tags available in Zoho Books. */
+    reportingTags?: ZohoBooksReportingTag[];
+
+    /** Vendors available in Zoho Books. */
+    vendors?: ZohoBooksVendor[];
+
+    /** Mapping of settlement identifiers to their corresponding journal entry identifiers. */
+    settlementJournalEntryIDs?: Record<string, string>;
+
+    /** Mapping of travel settlement identifiers to their corresponding journal entry identifiers. */
+    travelSettlementJournalEntryIDs?: Record<string, string>;
+
+    /** Entry identifier from which settlement synchronization should start. */
+    settlementSyncStartEntryID?: number;
+
+    /** Entry identifier from which travel settlement synchronization should start. */
+    travelSettlementSyncStartEntryID?: number;
+
+    /** Tax rates available in Zoho Books. */
+    taxRates?: ZohoBooksTaxRate[];
+};
+
+/**
+ * Coding configuration used when exporting data to Zoho Books.
+ */
+type ZohoBooksCoding = {
+    /**
+     * Mapping of Zoho Books reporting tag IDs to their configured mapping behavior.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.ZOHO_BOOKS_MAPPING_VALUE>>;
+
+    /** Whether tax rates should be synchronized from Zoho Books. */
+    syncTaxRates: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type ZohoBooksCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.ZOHO_BOOKS_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `ZohoBooksCoding`
+ */
+type ZohoBooksCodingOfflineFeedbackKeys = keyof Omit<ZohoBooksCoding, 'fieldMappings'> | ZohoBooksCodingFieldMappingsOfflineFeedbackKey;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type ZohoBooksExportDate = ValueOf<typeof CONST.ZOHO_BOOKS_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type ZohoBooksExportReimbursable = ValueOf<typeof CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type ZohoBooksExportNonReimbursable = ValueOf<typeof CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE>;
+
+/**
+ * Export configuration for sending accounting data to Zoho Books.
+ */
+type ZohoBooksExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: ZohoBooksExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: ZohoBooksExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    nonReimbursable: ZohoBooksExportNonReimbursable;
+
+    /** Account used when exporting company card expenses. */
+    creditCardAccountID: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    /** Default vendor used when exporting transactions. */
+    defaultVendorID: string;
+
+    /** Payable account used when exporting travel billings. */
+    travelInvoicingPayableAccountID: string;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/** Offline feedback key for card program account */
+type ZohoBooksExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.ZOHO_BOOKS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `ZohoBooksExport`
+ */
+type ZohoBooksExportOfflineFeedbackKeys = keyof Omit<ZohoBooksExport, 'cardProgramAccounts'> | ZohoBooksExportCardProgramAccountsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for Zoho Books.
+ */
+type ZohoBooksAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+
+    /** Unique identifier of the automatic synchronization job. */
+    jobID?: string | null;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Zoho Books.
+ */
+type ZohoBooksSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
+    billPaymentAccountID: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel billing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel billing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Zoho Books.
+ */
+type ZohoBooksConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Selected Zoho Books organization. The backend stores this as subsidiaryID, matching the other connectors. */
+        subsidiaryID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: ZohoBooksCoding;
+
+        /** Export settings */
+        export?: ZohoBooksExport;
+
+        /** Auto-sync settings */
+        autoSync?: ZohoBooksAutoSync;
+
+        /** Sync settings */
+        sync?: ZohoBooksSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    ZohoBooksCodingOfflineFeedbackKeys | ZohoBooksExportOfflineFeedbackKeys | keyof ZohoBooksAutoSync | keyof ZohoBooksSync
+>;
+
+/**
  * A company (legal entity) reachable with the Business Central connection's credentials.
  */
 type BusinessCentralCompany = {
@@ -2724,6 +3034,9 @@ type BusinessCentralExport = {
 
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether reports dated in a closed accounting period are exported to the next open period */
+    exportToNextOpenPeriod: boolean;
 };
 
 /**
@@ -2732,7 +3045,30 @@ type BusinessCentralExport = {
 type BusinessCentralAutoSync = {
     /** Whether automatic synchronization is enabled */
     enabled: boolean;
+
+    /** ID of the daily job that runs the automatic synchronization, null while it is disabled */
+    jobID?: string | null;
 };
+
+/**
+ * Settings for syncing payments made in Expensify back to Business Central.
+ */
+type BusinessCentralSync = {
+    /** Whether reimbursed expense reports are marked as paid in Business Central */
+    syncReimbursedReports: boolean;
+
+    /** ID of the Business Central bank account employee reimbursements are paid from */
+    reimbursementBankAccountID: string;
+
+    /** Whether Expensify Card settlements are synced to Business Central */
+    syncExpensifyCardSettlements: boolean;
+
+    /** ID of the Business Central bank account Expensify Card settlements are paid from */
+    settlementsBankAccountID: string;
+};
+
+/** Payment sync setting that holds a Business Central bank account ID */
+type BusinessCentralBankAccountSettingName = keyof Pick<BusinessCentralSync, 'reimbursementBankAccountID' | 'settlementsBankAccountID'>;
 
 /**
  * Connection config for Business Central.
@@ -2763,13 +3099,16 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
+        /** Payment sync settings */
+        sync?: BusinessCentralSync;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -2821,6 +3160,9 @@ type MergeHRGroup = {
 type MergeHRConnectionData = {
     /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
     groups?: MergeHRGroup[];
+
+    /** IDs of every group the HR system has, including ones missing a name/type and so absent from `groups`. Used to tell a deleted group apart from one that just can't render. */
+    allGroupIDs?: string[];
 };
 
 /** Merge HR connection config */
@@ -3041,6 +3383,9 @@ type Connections = {
     /** Campfire integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
 
+    /** Zoho Books integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: Connection<ZohoBooksConnectionData, ZohoBooksConnectionsConfig>;
+
     /** Business Central integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: Connection<BusinessCentralConnectionData, BusinessCentralConnectionsConfig>;
 
@@ -3120,6 +3465,21 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
     isOfficeWorkArrangement?: boolean;
+}>;
+
+/** An office location of a workspace */
+type OfficeLocation = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Nickname of the office */
+    name: string;
+
+    /** Address of the office */
+    address: CompanyAddress;
+
+    /** Whether this is the workspace's default office. At most one office is the default, and while none is, the company address is. */
+    isDefault?: boolean;
+
+    /** Errors from the last change to the office */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Prohibited expense types */
@@ -3449,6 +3809,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         preventSelfApproval?: boolean;
 
+        /** When enabled, non-reimbursable reports cannot be marked as paid */
+        preventPayoutNonReimbursableReports?: boolean;
+
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
@@ -3694,6 +4057,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Commuter exclusion configuration applied to distance expenses on this workspace */
         commuterExclusions?: CommuterExclusions;
 
+        /** Offices of the workspace, keyed by officeID */
+        officeLocations?: Record<string, OfficeLocation>;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -3766,6 +4132,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
+
+        /** ISO country code an EUR workspace auto-updates government distance rates for, since the currency is shared by several supported countries */
+        autoUpdateGovernmentRateCountry?: string;
 
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
         requireMapOrGPS?: boolean;
@@ -3871,6 +4240,7 @@ export type {
     Subrate,
     ProhibitedExpenses,
     CommuterExclusions,
+    OfficeLocation,
     NetSuiteConnectionData,
     MergeApprovalMode,
     MergeHRConnectionConfig,
@@ -3912,9 +4282,21 @@ export type {
     CampfireExport,
     CampfireAutoSync,
     CampfireSync,
+    ZohoBooksExportDate,
+    ZohoBooksVendor,
+    ZohoBooksAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
     BusinessCentralExport,
+    BusinessCentralSync,
+    BusinessCentralBankAccountSettingName,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
+
+/**
+ * The Zoho Books action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.
+ *
+ * @public
+ */
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
