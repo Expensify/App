@@ -1312,6 +1312,8 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            increase: (percentage: string) => `Up ${percentage}`,
+            decrease: (percentage: string) => `Down ${percentage}`,
         },
         emptyState: {
             title: 'Nothing to show',
@@ -2831,6 +2833,16 @@ const translations = {
         editNickname: 'Edit nickname',
         nickname: 'Nickname',
         editNicknameInstruction: 'Give the bank account a nickname that sets it apart from others.',
+        wiseGlobalReimbursementsIntro: {
+            headerTitle: 'Global reimbursements',
+            title: 'Set up global reimbursements?',
+            subtitle: 'Pay members worldwide in their local currency.',
+            getStarted: 'Get started',
+        },
+        wiseGlobalReimbursementsBanner: {
+            title: 'Pay people worldwide',
+            subtitle: 'Enable global reimbursements on your USD account.',
+        },
         deleteCard: 'Delete card',
         deleteCardConfirmation:
             'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
@@ -4214,6 +4226,7 @@ const translations = {
             formLabel: 'View PDF',
         },
         attachmentNotFound: 'Attachment not found',
+        loadTimedOut: 'This image is taking too long to load.',
         retry: 'Retry',
     },
     messages: {
@@ -5246,6 +5259,7 @@ const translations = {
             editPerDiemRates: 'Edit per diem rates',
             editDestinationSubtitle: (destination: string) => `Updating this destination will change it for all ${destination} per diem subrates.`,
             editCurrencySubtitle: (destination: string) => `Updating this currency will change it for all ${destination} per diem subrates.`,
+            missingPerDiemUnit: "Per diem isn't set up correctly on this workspace. Please reach out to Concierge for help.",
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -9096,6 +9110,7 @@ const translations = {
                     unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                    categoryHasRule: 'That category already has a rule. Edit the existing rule or describe a rule for another category.',
                 },
             },
             expenseDefaultsTable: {

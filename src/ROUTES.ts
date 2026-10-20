@@ -1065,10 +1065,6 @@ const DYNAMIC_ROUTES = {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
-    SETTINGS_CATEGORIES_SETTINGS: {
-        path: 'manage-settings',
-        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
-    },
     SETTINGS_CATEGORY_CREATE: {
         path: 'category-create',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
@@ -1257,17 +1253,9 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-tags-imported',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
-    WORKSPACE_CATEGORIES_SETTINGS: {
-        path: 'categories-settings',
-        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
-    },
-    WORKSPACE_TAGS_SETTINGS: {
-        path: 'tags-settings',
-        entryScreens: [SCREENS.WORKSPACE.TAGS],
-    },
     WORKSPACE_EDIT_TAGS: {
         path: 'workspace-edit-tags/:orderWeight',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
         getRoute: (orderWeight: number) => `workspace-edit-tags/${orderWeight}`,
     },
     WORKSPACE_CATEGORY_CREATE: {
@@ -1300,11 +1288,6 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_TAG_EDIT: {
         path: 'workspace-tag-edit',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
-    },
-    SPEND_CATEGORY_SELECTOR: {
-        path: 'spend-category-selector/:groupID',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS],
-        getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
     },
     DEFAULT_CATEGORY_SELECTOR: {
         path: 'default-category-selector/:customUnitID',
@@ -1528,10 +1511,6 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
         getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
     },
-    SETTINGS_TAGS_SETTINGS: {
-        path: 'settings-tags-settings',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
-    },
     SETTINGS_TAG_SETTINGS: {
         path: 'tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
@@ -1540,7 +1519,7 @@ const DYNAMIC_ROUTES = {
     },
     SETTINGS_TAGS_EDIT: {
         path: 'settings-tags-edit/:orderWeight',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
         getRoute: (orderWeight: number) => `settings-tags-edit/${orderWeight}`,
     },
     SETTINGS_TAG_EDIT: {
@@ -2657,6 +2636,10 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
+    SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
+        route: 'settings/wallet/:bankAccountID/global-reimbursements',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/global-reimbursements` as const,
+    },
     SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
         route: 'settings/wallet/:bankAccountID/edit-nickname',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
@@ -2927,13 +2910,13 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_STEP_REUSE_ROUTE: {
-        route: ':action/:iouType/reuse-route/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+        route: ':action/:iouType/reuse-route/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_REUSE_ROUTE route');
             }
 
-            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}` as const;
+            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const;
         },
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {

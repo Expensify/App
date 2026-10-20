@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -360,6 +360,7 @@ type GetReportNextStepParams = {
     currentUserEmail: string;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
+    reportMetadata: ReportMetadata | undefined;
     reportActions: ReportAction[];
     transactions: Record<string, Transaction>;
     violations: Record<string, TransactionViolations>;
@@ -379,6 +380,7 @@ function getReportNextStep({
     currentUserEmail,
     currentUserAccountID,
     report,
+    reportMetadata,
     reportActions,
     transactions,
     violations,
@@ -478,6 +480,7 @@ function getReportNextStep({
                 currentUserAccountID,
                 transactionViolations: violations,
                 isReportArchived,
+                reportMetadata,
             });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {

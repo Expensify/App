@@ -4,6 +4,8 @@ import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -21,12 +23,14 @@ function useNextStep(reportID: string | undefined) {
     const {transactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [pendingExpenseActionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
 
     return getReportNextStep({
         currentUserLogin: currentUserLogin ?? '',
         currentUserEmail: currentUserEmail ?? '',
         currentUserAccountID,
         report,
+        reportMetadata: pendingExpenseActionMetadata,
         reportActions,
         transactions,
         violations,
