@@ -2,7 +2,7 @@
 
 When an interaction navigates (submit an expense, open a report, switch a tab), the user waits for one thing: the destination on screen. Everything the destination does not need for that first frame should run after the navigation or modal transition ends, not during it. Work that lands mid-transition competes with the animation for the JS thread and shows up as dropped frames, a gap before the destination appears, or a flash of the previous page.
 
-The App has a small set of primitives for this, all waiting on the "transition finished" signal from `TransitionTracker` by default (`API.writeWhenReady` can take any barrier). Pick one from the table below instead of building a new mechanism. If none fits, extend the closest one rather than adding a parallel one.
+The App has a small set of primitives for this, all waiting on the "transition finished" signal from `TransitionTracker` by default (`API.writeWhenReady` can accept custom barriers as well). Pick one from the table below instead of building a new mechanism. If none fits, flag a human and tell them the pattern needs to be thoughtfully extended.
 
 ## Pick a primitive
 
@@ -23,12 +23,12 @@ The first two decide **what mounts when**. The last two decide **when work runs*
 // Default barrier: waits for an in-flight navigation to end, or for the next transition of any kind to start and end.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
 
-// Only a screen transition starting (or the ~1 s start timeout) ends the start wait, so a keyboard or modal animation can't end it early.
+// Only a screen transition starting (or the ~1s start timeout) ends the start wait, so a keyboard or modal animation can't end it early.
 // The write then runs once active transitions end.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData, API.createTransitionBarrier('navigation'));
 ```
 
-If the write is built right after the navigation starts, the default barrier is enough. If it is built at an unknown time relative to the navigation (after an `await`, a GPS lookup, or deep inside an action), a barrier attached that late can miss the transition. It then waits for the next one, which can be an unrelated keyboard or modal animation, or gives up after the start timeout (about 1 s). Arm the barrier with `API.armTransitionBarrier()` when the navigation is triggered, and pass it once the write exists. One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
+If the write is built right after the navigation starts, the default barrier is enough. If it is built at an unknown time relative to the navigation (after an `await`, a GPS lookup, or deep inside an action), a barrier attached that late can miss the transition. It then waits for the next one, which can be an unrelated keyboard or modal animation, or gives up after the start timeout (about 1s). Arm the barrier with `API.armTransitionBarrier()` when the navigation is triggered, and pass it once the write exists. One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
 
 ```ts
 const armed = API.armTransitionBarrier();
@@ -37,10 +37,11 @@ const location = await getCurrentLocation(); // placeholder: may finish before o
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, {...params, location}, onyxData, armed.barrier);
 ```
 
-A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can wait on something other than a transition, for example Search's content layout in the submit flow. `resolveWriteBarrier` and `markBarrierAsImmediate` in `src/libs/actions/IOU` are internal to the IOU submit flow, not a general API.
+A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can wait on something other than a transition, for example Search's content layout in the submit flow.
 
 **Do not use `writeWhenReady` when:**
 
+- **The write may need to be cancelled.** A `writeWhenReady` call has no cancel handle once it is made. Use `afterTransition` with a cancelled flag instead.
 - **The write is conditional.** A barrier decides _when_ the write happens, never _whether_. A rejected barrier still releases the write. Decide whether to write before calling it.
 - **The write needs a `conflictResolver`.** A deferred request is not in the sequential queue until it executes, so conflict resolution can't see it.
 - **Order matters across calls.** Two `writeWhenReady` calls can run in either order, because each waits on its own barrier. A plain `API.write` called after a `writeWhenReady` reaches the queue first, because `API.write` doesn't wait.

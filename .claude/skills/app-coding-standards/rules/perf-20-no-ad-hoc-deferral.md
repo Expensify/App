@@ -1,13 +1,13 @@
 ---
 ruleId: PERF-20
-title: Use the shared primitives instead of inline timing to defer work after transitions
+title: Defer heavy work to happen after visual transitions
 ---
 
-## [PERF-20] Use the shared primitives instead of inline timing to defer work after transitions
+## [PERF-20] Defer heavy work to happen after visual transitions
 
 ### Reasoning
 
-Work that runs during a navigation, modal or keyboard transition competes with the animation for the JS thread. `TransitionTracker` knows when these transitions start and end: screen push/pop/replace, modal open/close, and keyboard dismiss through `KeyboardUtils.dismiss`. The App has shared primitives built on it:
+Work that runs during a navigation, modal, or keyboard transition competes with the animation for the JS thread. `TransitionTracker` knows when these transitions start and end: screen push/pop/replace, modal open/close, and keyboard dismiss through `KeyboardUtils.dismiss`. The App has shared primitives built on it:
 
 - `usePreMountDestination` to mount the screen an RHP flow ends on while the RHP is still open
 - `<NavigationDeferredMount>` to mount a subtree after tracked transitions settle
@@ -22,11 +22,22 @@ Work that runs during a navigation, modal or keyboard transition competes with t
 - `KeyboardUtils.dismiss` calls `afterTransition` right away when the keyboard is not visible, and always on desktop web
 - `API.writeWhenReady` runs the write right away when the app goes inactive or to the background
 
-Inline timing (a guessed `setTimeout`, `requestAnimationFrame` calls, state flags flushed on focus) guesses when the transition ends instead of knowing it, and every new flow adds another variant. See [DEFER_AFTER_PAINT.md](../../../../contributingGuides/DEFER_AFTER_PAINT.md) for which primitive fits which case, and for when `API.writeWhenReady` is not a safe replacement for `API.write`.
+See [DEFER_AFTER_PAINT.md](../../../../contributingGuides/DEFER_AFTER_PAINT.md) for which primitive fits which case, and for when `API.writeWhenReady` is not a safe replacement for `API.write`.
+
+### When to use
+
+Use one of these primitives when work triggered by an interaction is not needed for the first frame of the destination and would otherwise run while a navigation, modal, or keyboard transition is animating: a follow-up API write, focus or scroll, a follow-up navigation, or a heavy subtree on a freshly navigated screen.
+
+### When NOT to use
+
+- The delay is a UI duration that doesn't depend on a transition, such as a tooltip hover delay or how long a toast stays on screen
+- The code needs a first frame or layout pass for a reason other than a transition (measuring, hydration)
+- The destination needs the work to render its first frame
+- None of the primitives fits. Flag it to a human, the pattern needs to be extended thoughtfully instead of worked around with inline timing
 
 ### Incorrect
 
-The names below (`SOME_COMMAND`, `pendingWrite.ts`, `setPendingWrite`, `hasPendingWrite`, `flushPendingWrite`, `clearPendingWrite`, `SomeScreenHeader`, `SecondaryActions`, `doFollowUpWork`, `ActionsSkeleton`) are placeholders, not real App symbols.
+The names below (`SOME_COMMAND`, `pendingWrite.ts`, `setPendingWrite`, etc...) are placeholders, not real App symbols.
 
 ```tsx
 // Pattern 1: timer or frame callback right after a navigation call
@@ -98,8 +109,7 @@ API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
 ```
 
 ```tsx
-// Pattern 2: the flow that navigates owns the deferral, the destination screen has no flush.
-// dismissModalWithReport takes its options as the third argument.
+// Pattern 2: the flow that navigates owns the deferral, the destination screen has no flush
 Navigation.dismissModalWithReport({reportID}, undefined, {
     afterTransition: () => API.write(WRITE_COMMANDS.SOME_COMMAND, params, onyxData),
 });
@@ -118,18 +128,15 @@ Navigation.dismissModalWithReport({reportID}, undefined, {
 
 **Only flag what the diff shows.** Every condition of a pattern must be visible in the added or changed lines or in the surrounding code shown in the diff. Do not infer behavior from a function's name alone. If a condition can't be confirmed from the diff, do not flag. Missing a case this way is intended because a false positive costs more than a miss.
 
-**Evidence of intent (patterns 1, 2 and 3).** The diff must show that the delay exists to wait for a transition: a comment that names the navigation, modal or keyboard transition being waited for (for example "wait for the modal to close" or "after the navigation animation"), or a delay constant for the screen transition duration (`CONST.ANIMATED_TRANSITION`). A constant for another animation (a tooltip, a toast, a side panel) does not count. An identifier that only contains a word like "modal" or "navigation" (`showNavigationError`, `modalReminderTimeout`) does not count. The navigation call before the timer does not count either. Without this evidence, do not flag.
+**Evidence of intent (patterns 1, 2 and 3).** Only flag when the code shows the delay exists to wait for a navigation, modal, or keyboard transition, for example a comment saying so or `CONST.ANIMATED_TRANSITION` as the delay. A navigation call before the timer is not enough on its own.
 
 Flag these patterns in added or changed lines:
 
-1. **Timer or frame after a navigation call.** In the same function body, `setTimeout` or `requestAnimationFrame` is called on a line after one of these calls, and the evidence of intent is visible. The timer must run on the same pass through the function as the navigation call: a guard clause between them (`if (!shouldWrite) { return; }`) or a timer inside an `if` block after the navigation call is fine, but a timer in the other branch of an `if`/`else` from the navigation call, or an `await` between the navigation call and the timer, is not pattern 1. The navigation calls are:
-    - `Navigation.navigate`, `Navigation.goBack`, `Navigation.dismissModal`, `Navigation.dismissModalWithReport`, `Navigation.dismissToPreviousRHP`, `Navigation.dismissToSuperWideRHP`, `Navigation.navigateBackToLastSuperWideRHPScreen`, `Navigation.revealRouteBeforeDismissingModal`
+1. **Timer or frame after a navigation call.** In the same function body, `setTimeout` or `requestAnimationFrame` is called on a line after one of these calls. The timer must run on the same invocation of the function as the navigation call. Navigation calls include:
+    - `Navigation.navigate`, `Navigation.goBack`, `Navigation.dismissModal`, `Navigation.dismissModalWithReport`, etc...
     - `KeyboardUtils.dismiss`
 
-    Nested `requestAnimationFrame` calls count. Suggest the `afterTransition` option of that navigation call. It goes in a different argument per method:
-    - first argument: `dismissModal({afterTransition})`, `dismissToPreviousRHP({afterTransition})`, `dismissToSuperWideRHP({afterTransition})`, `navigateBackToLastSuperWideRHPScreen({afterTransition})`, `KeyboardUtils.dismiss({afterTransition})`
-    - second argument: `navigate(route, {afterTransition})`, `goBack(backToRoute, {afterTransition})`, `revealRouteBeforeDismissingModal(route, {afterTransition})`
-    - third argument: `dismissModalWithReport(reportParams, undefined, {afterTransition})`
+    Nested `requestAnimationFrame` calls count. Suggest the `afterTransition` option of that navigation call.
 
     Tell the author the fix must keep the old behavior:
     - the navigation call still runs in the same cases as before, and the delayed work keeps the same guards. A guard that sat between the navigation call and the timer must not start skipping the navigation
@@ -142,7 +149,7 @@ Flag these patterns in added or changed lines:
 2. **Pending work flushed on focus.** The evidence of intent is visible, and all of these are visible in the diff:
     - a `useFocusEffect` callback checks a flag or value set outside this component: a module-level variable, or a getter from another file. The diff must show the getter and setter reading and writing the same variable, not just their names
     - when the flag is set, the callback runs an API write, or a flush function whose body in the diff runs queued work
-    - the flag is set in the same function as a navigation call, before that call
+    - the flag is set in the same function as a `Navigation.*` or `KeyboardUtils.dismiss` call (as in pattern 1), before that call
     - the diff shows that the navigation goes to the screen with the focus callback: the same route or screen constant appears at the navigation call and in that screen, or a comment at the navigation call names that screen. If the diff doesn't show this, do not flag
 
     Suggest moving the deferred work into the `afterTransition` option of the flow's navigation call.
@@ -160,7 +167,7 @@ Flag these patterns in added or changed lines:
 
     Do not flag pattern 3 when the delay is a UI duration that doesn't depend on a transition (a tooltip hover delay, a toast that shows after N ms). A tooltip or toast delayed to wait for a navigation, modal or keyboard transition is not exempt. Also do not flag when a comment says the code needs a first frame or layout pass for a reason other than a transition (measuring, hydration).
 
-**Caveats for suggesting `API.writeWhenReady`:** only suggest it when the delayed work is a single `API.write` call with no fourth `conflictResolver` argument, no condition inside the delayed callback, and no cancellation of the old timer (a `writeWhenReady` call can't be cancelled), and the diff shows no other API write in the same function. A deferred write is lost if the app is killed before it runs, so don't suggest it for writes the user can't simply redo (payments, approvals, deletions). If you can't tell from the diff, suggest `afterTransition` instead. Not seeing another write in the diff does not prove there is none, and `writeWhenReady` calls do not keep their order relative to each other. If you can't tell whether ordering matters, suggest `afterTransition` instead.
+**Caveats for suggesting `API.writeWhenReady`:** only suggest it when the delayed work is a single `API.write` call and none of the cases in [Do not use `writeWhenReady` when](../../../../contributingGuides/DEFER_AFTER_PAINT.md#deferring-writes) apply. If the diff can't confirm that, suggest `afterTransition` instead.
 
 **DO NOT flag if:**
 

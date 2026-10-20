@@ -22,7 +22,10 @@ const IMMEDIATE: WriteReadyBarrier = () => Promise.resolve();
 /** Barriers that resolve immediately. Writes behind them are not counted as deferred in telemetry. */
 const immediateBarriers = new WeakSet<WriteReadyBarrier>([IMMEDIATE]);
 
-/** Use for a barrier that wraps `IMMEDIATE` and only adds a callback, so its write is not counted as deferred. */
+/**
+ * Use for a barrier that wraps `IMMEDIATE` and only adds a callback, so its write is not counted as deferred.
+ *  Submit-expense flow only, other deferred writes should use the primitives in DEFER_AFTER_PAINT.md.
+ */
 function markBarrierAsImmediate<TBarrier extends WriteReadyBarrier>(barrier: TBarrier): TBarrier {
     immediateBarriers.add(barrier);
     return barrier;
@@ -46,7 +49,8 @@ type ResolveWriteBarrierParams = {
  * Picks what a submit write waits on before applying its optimistic data: an explicit barrier from the
  * caller, Search's pending-write signal, or neither. Callers pass their own barrier or nothing; whether
  * the write also has to wait on Search's signal is decided here. Records the deferral for the
- * submit-expense telemetry span.
+ * submit-expense telemetry span. Submit-expense flow only, other deferred writes should use the primitives in
+ * DEFER_AFTER_PAINT.md.
  */
 function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}: ResolveWriteBarrierParams = {}): WriteReadyBarrier {
     if (writeBarrier) {
