@@ -7,6 +7,8 @@ import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus}
 
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo} from '@expensify/react-native-wallet';
 
+import isCardStatusInWallet from './isCardStatusInWallet';
+
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
@@ -24,7 +26,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
     return getCardStatusBySuffix(card.lastFourPAN)
         .then((status: CardStatus) => {
             Log.info(`Card status: ${status}`);
-            return status === 'active';
+            return isCardStatusInWallet(status);
         })
         .catch((error) => {
             Log.warn(`getCardTokenStatus error: ${error}`);

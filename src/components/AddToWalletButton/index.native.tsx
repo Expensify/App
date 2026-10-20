@@ -34,6 +34,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');
+                    setIsLoading(false);
                     getPaymentMethods();
                     if (isIOS) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));

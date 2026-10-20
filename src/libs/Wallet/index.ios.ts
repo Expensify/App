@@ -8,6 +8,8 @@ import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wall
 
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
 
+import isCardStatusInWallet from './isCardStatusInWallet';
+
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
@@ -40,7 +42,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
         return callback
             .then((status) => {
                 Log.info(`Card status: ${status}`);
-                return status === 'active';
+                return isCardStatusInWallet(status);
             })
             .catch((e) => {
                 Log.warn(`isCardInWallet error: ${e}`);
