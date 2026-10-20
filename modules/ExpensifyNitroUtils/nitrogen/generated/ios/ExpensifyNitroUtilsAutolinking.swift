@@ -35,4 +35,16 @@ public final class ExpensifyNitroUtilsAutolinking {
   public static func isAppStartTimeModuleRecyclable() -> Bool {
     return HybridAppStartTimeModule.self is any RecyclableView.Type
   }
+  
+  public static func createShareActionHandler() -> bridge.std__shared_ptr_HybridShareActionHandlerSpec_ {
+    let hybridObject = HybridShareActionHandler()
+    return { () -> bridge.std__shared_ptr_HybridShareActionHandlerSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isShareActionHandlerRecyclable() -> Bool {
+    return HybridShareActionHandler.self is any RecyclableView.Type
+  }
 }
