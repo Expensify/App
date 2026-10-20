@@ -262,7 +262,12 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, previousCommuterExclusions?: CommuterExclusions) {
+    const newDistanceUnit = newCustomUnit.attributes?.unit;
+    const shouldUpdateCommuterExclusionUnit =
+        previousCommuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && typeof previousCommuterExclusions.fixedDistance === 'number' && !!newDistanceUnit;
+    const optimisticCommuterExclusions = shouldUpdateCommuterExclusionUnit ? {...previousCommuterExclusions, fixedDistanceUnit: newDistanceUnit} : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -274,6 +279,13 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: optimisticCommuterExclusions,
+                          pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                          errorFields: {commuterExclusions: null},
+                      }
+                    : {}),
             },
         },
     ];
@@ -288,6 +300,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions ? {pendingFields: {commuterExclusions: null}} : {}),
             },
         },
     ];
@@ -304,6 +317,16 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: {
+                              ...previousCommuterExclusions,
+                              fixedDistanceUnit: previousCommuterExclusions?.fixedDistanceUnit ?? null,
+                          },
+                          pendingFields: {commuterExclusions: null},
+                          errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                      }
+                    : {}),
             },
         },
     ];
@@ -713,6 +736,8 @@ type WorkArrangementMemberUpdate = {
     name: string;
     /** The member's previous office arrangement, used to restore it if the update fails. */
     previousHasOfficeWorkArrangement: boolean | undefined;
+    /** The member may still be an optimistic invite, so changing the arrangement must not clear its pending action. */
+    previousPendingAction: PolicyEmployee['pendingAction'];
     /** The ID assigned to this member's optimistic changelog action. */
     optimisticReportActionID: string;
 };
@@ -757,6 +782,7 @@ function setEmployeeWorkArrangement(
             email: login,
             name: personalDetail?.displayName ?? login,
             previousHasOfficeWorkArrangement,
+            previousPendingAction: employee.pendingAction,
             optimisticReportActionID: rand64(),
         });
     }
@@ -770,11 +796,16 @@ function setEmployeeWorkArrangement(
     const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
     const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
     for (const update of updates) {
-        employeeListOptimisticUpdate[update.email] = {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
-        employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        employeeListOptimisticUpdate[update.email] = {
+            hasOfficeWorkArrangement: isOffice,
+            pendingAction: update.previousPendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        if (!update.previousPendingAction) {
+            employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        }
         employeeListFailureUpdate[update.email] = {
             hasOfficeWorkArrangement: update.previousHasOfficeWorkArrangement ?? null,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            ...(!update.previousPendingAction && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
         };
     }
@@ -840,7 +871,12 @@ function setEmployeeWorkArrangement(
         failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
     }
 
-    const parameters: SetEmployeeWorkArrangementParams = {policyID, employeeAccountIDList: updates.map((update) => update.accountID).join(','), isOffice};
+    const parameters: SetEmployeeWorkArrangementParams = {
+        policyID,
+        employeeAccountIDList: updates.map((update) => update.accountID).join(','),
+        employeeLoginList: updates.map((update) => update.email).join(','),
+        isOffice,
+    };
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
     API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
 }

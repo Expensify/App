@@ -4066,6 +4066,7 @@ describe('SearchUIUtils', () => {
                 groupedBy: CONST.SEARCH.GROUP_BY.DAY,
                 formattedDay: 'September 15, 2026',
                 shortFormattedDay: 'Sep 15, ’26',
+                lineChartFormattedDay: 'Sep 15',
                 transactions: [],
                 transactionsQueryJSON: undefined,
                 keyForList: 'group_2026-09-15',
@@ -4327,6 +4328,7 @@ describe('SearchUIUtils', () => {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
+                lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
                 transactionsQueryJSON: undefined,
                 keyForList: '2026-01-25-01-25',
@@ -4927,6 +4929,7 @@ describe('SearchUIUtils', () => {
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
+                    lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2026-01-25',
@@ -4939,6 +4942,7 @@ describe('SearchUIUtils', () => {
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
+                    lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2025-12-21',
@@ -14828,6 +14832,17 @@ describe('SearchUIUtils', () => {
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
         });
+
+        test.each([FILTER_KEYS.BILLABLE_NOT, FILTER_KEYS.REIMBURSABLE_NOT, FILTER_KEYS.DECLINED_NOT] as const)('translates the yes/no value of a negated %s filter', (key) => {
+            // Given a negated yes/no filter, as stored when the query is "-billable:yes", "-reimbursable:yes" or "-declined:yes"
+            const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
+            expect(result).toBe(translateLocal('common.yes'));
+        });
     });
 
     describe('filterValidHasValues', () => {
@@ -15486,5 +15501,22 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getDatePresets', () => {
+    it('does not offer never for anyApproval', () => {
+        // Given anyApproval, which always matches an approval action
+        // When presets are requested
+        const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
+
+        // Then only the common date presets are returned, without never
+        expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+        ]);
+        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });

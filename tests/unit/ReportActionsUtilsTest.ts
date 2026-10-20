@@ -1786,6 +1786,54 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getMessageOfOldDotReportAction', () => {
+        it('should return the removed field message when a field with a value is cleared', () => {
+            // Given a field change whose new value is empty while the old value was set, which is what clearing a text field sends
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
+            expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the set field message when a field without a value is filled in', () => {
+            // Given a field change whose old value is empty
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: 'Apollo'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was set, because there is no previous value to show
+            expect(message).toBe('set Project to "Apollo"');
+        });
+
+        it('should return the changed field message when a field value is replaced', () => {
+            // Given a field change where both the old and the new value are set
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: 'Gemini'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows both the new and the previous value
+            expect(message).toBe('changed Project to "Gemini" (previously "Apollo")');
+        });
+
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
@@ -3242,6 +3290,23 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
+        it('should keep a merged expense deleted action with an empty message visible', () => {
+            // Given the action the backend adds to the submitter's report when an admin merges their expenses, which has no message fragments
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // When checking whether the action is deleted and whether it is visible
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true);
+
+            // Then it is not treated as deleted and is shown in the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
         });
 
         it('should return false if the action is a hold or unhold action', () => {
@@ -4874,6 +4939,29 @@ describe('ReportActionsUtils', () => {
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
         });
+
+        it('formats the previous distance using its original unit after a unit change', () => {
+            // Given a unit-only commuter exclusion change from 5 miles to 5 kilometers
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE,
+                    newValue: 5,
+                    oldValue: 5,
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    oldUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                message: [],
+            } as ReportAction;
+
+            // When NewDot formats the workspace audit action
+            const message = getUpdatedCommuterExclusionsMessage(translateLocal, action);
+
+            // Then it preserves each value's own unit in the message
+            expect(message).toBe('changed fixed distance exclusion to 5.00 kilometers per claim (previously 5.00 miles)');
+        });
     });
 
     describe('getPolicyWorkArrangementMessage', () => {
@@ -6255,6 +6343,13 @@ describe('ReportActionsUtils', () => {
                 message: [],
             }) as ReportAction;
 
+        const buildFastACHAction = () =>
+            buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
         it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
             // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
             const action = buildReimbursedAction({
@@ -6301,7 +6396,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -6316,7 +6411,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -6338,7 +6433,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString, 2);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -6401,6 +6496,46 @@ describe('ReportActionsUtils', () => {
 
             const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
+        });
+
+        it('names the submitter when the signed-in session owns the report but the current user does not', async () => {
+            // Given a signed-in session whose account owns the report
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+            const action = buildFastACHAction();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+            await waitForBatchedUpdates();
+
+            // When the message is built for a different current user
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+
+            // Then it names the submitter, and matches what the same call produces with no session at all
+            expect(result).toContain(submitterLogin);
+            expect(result).not.toContain('your');
+
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            expect(ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999)).toBe(result);
+        });
+
+        it('shows "your" wording when the report has no owner and the current user is unknown', () => {
+            // Given a report with no owner, so the submitter also resolves to the default account ID
+            const submitterLogin = 'submitter@example.com';
+
+            // When the current user is unknown and passed as the default account ID
+            const result = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                buildFastACHAction(),
+                undefined,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                CONST.DEFAULT_NUMBER_ID,
+            );
+
+            // Then both sides resolve to the same ID and the message addresses the current user directly
+            expect(result).toContain('your');
         });
     });
 
@@ -7939,6 +8074,60 @@ describe('ReportActionsUtils', () => {
 
         it('returns undefined for an empty report', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
+        });
+
+        it('returns the newest comment of Concierge and of each custom agent', () => {
+            // Given a report where Concierge and two custom agents each wrote twice, and a human wrote last
+            const firstAgentAccountID = 1001;
+            const secondAgentAccountID = 1002;
+            const sorted = [
+                conciergeComment('700', '2026-09-07 00:00:00.000', {actorAccountID: 12345}),
+                conciergeComment('600', '2026-09-06 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('500', '2026-09-05 00:00:00.000'),
+                conciergeComment('400', '2026-09-04 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('100', '2026-09-01 00:00:00.000'),
+            ];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
+
+            // Then each AI author gets one prompt on its newest comment, so an agent reply does not take the prompt away from Concierge, and the human gets none
+            expect([...actionIDs].sort()).toEqual(['400', '500', '600']);
+        });
+
+        it('hides the prompt of an agent whose newest comment is not in Onyx yet, and keeps the prompt of Concierge', () => {
+            // Given an agent comment that exists only on the client, above saved comments of Concierge and of the same agent
+            const agentAccountID = 1001;
+            const unsavedAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const concierge = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const olderAgentComment = conciergeComment('100', '2026-09-01 00:00:00.000', {actorAccountID: agentAccountID});
+            const sorted = [unsavedAgentComment, concierge, olderAgentComment];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
+
+            // Then the older agent comment does not stand in for the unsaved one, which would ask the user to rate an older reply
+            expect(actionIDs).toEqual(['200']);
+        });
+
+        it('picks the newest comment of the given author out of a report actions collection', () => {
+            // Given a parent report where an agent wrote twice after Concierge
+            const agentAccountID = 1001;
+            const concierge = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const olderAgentComment = conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: agentAccountID});
+            const newerAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const collection = {
+                [concierge.reportActionID]: concierge,
+                [olderAgentComment.reportActionID]: olderAgentComment,
+                [newerAgentComment.reportActionID]: newerAgentComment,
+            };
+
+            // When a thread checks the message it hangs off against the newest comment of that message's author
+            // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
         });
     });
 });

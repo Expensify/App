@@ -23,7 +23,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -40,6 +40,8 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {TupleToUnion} from 'type-fest';
+
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -54,8 +56,11 @@ import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspac
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 
+const tabNames = [CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN, CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.PER_DIEM, CONST.TAB_REQUEST.TIME] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 // Tab indices for IOURequestStartPage
@@ -202,8 +207,16 @@ function IOURequestStartPage({
         // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
+        if (!hadPreInsertedFullscreen) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        // Close the RHP a frame later. Closed in the same update as the restore, Android dismisses it with the
+        // pre-insert's `none` animation instead of the restored slide.
+        requestAnimationFrame(() => Navigation.closeRHPFlow());
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
