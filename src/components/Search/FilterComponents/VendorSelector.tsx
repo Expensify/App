@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {getMatchingVendors, getVendorFeaturePolicyIDs} from '@libs/PolicyUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,11 +41,12 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
         return {text: vendor, value: vendor};
     });
 
-    const isPolicySelected = (id: string) => !policyID?.value?.length || policyID.isNegated !== policyID.value.includes(id);
+    // The workspace filter can hold workspace names as well as IDs, so it is resolved to the matching workspaces first.
+    const selectedPolicyIDs = policyID?.value?.length ? new Set(getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, allPolicies).map((policy) => policy.id)) : undefined;
     const vendorItems = [{text: noVendorLabel, value: CONST.SEARCH.VENDOR_EMPTY_VALUE as string}];
     const uniqueVendorNames = new Set<string>(
         Object.entries(vendorNamesByPolicyID)
-            .filter(([id]) => isPolicySelected(id))
+            .filter(([id]) => !selectedPolicyIDs || selectedPolicyIDs.has(id))
             .flatMap(([, vendorNames]) => vendorNames),
     );
     vendorItems.push(
@@ -54,6 +55,11 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
             .map((vendorName) => ({text: vendorName, value: vendorName}))
             .toSorted((a, b) => sortOptionsWithEmptyValue(a.text, b.text, localeCompare)),
     );
+
+    // Selected vendors that are not in the synced lists, such as a typed name or one from a workspace the filter leaves out, stay listed after "No vendor" so they can be deselected.
+    const vendorItemValues = new Set(vendorItems.map((item) => item.value));
+    const missingSelectedVendorItems = selectedVendorItems.filter((item) => !vendorItemValues.has(item.value)).toSorted((a, b) => localeCompare(a.text, b.text));
+    vendorItems.splice(1, 0, ...missingSelectedVendorItems);
 
     return (
         <MultiSelect

@@ -153,4 +153,50 @@ describe('VendorSelector', () => {
         // Then only the vendors of the workspaces that are not excluded are offered
         expect(getItemTexts()).toEqual(['search.noVendor', 'Zeta Supplies']);
     });
+
+    it('resolves workspace names in the workspace filter', () => {
+        // Given two named vendor workspaces and typed workspace filters that use a workspace name instead of its ID
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {
+            [`${ONYXKEYS.COLLECTION.POLICY}first`]: {...buildQBOPolicy('first', ['Acme Tools']), name: 'First Workspace'},
+            [`${ONYXKEYS.COLLECTION.POLICY}second`]: {...buildQBOPolicy('second', ['Zeta Supplies']), name: 'Second Workspace'},
+        };
+
+        // When the vendor picker renders with the name selected, and then with the name excluded
+        render(
+            <VendorSelector
+                policyID={{value: ['First Workspace'], isNegated: false}}
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+        const selectedItemTexts = getItemTexts();
+        render(
+            <VendorSelector
+                policyID={{value: ['First Workspace'], isNegated: true}}
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the name is matched to its workspace, so selecting it lists that workspace's vendors and excluding it drops them
+        expect(selectedItemTexts).toEqual(['search.noVendor', 'Acme Tools']);
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Zeta Supplies']);
+    });
+
+    it('keeps selected vendors that are not in the synced lists', () => {
+        // Given a vendor workspace and a selected vendor that none of the loaded workspaces sync, such as one typed in the search router
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Acme Tools'])};
+
+        // When the vendor picker renders with that selection
+        render(
+            <VendorSelector
+                policyID={undefined}
+                value={['Typed Vendor']}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the selected vendor is listed after "No vendor", so it shows as selected and can be deselected
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Typed Vendor', 'Acme Tools']);
+    });
 });
