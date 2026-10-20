@@ -7711,7 +7711,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             finalApprover: `Aprobador final`,
             finalApproverOptional: 'Aprobador final (opcional)',
             approvalModeDescription: (providerName: string) => `Establece el aprobador para los nuevos miembros que se importen desde ${providerName} a Expensify.`,
-            approverFieldDescription: (providerName: string) => `Elige el primer aprobador para tus candidatos: puede ser su reclutador o su coordinador asignado en ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `su ${fieldNames.slice(0, -1).join(', ')}, o ${lastFieldName}` : `ya sea su ${fieldNames.join('o su')}`;
+                return `Elige al primer aprobador para tus candidatos: ${fieldList} asignado en ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Elige un único aprobador',
                 advanced: `El reclutador o coordinador del candidato se convierte en su aprobador de gastos`,

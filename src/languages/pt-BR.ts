@@ -8995,7 +8995,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             finalApprover: `Aprovador final`,
             finalApproverOptional: 'Aprovador final (opcional)',
             approvalModeDescription: (providerName: string) => `Defina o aprovador para novos membros importados de ${providerName} para o Expensify.`,
-            approverFieldDescription: (providerName: string) => `Escolha o primeiro aprovador para seus candidatos: o recrutador ou o coordenador atribuídos a eles em ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `seu(s) ${fieldNames.slice(0, -1).join(', ')} ou ${lastFieldName}` : `ou sua ${fieldNames.join('ou de seus')}`;
+                return `Escolha o primeiro aprovador para seus candidatos: ${fieldList} atribuídos em ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Escolha um único aprovador',
                 advanced: `O recrutador ou coordenador da pessoa candidata se torna o aprovador de despesas dela`,
