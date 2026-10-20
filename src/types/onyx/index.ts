@@ -253,6 +253,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type {WiseKYCRequirement, WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 
 export type {
     FileObject,
@@ -473,6 +474,8 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseKYCRequirement,
+    WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,

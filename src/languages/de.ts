@@ -1181,6 +1181,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Vergleichen',
             previousPeriod: 'Vorheriger Zeitraum',
             average: 'Durchschnitt',
+            dayLabel: (day?: number) => (day === undefined ? 'Tag' : `Tag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Woche' : `Woche ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Monat' : `Monat ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quartal' : `Quartal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jahr' : `Jahr ${year}`),
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
@@ -2192,6 +2197,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
                 }
                 return `Warten, bis die Zahlung abgeschlossen ist${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` bis ${eta}` : ` ${eta}`;
+                }
+                return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7468,6 +7485,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
+            exactOnline: {
+                comingSoon: 'Demnächst verfügbar',
+                joinWaitlist: 'Warteliste beitreten',
+                onWaitlist: 'Sie stehen auf der Warteliste',
+                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Mit Sandbox verbinden',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
@@ -9323,9 +9346,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 exportToNextOpenPeriodDescription:
                     'Wenn ein Bericht auf eine geschlossene Periode in Dynamics 365 Business Central datiert ist, wird er in die nächste offene Periode exportiert.',
                 syncReimbursedReports: 'Erstattete Berichte synchronisieren',
-                syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erstellt.',
+                syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine allgemeine Journalzeile erzeugt.',
                 reimbursementBankAccount: {
-                    label: 'Rechnungskonto',
+                    label: 'Zahlungskonto',
                     description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Dynamics 365 Business Central.',
                 },
                 syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
@@ -9960,6 +9983,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig bis ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `hat den Tarif „${rateName}“ mit ${rateValue} hinzugefügt, gültig vom ${startDate} bis ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, mit ${taxReclaimableAmount} erstattungsfähiger Steuer unter „${taxRateName}“`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `hat den Entfernungs­tarif „${rateName}“ aktualisiert, sodass er für ${newDateRange} gilt (zuvor ${oldDateRange})`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -10516,6 +10540,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `${fieldName} auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `setze ${fieldName} auf „${newValue}“`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `${fieldName} entfernt (zuvor „${oldValue}“)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `hat den Arbeitsbereich${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''} geändert`;
