@@ -284,6 +284,7 @@ function ReportFetchHandler() {
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     });
 
@@ -708,8 +709,10 @@ function ReportFetchHandler() {
             iouReport: report,
             transaction,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
+        fullPolicySnapshotLastModified,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,

@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isOneTransactionReport} from '@libs/ReportUtils';
@@ -33,7 +32,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -203,12 +202,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const nextThreadReport = liveNextThreadReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`];
     const prevTransactionParentReport = livePrevTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportID}`];
     const nextTransactionParentReport = liveNextTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportID}`];
-    const [prevParentFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(prevTransactionParentReport?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
-    const [nextParentFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(nextTransactionParentReport?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -224,18 +218,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    const stageSiblingPress = (
-        transactionID: string | undefined,
-        parentReportID: string | undefined,
-        parentPolicyID: string | undefined,
-        parentFullPolicySnapshotLastModified: number | undefined,
-    ) => {
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined, parentPolicyID: string | undefined) => {
         // Offline there is no fetch to wait for, so the caller resolves the sibling with what it already has.
         // Report "0" isn't a report that can be fetched either, so an unreported sibling never waits.
         if (!transactionID || !parentReportID || parentReportID === CONST.REPORT.UNREPORTED_REPORT_ID || isOffline) {
             return false;
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        const parentFullPolicySnapshotLastModified = parentPolicyID ? fullPolicySnapshotLastModifiedByPolicyID?.[parentPolicyID] : undefined;
         // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
         openReport({
             reportID: parentReportID,
@@ -266,6 +256,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         personalDetails,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        fullPolicySnapshotLastModifiedByPolicyID,
     };
 
     /**
@@ -371,7 +362,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         siblingParentReport: OnyxEntry<OnyxTypes.Report>,
         siblingThreadReport: OnyxEntry<OnyxTypes.Report>,
         hasSiblingParentReportActions: boolean,
-        siblingParentFullPolicySnapshotLastModified: number | undefined,
     ) => {
         e?.preventDefault();
         const backTo = getBackTo();
@@ -387,7 +377,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             !hasSiblingParentReportActions &&
             !hasDescriptor &&
             !isSingleExpenseReport &&
-            stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID, siblingParentReport?.policyID, siblingParentFullPolicySnapshotLastModified)
+            stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID, siblingParentReport?.policyID)
         ) {
             return;
         }
@@ -414,7 +404,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             nextTransactionParentReport,
             nextThreadReport,
             !!reportedParentReportActions?.hasNextParentReportActions,
-            nextParentFullPolicySnapshotLastModified,
         );
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
@@ -426,7 +415,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             prevTransactionParentReport,
             prevThreadReport,
             !!reportedParentReportActions?.hasPrevParentReportActions,
-            prevParentFullPolicySnapshotLastModified,
         );
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -

@@ -220,6 +220,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 iouReport: report,
                 iouReportAction: iouAction,
                 personalDetails,
+                fullPolicySnapshotLastModified,
             });
             return;
         }
@@ -307,10 +308,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             transaction,
             transactionViolations: violations,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
         allReportTransactions,
         allReportViolations,
+        fullPolicySnapshotLastModified,
         introSelected,
         guidedSetupAndTourStatus?.isSelfTourViewed,
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,

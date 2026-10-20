@@ -535,6 +535,18 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const fullPolicySnapshotLastModifiedSelector = (policy: OnyxEntry<Policy>) => policy?.fullPolicySnapshotLastModified;
 
+/** Maps each policyID to the lastModified of its cached full policy snapshot, for screens that open reports from several policies. */
+const fullPolicySnapshotLastModifiedByPolicyIDSelector = (policies: OnyxCollection<Policy>): Record<string, number> => {
+    const lastModifiedByPolicyID: Record<string, number> = {};
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.id || !policy.fullPolicySnapshotLastModified) {
+            continue;
+        }
+        lastModifiedByPolicyID[policy.id] = policy.fullPolicySnapshotLastModified;
+    }
+    return lastModifiedByPolicyID;
+};
+
 /** The policy fields a workspace avatar renders from. */
 const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
@@ -605,6 +617,7 @@ export {
     policyAvatarFieldsSelector,
     policyNameSelector,
     fullPolicySnapshotLastModifiedSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,

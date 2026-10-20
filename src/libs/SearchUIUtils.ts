@@ -2473,6 +2473,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** Resolves decimal precision for a currency when formatting stored optimistic amounts */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** The lastModified of each policy's cached full policy snapshot, keyed by policyID */
+    fullPolicySnapshotLastModifiedByPolicyID?: Record<string, number>;
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2491,6 +2494,7 @@ function createAndOpenSearchTransactionThread({
     shouldNavigate = true,
     getCurrencyDecimals,
     conciergeChat,
+    fullPolicySnapshotLastModifiedByPolicyID,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2524,18 +2528,20 @@ function createAndOpenSearchTransactionThread({
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
+        const iouReport = getReportOrDraftReport(item.reportID) ?? item.report;
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
+            iouReport,
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
         });
     }
 

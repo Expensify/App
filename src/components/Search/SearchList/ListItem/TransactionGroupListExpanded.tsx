@@ -43,6 +43,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -95,6 +96,7 @@ function TransactionGroupListExpandedImpl({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
@@ -227,6 +229,7 @@ function TransactionGroupListExpandedImpl({
                         delegateAccountID,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
                         shouldNavigate: false,
+                        fullPolicySnapshotLastModifiedByPolicyID,
                     });
                     if (targetReportID) {
                         openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
@@ -246,6 +249,7 @@ function TransactionGroupListExpandedImpl({
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 return;
             }

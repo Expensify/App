@@ -2459,6 +2459,9 @@ type CreateTransactionThreadReportParams = {
     hasCompletedGuidedSetupFlow?: boolean;
 
     conciergeChat: OnyxEntry<Report>;
+
+    /** The lastModified of the expense report policy's cached full policy snapshot, so the server can leave out the collections the client already has */
+    fullPolicySnapshotLastModified?: number;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2474,6 +2477,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         conciergeChat,
+        fullPolicySnapshotLastModified,
     } = params;
 
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
@@ -2542,6 +2546,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions: false,
+        fullPolicySnapshot:
+            !selfDMReportID && reportToUse.policyID && fullPolicySnapshotLastModified ? {policyID: reportToUse.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
     return optimisticTransactionThread;
 }

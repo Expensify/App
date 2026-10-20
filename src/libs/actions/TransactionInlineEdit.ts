@@ -220,6 +220,7 @@ function getIouParamsForTransaction({
             personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified: policy?.id === parentReport?.policyID ? policy?.fullPolicySnapshotLastModified : undefined,
         });
     }
 

@@ -13179,6 +13179,18 @@ describe('SearchUIUtils', () => {
             });
         });
 
+        test("Should pass the expense report policy's full policy snapshot marker when creating the transaction thread", () => {
+            // Given markers cached for the expense report's policy and for another policy
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const fullPolicySnapshotLastModifiedByPolicyID = {[policyID]: 123, otherPolicyID: 456};
+
+            // When the expense is opened from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, shouldNavigate: false, fullPolicySnapshotLastModifiedByPolicyID});
+
+            // Then the thread is created with the marker of the expense report's own policy
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({iouReport: report1, fullPolicySnapshotLastModified: 123}));
+        });
+
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
             // Given an unreported expense owned by another user
             const unreportedTransaction = {

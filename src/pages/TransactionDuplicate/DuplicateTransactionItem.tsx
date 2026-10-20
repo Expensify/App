@@ -82,6 +82,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
             iouReportAction: action,
             transaction,
             personalDetails,
+            fullPolicySnapshotLastModified: policy?.fullPolicySnapshotLastModified,
         });
         if (!transactionThreadReport?.reportID) {
             return;

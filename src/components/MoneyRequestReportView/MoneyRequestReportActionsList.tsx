@@ -221,6 +221,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         onScrolledOverThresholdChange: setHasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
+        fullPolicySnapshot: report?.policyID && policy?.fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: policy.fullPolicySnapshotLastModified} : undefined,
     });
 
     // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount

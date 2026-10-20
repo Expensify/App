@@ -262,12 +262,13 @@ function MoneyRequestReportPreview({
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
+                        fullPolicySnapshotLastModified,
                     })?.reportID;
                 }
             }
             return childReportID;
         },
-        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, fullPolicySnapshotLastModified, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window

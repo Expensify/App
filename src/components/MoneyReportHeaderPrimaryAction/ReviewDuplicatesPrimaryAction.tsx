@@ -82,6 +82,10 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
                                   currentUserEmail: email,
                                   currentUserAccountID: accountID,
                                   personalDetails,
+                                  fullPolicySnapshotLastModifiedByPolicyID:
+                                      moneyRequestReport?.policyID && policy?.fullPolicySnapshotLastModified
+                                          ? {[moneyRequestReport.policyID]: policy.fullPolicySnapshotLastModified}
+                                          : undefined,
                               },
                           )
                         : undefined);
