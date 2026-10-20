@@ -11,7 +11,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import readOnceOnyxValue from '@libs/readOnceOnyxValue';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -29,7 +31,6 @@ import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 type ReportActionItemMessageWithExplainProps = {
     message: string;
     action: OnyxEntry<ReportAction>;
-    childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
@@ -39,7 +40,7 @@ type ReportActionItemMessageWithExplainProps = {
  * Wrapper component that renders a message and automatically appends the "Explain" link
  * if the action has reasoning.
  */
-function ReportActionItemMessageWithExplain({message, action, childReport, originalReport}: ReportActionItemMessageWithExplainProps) {
+function ReportActionItemMessageWithExplain({message, action, originalReport}: ReportActionItemMessageWithExplainProps) {
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
@@ -58,18 +59,22 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
             const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
-            explain({
-                childReport,
-                originalReport,
-                reportAction: action,
-                translate,
-                currentUserAccountID: personalDetail.accountID,
-                introSelected,
-                conciergeChat,
-                isSelfTourViewed,
-                delegateAccountID,
-                participantsPersonalDetails,
-                timezone: personalDetail?.timezone,
+
+            // Only read the child report when the link is actually clicked, instead of subscribing to it on every render.
+            readOnceOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`).then((childReport) => {
+                explain({
+                    childReport,
+                    originalReport,
+                    reportAction: action,
+                    translate,
+                    currentUserAccountID: personalDetail.accountID,
+                    introSelected,
+                    conciergeChat,
+                    isSelfTourViewed,
+                    delegateAccountID,
+                    participantsPersonalDetails,
+                    timezone: personalDetail?.timezone,
+                });
             });
             return;
         }
