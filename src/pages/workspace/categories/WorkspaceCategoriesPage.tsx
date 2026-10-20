@@ -90,6 +90,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {policy, categories: policyCategories} = policyData;
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
@@ -310,7 +311,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
-                onRenameName: (newName: string) => showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled)),
+                onRenameName: (newName: string) => showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled, rules)),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -333,6 +334,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         employeePersonalDetails,
         formatPhoneNumber,
         isVendorMatchingBetaEnabled,
+        rules,
     ]);
 
     const navigateToCreateCategoryPage = () => {

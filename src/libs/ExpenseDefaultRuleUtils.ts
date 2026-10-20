@@ -329,6 +329,68 @@ function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, 
     return {triggers, filters, actions};
 }
 
+/** Rewrites the renamed category wherever the tree matches on it, or undefined when the tree never names it. */
+function renameCategoryInFilters(filters: RuleFilterNode | undefined, oldName: string, newName: string): RuleFilterNode | undefined {
+    if (!filters || !isRuleFilterNode(filters)) {
+        return undefined;
+    }
+
+    if (isRuleFilterComparison(filters)) {
+        if (filters.left !== CONDITION.CATEGORY) {
+            return undefined;
+        }
+
+        if (Array.isArray(filters.right)) {
+            if (!filters.right.includes(oldName)) {
+                return undefined;
+            }
+            return {...filters, right: filters.right.map((value) => (value === oldName ? newName : value))};
+        }
+
+        return filters.right === oldName ? {...filters, right: newName} : undefined;
+    }
+
+    const left = renameCategoryInFilters(filters.left, oldName, newName);
+    const right = renameCategoryInFilters(filters.right, oldName, newName);
+    if (!left && !right) {
+        return undefined;
+    }
+
+    return {...filters, left: left ?? filters.left, right: right ?? filters.right};
+}
+
+/**
+ * The policy's rules that match on a renamed category, each with the filter tree it needs once the rename lands.
+ *
+ * A rule names its category rather than pointing at it, so a rename leaves it matching a category that is gone.
+ * The caller writes these optimistically, the way the approval rules on the policy are rewritten alongside.
+ */
+function getCategoryRenameRuleUpdates(
+    rulesCollection: OnyxCollection<Rule> | undefined,
+    policyID: string | undefined,
+    oldName: string,
+    newName: string,
+): Array<{ruleID: string; filters: RuleFilterNode; previousFilters: RuleFilterNode}> {
+    if (!policyID || oldName === newName) {
+        return [];
+    }
+
+    const updates: Array<{ruleID: string; filters: RuleFilterNode; previousFilters: RuleFilterNode}> = [];
+
+    for (const [onyxKey, rule] of Object.entries(rulesCollection ?? {})) {
+        if (!rule || !isPolicyScopedRule(rule, policyID) || !rule.filters) {
+            continue;
+        }
+        const filters = renameCategoryInFilters(rule.filters, oldName, newName);
+        if (!filters) {
+            continue;
+        }
+        updates.push({ruleID: onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length), filters, previousFilters: rule.filters});
+    }
+
+    return updates;
+}
+
 /** A tax action value is the only non-primitive value a `Set` action can carry. */
 function isExpenseDefaultTaxValue(value: unknown): value is ExpenseDefaultTaxValue {
     if (!value || typeof value !== 'object' || !('field_id_TAX' in value)) {
@@ -684,6 +746,7 @@ export {
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
+    getCategoryRenameRuleUpdates,
     getCategoryTaxDefaultID,
     getCategoryTaxDefaultRule,
     getExpenseDefaultConditionSummary,
