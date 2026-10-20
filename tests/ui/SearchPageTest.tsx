@@ -112,6 +112,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
 type WriteActionsRender = {
     filteredData: SearchData;
     applySelection: SearchSelectionActionsValue['applySelection'];
+    selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'];
 };
 type WriteActionsProviderProps = Parameters<typeof SearchWriteActionsProviderModule.default>[0];
 
@@ -122,8 +123,8 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
     const {useSearchSelectionActions} = jest.requireActual<typeof SearchContext>('@components/Search/SearchContext');
     const {default: SearchWriteActionsProvider} = jest.requireActual<typeof SearchWriteActionsProviderModule>('@components/Search/SearchWriteActionsProvider');
     function MockSearchWriteActionsProvider(props: WriteActionsProviderProps) {
-        const {applySelection} = useSearchSelectionActions();
-        mockRenderWriteActions({filteredData: props.filteredData, applySelection});
+        const {applySelection, selectAllMatchingItems} = useSearchSelectionActions();
+        mockRenderWriteActions({filteredData: props.filteredData, applySelection, selectAllMatchingItems});
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
@@ -1033,6 +1034,56 @@ describe('SearchPageNarrow', () => {
             });
 
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('asks for its next page without totals', async () => {
+            // Given Drafts showing its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the next page is asked for without totals, since a later page with totals would start the counted reports over without page 1's
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
+        });
+
+        it('asks for a fresh count when every match is selected past the first page', async () => {
+            // Given Drafts paged past its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            searchWritesLoadingState();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            mockSearch.mockClear();
+
+            // When every matching report is selected
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the page on screen is asked for again with totals, so the count includes reports that left or joined since the first page
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldCalculateTotals: true}));
         });
 
         it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
