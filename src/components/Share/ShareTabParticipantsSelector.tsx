@@ -64,8 +64,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     // to the picker if the locked policy's expense chat isn't in Onyx yet, so we never navigate to an empty report.
     const lockedExpenseChatReportID =
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
-    const defaultExpenseChatReportID =
-        canUseDefaultPolicy && defaultExpensePolicy?.autoReporting ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
+    const defaultExpenseChatReportID = canUseDefaultPolicy ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
     const autoNavigateReportID = lockedExpenseChatReportID ?? defaultExpenseChatReportID;
     const autoNavigatePolicyID = lockedExpenseChatReportID ? preferredPolicyID : defaultExpensePolicy?.id;
     const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);

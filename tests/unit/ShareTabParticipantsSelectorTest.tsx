@@ -103,11 +103,12 @@ describe('ShareTabParticipantsSelector', () => {
         };
     });
 
-    it('auto-navigates to the default group workspace when eligible and configured for auto-reporting', async () => {
+    it('auto-navigates to the eligible default group workspace when auto-reporting is disabled', async () => {
+        // Given an eligible default group workspace with auto-reporting disabled
         const mockPolicy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
             id: 'policy-1',
-            autoReporting: true,
+            autoReporting: false,
         };
         const mockExpenseChat = {
             ...createRandomReport(10),
@@ -118,9 +119,11 @@ describe('ShareTabParticipantsSelector', () => {
         jest.mocked(shouldUseDefaultExpensePolicy).mockReturnValue(true);
         jest.mocked(getPolicyExpenseChat).mockReturnValue(mockExpenseChat);
 
+        // When the Share Submit destination resolves
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the workspace expense chat opens directly regardless of its auto-reporting setting
         expect(clearMoneyRequest).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.anything());
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('report-expense-1'), expect.objectContaining({afterTransition: expect.any(Function)}));
     });
