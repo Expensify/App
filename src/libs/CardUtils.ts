@@ -41,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
@@ -57,7 +58,9 @@ import lodashSortBy from 'lodash/sortBy';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
+import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
+import {getLatestError} from './ErrorUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
@@ -121,7 +124,12 @@ const COMPANY_CARD_BANK_ICON_NAMES = [
 type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>;
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
-const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+const CUSTOM_FEED_PREFIXES = [
+    CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+];
 
 type CardConnectionStatusDisplay = {
     statusKey: TranslationPaths;
@@ -148,6 +156,7 @@ type CardConnectionStatusDisplayParams = {
 
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MOCK_COMMERCIAL,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MASTERCARD,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
@@ -315,8 +324,11 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
+/**
+ * Removing an Expensify Card deactivates it instead of closing it, so both states mean the card can no longer be used.
+ */
 function isCardClosed(card: Card) {
-    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED || card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
 }
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
@@ -338,6 +350,32 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
         }
     }
     return feedCards;
+}
+
+/**
+ * Whether the viewer can resolve the card an expense sits on: their own cards, plus the feeds of workspaces they
+ * administer. "Auto report" needs it because the backend resolves each destination through the card, and one
+ * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
+ * workspace identity.
+ *
+ * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete` and
+ * fails closed: a move the backend refuses costs the whole batch, while waiting for the list costs a moment.
+ */
+function canResolveTransactionCard(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>,
+    nonPersonalAndWorkspaceCards: OnyxEntry<CardList>,
+    isCardListComplete: boolean,
+): boolean {
+    // Inlined rather than calling isManagedCardTransaction: TransactionUtils already imports this file.
+    if (!transaction?.managedCard || !transaction.cardID) {
+        return false;
+    }
+
+    if (!isCardListComplete) {
+        return false;
+    }
+
+    return !!nonPersonalAndWorkspaceCards?.[transaction.cardID];
 }
 
 /**
@@ -1014,6 +1052,7 @@ const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
 
 const COMMERCIAL_FEED_DISPLAY_BASES = [
     {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
@@ -1364,17 +1403,22 @@ function getDefaultCardName(cardholder?: string) {
 }
 
 /** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
-type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
- * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
- * table edits reject and persist the same value.
+ * Validates a card name against every rule (required, HTML-like characters, length). Sanitize first so RHP forms,
+ * assign/issue steps, and inline table edits reject and persist the same value.
  */
 function getCardNameError(newName: string): CardNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so </> would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
@@ -1389,6 +1433,8 @@ function getCardNameErrorMessage(translate: LocaleContextProps['translate'], err
     switch (error) {
         case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('common.error.invalidCharacter');
         case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
@@ -1577,7 +1623,13 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return hasAssignedCardMatching(cardsList, (card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
-const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
+const CUSTOM_FEEDS = [
+    CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+    CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+];
 
 function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
     const numbers: number[] = [];
@@ -1881,6 +1933,20 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         getMergedProgramSettings(CONST.COUNTRY.GB) ??
         (cardSettings as NestedExpensifyCardSettings)
     );
+}
+
+/**
+ * Error to show under the Expensify Card settlement account, or undefined when no card settlement change failed.
+ * Only a card failure sets the program error, while the root one also holds the backend message and Travel Billing errors.
+ */
+function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): Errors | undefined {
+    const programErrors = programKey ? cardSettings?.[programKey]?.errorFields?.paymentBankAccountID : undefined;
+    if (!programErrors) {
+        return undefined;
+    }
+    // The backend message lives in the root field, the program one is the App's generic fallback
+    const rootErrors = cardSettings?.errorFields?.paymentBankAccountID;
+    return isEmptyObject(rootErrors) ? getLatestError(programErrors) : getLatestError(rootErrors);
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
@@ -2500,6 +2566,7 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 }
 
 export {
+    canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
@@ -2583,6 +2650,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getSettlementAccountErrors,
     getCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,

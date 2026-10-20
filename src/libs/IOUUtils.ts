@@ -314,15 +314,21 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
  * @param hasMultipleTagLists - whether the policy has multiple levels tag
+ * @param tagListCount - the policy's current number of tag lists. When positive, values for tag lists the policy no longer has are dropped.
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean, tagListCount?: number): string {
     if (!hasMultipleTagLists) {
         return tag;
     }
 
     const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // A removed tag list leaves its value in the stored string, which keeps the "Tag no longer valid" violation on the expense
+    if (tagListCount && tagListCount > 0 && tagArray.length > tagListCount) {
+        tagArray.length = tagListCount;
+    }
 
     // Fill any sparse slots created when tagIndex > tagArray.length
     for (let i = 0; i < tagArray.length; i++) {
@@ -630,6 +636,15 @@ function isSelfDMParticipant(participant: Participant | undefined, currentUserAc
 }
 
 /**
+ * Whether the expense is addressed 1:1 to another user (a P2P IOU). P2P chats don't support negative amounts, so the
+ * amount input and the confirmation validation both rely on this. Unlike `isParticipantP2P`, it also excludes a raw
+ * current-user participant (self-DM seeded before the flag is set) and an invoice sender.
+ */
+function isP2PRecipient(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    return isParticipantP2P(participant) && !isSelfDMParticipant(participant, currentUserAccountID);
+}
+
+/**
  * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
  * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
  * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
@@ -692,6 +707,7 @@ export {
     getIsWorkspacesOnlyForTransaction,
     getReusableP2PReportID,
     isParticipantP2P,
+    isP2PRecipient,
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,

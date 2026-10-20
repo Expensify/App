@@ -3,6 +3,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {InlineEditSaveResult} from '@components/EditableCell';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -37,8 +38,8 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {
     canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
     getExpensifyCardLimitInlineUpdate,
-    renameExpensifyCardInline,
     updateExpensifyCardLimitInline,
     updateExpensifyCardLimitTypeInline,
 } from '@libs/actions/Policy/InlineEdit';
@@ -57,6 +58,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -111,7 +113,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const isBankAccountVerified = !cardOnWaitlist;
+    // The waitlist is for the workspace account and must not block an already-provisioned domain feed.
+    const isBankAccountVerified = !cardOnWaitlist || (!!policy?.policyAccountID && fundID !== policy.policyAccountID);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -202,21 +205,28 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const changeCardLimit = useCallback(
-        (card: Card, newLimit: string) => {
+        (card: Card, newLimit: string): InlineEditSaveResult => {
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+            const limitError = getExpensifyCardLimitInlineEditError(translate, newLimit);
+            if (limitError) {
+                showInlineEditError(limitError);
+                return true;
+            }
+
             const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
             if (nextLimit === undefined) {
-                return;
+                return true;
             }
 
             const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimit);
 
             if (getExpensifyCardNewAvailableSpend(latestCard, nextLimit) > 0) {
                 persistLimit();
-                return;
+                return true;
             }
 
-            showConfirmModal({
+            // Keep the typed amount in the field while the modal is open. It is written only after confirm.
+            return showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimit'),
                 prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType), convertToDisplayString(nextLimit, settlementCurrency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
@@ -225,9 +235,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
-                    return;
+                    return false;
                 }
                 persistLimit();
+                return true;
             });
         },
         [convertToDisplayString, defaultLimitType, fundID, settlementCurrency, showConfirmModal, translate],
@@ -265,11 +276,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     frozenDate: card.nameValuePairs?.frozen?.date,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    canEditName: canEditCard,
                     canEditLimitType: canEditCard,
                     canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
-                    onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
                     onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
                     onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),

@@ -1,6 +1,8 @@
 // Shared renderer for web stacks and native root/RHP layers. Native split panes use NativeStackView separately.
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
+
 import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 
@@ -99,8 +101,9 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     const mappedState = {
         ...state,
         routes: state.routes.map((route) => {
+            // A wide submit pre-mount sits covered until its reveal, so it stays attached to be laid out and painted by then.
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const dontDetachScreen = persistentScreens?.includes(route.name) ? {dontDetachScreen: true} : {};
+            const dontDetachScreen = persistentScreens?.includes(route.name) || isLiveWideTabPreMountRouteKey(route.key) ? {dontDetachScreen: true} : {};
             return {...route, ...dontDetachScreen};
         }),
     };

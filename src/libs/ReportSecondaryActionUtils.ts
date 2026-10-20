@@ -515,6 +515,10 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return false;
     }
 
+    if (policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)) {
+        return false;
+    }
+
     // Submit workspaces allow submitters to mark Outstanding (processing) reports as paid without requiring manager approval.
     if (isSubmitPolicy(policy) && isProcessingReportUtils(report)) {
         return true;
@@ -1170,6 +1174,8 @@ function getSecondaryReportActions({
     if (reportTransactions.some(hasReceiptTransactionUtils)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
     }
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.SHARE);
 
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);

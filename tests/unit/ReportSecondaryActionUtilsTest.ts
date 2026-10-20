@@ -110,6 +110,14 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/workflows'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -146,6 +154,7 @@ describe('getSecondaryAction', () => {
         const result = [
             CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.SHARE,
             CONST.REPORT.SECONDARY_ACTIONS.PRINT,
             CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
         ];
@@ -3433,6 +3442,45 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT when report has only non-reimbursable expenses and policy prevents paying non reimbursable reports ', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'TRANSACTION_ID_932',
+            comment: {},
+            reimbursable: false,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            preventPayoutNonReimbursableReports: true,
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
             originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
