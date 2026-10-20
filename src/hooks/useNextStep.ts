@@ -7,13 +7,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
+import useTheme from './useTheme';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 function useNextStep(reportID: string | undefined) {
+    const theme = useTheme();
+    const {isOffline} = useNetwork();
     const {accountID: currentUserAccountID, email: currentUserEmail, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -38,6 +42,8 @@ function useNextStep(reportID: string | undefined) {
         rules,
         areStrictPolicyRulesEnabled,
         isReportArchived,
+        theme,
+        isOffline,
     });
 }
 
