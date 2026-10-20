@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {BAR_CORNER_RADIUS, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -15,8 +15,8 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import type {WrappedLabelConfig} from '@components/Charts/types';
-import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
+import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_ROTATIONS, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
 import {View} from 'react-native';
@@ -52,10 +53,10 @@ function VerticalBarChartCanvas({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const [{key: primarySeriesKey}] = series;
-    const chartData = data.map((point, index) => ({
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
-        y: getPrimaryValue(point, primarySeriesKey),
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
@@ -84,6 +85,7 @@ function VerticalBarChartCanvas({
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const plotBounds = getCartesianPlotBounds(chartWidth, chartPaddingRight);
     const barLayout = getBarLayout(plotBounds.width, data.length);
+    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (series.length - 1)) / series.length;
 
     const measurements = useChartLabelMeasurements(labelData, fontManager, variables.iconSizeExtraSmall);
 
@@ -167,24 +169,31 @@ function VerticalBarChartCanvas({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds) => {
-        const dataIndex = Number(point.xValue);
-        const dataPoint = data.at(dataIndex);
+    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, seriesItem: ChartSeries, seriesIndex: number) => {
+        const dataPoint = data.at(Number(point.xValue));
+        if (!dataPoint || typeof point.y !== 'number') {
+            return null;
+        }
+
+        const pointColor = seriesIndex === 0 ? dataPoint.color : undefined;
+        const color = dataPoint.seriesColors?.[seriesItem.key] ?? pointColor ?? seriesItem.color ?? VictoryTheme.colors.default;
+        // Moves the bar from the group's center to the middle of its series' slot, counted from the group's left edge, so the series sit side by side
+        const offset = -barLayout.barWidth / 2 + seriesIndex * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
 
         return (
             <Bar
-                key={`bar-${dataPoint?.label}`}
-                points={[point]}
+                key={`bar-${seriesItem.key}-${dataPoint.label}`}
+                points={[{...point, x: point.x + offset}]}
                 chartBounds={chartBounds}
-                color={dataPoint?.color ?? VictoryTheme.colors.default}
-                barWidth={barLayout.barWidth}
+                color={color}
+                barWidth={groupedBarWidth}
                 barCount={data.length}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
             />
         );
     };
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<TupleToUnion<typeof chartData>, string>) => {
         if (xAxisLabelHeight === undefined) {
             return null;
         }
@@ -242,7 +251,7 @@ function VerticalBarChartCanvas({
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"
                     padding={chartPadding}
-                    yKeys={['y']}
+                    yKeys={seriesKeys}
                     domain={{x: barLayout.xDomain}}
                     domainPadding={VERTICAL_BAR_DOMAIN_PADDING}
                     onChartBoundsChange={handleChartBoundsChange}
@@ -267,7 +276,8 @@ function VerticalBarChartCanvas({
                                 chartBounds={chartBounds}
                                 color={theme.border}
                             />
-                            {points.y.map((point) => renderBar(point, chartBounds))}
+                            {groupedBarWidth > 0 &&
+                                series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
                         </>
                     )}
                 </CartesianChart>
