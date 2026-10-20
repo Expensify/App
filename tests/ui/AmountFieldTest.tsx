@@ -81,7 +81,7 @@ jest.mock('@libs/CurrencyUtils', () => ({
     getLocalizedCurrencySymbol: () => '$',
 }));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => true}));
-jest.mock('@libs/IOUUtils', () => ({calculateAmount: jest.fn(), isMovingTransactionFromTrackExpense: () => false, isParticipantP2P: () => false}));
+jest.mock('@libs/IOUUtils', () => ({calculateAmount: jest.fn(), isMovingTransactionFromTrackExpense: () => false, isP2PRecipient: () => false, isParticipantP2P: () => false}));
 jest.mock('@libs/MoneyRequestUtils', () => ({isConfirmationAmountMissing: () => false}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 jest.mock('@libs/ReportUtils', () => ({
