@@ -46,6 +46,20 @@ describe('getPathWithoutDynamicSuffix', () => {
         expect(backPath).toBe('share/submit-details/123');
     });
 
+    it('strips a shared query param when the match underneath is not a screen the stripped route opens from', () => {
+        // Given a profile opened from the settings of a category named "downgrade", with the profile's own `policyID`. The
+        // base path only looks like it ends in the workspace downgrade route, which declares `policyID` too
+        const profileSuffix = DYNAMIC_ROUTES.PROFILE.path;
+        const path = `workspaces/A/categories/${DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.path.replace(':categoryName', 'downgrade')}/a/123?policyID=B`;
+
+        // When the profile suffix is stripped
+        const backPath = getPathWithoutDynamicSuffix(path, 'a/123', profileSuffix);
+
+        // Then `policyID` goes with it: the profile opens from anywhere, which vouches for no particular route underneath,
+        // so the category settings are not rebuilt with another workspace's policy
+        expect(backPath).toBe('workspaces/A/categories/category/downgrade');
+    });
+
     it('keeps the query params that belong to neither route', () => {
         // Given the add-category page stacked on the category list, with an unrelated query param on the URL
         const path = `share/submit-details/123/${categorySuffix}/${addCategorySuffix}?${categoryQuery}&foo=bar`;
