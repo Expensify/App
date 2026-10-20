@@ -56,7 +56,7 @@ function buildAgentEditNavigationState(accountID: number): PartialState<Navigati
                 state: {
                     key: 'agent-settings-stack-key',
                     index: 0,
-                    routes: [{key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT, params: {accountID: String(accountID)}}],
+                    routes: [{key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, params: {accountID: String(accountID)}}],
                 },
             },
         ],
@@ -135,6 +135,36 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(report).toStrictEqual(swappedReport);
     });
 
+    it('batches replacements and updates each report once without overwriting real participants', async () => {
+        const firstOptimisticID = 7012345678901234;
+        const secondOptimisticID = 7012345678901235;
+        const firstRealID = 11001;
+        const secondRealID = 11002;
+        const reportID = '7012345678901236';
+        const realParticipant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+        const optimisticParticipant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            participants: {[firstOptimisticID]: optimisticParticipant, [secondOptimisticID]: optimisticParticipant, [firstRealID]: realParticipant},
+        });
+        await waitForBatchedUpdates();
+        const mergeSpy = jest.spyOn(Onyx, 'merge');
+        mockIsReady.mockReturnValue(true);
+        mockGetRootState.mockClear();
+
+        replaceOptimisticAgentWithActualAgent(firstOptimisticID, firstRealID);
+        replaceOptimisticAgentWithActualAgent(secondOptimisticID, secondRealID);
+        await waitForBatchedUpdates();
+
+        expect(mockGetRootState).toHaveBeenCalledTimes(1);
+        expect(mergeSpy.mock.calls.filter(([key]) => key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toHaveLength(1);
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual({
+            [firstRealID]: realParticipant,
+            [secondRealID]: optimisticParticipant,
+        });
+        mergeSpy.mockRestore();
+    });
+
     it('changes nothing when invoked a second time after a successful remap', async () => {
         const optimisticAccountID = 8172635409182736;
         const realAccountID = 3746158290374615;
@@ -150,7 +180,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [optimisticAccountID]: {displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
         });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {prompt: 'Book my flights'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights'});
         await waitForBatchedUpdates();
 
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
@@ -158,14 +188,14 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         const reportAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         const personalDetailsAfterFirstRun = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-        const promptAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`);
+        const promptAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
 
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual(reportAfterFirstRun);
         expect(await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST)).toStrictEqual(personalDetailsAfterFirstRun);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`)).toStrictEqual(promptAfterFirstRun);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toStrictEqual(promptAfterFirstRun);
     });
 
     it('clears the optimistic personal detail and prompt without carrying their stale state onto the real agent', async () => {
@@ -198,8 +228,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                 errorFields: {avatar: {[errorTimestamp]: 'Unexpected error updating the avatar'}},
             },
         });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, realAgentPrompt);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, realAgentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {
             prompt: 'Book my flights and hotels',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             errors: {[errorTimestamp]: 'Unexpected error updating the prompt'},
@@ -214,8 +244,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[realAccountID]).toStrictEqual(realPersonalDetail);
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`)).toStrictEqual(realAgentPrompt);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toStrictEqual(realAgentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         expect(mapping?.[optimisticAccountID]).toBe(realAccountID);
     });
@@ -229,7 +259,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
         });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {
             prompt: 'Book my flights',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         });
@@ -242,8 +272,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[realAccountID]).toBeUndefined();
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`)).toBeUndefined();
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
     });
 
     it('redirects every agent settings screen in the navigation stack to the real accountID, skipping unrelated screens', async () => {
@@ -264,8 +294,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                         key: 'agent-settings-stack-key',
                         index: 1,
                         routes: [
-                            {key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT, params: {accountID: String(optimisticAccountID)}},
-                            {key: 'agents-edit-name-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT_NAME, params: {accountID: String(optimisticAccountID)}},
+                            {key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, params: {accountID: String(optimisticAccountID)}},
+                            {key: 'agents-edit-name-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME, params: {accountID: String(optimisticAccountID)}},
                         ],
                     },
                 },
@@ -294,7 +324,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         const optimisticPersonalDetail = {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true};
         const optimisticAgentPrompt = {prompt: 'Book my flights'};
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, optimisticAgentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, optimisticAgentPrompt);
         await waitForBatchedUpdates();
 
         // When the mapping is consumed before navigation is ready
@@ -306,7 +336,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(resolveAgentAccountID(optimisticAccountID)).toBe(realAccountID);
         expect(mockSetParams).not.toHaveBeenCalled();
         expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toStrictEqual(optimisticPersonalDetail);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toStrictEqual(optimisticAgentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual(optimisticAgentPrompt);
         expect((await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
 
         // When navigation becomes ready
@@ -318,7 +348,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
         expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
         expect((await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
     });
 
@@ -346,14 +376,14 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
             [realAccountID]: {accountID: realAccountID, displayName: 'Created agent'},
         });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {prompt: 'Test instructions'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Test instructions'});
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
         // Cross-tab Onyx notifications carry keys, then read their latest stored values. A receiving tab can
         // therefore read only after the first tab has completed cleanup, without seeing the intermediate mapping.
         expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         expect(mapping?.[optimisticAccountID]).toBe(realAccountID);
     });
@@ -365,7 +395,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         const agentPrompt = {prompt: 'Book my flights'};
 
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: personalDetail});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, agentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, agentPrompt);
         await waitForBatchedUpdates();
 
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[accountID]: accountID});
@@ -373,7 +403,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[accountID]).toStrictEqual(personalDetail);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`)).toStrictEqual(agentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`)).toStrictEqual(agentPrompt);
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         expect(mapping?.[accountID]).toBeUndefined();
     });
@@ -390,8 +420,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [zeroMappedAccountID]: zeroMappedPersonalDetail,
             [negativeMappedAccountID]: negativeMappedPersonalDetail,
         });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${zeroMappedAccountID}`, agentPrompt);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${negativeMappedAccountID}`, agentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${zeroMappedAccountID}`, agentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${negativeMappedAccountID}`, agentPrompt);
         await waitForBatchedUpdates();
 
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[zeroMappedAccountID]: 0, [negativeMappedAccountID]: -1});
@@ -403,8 +433,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [zeroMappedAccountID]: zeroMappedPersonalDetail,
             [negativeMappedAccountID]: negativeMappedPersonalDetail,
         });
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${zeroMappedAccountID}`)).toStrictEqual(agentPrompt);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${negativeMappedAccountID}`)).toStrictEqual(agentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${zeroMappedAccountID}`)).toStrictEqual(agentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${negativeMappedAccountID}`)).toStrictEqual(agentPrompt);
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         expect(mapping?.[zeroMappedAccountID]).toBeUndefined();
         expect(mapping?.[negativeMappedAccountID]).toBeUndefined();
@@ -435,7 +465,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             await waitForBatchedUpdates();
 
             mockIsReady.mockReturnValue(true);
@@ -462,8 +492,49 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                 [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             });
             expect((await getColdStartOnyxValue(coldStartOnyxKeys.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
-            expect(await getColdStartOnyxValue(`${coldStartOnyxKeys.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`)).toBeUndefined();
+            expect(await getColdStartOnyxValue(`${coldStartOnyxKeys.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
             expect((await getColdStartOnyxValue(coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
+        });
+
+        it.each([false, true])('retains completed mappings without cleanup writes and repairs orphan reports: %s', async (hasOrphanReport) => {
+            const optimisticAccountID = hasOrphanReport ? 7123456789012345 : 7123456789012346;
+            const realAccountID = hasOrphanReport ? 12001 : 12002;
+            const secondOptimisticID = hasOrphanReport ? 7123456789012347 : 7123456789012348;
+            const reportID = '7123456789012349';
+            jest.resetModules();
+            const ColdStartOnyx = require<{default: typeof OnyxDefault}>('react-native-onyx').default;
+            const coldStartOnyxKeys = require<typeof OnyxKeysModule>('@src/ONYXKEYS').default;
+            ColdStartOnyx.init({keys: coldStartOnyxKeys});
+            await ColdStartOnyx.clear();
+            await ColdStartOnyx.multiSet({
+                [coldStartOnyxKeys.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created agent'}},
+                [`${coldStartOnyxKeys.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved instructions'},
+                [coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID, [secondOptimisticID]: 12003},
+                [`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}` as const]: {
+                    reportID,
+                    participants: {[hasOrphanReport ? optimisticAccountID : realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+                },
+            });
+            await waitForBatchedUpdates();
+            const mergeSpy = jest.spyOn(ColdStartOnyx, 'merge');
+            const updateSpy = jest.spyOn(ColdStartOnyx, 'update');
+            mockIsReady.mockReturnValue(true);
+            mockGetRootState.mockClear();
+            mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
+            require<typeof ReplaceOptimisticAgentWithActualAgentModule>('@src/libs/actions/replaceOptimisticAgentWithActualAgent');
+            await waitForBatchedUpdates();
+            const readColdStartValue = require<typeof GetOnyxValueModule>('../utils/getOnyxValue').default;
+
+            expect(mockGetRootState).toHaveBeenCalledTimes(1);
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
+            expect(updateSpy).not.toHaveBeenCalled();
+            expect(mergeSpy).toHaveBeenCalledTimes(hasOrphanReport ? 1 : 0);
+            expect((await readColdStartValue(`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual({
+                [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            });
+            expect((await readColdStartValue(coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
+            mergeSpy.mockRestore();
+            updateSpy.mockRestore();
         });
     });
 });

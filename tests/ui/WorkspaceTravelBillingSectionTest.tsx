@@ -312,7 +312,7 @@ describe('WorkspaceTravelBillingSection', () => {
                         paymentBankAccountID: 12345,
                         remainingLimit: 50000,
                         currentBalance: 10000,
-                        monthlySettlementDate: new Date(),
+                        monthlySettlementDate: 1,
                     },
                 });
                 await Onyx.merge(bankAccountKey, {
@@ -380,7 +380,7 @@ describe('WorkspaceTravelBillingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
-                        monthlySettlementDate: new Date(),
+                        monthlySettlementDate: 1,
                     },
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -424,7 +424,7 @@ describe('WorkspaceTravelBillingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
-                        monthlySettlementDate: new Date(),
+                        monthlySettlementDate: 1,
                     },
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -460,7 +460,7 @@ describe('WorkspaceTravelBillingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
-                        monthlySettlementDate: new Date(),
+                        monthlySettlementDate: 1,
                     },
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -512,7 +512,7 @@ describe('WorkspaceTravelBillingSection', () => {
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
                         pendingSettlementAmount: 0,
-                        monthlySettlementDate: new Date(),
+                        monthlySettlementDate: 1,
                     },
                 });
                 await waitForBatchedUpdatesWithAct();

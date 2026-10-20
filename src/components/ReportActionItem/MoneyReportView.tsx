@@ -212,7 +212,6 @@ function MoneyReportView({
                                             shouldGreyOutWhenDisabled={false}
                                             numberOfLinesTitle={0}
                                             interactive={!isFieldDisabled}
-                                            onSecondaryInteraction={() => {}}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}
                                             errorText={violationTranslation}

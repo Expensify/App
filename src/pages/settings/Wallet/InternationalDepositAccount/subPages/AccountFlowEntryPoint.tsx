@@ -9,10 +9,10 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,22 +41,27 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
     const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
+    const exitReportID = personalBankAccount?.exitReportID;
 
     useEffect(() => {
         if (isLoadingPersonalBankAccount) {
             return;
         }
 
-        // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
+        // Clear stale flow state on entry but keep onSuccessFallbackRoute and exitReportID if they were set before.
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
-        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
+        const preservedData = {
+            ...(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : {}),
+            ...(exitReportID ? {exitReportID} : {}),
+        };
+        clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingPersonalBankAccount]);
 
@@ -110,18 +115,20 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectOnlineWithPlaid')}
-                            icon={expensifyIcons.Bank}
-                            isDisabled={!!isPlaidDisabled}
-                            onPress={handleConnectPlaid}
-                        />
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectManually')}
-                            icon={expensifyIcons.Connect}
-                            onPress={handleConnectManually}
-                        />
+                    <View style={[styles.mt4, cardEdgeToEdge]}>
+                        <View style={cardMenuItemInset}>
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectOnlineWithPlaid')}
+                                icon={expensifyIcons.Bank}
+                                isDisabled={!!isPlaidDisabled}
+                                onPress={handleConnectPlaid}
+                            />
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectManually')}
+                                icon={expensifyIcons.Connect}
+                                onPress={handleConnectManually}
+                            />
+                        </View>
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>

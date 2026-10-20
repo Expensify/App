@@ -94,8 +94,8 @@ class IntlStore {
                       import('./en').then((module: DynamicModule<typeof en>) => {
                           this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
                       }),
-                      import('date-fns/locale/en-GB').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.EN, module.enGB);
+                      import('date-fns/locale/en-US').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.EN, module.enUS);
                       }),
                       shouldPolyfillNumberFormat(LOCALES.EN) ? import('@formatjs/intl-numberformat/locale-data/en') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.EN) ? import('@formatjs/intl-listformat/locale-data/en') : Promise.resolve(),

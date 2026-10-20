@@ -1,3 +1,7 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -130,6 +134,18 @@ function getBankAccountConnectionStatus(state: string | undefined, currency?: st
  */
 function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
+}
+
+/**
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ */
+function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefined): boolean {
+    return (
+        accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
+        accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData.verifications?.corpay &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -284,9 +300,19 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'], translate: LocaleContextProps['translate']) {
+    showConfirmModal({
+        title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+        prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
+    isEligibleForWiseGlobalReimbursements,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
@@ -301,6 +327,7 @@ export {
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    showUnlockAlreadyRequestedModal,
     PERSONAL_INFO_STEP,
 };
 export type {BankAccountConnectionStatus, KYBVerificationResponses};

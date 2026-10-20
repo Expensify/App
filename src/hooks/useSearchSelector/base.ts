@@ -7,7 +7,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSortedActions from '@hooks/useSortedActions';
+import usePermissions from '@hooks/usePermissions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -104,6 +105,9 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
+    /** Opens the system contact picker and adds the picked contacts to the list. Only set where contacts can't be imported in bulk (Android) */
+    pickContact?: () => void;
+
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -186,9 +190,9 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
@@ -198,7 +202,10 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -221,6 +228,7 @@ function useSearchSelectorBase({
         isLoading: isLoadingOptions,
         loadMore: loadMoreReports,
         hasMore: hasMoreReports,
+        getReportByID,
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
@@ -287,7 +295,8 @@ function useSearchSelectorBase({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
-                    betas: betas ?? [],
+                    convertToDisplayStringWithoutCurrency,
+                    isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
                     searchQuery: computedSearchTerm,
@@ -300,10 +309,18 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserLogin: currentUserEmail,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
+                    getReportByID,
                     rules,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
@@ -318,7 +335,8 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas: betas ?? [],
+                        convertToDisplayStringWithoutCurrency,
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
@@ -337,10 +355,15 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -355,7 +378,8 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas,
+                        convertToDisplayStringWithoutCurrency,
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         selectedOptions,
                         includeMultipleParticipantReports: true,
                         showChatPreviewLine: true,
@@ -375,11 +399,17 @@ function useSearchSelectorBase({
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
+                        visibleReportActionsData,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -394,7 +424,8 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas: betas ?? [],
+                        convertToDisplayStringWithoutCurrency,
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         includeP2P: true,
                         includeSelectedOptions: false,
                         excludeLogins,
@@ -413,10 +444,15 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:
@@ -523,7 +559,7 @@ function useSearchSelectorBase({
     };
 
     const selectedOptionsForDisplay = selectedOptions.filter((option) => {
-        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID);
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
         return (
             !!option.text?.toLowerCase().includes(computedSearchTerm) ||
             !!option.login?.toLowerCase().includes(computedSearchTerm) ||

@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -75,10 +77,18 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const [feedWithError, setFeedWithError] = useState<{feed?: string; error?: Errors} | undefined>(undefined);
 
-    const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
+    const {companyCardFeeds: liveCompanyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
-    const otherFeeds = useOtherFeedsForFeedSelector(policyID);
+    const liveOtherFeeds = useOtherFeedsForFeedSelector(policyID);
+
+    // The link response reaches Onyx before the RHP starts closing, so the lists are frozen while linking to keep the feed from jumping between sections.
+    const [frozenFeeds, setFrozenFeeds] = useState<{companyCardFeeds: typeof liveCompanyCardFeeds; otherFeeds: CardFeedListItem[]}>();
+    const companyCardFeeds = frozenFeeds ? frozenFeeds.companyCardFeeds : liveCompanyCardFeeds;
+    const otherFeeds = frozenFeeds?.otherFeeds ?? liveOtherFeeds;
     const primaryContactMethod = usePrimaryContactMethod();
+
+    const [draftFeed, setDraftFeed] = useState<CompanyCardFeedWithDomainID>();
+    const currentSelectedFeed = draftFeed ?? selectedFeedName;
 
     const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
 
@@ -97,7 +107,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             alternateText: domainName ?? policyName,
             text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,
-            isSelected: feedName === selectedFeedName,
+            isSelected: feedName === currentSelectedFeed,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -142,12 +152,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
-    const selectFeed = (feed: CardFeedListItem) => {
-        updateSelectedFeed(feed.value, policyID);
-        goBack();
-    };
-
-    const selectOtherFeed = (feed: CardFeedListItem) => {
+    /** The user may first have to add or validate a work email, in which case that flow carries the feed and finishes the selection on its own. */
+    const linkOtherWorkspaceFeed = (feed: CardFeedListItem) => {
         if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
@@ -162,12 +168,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             return;
         }
         const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID);
+        setFrozenFeeds({companyCardFeeds: liveCompanyCardFeeds, otherFeeds: liveOtherFeeds});
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
             .then(() => {
                 updateSelectedFeed(feedValue, policyID);
                 goBack();
             })
             .catch((error: TranslationPaths) => {
+                setFrozenFeeds(undefined);
                 setFeedWithError({
                     feed: feed.value,
                     error: getMicroSecondOnyxErrorWithTranslationKey(error),
@@ -175,9 +183,45 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             });
     };
 
+    // Other-workspace feeds are selected by the key they get in the main list once linked, so the checkmark follows the feed when it moves there on Save.
+    const getSelectionValue = (feed: CardFeedListItem) => feed.selectionValue ?? feed.value;
+
+    const selectFeed = (feed: CardFeedListItem) => {
+        setFeedWithError(undefined);
+        setDraftFeed(getSelectionValue(feed));
+    };
+
+    const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => getSelectionValue(feed) === currentSelectedFeed);
+    const isStagedFeedOnPage = !!stagedOtherWorkspaceFeed || feeds.some((feed) => feed.value === currentSelectedFeed);
+
+    const saveFeed = () => {
+        if (!currentSelectedFeed) {
+            return;
+        }
+        if (stagedOtherWorkspaceFeed) {
+            linkOtherWorkspaceFeed(stagedOtherWorkspaceFeed);
+            return;
+        }
+        updateSelectedFeed(currentSelectedFeed, policyID);
+        goBack();
+    };
+
+    // Linking an other-workspace feed has to be something the user picked, and it needs a connection because the link request never settles offline.
+    const isSaveDisabled = !isStagedFeedOnPage || (!!stagedOtherWorkspaceFeed && (draftFeed === undefined || isOffline));
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: isSaveDisabled,
+    };
+
     const onDismissError = () => {
         setFeedWithError(undefined);
     };
+
+    // Without any available feed the page renders a plain ScrollView instead of a SelectionList, so it has to supply its own Save button.
+    const shouldShowOtherFeedsSaveButton = canWriteCompanyCards && otherFeeds.length > 0;
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
@@ -191,21 +235,23 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
                     {otherFeeds.map((feed) => {
-                        const isFeedWithError = feedWithError?.feed === feed.value;
-                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                        const item = {
+                            ...feed,
+                            // The hook marks the committed feed as selected, but the checkmark has to follow the staged one.
+                            isSelected: getSelectionValue(feed) === currentSelectedFeed,
+                            errors: feedWithError?.feed === feed.value ? feedWithError.error : undefined,
+                        };
                         return (
                             <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
                                 showTooltip={false}
-                                item={itemWithError}
-                                onSelectRow={selectOtherFeed}
-                                isMultilineSupported
-                                isAlternateTextMultilineSupported
+                                item={item}
+                                onSelectRow={selectFeed}
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
-                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                // SingleSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
                                 wrapperStyle={[styles.flexReset, styles.w100]}
                             />
                         );
@@ -238,17 +284,37 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         data={feeds}
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={selectedFeedName}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                         listFooterContent={otherMenuItemFeeds}
                     />
                 ) : (
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        style={styles.flex1}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {otherMenuItemFeeds}
-                    </ScrollView>
+                    <>
+                        <ScrollView
+                            // The Save button below carries the bottom safe area padding whenever it is rendered.
+                            addBottomSafeAreaPadding={!shouldShowOtherFeedsSaveButton}
+                            style={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {otherMenuItemFeeds}
+                        </ScrollView>
+                        {shouldShowOtherFeedsSaveButton && (
+                            <FixedFooter
+                                style={styles.mtAuto}
+                                addBottomSafeAreaPadding
+                            >
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size="large"
+                                    style={styles.w100}
+                                    onPress={saveFeed}
+                                    isDisabled={isSaveDisabled}
+                                >
+                                    <Button.Text>{translate('common.save')}</Button.Text>
+                                </Button>
+                            </FixedFooter>
+                        )}
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

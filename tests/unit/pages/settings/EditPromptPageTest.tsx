@@ -1,18 +1,31 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
+import type {FormOnyxValues} from '@components/Form/types';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
+import {updateAgentPrompt} from '@libs/actions/Agent';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import EditPromptPage from '@pages/settings/Agents/Fields/EditPromptPage';
+import EditPromptPage from '@pages/settings/Agents/Fields/DynamicEditPromptPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../../utils/createMock';
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+
+let mockSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => void;
+let mockBack: () => void;
+
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'home'));
 
 jest.mock('@userActions/Agent', () => ({
     updateAgentPrompt: jest.fn(),
@@ -62,14 +75,16 @@ jest.mock('@components/ScreenWrapper', () => {
 });
 
 jest.mock('@components/HeaderWithBackButton', () => {
-    function MockHeader({title}: {title: string}) {
+    function MockHeader({title, onBackButtonPress}: {title: string; onBackButtonPress: () => void}) {
+        mockBack = onBackButtonPress;
         return title;
     }
     return MockHeader;
 });
 
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children}: {children: React.ReactNode}) {
+    function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: typeof mockSubmit}) {
+        mockSubmit = onSubmit;
         return children;
     }
     return MockFormProvider;
@@ -86,13 +101,16 @@ const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
 
-type EditPromptPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>['route'];
-type EditPromptPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>['navigation'];
+type EditPromptPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>['route'];
+type EditPromptPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>['navigation'];
 
 const mockRoute = createMock<EditPromptPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockNavigation = createMock<EditPromptPageNavigation>({});
+const mockSetParams = jest.fn();
+const mockNavigation = createMock<EditPromptPageNavigation>({setParams: mockSetParams});
 
 describe('EditPromptPage', () => {
+    beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
@@ -111,7 +129,7 @@ describe('EditPromptPage', () => {
 
     it('renders prompt as default value in InputWrapper', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Old prompt'}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
@@ -125,5 +143,38 @@ describe('EditPromptPage', () => {
         );
 
         expect(JSON.stringify(toJSON())).toContain('prompt::Old prompt');
+    });
+    it.each([false, true])('saves and returns to the resolved agent when mapping arrives before mount: %s', async (mappingExistsOnMount) => {
+        const optimisticAccountID = 7234567890123456;
+        const realAccountID = 13001;
+        const backPath = `settings/agents/${realAccountID}/edit` as Route;
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved prompt'},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
+        });
+        mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
+        jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
+        render(
+            <EditPromptPage
+                route={createMock<EditPromptPageRoute>({params: {accountID: optimisticAccountID}})}
+                navigation={mockNavigation}
+            />,
+        );
+        await act(async () => waitForBatchedUpdates());
+        if (!mappingExistsOnMount) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
+                await waitForBatchedUpdates();
+            });
+        }
+
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+        act(() => mockSubmit({prompt: 'Updated value'}));
+        expect(updateAgentPrompt).toHaveBeenCalledWith(realAccountID, 'Updated value', 'Saved prompt');
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
+        jest.mocked(Navigation.goBack).mockClear();
+        act(() => mockBack());
+        expect(Navigation.goBack).toHaveBeenCalledWith(backPath);
     });
 });

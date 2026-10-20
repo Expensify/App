@@ -6,14 +6,14 @@
  * Own module because the middleware also registers mappings and cannot import the lazy-loaded
  * replaceOptimisticAgentWithActualAgent without pulling navigation into the startup path.
  */
-const consumedOptimisticAccountIDs = new Map<number, number>();
+const resolvedAgentAccountIDs = new Map<number, number>();
 
 function registerAgentAccountIDMapping(optimisticAccountID: number, realAccountID: number) {
-    consumedOptimisticAccountIDs.set(optimisticAccountID, realAccountID);
+    resolvedAgentAccountIDs.set(optimisticAccountID, realAccountID);
 }
 
 function resolveAgentAccountID(accountID: number): number {
-    return consumedOptimisticAccountIDs.get(accountID) ?? accountID;
+    return resolvedAgentAccountIDs.get(accountID) ?? accountID;
 }
 
 export {registerAgentAccountIDMapping, resolveAgentAccountID};

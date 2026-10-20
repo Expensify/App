@@ -70,6 +70,9 @@ jest.mock('@libs/actions/Report', () => ({
         mockOpenReport(...args);
     },
     pruneReportActionPagesToNewestWindow: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Report/reportActionSubscribers', () => ({
     subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
         newActionHandler = callback;
         return jest.fn();
@@ -92,7 +95,6 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         conciergeChat: undefined,
         isSelfTourViewed: undefined,
         hasCompletedGuidedSetupFlow: undefined,
-        betas: [],
         isOffline: false,
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),
@@ -206,6 +208,41 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
         expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
+    });
+
+    it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', () => {
+        // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
+        const setIsFloatingMessageCounterVisible = jest.fn();
+        const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // Then the list scrolls to the bottom directly, without an openReport round trip
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+    });
+
+    it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {
+        // Given an unread marker and a report whose newest actions are not loaded yet
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: false}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // Then openReport fetches the newest actions before the list scrolls
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
     });
 });
 

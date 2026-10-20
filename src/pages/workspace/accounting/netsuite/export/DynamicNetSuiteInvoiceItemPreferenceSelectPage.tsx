@@ -1,7 +1,8 @@
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -84,19 +85,18 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 key={translate('workspace.netsuite.invoiceItem.label')}
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
             >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.netsuite.invoiceItem.label')}
-                    title={selectedItem ? selectedItem.name : undefined}
-                    interactive
-                    shouldShowRightIcon
+                <MenuItemField
+                    name={translate('workspace.netsuite.invoiceItem.label')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path));
                     }}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={selectedItem ? selectedItem.name : undefined}
+                >
+                    {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
         );
     }, [config?.invoiceItemPreference, config?.pendingFields, config?.errorFields, policyID, selectedItem, translate]);

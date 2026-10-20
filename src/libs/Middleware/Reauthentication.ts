@@ -46,7 +46,7 @@ function retryReauthenticate(commandName?: string): Promise<ReauthenticationResu
             .catch(() => {
                 setIsAuthenticating(false);
                 Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
-                redirectToSignIn('passwordForm.error.fallback');
+                redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED, 'passwordForm.error.fallback');
                 return {wasSuccessful: false};
             });
     });
@@ -69,7 +69,13 @@ function isExpiredSessionError(error: unknown): error is HttpsError {
 // auth flow can map them to the right sign-in error instead of retrying them
 // like transient transport failures.
 function shouldResolveAuthenticateHTTPError(error: unknown, request: {command: string}): error is HttpsError {
-    return request.command === 'Authenticate' && error instanceof HttpsError && !!error.status && error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
+    return (
+        request.command === 'Authenticate' &&
+        error instanceof HttpsError &&
+        !!error.status &&
+        error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED &&
+        error.message !== CONST.ERROR.SERVICE_UNAVAILABLE
+    );
 }
 
 function handleExpiredSession<TKey extends OnyxKey>(

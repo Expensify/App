@@ -4,14 +4,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DatabaseSizeMeasurement} from '@src/types/onyx';
 
+import * as Sentry from '@sentry/react-native';
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 
+import getAccountSizeTier from './accountSizeTier';
 import measureDatabaseSize from './databaseSize';
 import {getGlobalSpanAttributes, setGlobalSpanAttribute} from './globalSpanAttributes';
 
 /**
- * Keeps the db_size_bytes/db_size_source global span attributes up to date and persists each measurement,
+ * Keeps the db_size tag and the db_size_bytes/db_size_source global span attributes up to date and persists each measurement,
  * so that on the next app start the spans (including the startup span) carry the last known size right away.
  */
 
@@ -29,6 +31,7 @@ function applyMeasurement(measurement: DatabaseSizeMeasurement) {
         return;
     }
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES, measurement.bytes);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.DB_SIZE, getAccountSizeTier(CONST.TELEMETRY.TAGS.DB_SIZE, measurement.bytes));
 }
 
 // connectWithoutView: module-level telemetry logic, no UI. The persisted measurement lets startup spans carry a size before this session measures one.

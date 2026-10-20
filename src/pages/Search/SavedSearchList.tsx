@@ -1,7 +1,7 @@
 import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -17,16 +17,11 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
-import {
-    createBaseSavedSearchMenuItem,
-    getLastSearchQuery,
-    getOverflowMenu as getOverflowMenuUtil,
-    savedSearchIDToSearchKey,
-    SAVED_SEARCH_FALLBACK_ICON_NAME,
-    SAVED_SEARCH_ICON_NAMES,
-} from '@libs/SearchUIUtils';
+import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getLastSearchQuery, getOverflowMenu as getOverflowMenuUtil, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -51,7 +46,6 @@ type SavedSearchMenuItemBuilderParams = {
     index: number;
     currentSearchKey: SearchKey | undefined;
     title: string;
-    onPress: (searchKey: SearchKey) => void;
     getOverflowMenu: (itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     itemStyle: SavedSearchMenuItem['style'];
     isCopied: boolean;
@@ -65,7 +59,6 @@ function buildSavedSearchMenuItem({
     index,
     currentSearchKey,
     title,
-    onPress,
     getOverflowMenu,
     itemStyle,
     isCopied,
@@ -82,8 +75,7 @@ function buildSavedSearchMenuItem({
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            onPress(savedSearchKey);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name, searchKey: savedSearchKey}));
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
@@ -115,7 +107,6 @@ function SavedSearchList() {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
     const {currentSearchKey} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
 
@@ -163,7 +154,6 @@ function SavedSearchList() {
                       index,
                       currentSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
-                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, itemQuery),
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedID === key,

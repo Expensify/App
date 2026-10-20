@@ -340,6 +340,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -361,6 +362,8 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
+            personalDetailsByLogins: {},
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -368,6 +371,7 @@ describe('handleActionButtonPress', () => {
     test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -389,6 +393,8 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
+            personalDetailsByLogins: {},
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -397,6 +403,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -417,6 +424,8 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
+            personalDetailsByLogins: {},
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -433,6 +442,7 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem: jest.fn(),
@@ -451,8 +461,10 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations,
             rules: undefined,
+            personalDetailsByLogins: {},
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            confirmSubmitReportViolations: jest.fn(),
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,

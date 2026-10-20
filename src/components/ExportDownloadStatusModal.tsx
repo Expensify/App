@@ -71,8 +71,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const reportCount = displayedExport?.reportCount ?? 0;
     const receiptCount = displayedExport?.receiptCount;
     const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
+    const isTruncated = !!displayedExport?.truncated;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
-    const isConcierge = !!shouldSendFromConcierge;
+    const isConcierge = !!shouldSendFromConcierge && state !== CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
@@ -218,6 +219,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    {isTruncated && <Text style={styles.mb2}>{translate('exportDownload.truncatedBody')}</Text>}
                     {renderPartialBody()}
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

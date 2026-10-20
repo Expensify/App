@@ -25,6 +25,12 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+
+    /** Whether the action `prevUnreadMarkerReportActionID` points to is still present (not deleted/hidden) */
+    isPrevUnreadMarkerReportActionPresent?: boolean;
+
+    /** The reportActionID the user explicitly marked as unread, if any */
+    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 
@@ -47,9 +53,19 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isScrolledOverThreshold,
     isOffline,
     prevUnreadMarkerReportActionID,
+    isPrevUnreadMarkerReportActionPresent = false,
+    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
+    // While a manual mark is active, the marked action is the sole anchor: every other action is suppressed.
+    // We anchor by reportActionID rather than timestamp because `created` shifts on the optimistic->confirmed
+    // transition and would wrongly read as already-read. The marked action is the oldest unread by construction
+    // (markCommentAsUnread sets lastReadTime = its created - 1ms), so it stays correct as newer messages arrive.
+    if (manuallyMarkedUnreadReportActionID) {
+        return message.reportActionID === manuallyMarkedUnreadReportActionID && !shouldHideNewMarker(message, isOffline);
+    }
+
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
     // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
@@ -84,12 +100,16 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
+    const prevMarkedReportAction = prevUnreadMarkerReportActionID ? prevSortedVisibleReportActionsObjects[prevUnreadMarkerReportActionID] : undefined;
+    const isPreviouslyUnreadFromCurrentUser = currentUserAccountID === prevMarkedReportAction?.actorAccountID;
+    // Once a self-authored action holds the marker, don't let a different self-authored action steal it (the
+    // Expensify/App#91940 hop). Only while that anchor is still present — if it was deleted, the marker must relocate.
+    const isDifferentUnread = isPrevUnreadMarkerReportActionPresent && isPreviouslyUnreadFromCurrentUser && prevMarkedReportAction?.reportActionID !== message.reportActionID;
+    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic || isDifferentUnread;
 
     if (isFromCurrentUser) {
-        // When an existing marker is being relocated (e.g. after the original unread message is deleted),
-        // allow the marker to land on a self-authored action.
-        // Otherwise, never anchor the "New" marker above a self-authored action on first open/re-entry.
+        // Only move/keep the marker on a self-authored action when one already exists in this session.
+        // An explicit mark-as-unread bypasses this guard via the early return at the top of the function.
         if (prevUnreadMarkerReportActionID) {
             return !shouldIgnoreUnreadForCurrentUserMessage;
         }
@@ -134,6 +154,9 @@ type GetUnreadMarkerReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+
+    /** The reportActionID the user explicitly marked as unread, if any */
+    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 
@@ -157,12 +180,27 @@ const getUnreadMarkerReportAction = ({
     isReversed,
     isAnonymousUser = false,
     prevUnreadMarkerReportActionID,
+    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
     }
+
+    // Drop the manual anchor once the marked action is deleted, otherwise no action would match it and the
+    // marker would vanish instead of relocating via the timestamp scan below.
+    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionID
+        ? visibleReportActions.find((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
+        : undefined;
+    const activeManuallyMarkedUnreadReportActionID =
+        manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
+
+    // Lets the caller tell "the anchor was deleted, so relocate the marker" apart from "the anchor is still
+    // around, so another self-authored action must not steal it".
+    const isPrevUnreadMarkerReportActionPresent = prevUnreadMarkerReportActionID
+        ? visibleReportActions.some((action) => action.reportActionID === prevUnreadMarkerReportActionID && !shouldHideNewMarker(action, isOffline))
+        : false;
 
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
     const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
@@ -199,6 +237,8 @@ const getUnreadMarkerReportAction = ({
                 isScrolledOverThreshold,
                 isOffline,
                 prevUnreadMarkerReportActionID,
+                isPrevUnreadMarkerReportActionPresent,
+                manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
                 hasWindowFocus,
                 newMessageBoundaryTime,
             });

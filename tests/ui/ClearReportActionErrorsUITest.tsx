@@ -6,6 +6,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -22,6 +24,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -34,6 +37,12 @@ const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '99999';
 const CHILD_REPORT_ID = '67890';
 const CHILD_REPORT_ACTION_ID = '88888';
+const PARENT_REPORT_ACTION_ID = '55555';
+const GRANDPARENT_REPORT_ID = '44444';
+const GRANDPARENT_REPORT_ACTION_ID = '33333';
+const UNRELATED_REPORT_ID = '22222';
+const SPLIT_CHILD_TRANSACTION_ID = '77777';
+const SPLIT_CONTAINER_TRANSACTION_ID = '66666';
 
 const DEFAULT_ERROR_TIMESTAMP = Date.now() * 1000;
 const DEFAULT_ERRORS = {[DEFAULT_ERROR_TIMESTAMP]: 'Something went wrong. Please try again.'};
@@ -83,20 +92,31 @@ describe('ClearReportActionErrors UI', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    function ReportActionItemWithHierarchy({action, report}: {action: ReportAction; report: Report}) {
+        const reportsParentHierarchy = useReportsParentHierarchy(report.reportID);
+        return (
+            <ReportActionItem
+                report={report}
+                chatReport={undefined}
+                transactionThreadReport={undefined}
+                parentReportAction={undefined}
+                action={action}
+                displayAsGroup={false}
+                shouldDisplayNewMarker={false}
+                isFirstVisibleReportAction={false}
+                reportsParentHierarchy={reportsParentHierarchy}
+            />
+        );
+    }
+
     function renderReportActionItem(action: ReportAction, report: Report) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
-                        <ReportActionItem
-                            report={report}
-                            chatReport={undefined}
-                            transactionThreadReport={undefined}
-                            parentReportAction={undefined}
+                        <ReportActionItemWithHierarchy
                             action={action}
-                            displayAsGroup={false}
-                            shouldDisplayNewMarker={false}
-                            isFirstVisibleReportAction={false}
+                            report={report}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
@@ -148,7 +168,13 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(dismissButton);
 
             // Then clearAllRelatedReportActionErrors should be called with correct arguments
-            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            expect(spy).toHaveBeenCalledTimes(1);
+            const callParams = spy.mock.calls.at(0)?.at(0);
+            expect(callParams?.reportID).toBe(REPORT_ID);
+            expect(callParams?.reportAction?.reportActionID).toBe(REPORT_ACTION_ID);
+            expect(callParams?.originalReportID).toBe(REPORT_ID);
+            expect(callParams?.isOffline).toBe(false);
+            expect(callParams?.reports).toBeDefined();
             spy.mockRestore();
         });
 
@@ -238,6 +264,118 @@ describe('ClearReportActionErrors UI', () => {
 
             expect(parentReportActions?.[REPORT_ACTION_ID]?.errors).toBeUndefined();
             expect(childReportActions?.[CHILD_REPORT_ACTION_ID]?.errors).toEqual({});
+        });
+
+        it('should clear errors on every ancestor action when a thread action error is dismissed', async () => {
+            // Given a thread -> parent -> grandparent chain where each level's linking action has the same error key,
+            // plus an unrelated report, so the component must resolve the whole ancestor chain from Onyx
+            const sharedError = {[DEFAULT_ERROR_TIMESTAMP]: 'Shared error message'};
+            const threadAction = getFakeReportAction(Number(CHILD_REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: sharedError});
+            const parentAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, childReportID: CHILD_REPORT_ID, errors: sharedError});
+            const grandparentAction = getFakeReportAction(Number(GRANDPARENT_REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, childReportID: REPORT_ID, errors: sharedError});
+
+            const grandparentReport = createMockReport({reportID: GRANDPARENT_REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
+            const parentReport = createMockReport({
+                reportID: REPORT_ID,
+                parentReportID: GRANDPARENT_REPORT_ID,
+                parentReportActionID: GRANDPARENT_REPORT_ACTION_ID,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+            });
+            const threadReport = createMockReport({
+                reportID: CHILD_REPORT_ID,
+                parentReportID: REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+            });
+            const unrelatedReport = createMockReport({reportID: UNRELATED_REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
+            const spy = jest.spyOn(ClearReportActionErrorsActions, 'clearAllRelatedReportActionErrors');
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GRANDPARENT_REPORT_ID}`, grandparentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${UNRELATED_REPORT_ID}`, unrelatedReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${GRANDPARENT_REPORT_ID}`, {[GRANDPARENT_REPORT_ACTION_ID]: grandparentAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[PARENT_REPORT_ACTION_ID]: parentAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[CHILD_REPORT_ACTION_ID]: threadAction});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderReportActionItem(threadAction, threadReport);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user dismisses the error on the thread action
+            fireEvent.press(screen.getByLabelText('Dismiss'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the ancestor links read by the hook reach the action, so the walk does not depend on the module-level fallback
+            const suppliedReports = spy.mock.calls.at(0)?.at(0)?.reports;
+            expect(suppliedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`]).toMatchObject({parentReportID: REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID});
+            expect(suppliedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]).toMatchObject({
+                parentReportID: GRANDPARENT_REPORT_ID,
+                parentReportActionID: GRANDPARENT_REPORT_ACTION_ID,
+            });
+            spy.mockRestore();
+
+            // And the matching error is cleared at every level of the chain
+            const threadReportActions = await getReportActionsFromOnyx(CHILD_REPORT_ID);
+            const parentReportActions = await getReportActionsFromOnyx(REPORT_ID);
+            const grandparentReportActions = await getReportActionsFromOnyx(GRANDPARENT_REPORT_ID);
+            expect(threadReportActions?.[CHILD_REPORT_ACTION_ID]?.errors).toBeUndefined();
+            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+            expect(grandparentReportActions?.[GRANDPARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+        });
+    });
+
+    describe('Split container error propagation', () => {
+        it('should clear both the split child and the hidden container errors when dismissed', async () => {
+            // Given a money request action for a split child whose transaction points back to the hidden split
+            // container, with an error on each of them
+            const action = {
+                ...getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS}),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: SPLIT_CHILD_TRANSACTION_ID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            } as ReportAction;
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                    [REPORT_ACTION_ID]: action,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CHILD_TRANSACTION_ID}`, {
+                    transactionID: SPLIT_CHILD_TRANSACTION_ID,
+                    reportID: REPORT_ID,
+                    amount: 1000,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    comment: {originalTransactionID: SPLIT_CONTAINER_TRANSACTION_ID},
+                    errors: {[DEFAULT_ERROR_TIMESTAMP]: 'child error'},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CONTAINER_TRANSACTION_ID}`, {
+                    transactionID: SPLIT_CONTAINER_TRANSACTION_ID,
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    errors: {[DEFAULT_ERROR_TIMESTAMP]: 'container error'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderReportActionItem(action, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user dismisses the error
+            fireEvent.press(screen.getByLabelText('Dismiss'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the child's error and the error on its hidden container are both cleared
+            const childTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CHILD_TRANSACTION_ID}`);
+            const containerTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CONTAINER_TRANSACTION_ID}`);
+
+            expect(childTransaction?.errors).toBeFalsy();
+            expect(containerTransaction?.errors).toBeFalsy();
         });
     });
 

@@ -2,6 +2,7 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -35,6 +36,9 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 
     isWorkspacesOnly?: boolean;
+
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
@@ -81,6 +85,7 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    shouldExcludeWorkspaces = false,
     isTransactionFromCreditCardImport = false,
     shouldExcludeP2P = false,
     initiallySelectedReportID,
@@ -96,6 +101,8 @@ function MoneyRequestParticipantsSelector({
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
 
     useImperativeHandle(ref, () => ({
         focus: () => {
@@ -114,6 +121,7 @@ function MoneyRequestParticipantsSelector({
                     action={action}
                     participants={participants}
                     isWorkspacesOnly={isWorkspacesOnly}
+                    shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                     isPerDiemRequest={isPerDiemRequest}
                     isTimeRequest={isTimeRequest}
                     isNative={isNative}
