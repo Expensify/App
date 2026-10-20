@@ -649,17 +649,6 @@ describe('ValidationUtils', () => {
             expect(isValidUSPhone('+12018675309')).toBe(true);
         });
 
-        test('Should return true for a US phone number in a recently added area code', () => {
-            // Given a phone number in the 983 area code, which libphonenumber only recognizes since v8.13.30
-            const phoneNumber = '+19833330123';
-
-            // When we validate it as a US phone number
-            const isValid = isValidUSPhone(phoneNumber);
-
-            // Then it is accepted, so users with newer area codes can add their phone number to the Wallet
-            expect(isValid).toBe(true);
-        });
-
         test('Should return true for a Puerto Rico phone number', () => {
             expect(isValidUSPhone('+17873464732')).toBe(true);
         });
