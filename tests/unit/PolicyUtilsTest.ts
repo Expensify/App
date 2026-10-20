@@ -69,6 +69,7 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    canPayViaABA,
     getReimbursementChoice,
     isPolicyPayer,
     getReimburserEmail,
@@ -4063,6 +4064,48 @@ describe('PolicyUtils', () => {
 
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
+            });
+        });
+
+        describe('canPayViaABA', () => {
+            const AUWithdrawalAccount = {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN};
+
+            it('should return true for an admin of an AUD workspace with an open AU withdrawal account', () => {
+                // Given an AUD workspace with an open AU withdrawal account, viewed by an admin
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy);
+
+                // Then they can, since the ABA file debits that withdrawal account
+                expect(result).toBe(true);
+            });
+
+            it.each([
+                ['the user is not an admin', {role: CONST.POLICY.ROLE.USER}],
+                ['the workspace is not AUD', {outputCurrency: CONST.CURRENCY.USD}],
+                ['the workspace has no AU withdrawal account', {reimbursement: {countries: {}}}],
+                ['the AU withdrawal account is not open', {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING}}}}],
+            ])('should return false when %s', (_, overrides: Partial<Policy>) => {
+                // Given a workspace that only misses one of the requirements
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                    ...overrides,
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy);
+
+                // Then they can't, since only admins can pay via ABA, and the file needs an open AU withdrawal account
+                expect(result).toBe(false);
             });
         });
 
