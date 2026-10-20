@@ -12,8 +12,8 @@ import type {InsightsFilters} from './insightsFilters';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
-/** How many periods before the selected date range the Average mode spans (Typical on the ranking charts) */
-const COMPARE_TYPICAL_PERIOD_COUNT = 1;
+/** How many periods before the selected date range the Average mode spans */
+const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
 /** Builds the date filter in the shape a search query is built from. */
 function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
@@ -51,6 +51,7 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
+    previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
     averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
@@ -62,7 +63,7 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON, averageQueryJSON}: InsightsChartQuery, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
@@ -71,7 +72,7 @@ function buildSnapshotHashEntry({chart, queryJSON, averageQueryJSON}: InsightsCh
         return [chart.graphKey, {snapshotHash}];
     }
 
-    const previousPeriodSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD))?.hash;
+    const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
     const averageSnapshotHash = averageQueryJSON?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
@@ -107,12 +108,15 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
         chart,
         queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
-        ...(shouldIncludeComparisons && {averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))}),
+        ...(shouldIncludeComparisons && {
+            previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
+            averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE)),
+        }),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = spec.supportingCharts.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
-        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, filters, shouldIncludeComparisons))
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
@@ -124,7 +128,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             inputQuery,
             searchKey: spec.searchKey,
             insightsHashes,
-            numberOfPeriods: shouldIncludeComparisons ? COMPARE_TYPICAL_PERIOD_COUNT : undefined,
+            numberOfPeriods: shouldIncludeComparisons ? COMPARE_AVERAGE_PERIOD_COUNT : undefined,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),

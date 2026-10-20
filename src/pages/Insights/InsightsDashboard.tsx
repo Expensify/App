@@ -143,6 +143,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
                     snapshot={headlineChart.snapshot}
+                    previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
+                    previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
                     averageQueryJSON={headlineChart.averageQueryJSON}
                     averageSnapshot={headlineChart.averageSnapshot}
                     filters={filters}
@@ -156,12 +158,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                             key={columnIndex}
                             style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                         >
-                            {columnCharts.map(({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}) => (
+                            {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
                                 <InsightsChartWidget
                                     key={chart.graphKey}
                                     chart={chart}
                                     queryJSON={queryJSON}
                                     snapshot={snapshot}
+                                    previousPeriodQueryJSON={previousPeriodQueryJSON}
+                                    previousPeriodSnapshot={previousPeriodSnapshot}
                                     averageQueryJSON={averageQueryJSON}
                                     averageSnapshot={averageSnapshot}
                                     filters={filters}
@@ -217,11 +221,14 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
-        visibleChartQueries.flatMap(({queryJSON, averageQueryJSON}) => [queryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : []))),
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        ),
     );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
         averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
     }));
     const [headlineChart, ...supportingCharts] = charts;
