@@ -112,15 +112,15 @@ function buildChartSeries({
     getInProgressLabel,
     colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
-    const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const periods = bucketUnit && getBucketRange ? comparison?.periods : undefined;
+    const {bucketUnit, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    const periods = bucketUnit && getDateRange ? comparison?.periods : undefined;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
-    const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getBucketRange?.(item)?.start) ?? item.keyForList, item]));
+    const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
 
     /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period */
     const getCompared = (item: GroupedItem) => {
-        const bucketRange = periods && getBucketRange?.(item);
+        const bucketRange = periods && getDateRange?.(item);
         if (periods && bucketUnit && bucketRange) {
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
@@ -134,7 +134,7 @@ function buildChartSeries({
 
         const comparedItem = comparedByKey.get(item.keyForList);
         // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
-        const missingValue = getBucketRange ? undefined : 0;
+        const missingValue = getDateRange ? undefined : 0;
         return {value: comparedItem ? getAmount(comparedItem) : missingValue, percentOfTotal: comparedItem?.percentOfTotal};
     };
 

@@ -45,19 +45,19 @@ type ChartGroupByConfig = {
     bucketUnit?: ChartBucketUnit;
 
     /** The dates one group covers, set together with `bucketUnit` */
-    getBucketRange?: (item: GroupedItem) => ChartBucketRange | undefined;
+    getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
 
 /** Builds the config shared by group-bys that bucket time, which drill into a group by narrowing the dates to its bucket */
 function buildTimeBucketConfig(
     bucketUnit: ChartBucketUnit,
-    getBucketRange: (item: GroupedItem) => ChartBucketRange | undefined,
-): Pick<ChartGroupByConfig, 'bucketUnit' | 'getBucketRange' | 'getFilterQuery'> {
+    getDateRange: (item: GroupedItem) => ChartBucketRange | undefined,
+): Pick<ChartGroupByConfig, 'bucketUnit' | 'getDateRange' | 'getFilterQuery'> {
     return {
         bucketUnit,
-        getBucketRange,
+        getDateRange,
         getFilterQuery: (item: GroupedItem) => {
-            const range = getBucketRange(item);
+            const range = getDateRange(item);
             return range ? `date>=${range.start} date<=${range.end}` : '';
         },
     };
