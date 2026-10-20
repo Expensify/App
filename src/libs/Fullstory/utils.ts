@@ -89,17 +89,17 @@ function getDaysTillDate(endDate: Date | undefined): number | undefined {
     return diffInDays >= 0 ? Math.ceil(diffInDays) : Math.floor(diffInDays);
 }
 
-function getFreeTrialEndDate(dateString: string | undefined): Date | undefined {
+function getUTCDate(dateString: string | undefined): Date | undefined {
     if (!dateString) {
         return;
     }
 
-    const endDate = fromZonedTime(dateString, 'UTC');
-    if (Number.isNaN(endDate.getTime())) {
+    const date = fromZonedTime(dateString, 'UTC');
+    if (Number.isNaN(date.getTime())) {
         return;
     }
 
-    return endDate;
+    return date;
 }
 
 function getFreeTrialStatus(daysTillTrialEnd: number | undefined): FullstoryUserVars['free_trial_status'] {
@@ -178,7 +178,7 @@ function buildFullstoryUserVars({
     const hasCompletedOnboarding = onboarding?.hasCompletedGuidedSetupFlow;
     const currentOnboardingChoice = introSelected?.choice ?? onboardingPurposeSelected;
     const companySize = introSelected?.companySize ?? onboardingCompanySize;
-    const freeTrialEndDate = getFreeTrialEndDate(userMetadata?.freeTrialEndDate);
+    const freeTrialEndDate = getUTCDate(userMetadata?.freeTrialEndDate);
     const daysTillTrialEnd = getDaysTillDate(freeTrialEndDate);
     let userStatus: FullstoryUserVars['user_status'];
 
@@ -203,6 +203,9 @@ function buildFullstoryUserVars({
             free_trial_status: getFreeTrialStatus(daysTillTrialEnd),
             plan_type: getPlanType(activePolicies),
             paid_member: userMetadata?.paidMember,
+            nps_score: userMetadata?.npsScore,
+            nps_response_date: getUTCDate(userMetadata?.npsResponseDate),
+            new_dot_migrated_date: getUTCDate(userMetadata?.newDotMigratedDate),
         } satisfies FullstoryUserVars,
         (_key, value) => value !== undefined,
     );
@@ -227,14 +230,18 @@ function buildPageViewedEvent(screenName: string, currentPath: string, entryPoin
 }
 
 /* eslint-disable @typescript-eslint/naming-convention -- The comparable snapshot preserves FullStory's external snake_case field names. */
-type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date'> & {
+type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date' | 'nps_response_date' | 'new_dot_migrated_date'> & {
     free_trial_end_date?: string;
+    nps_response_date?: string;
+    new_dot_migrated_date?: string;
 };
 
 function getComparableFullstoryUserVars(userVars: FullstoryUserVars): ComparableFullstoryUserVars {
     return {
         ...userVars,
         free_trial_end_date: userVars.free_trial_end_date?.toISOString(),
+        nps_response_date: userVars.nps_response_date?.toISOString(),
+        new_dot_migrated_date: userVars.new_dot_migrated_date?.toISOString(),
     };
 }
 /* eslint-enable @typescript-eslint/naming-convention */
