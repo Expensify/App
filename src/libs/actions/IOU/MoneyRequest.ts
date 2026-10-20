@@ -775,11 +775,7 @@ function setCustomUnitRateID(
         const transactionQuantity = transaction.comment?.customUnit?.quantity;
 
         const shouldUpdateDistanceUnit = !!transactionDistanceUnit && !!distanceRate?.unit;
-
-        // For odometer expenses the quantity is the raw difference between the end and start readings, not a measured
-        // distance, so re-scaling it to the new rate's unit would make it disagree with the readings the user entered.
-        // `setMoneyRequestDistanceRate` skips the same conversion for odometer expenses.
-        const shouldUpdateQuantity = transactionQuantity !== null && transactionQuantity !== undefined && !isOdometerDistanceRequestTransactionUtils(transaction);
+        const shouldUpdateQuantity = transactionQuantity !== null && transactionQuantity !== undefined;
 
         if (shouldUpdateDistanceUnit) {
             newDistanceUnit = distanceRate.unit;

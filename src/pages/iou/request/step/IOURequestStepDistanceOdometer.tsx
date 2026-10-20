@@ -45,7 +45,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {getOdometerImageIdentity, getOdometerTotalDistance} from '@libs/OdometerUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -275,7 +275,7 @@ function IOURequestStepDistanceOdometer({
         if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
             return null;
         }
-        const distance = end - start;
+        const distance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
         // Show 0 if distance is negative
         return distance <= 0 ? 0 : distance;
     })();
@@ -388,8 +388,7 @@ function IOURequestStepDistanceOdometer({
     const navigateToNextPage = () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        const distance = end - start;
-        const calculatedDistance = roundToTwoDecimalPlaces(distance);
+        const calculatedDistance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
 
         if (!isEditing) {
             setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
@@ -529,7 +528,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
-        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distance, rate)) {
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(getOdometerTotalDistance(start, end, currentTransaction?.comment), rate)) {
             setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
         }

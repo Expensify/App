@@ -395,8 +395,9 @@ describe('actions/IOU', () => {
             expect(transactionDraft?.comment?.customUnit?.quantity).toBe(16.093444978925636);
         });
 
-        it('does not convert distance quantity for an odometer request', async () => {
+        it('converts distance quantity for an odometer request but keeps the readings as entered', async () => {
             const testTransaction = createDistanceDraft(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+            testTransaction.comment = {...testTransaction.comment, odometerStart: 1000, odometerEnd: 1010};
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
 
             setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
@@ -405,8 +406,10 @@ describe('actions/IOU', () => {
             const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
             expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
             expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            // The quantity is the difference between the odometer readings, so it must stay untouched
-            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(10);
+            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(16.093444978925636);
+            // The readings must still match the odometer photos
+            expect(transactionDraft?.comment?.odometerStart).toBe(1000);
+            expect(transactionDraft?.comment?.odometerEnd).toBe(1010);
         });
     });
 
