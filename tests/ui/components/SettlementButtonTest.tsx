@@ -637,6 +637,83 @@ describe('SettlementButton', () => {
         });
     });
 
+    describe('pay via ABA', () => {
+        function pressPayViaABA() {
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${translateLocal('iou.payViaABA')}`);
+
+            // MenuItem only forwards the press when it receives an event, so a GestureResponderEvent-shaped one is required.
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+        }
+
+        async function renderAUDExpenseReport(policyOverrides?: Partial<Policy>) {
+            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+            const onPress = jest.fn();
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy({
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
+                    ...policyOverrides,
+                }),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={expenseReport}
+                        onPress={onPress}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+            return onPress;
+        }
+
+        it('pays via ABA when an admin picks the option on an AUD workspace with an open AU withdrawal account', async () => {
+            // Given an admin opening the payment options on an AUD workspace's report, with an open AU withdrawal account
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the report is paid as Elsewhere via ABA, since the ABA file pays it from outside Expensify
+            expect(onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        it('does not show the option when the workspace has no AU withdrawal account', async () => {
+            // Given an AUD workspace without an AU withdrawal account
+            const policyOverrides = {reimbursement: {countries: {}}};
+
+            // When the payment options are opened
+            await renderAUDExpenseReport(policyOverrides);
+
+            // Then "Pay via ABA" isn't offered, since there's no account for the ABA file to pay from
+            expect(screen.queryByText(translateLocal('iou.payViaABA'))).toBeNull();
+        });
+
+        it('does not pay when the option is picked while offline', async () => {
+            // Given the user is offline
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            });
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is paid, since the ABA file can only be downloaded while online
+            expect(onPress).not.toHaveBeenCalled();
+        });
+    });
+
     describe('createWorkspace regression test', () => {
         it('should NOT call createWorkspace during render for invoice scenarios', async () => {
             const createWorkspaceMock = jest.mocked(createWorkspace);
