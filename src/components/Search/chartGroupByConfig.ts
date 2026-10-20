@@ -41,27 +41,12 @@ type ChartGroupByConfig = {
     /** Builds the query fragment appended to the current query to drill into a group's transactions */
     getFilterQuery: (item: GroupedItem) => string;
 
-    /** Calendar unit one group spans, left out by the group-bys that rank rather than bucket time */
+    /** Calendar unit each group spans, set only when grouping by time */
     bucketUnit?: ChartBucketUnit;
 
-    /** The dates one group covers, set together with `bucketUnit` */
+    /** Returns the dates a time-based group covers, as yyyy-MM-dd strings */
     getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
-
-/** Builds the config shared by group-bys that bucket time, which drill into a group by narrowing the dates to its bucket */
-function buildTimeBucketConfig(
-    bucketUnit: ChartBucketUnit,
-    getDateRange: (item: GroupedItem) => ChartBucketRange | undefined,
-): Pick<ChartGroupByConfig, 'bucketUnit' | 'getDateRange' | 'getFilterQuery'> {
-    return {
-        bucketUnit,
-        getDateRange,
-        getFilterQuery: (item: GroupedItem) => {
-            const range = getDateRange(item);
-            return range ? `date>=${range.start} date<=${range.end}` : '';
-        },
-    };
-}
 
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
@@ -105,14 +90,22 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
         axisLabelSteps: [1, 2, 7, 14],
-        ...buildTimeBucketConfig('day', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined)),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? `date>=${item.day} date<=${item.day}` : ''),
+        bucketUnit: 'day',
+        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined),
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         axisLabelSteps: [1, 2, 3, 6],
-        ...buildTimeBucketConfig('month', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined)),
+        getFilterQuery: (item: GroupedItem) => {
+            const monthItem = item as TransactionMonthGroupListItemType;
+            const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
+            return `date>=${start} date<=${end}`;
+        },
+        bucketUnit: 'month',
+        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
@@ -120,20 +113,38 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.lineChartFormattedWeek : undefined),
         axisLabelSteps: [1, 2, 4],
-        ...buildTimeBucketConfig('week', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : undefined)),
+        getFilterQuery: (item: GroupedItem) => {
+            const weekItem = item as TransactionWeekGroupListItemType;
+            const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
+            return `date>=${start} date<=${end}`;
+        },
+        bucketUnit: 'week',
+        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.YEAR]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
         axisLabelSteps: [1, 2, 5],
-        ...buildTimeBucketConfig('year', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined)),
+        getFilterQuery: (item: GroupedItem) => {
+            const yearItem = item as TransactionYearGroupListItemType;
+            const {start, end} = DateUtils.getYearDateRange(yearItem.year);
+            return `date>=${start} date<=${end}`;
+        },
+        bucketUnit: 'year',
+        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         axisLabelSteps: [1, 2, 4],
-        ...buildTimeBucketConfig('quarter', (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined)),
+        getFilterQuery: (item: GroupedItem) => {
+            const quarterItem = item as TransactionQuarterGroupListItemType;
+            const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
+            return `date>=${start} date<=${end}`;
+        },
+        bucketUnit: 'quarter',
+        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },
 };
 

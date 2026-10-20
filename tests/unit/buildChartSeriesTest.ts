@@ -431,7 +431,7 @@ describe('buildChartSeries', () => {
         });
 
         // Then only that group is marked and relabeled, and its axis still names the whole quarter
-        expect(rows.map((row) => row.point.isInProgress)).toEqual([undefined, true]);
+        expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true]);
         expect(rows.at(1)?.point.label).toBe('Q4 so far');
         expect(rows.at(1)?.point.shortLabel).toBe('Q4 2026');
     });

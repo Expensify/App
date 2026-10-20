@@ -61,14 +61,14 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
+    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
+    getInProgressLabel?: (item: GroupedItem) => string | undefined;
+
     /** Formats labels shared by paired time buckets */
     translate: LocaleContextProps['translate'];
 
     /** Locale the names of compared periods are formatted in */
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
-
-    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
-    getInProgressLabel?: (item: GroupedItem) => string | undefined;
 
     /** Decides the shade of a compared bar */
     colorScheme: ColorScheme;
@@ -107,9 +107,9 @@ function buildChartSeries({
     getLabel,
     getShortLabel,
     getCurrencyDecimals,
+    getInProgressLabel,
     translate,
     dateFnsLocale,
-    getInProgressLabel,
     colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
     const {bucketUnit, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
@@ -125,7 +125,6 @@ function buildChartSeries({
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
             return {
-                // A bucket with no counterpart plots nothing for the comparison, unlike one with no expenses, which plots 0.
                 value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
                 percentOfTotal: comparedItem?.percentOfTotal,
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, bucketUnit, translate, dateFnsLocale),
@@ -145,7 +144,7 @@ function buildChartSeries({
         const isInProgress = inProgressLabel !== undefined;
         const compared = comparison ? getCompared(item) : undefined;
         const bucketLabels = compared?.bucketLabels;
-        const primaryDates = bucketLabels?.seriesLabels.primary;
+        const primarySeriesLabel = bucketLabels?.seriesLabels.primary;
 
         const point: ChartDataPoint = {
             label: bucketLabels?.label ?? inProgressLabel ?? label,
@@ -158,12 +157,12 @@ function buildChartSeries({
             count: item.count,
             ...(bucketLabels && {
                 seriesLabels: {
-                    [CHART_SERIES_KEY.PRIMARY]: isInProgress && primaryDates ? translate('search.periodSoFar', {period: primaryDates}) : primaryDates,
+                    [CHART_SERIES_KEY.PRIMARY]: isInProgress && primarySeriesLabel ? translate('search.periodSoFar', {period: primarySeriesLabel}) : primarySeriesLabel,
                     [CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabels.comparison,
                 },
             }),
             ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
-            ...(isInProgress && {isInProgress}),
+            isInProgress,
         };
 
         return {point, item};
