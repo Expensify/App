@@ -3760,6 +3760,7 @@ function editReportComment(
             originalCommentHTML,
         ),
         draftForNewComment,
+        originalReportAction.reportActionID,
     );
 
     const reportComment = Parser.htmlToText(htmlForNewComment);

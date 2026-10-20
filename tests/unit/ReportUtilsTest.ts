@@ -7967,6 +7967,8 @@ describe('ReportUtils', () => {
 
     describe('restoreAttachmentAnchorLabels', () => {
         const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
+        // The URL names the action the file was uploaded to, so this comment's own attachment is the one under 123.
+        const reportActionID = '123';
 
         it('puts the literal file name back when the parser read its underscores as emphasis', () => {
             // Given an edit whose label was parsed into emphasis tags
@@ -7974,7 +7976,7 @@ describe('ReportUtils', () => {
             const parsed = `<a href="${url}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`;
 
             // When the labels are restored from the draft
-            const restored = restoreAttachmentAnchorLabels(parsed, draft);
+            const restored = restoreAttachmentAnchorLabels(parsed, draft, reportActionID);
 
             // Then the anchor carries the plain label again
             expect(restored).toBe(`<a href="${url}" target="_blank" rel="noreferrer noopener">_n_d_m_t__ch____ng_.csv</a>`);
@@ -7986,7 +7988,7 @@ describe('ReportUtils', () => {
             const parsed = `<a href="${url}">a&lt;b<em>x</em>y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`;
 
             // When the labels are restored
-            const restored = restoreAttachmentAnchorLabels(parsed, draft);
+            const restored = restoreAttachmentAnchorLabels(parsed, draft, reportActionID);
 
             // Then only the mangled anchor changes, and its label is HTML-encoded
             expect(restored).toBe(`<a href="${url}">a&lt;b_x_y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`);
@@ -7998,7 +8000,7 @@ describe('ReportUtils', () => {
 
             // When the labels are restored
             // Then neither anchor is rewritten
-            expect(restoreAttachmentAnchorLabels(parsed, draft)).toBe(parsed);
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(parsed);
         });
 
         it('restores each reference to the same attachment with its own label, in order', () => {
@@ -8008,7 +8010,32 @@ describe('ReportUtils', () => {
 
             // When the labels are restored
             // Then each anchor gets the label from its own position in the draft
-            expect(restoreAttachmentAnchorLabels(parsed, draft)).toBe(`<a href="${url}">first_a_.csv</a> and <a href="${url}">second_b_.csv</a>`);
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${url}">first_a_.csv</a> and <a href="${url}">second_b_.csv</a>`);
+        });
+
+        it.each([
+            ['bold', '*Download*', '<strong>Download</strong>'],
+            ['italic', '_Download_', '<em>Download</em>'],
+        ])("leaves %s alone on a link to another message's attachment", (_emphasis, markdown, markup) => {
+            // Given a comment that links an earlier message's attachment under a bold or italic label
+            const otherActionURL = 'https://www.expensify.com/chat-attachments/789/w_ghi.csv';
+            const draft = `After [${markdown}](${otherActionURL})`;
+            const parsed = `After <a href="${otherActionURL}" target="_blank" rel="noreferrer noopener">${markup}</a>`;
+
+            // When the labels are restored
+            // Then the emphasis stands, because an ordinary link renders its label as markdown rather than as a file name
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(parsed);
+        });
+
+        it('still takes the label literally when the anchor is a file card', () => {
+            // Given a file anchor that kept its attachment attributes through the edit
+            const otherActionURL = 'https://www.expensify.com/chat-attachments/789/w_ghi.csv';
+            const draft = `[*Download*](${otherActionURL})`;
+            const parsed = `<a href="${otherActionURL}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="5401601885718501686"><strong>Download</strong></a>`;
+
+            // When the labels are restored
+            // Then the card shows the name as typed, since a card has no markdown to render
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${otherActionURL}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="5401601885718501686">*Download*</a>`);
         });
     });
 

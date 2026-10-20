@@ -108,7 +108,7 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
-import {getAnchorHref} from './AttachmentAnchorUtils';
+import {getAnchorHref, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
@@ -7730,7 +7730,7 @@ const MARKDOWN_LINK_REGEX = /(!?)\[([^\]]*)\]\(([^)]*)\)/g;
  * A file name such as `my_report_v2.csv` reads as markdown emphasis when the edit is parsed, which leaves the anchor
  * with `<em>` children and no plain label to show. The draft still holds the literal label, so it is put back.
  */
-function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: string): string {
+function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: string, reportActionID: string | undefined): string {
     if (!newCommentHtml.includes('<a ')) {
         return newCommentHtml;
     }
@@ -7746,10 +7746,15 @@ function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: st
         return newCommentHtml;
     }
     return newCommentHtml.replaceAll(/(<a\s[^>]*>)([\s\S]*?)(<\/a>)/gi, (match: string, openTag: string, inner: string, closeTag: string) => {
-        const sourceID = getAnchorHref(openTag)?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        const href = getAnchorHref(openTag);
+        const sourceID = href?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
         const label = sourceID ? labelsBySourceID.get(sourceID)?.shift() : undefined;
+
+        // Only a file card draws its name from the anchor's own text, so only there does markdown in the label have
+        // to be read literally. A link to another message's attachment stays a link, and `[*Download*](url)` means bold.
+        const rendersAsFileCard = hasAttachmentAnchorAttributes(openTag) || isOwnAttachmentURL(href ?? '', reportActionID);
         const hasOnlyEmphasisMarkup = /<[a-z]/i.test(inner) && /^(?:[^<]|<\/?(?:em|strong)>)*$/i.test(inner);
-        return label && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
+        return label && rendersAsFileCard && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
     });
 }
 
