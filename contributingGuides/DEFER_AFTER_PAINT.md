@@ -10,7 +10,7 @@ The App has a small set of primitives for this, all waiting on the "transition f
 |---|---|---|
 | Dismissing an RHP should show a fullscreen screen other than the one currently behind it (e.g. submit from Home lands on Spend), and that screen is known when the RHP mounts | `usePreMountDestination` | [NAVIGATION.md](NAVIGATION.md#pre-mounting-a-destination-behind-an-rhp), [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) |
 | A heavy subtree on a freshly navigated screen is not needed for first paint (dropdowns, secondary actions, heavy `useOnyx` consumers) | `<NavigationDeferredMount>` | [PERFORMANCE.md](PERFORMANCE.md#rendering-of-unnecessary-or-duplicated-child-components), [`NavigationDeferredMount.tsx`](../src/components/NavigationDeferredMount.tsx) |
-| An API write whose optimistic data would re-render screens while a transition is still running | `API.writeWhenReady` with a transition barrier | [Deferring writes](#deferring-writes) below |
+| An API write whose optimistic data would re-render screens while a transition is still running | `API.writeWhenReady` with an armed transition barrier | [Deferring writes](#deferring-writes) below |
 | One-off imperative work after a navigation, modal or keyboard transition (focus, scroll, a follow-up navigation) | `afterTransition` on `Navigation` methods and `KeyboardUtils.dismiss`, `Navigation.runAfterTransition` / `runAfterUpcomingTransition`, or `TransitionTracker.runAfterTransitions` | [INTERACTION_MANAGER.md](INTERACTION_MANAGER.md#when-to-use-runaftertransitions-directly) |
 
 The first two decide **what mounts when**. The last two decide **when work runs**. A single flow often combines them: the submit-expense flow pre-mounts the destination, reveals it, and only then applies the optimistic write through a barrier (see `SubmitExpenseOrchestrator.tsx`).
@@ -19,16 +19,7 @@ The first two decide **what mounts when**. The last two decide **when work runs*
 
 `API.writeWhenReady` works like `API.write`, but the optimistic update and the request both wait until a barrier settles, or until a safety timeout passes. After that, it runs the normal `write()` pipeline.
 
-```ts
-// Default barrier: waits for an in-flight navigation to end, or for the next transition of any kind to start and end.
-API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
-
-// Only a screen transition starting (or the ~1s start timeout) ends the start wait, so a keyboard or modal animation can't end it early.
-// The write then runs once active transitions end.
-API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData, API.createTransitionBarrier('navigation'));
-```
-
-If the write is built right after the navigation starts, the default barrier is enough. If it is built at an unknown time relative to the navigation (after an `await`, a GPS lookup, or deep inside an action), a barrier attached that late can miss the transition. It then waits for the next one, which can be an unrelated keyboard or modal animation, or gives up after the start timeout (about 1s). Arm the barrier with `API.armTransitionBarrier()` when the navigation is triggered, and pass it once the write exists. One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
+Arm the barrier with `API.armTransitionBarrier()` when the interaction is triggered, before the navigation call, and pass it to the write once the write exists. A barrier attached later (after an `await`, a GPS lookup, or deep inside an action) can miss the transition. It then waits for the next one, which can be an unrelated keyboard or modal animation, or gives up after the start timeout (about 1s). One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
 
 ```ts
 const armed = API.armTransitionBarrier();
@@ -36,6 +27,10 @@ Navigation.dismissModal();
 const location = await getCurrentLocation(); // placeholder: may finish before or after the dismiss transition ends
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, {...params, location}, onyxData, armed.barrier);
 ```
+
+Arming isn't strictly required: when the write is built in the same function right after the navigation call, `API.createTransitionBarrier()` attaches in time too. Arming is the default because it doesn't depend on that timing.
+
+By default the barrier releases after the next transition of any kind. Arm it with `API.armTransitionBarrier('navigation')` when only a screen transition starting (or the ~1s start timeout) should end the start wait, for example when the same tap also dismisses the keyboard.
 
 A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can wait on something other than a transition, for example Search's content layout in the submit flow.
 
@@ -52,7 +47,7 @@ A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can 
 
 These were tried or proposed. Do not reintroduce them:
 
-- **Inline deferral in screen components** (`useState` flags plus a `useFocusEffect` flush, `setTimeout` with a guessed delay, `requestAnimationFrame` chains). This spreads flow-specific timing into screens that should not know about it. `ReportScreen` had a `useFocusEffect` flush for one submit case, which was removed when the submit flow moved to write barriers. `useDeferNonEssentials`, which `ReportScreen` uses to hold back non-essential UI after a submit, still defers inline and is planned to move to `NavigationDeferredMount`. Use one of the primitives above. Flagged by [PERF-20](../.claude/skills/app-coding-standards/rules/perf-20-no-ad-hoc-deferral.md).
+- **Inline deferral in screen components** (`useState` flags plus a `useFocusEffect` flush, `setTimeout` with a guessed delay, `requestAnimationFrame` chains). This spreads flow-specific timing into screens that should not know about it. `ReportScreen` had a `useFocusEffect` flush for one submit case, which was removed when the submit flow moved to write barriers. `useDeferNonEssentials`, which `ReportScreen` uses to hold back non-essential UI after a submit, still defers inline, its migration is tracked in [#88596](https://github.com/Expensify/App/issues/88596). Use one of the primitives above. Flagged by [PERF-20](../.claude/skills/app-coding-standards/rules/perf-20-no-ad-hoc-deferral.md).
 - **`deferredLayoutWrite`**, a channel that held writes until the destination screen flushed them on focus. Every destination screen had to flush it, and it was replaced by `API.writeWhenReady` barriers.
 - **`InteractionManager.runAfterInteractions`**. Deprecated, see [INTERACTION_MANAGER.md](INTERACTION_MANAGER.md).
 - **Compute-on-open for dropdowns and popovers** (subscribe to data only when the menu opens). It moves the cost to the moment the user taps, which hurts INP and makes the menu feel slow. Defer the mount with `NavigationDeferredMount` instead, so the work runs after the transition but before the tap.

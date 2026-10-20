@@ -104,8 +104,9 @@ function SomeScreenHeader() {
 Navigation.dismissModal({afterTransition: () => doFollowUpWork()});
 
 // Or, when the delayed work is a single API.write that can be deferred (see the caveats below)
+const armed = API.armTransitionBarrier();
 Navigation.dismissModal();
-API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
+API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData, armed.barrier);
 ```
 
 ```tsx
