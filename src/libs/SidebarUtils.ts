@@ -250,6 +250,40 @@ function shouldDisplayReportInLHN({
     return {shouldDisplay};
 }
 
+/** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
+let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
+
+/** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
+let lastBuildCurrentReportId: string | undefined;
+
+/** The LHN state of the report that just became focused, captured before the rebuild that force-includes it. */
+let lhnUnreadStateBeforeFocus: {reportID: string; state: LHNUnreadState} | undefined;
+
+type LHNUnreadState = 'unread' | 'notBold' | 'notListed';
+
+function readLHNUnreadState(reportID: string): LHNUnreadState {
+    const displayedReport = lastReportsToDisplayInLHN?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!displayedReport) {
+        return 'notListed';
+    }
+    return displayedReport.isUnreadReport ? 'unread' : 'notBold';
+}
+
+function rememberLHNUnreadStateBeforeFocus(currentReportId: string | undefined) {
+    if (currentReportId === lastBuildCurrentReportId) {
+        return;
+    }
+    lastBuildCurrentReportId = currentReportId;
+    lhnUnreadStateBeforeFocus = currentReportId && lastReportsToDisplayInLHN ? {reportID: currentReportId, state: readLHNUnreadState(currentReportId)} : undefined;
+}
+
+function getLHNUnreadState(reportID: string): LHNUnreadState {
+    if (lhnUnreadStateBeforeFocus?.reportID === reportID) {
+        return lhnUnreadStateBeforeFocus.state;
+    }
+    return readLHNUnreadState(reportID);
+}
+
 function getReportsToDisplayInLHN({
     currentReportId,
     reports,
@@ -281,6 +315,8 @@ function getReportsToDisplayInLHN({
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
@@ -319,6 +355,7 @@ function getReportsToDisplayInLHN({
         }
     }
 
+    lastReportsToDisplayInLHN = reportsToDisplay;
     return reportsToDisplay;
 }
 
@@ -359,6 +396,8 @@ function updateReportsToDisplayInLHN({
     conciergeReportID,
     guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
     const getMutableCopy = (): ReportsToDisplayInLHN => {
@@ -424,7 +463,8 @@ function updateReportsToDisplayInLHN({
         }
     }
 
-    return displayedReportsCopy ?? displayedReports;
+    lastReportsToDisplayInLHN = displayedReportsCopy ?? displayedReports;
+    return lastReportsToDisplayInLHN;
 }
 /**
  * Categorizes reports into their respective LHN groups
@@ -795,7 +835,7 @@ function getOptionData({
         isConciergeChat: false,
     };
     const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
@@ -828,9 +868,8 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
-    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty) && !!report.lastActorAccountID;
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted is already excluded here.
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty);
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -982,13 +1021,8 @@ function getOptionData({
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
 function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
-    // The `lastActorAccountID` guard matches getOptionData: it keeps chats whose only visible message was
-    // deleted out of the Unread tab even though isUnread() can still be true (lastVisibleActionCreated isn't reset).
-    return (
-        isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) &&
-        !!report.lastActorAccountID &&
-        getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
-    );
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
+    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
@@ -1058,6 +1092,8 @@ function getInboxTabSummary(
         hasStaleUnreadReport,
     };
 }
+
+export {getLHNUnreadState};
 
 // Exported for unit testing only. Do not use directly in production code.
 export {

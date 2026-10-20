@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
@@ -27,7 +28,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -70,7 +71,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -174,7 +175,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = useParentReportAction(report);
+    const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
     const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
     const canDeleteReceipt = canEditFieldOfMoneyRequest({
         reportAction: parentReportAction,
@@ -299,9 +301,32 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories);
+        detachReceipt({
+            transaction,
+            transactionPolicy: policy,
+            transactionPolicyTagList: policyTagList,
+            transactionViolations,
+            transactionReport,
+            isVendorMatchingBetaEnabled,
+            transactionThreadReport: transactionThread,
+            delegateAccountID,
+            currentUserPersonalDetails,
+            transactionPolicyCategories: policyCategories,
+        });
         navigation.goBack();
-    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories, navigation]);
+    }, [
+        transaction,
+        policy,
+        policyTagList,
+        transactionViolations,
+        transactionReport,
+        isVendorMatchingBetaEnabled,
+        transactionThread,
+        delegateAccountID,
+        currentUserPersonalDetails,
+        policyCategories,
+        navigation,
+    ]);
 
     /**
      * Remove odometer image and close the modal.
@@ -356,7 +381,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             transactionReport,
                             delegateAccountID,
                             currentUserPersonalDetails,
-                            transactionThreadReport,
+                            transactionThreadReport: transactionThread,
                             ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                         });
                     }
@@ -377,7 +402,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isVendorMatchingBetaEnabled,
             delegateAccountID,
             currentUserPersonalDetails,
-            transactionThreadReport,
+            transactionThread,
         ],
     );
 
@@ -719,6 +744,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             footerActionButtons,
             customAttachmentContent,
             attachmentViewContainerStyles: [styles.pv5, styles.ph2],
+            fallbackSource: expensifyIcons.AttachmentNotFound,
         }),
         [
             source,
@@ -738,6 +764,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             customAttachmentContent,
             styles.pv5,
             styles.ph2,
+            expensifyIcons.AttachmentNotFound,
         ],
     );
 

@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -17,6 +18,7 @@ import isObject from 'lodash/isObject';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
+import {addErrorMessage} from './ErrorUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -166,6 +168,35 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
         }
 
         errors[fieldKey] = translate('common.error.fieldRequired');
+    }
+
+    return errors;
+}
+
+/**
+ * Builds the errors for a first and last name that a display name is made of.
+ */
+function getDisplayNameErrors(firstName: string, lastName: string, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+
+    if (!isValidDisplayName(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    } else if (!isRequiredFulfilled(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+    }
+    if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+    }
+
+    if (!isValidDisplayName(lastName)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
     }
 
     return errors;
@@ -819,7 +850,26 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
-type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+type MerchantValidationError =
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.INVALID}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG; byteLength: number};
+
+/**
+ * Copy for a merchant validation error on the merchant form.
+ */
+function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantValidationError): string {
+    // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+    // eslint-disable-next-line default-case
+    switch (error.type) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('iou.error.invalidMerchant');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+            return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+    }
+}
 
 /**
  * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
@@ -828,14 +878,14 @@ function getMerchantError(merchant: string | undefined, isMerchantRequired: bool
     const trimmedMerchant = merchant?.trim() ?? '';
 
     if (isMerchantRequired && !trimmedMerchant) {
-        return {type: 'required'};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.REQUIRED};
     }
     if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
-        return {type: 'invalidValue'};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.INVALID};
     }
     const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
     if (!isLengthValid) {
-        return {type: 'tooLong', byteLength};
+        return {type: CONST.INPUT_VALIDATION_ERRORS.TOO_LONG, byteLength};
     }
     return undefined;
 }
@@ -877,6 +927,7 @@ export {
     isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
+    getDisplayNameErrors,
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidPhoneNumber,
@@ -919,6 +970,7 @@ export {
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
     getMerchantError,
+    getMerchantErrorMessage,
     isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,

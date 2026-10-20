@@ -2,7 +2,6 @@ import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
@@ -11,15 +10,16 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
+import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
+import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -41,6 +41,18 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's own query */
     snapshot: OnyxEntry<SearchResults>;
 
+    /** The chart's query for the previous period */
+    previousPeriodQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the previous period */
+    previousPeriodSnapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's query for the average amounts */
+    averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the average amounts */
+    averageSnapshot: OnyxEntry<SearchResults>;
+
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
@@ -51,25 +63,39 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
+function InsightsChartWidget({
+    chart,
+    queryJSON,
+    snapshot,
+    previousPeriodQueryJSON,
+    previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
+    filters,
+    onRetry,
+    onGroupByChange,
+}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {isOffline} = useNetwork();
-    const sortedData = useGroupedItems(snapshot, queryJSON);
-    const {data, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
-    const groupBy = chart.groupBy ?? filters.groupBy;
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
+    const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
-    const groupByControl = onGroupByChange ? (
-        <InsightsGroupByDropdown
-            groupBy={filters.groupBy}
-            onChange={onGroupByChange}
-        />
-    ) : null;
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
+
+    const groupByControl =
+        onGroupByChange && groupByOptions.length > 1 ? (
+            <InsightsGroupByDropdown
+                groupBy={getQueryGroupBy(filters)}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
 
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
@@ -107,15 +133,17 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                 <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
+                        comparison={comparison}
                         chartContainerStyle={cardPaddingHorizontal}
+                        shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? (rows) => (
+                                ? ({rows}) => (
                                       <InsightsDataTable
                                           rows={rows}
                                           isLoading={isLoading}
