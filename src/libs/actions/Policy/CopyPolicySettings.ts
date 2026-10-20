@@ -58,6 +58,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'eReceipts',
         'isAttendeeTrackingEnabled',
         'preventSelfApproval',
+        'preventPayoutNonReimbursableReports',
         'disabledFields',
         'glCodes',
         'showTagGLCodes',

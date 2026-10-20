@@ -1413,6 +1413,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.DESCRIPTION ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.DECLINED ||
                     filterKey === FILTER_KEYS.HELD ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
@@ -2047,7 +2048,12 @@ function buildFilterFormValuesFromQuery(
                     ?.value.toString() ?? filtersForm[negatedKey];
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
+        ) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[addNegation(filterKey, isNegated)] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
@@ -3117,6 +3123,16 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
 }
 
 /**
+ * Builds the Merchant filter form values. A negated Merchant filter always uses the not-equal operator, so its match type is cleared.
+ */
+function getMerchantFilterFormValues(value: string | undefined, isNegated: boolean, merchantOperator: MerchantMatchType): Partial<SearchAdvancedFiltersForm> {
+    return {
+        ...getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value, isNegated),
+        [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? undefined : merchantOperator,
+    };
+}
+
+/**
  * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
  * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
  */
@@ -3218,6 +3234,7 @@ export {
     isFilterNegatable,
     removeNegation,
     getFilterFormValues,
+    getMerchantFilterFormValues,
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
