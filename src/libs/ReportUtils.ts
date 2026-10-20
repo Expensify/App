@@ -2648,7 +2648,7 @@ function findLastAccessedReport(
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, linkedTransactions: Transaction[]): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, hasLinkedTransactions: boolean): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -2668,7 +2668,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, linkedTr
         return false;
     }
 
-    return linkedTransactions.length === 0;
+    return !hasLinkedTransactions;
 }
 
 /**

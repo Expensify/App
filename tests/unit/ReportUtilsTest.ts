@@ -3279,12 +3279,14 @@ describe('ReportUtils', () => {
                         total: 0,
                         transactionCount: 0,
                     };
-                    const linkedTransaction: Transaction = {...createRandomTransaction(1), reportID: expenseReport.reportID};
 
                     // When we check it with and without linked transactions
-                    const withTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, [linkedTransaction]);
+                    const withTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, true);
+                    const withoutTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, false);
+
                     // Then only the report without linked transactions is considered closed with no expenses
                     expect(withTransactions).toBe(false);
+                    expect(withoutTransactions).toBe(true);
                 });
 
                 test('should not show deleted report name for closed expense report that has a linked transaction', () => {
@@ -3315,7 +3317,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because it has a total
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, [])).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('closed expense report with zero total but non-reimbursable total exists', () => {
@@ -3329,7 +3331,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, [])).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
