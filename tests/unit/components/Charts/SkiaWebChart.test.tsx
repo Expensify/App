@@ -13,7 +13,7 @@ jest.mock('@shopify/react-native-skia/lib/module/web', () => ({WithSkiaWeb: jest
 
 jest.mock('@sentry/react-native', () => ({captureException: jest.fn(), setUser: jest.fn()}));
 
-jest.mock('@libs/Log', () => ({warn: jest.fn(), info: jest.fn()}));
+jest.mock('@libs/Log', () => ({warn: jest.fn(), info: jest.fn(), alert: jest.fn(), hmmm: jest.fn()}));
 
 // Every style lookup returns an empty object so the real Text/View render without a ThemeProvider.
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));

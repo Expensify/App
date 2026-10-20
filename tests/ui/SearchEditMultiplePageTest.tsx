@@ -12,6 +12,8 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import {getPolicyCategories} from '@userActions/Policy/Category';
+import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -31,6 +33,16 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@userActions/Policy/Category', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Category'),
+    getPolicyCategories: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/Tag', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Tag'),
+    openPolicyTagsPage: jest.fn(),
+}));
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -136,6 +148,7 @@ describe('SearchEditMultiplePage', () => {
     });
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
@@ -171,5 +184,67 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
+    it('fetches policy categories and tags when they are enabled but not loaded yet', async () => {
+        // Given a workspace with categories and tags enabled whose categories and tags were never loaded, as after a cache clear
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it fetches them itself, since the search snapshot doesn't include them and the Category/Tag rows depend on them
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('fetches policy categories and tags when only a partial set is in Onyx', async () => {
+        // Given a lazy-loaded account that only holds the category and tag already on its expenses, with no completed read
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it still fetches them, because a partial collection can be missing other categories or whole tag lists
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('does not refetch policy categories and tags that are already loaded', async () => {
+        // Given a workspace with categories and tags enabled whose categories and tags were already fully loaded
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no extra request is made, so opening the page doesn't add network traffic when the data is already available
+        expect(getPolicyCategories).not.toHaveBeenCalled();
+        expect(openPolicyTagsPage).not.toHaveBeenCalled();
+    });
+
+    it('keeps Merchant editable when a selected expense on the open report has no IOU action', async () => {
+        // Given an expense with no IOU action on an open report the current user submitted
+        const actionlessTransactionID = 'actionlessTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${actionlessTransactionID}`, buildTransaction(actionlessTransactionID, OPEN_REPORT_ID));
+        await selectTransactions([OPEN_TRANSACTION_ID, actionlessTransactionID]);
+
+        // When the Edit multiple page is opened for the selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Merchant stays editable, because the report's submitter stands in for the missing action's requester
+        expect(screen.getByLabelText(/^Merchant/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 });

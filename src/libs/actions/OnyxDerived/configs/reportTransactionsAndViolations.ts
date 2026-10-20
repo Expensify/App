@@ -119,6 +119,10 @@ export default createOnyxDerivedValueConfig({
 
         previousViolations = violations;
 
+        // Consumers of this key compare by reference, so handing back `currentValue` when nothing moved keeps them
+        // from re-rendering, and lets the engine skip the write entirely. Shallow is the right granularity because
+        // every report entry this compute changes is cloned first (see `ensureCloned`), so an entry that kept its
+        // reference is an entry nothing happened to.
         return currentValue && shallowEqual(currentValue, reportTransactionsAndViolations) ? currentValue : reportTransactionsAndViolations;
     },
     // On cache clear, drop the cross-compute state so the map is rebuilt from scratch (see the engine's resetForClear).

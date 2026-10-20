@@ -403,6 +403,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
+                                    // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
                                     expect(snapshotData).toEqual({});
                                     resolve();
                                 },

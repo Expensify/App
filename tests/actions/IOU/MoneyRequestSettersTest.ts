@@ -93,6 +93,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -698,7 +702,7 @@ describe('actions/IOU', () => {
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-            // Then no draft transaction is created
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
             expect(allDraftTransactions).toEqual({});
         });
         it('should reset custom unit for a transaction', async () => {
