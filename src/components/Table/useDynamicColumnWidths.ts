@@ -76,8 +76,11 @@ type UseDynamicColumnWidthsResult = {
     /** Layout to save once resetting `columnKey` hands it back to content sizing, or `null` when no dragged column is left. */
     getResetTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths | null;
 
-    /** Width that fits each content-sized column's widest cell and its heading, which a click on its edge sizes it to. */
-    fitColumnWidths: Record<string, number>;
+    /** Width a click on the column's edge fits it to. `undefined` when no column is resizable. */
+    getFitColumnWidth?: (columnKey: string) => number | undefined;
+
+    /** Width a double-click on the column's edge hands it back at. `undefined` when no column is resizable. */
+    getResetColumnWidth?: (columnKey: string) => number | undefined;
 };
 
 /**
@@ -178,7 +181,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         getResizedColumnWidths: (columnKey, width) => ({[columnKey]: width}),
         resolvedColumnWidths: {},
         dragMinWidths: {},
-        fitColumnWidths: {},
     };
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
@@ -224,7 +226,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
     const constraints: DynamicColumnConstraints[] = [];
     const measuredWidths: Record<string, Pick<ResizableColumn, 'contentWidth' | 'minWidth'>> = {};
-    const fitColumnWidths: Record<string, number> = {};
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
@@ -239,7 +240,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         // A column has to fit its header label as well as its cells, so the label is part of what its content needs
         // rather than a separate floor.
         const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
-        fitColumnWidths[column.key] = columnContentWidth;
 
         // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
         // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
@@ -284,7 +284,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
             return remainingResizedColumnKeys.length > 0 ? {availableColumnsWidth, columnWidths, resizedColumnKeys: remainingResizedColumnKeys} : null;
         },
-        fitColumnWidths,
     });
 
     // After the first drag, only room changes move the columns, so new content never shifts them.

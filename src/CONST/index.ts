@@ -9601,7 +9601,7 @@ const CONST = {
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
 
-            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
         },
     },

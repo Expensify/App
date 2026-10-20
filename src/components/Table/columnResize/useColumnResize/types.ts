@@ -24,8 +24,11 @@ type UseColumnResizeParams = {
     /** Layout to save once resetting `columnKey` hands it back to content sizing, or `null` when no dragged column is left. */
     getResetTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths | null;
 
-    /** Width that fits each column's content, which a click on its edge sizes it to. */
-    fitColumnWidths?: Record<string, number>;
+    /** Width a click on the column's edge fits it to. `undefined` when it can't be fitted. */
+    getFitColumnWidth?: (columnKey: string) => number | undefined;
+
+    /** Width a double-click on the column's edge hands it back at. `undefined` when there's nothing to reset. */
+    getResetColumnWidth?: (columnKey: string) => number | undefined;
 
     /** Gap between columns, which handles span. */
     columnGap: number;

@@ -134,4 +134,25 @@ describe('useDynamicColumnWidths', () => {
         expect(result.current.resizableColumnKeys).toEqual([]);
         expect(result.current.getStoredTableColumnWidths).toBeUndefined();
     });
+
+    it('keeps the layout when a reset column leaves other resized columns, and drops it with the last one', () => {
+        // Given a table whose name and description columns were both dragged
+        const columnWidths = {name: 300, description: 592};
+        const {result, rerender} = renderDynamicColumnWidths({
+            data: SHORT_DATA,
+            storedTableColumnWidths: {availableColumnsWidth: AVAILABLE_COLUMNS_WIDTH, columnWidths, resizedColumnKeys: ['name', 'description']},
+        });
+
+        // When the name column is reset
+        const resetSave = result.current.getResetTableColumnWidths?.(columnWidths, 'name');
+
+        // Then the layout is saved with only the description column resized, so the name column absorbs room changes again
+        expect(resetSave).toEqual({availableColumnsWidth: AVAILABLE_COLUMNS_WIDTH, columnWidths, resizedColumnKeys: ['description']});
+
+        // When the description column, the last resized one, is reset too
+        rerender({data: SHORT_DATA, storedTableColumnWidths: resetSave ?? undefined});
+
+        // Then there is no layout left to save, so the table goes back to sizing every column from its content
+        expect(result.current.getResetTableColumnWidths?.(columnWidths, 'description')).toBeNull();
+    });
 });

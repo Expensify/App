@@ -65,7 +65,8 @@ function useColumnResize({
     dragMinWidths,
     getStoredTableColumnWidths,
     getResetTableColumnWidths,
-    fitColumnWidths,
+    getFitColumnWidth,
+    getResetColumnWidth,
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
@@ -82,13 +83,6 @@ function useColumnResize({
         for (const [columnKey, width] of Object.entries(columnWidths)) {
             writeColumnWidth(columnKey, width);
         }
-    };
-
-    /** Width that fits the column's content, or `undefined` when it isn't measured. */
-    const getFitWidth = (columnKey: string): number | undefined => {
-        const contentWidth = fitColumnWidths?.[columnKey];
-
-        return contentWidth === undefined ? undefined : Math.max(Math.round(contentWidth), CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
     };
 
     const resetDrag = () => {
@@ -120,7 +114,7 @@ function useColumnResize({
     };
 
     const fitColumnToContent = (columnKey: string) => {
-        const width = getFitWidth(columnKey);
+        const width = getFitColumnWidth?.(columnKey);
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
         if (!columnResizingID || !getStoredTableColumnWidths || width === undefined || readColumnWidth(columnKey) === width) {
@@ -132,13 +126,13 @@ function useColumnResize({
     };
 
     const resetColumnWidth = (columnKey: string) => {
-        const width = getFitWidth(columnKey);
+        const width = getResetColumnWidth?.(columnKey);
 
         if (!columnResizingID || !getResetTableColumnWidths || width === undefined) {
             return;
         }
 
-        // Resolved before painting: clearing reflows every column, and clearing a table with no saved layout renders nothing that would repaint it.
+        // Resolved before painting, since clearing reflows every column anyway.
         const resizedColumnWidths = getResizedColumnWidths(columnKey, width);
         const storedTableColumnWidths = getResetTableColumnWidths({...readPaintedColumnWidths(), ...resizedColumnWidths}, columnKey);
 
