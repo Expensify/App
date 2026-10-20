@@ -11,9 +11,8 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';

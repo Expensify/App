@@ -1181,7 +1181,13 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
-        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
+        compare: {
+            label: 'Comparer',
+            previousPeriod: 'Période précédente',
+            average: 'Moyenne',
+            increase: (percentage: string) => `En hausse de ${percentage}`,
+            decrease: (percentage: string) => `En baisse de ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2833,6 +2839,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
         },
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurer les remboursements globaux ?',
+            subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
+            getStarted: 'Commencer',
+            headerTitle: 'Remboursements globaux',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Ajouter la carte à ${walletName}`,
@@ -5138,6 +5151,7 @@ ${amount} pour ${merchant} - ${date}`,
             editPerDiemRates: 'Modifier les taux de per diem',
             editDestinationSubtitle: (destination: string) => `La mise à jour de cette destination la modifiera pour tous les sous-taux de per diem ${destination}.`,
             editCurrencySubtitle: (destination: string) => `La mise à jour de cette devise la modifiera pour tous les sous-taux de per diem de ${destination}.`,
+            missingPerDiemUnit: 'Le per diem n’est pas configuré correctement sur cet espace de travail. Veuillez contacter Concierge pour obtenir de l’aide.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Définissez comment les dépenses hors poche sont exportées vers QuickBooks Desktop.',
@@ -8865,6 +8879,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                    categoryHasRule: 'Cette catégorie a déjà une règle. Modifiez la règle existante ou décrivez une règle pour une autre catégorie.',
                 },
             },
             expenseDefaultsTable: {

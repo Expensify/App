@@ -20,7 +20,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -35,6 +34,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 

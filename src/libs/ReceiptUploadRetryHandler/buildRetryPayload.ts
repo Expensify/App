@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {Receipt, ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -56,6 +56,16 @@ function resolveParticipant(iouReport: OnyxEntry<Report>, currentUserAccountID: 
 
     const login = getAllPersonalDetails()[participant.accountID]?.login;
     return login ? {...participant, login} : undefined;
+}
+function parseRetryParams(retryParams: ReceiptError['retryParams']): unknown {
+    if (typeof retryParams !== 'string') {
+        return retryParams;
+    }
+    try {
+        return JSON.parse(retryParams);
+    } catch {
+        return undefined;
+    }
 }
 
 function getMerchantForRetry(merchant: string | undefined): string {
@@ -171,4 +181,4 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
 }
 
 export default buildRetryPayload;
-export {buildRetryTransactionParams, canBuildRetryPayload, isRetryableFlow, resolveParticipant};
+export {buildRetryTransactionParams, canBuildRetryPayload, isRetryableFlow, parseRetryParams, resolveParticipant};
