@@ -7,15 +7,8 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
-import {
-    isGroupedItemArray,
-    isReportActionListItemType,
-    isReportEntry,
-    isTaskListItemType,
-    isTransactionEntry,
-    isTransactionGroupListItemType,
-    isTransactionListItemType,
-} from '@libs/SearchUIUtils';
+import {isReportEntry} from '@libs/SearchKeyUtils';
+import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionEntry, isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 

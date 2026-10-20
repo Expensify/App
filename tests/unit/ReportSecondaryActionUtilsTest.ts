@@ -5977,23 +5977,31 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
+        // getTransactionDetails also calls isGroupPolicy on this path, and with this module's imports that call reaches the mock too, so answer from the policy type instead of a one-shot return value
+        const isGroupPolicyMock = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy);
+        isGroupPolicyMock.mockImplementation((policyToCheck) => policyToCheck?.type !== CONST.POLICY.TYPE.PERSONAL);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            parentReport: report,
-            reportTransaction: transaction,
-            reportAction: actionR14932,
-            originalTransaction: createMock<Transaction>({}),
-            policy,
-            isChatReportArchived: false,
-            rules: undefined,
-            cardList: undefined,
-        });
+        let result: ReturnType<typeof getSecondaryTransactionThreadActions>;
+        try {
+            result = getSecondaryTransactionThreadActions({
+                currentUserLogin: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                parentReport: report,
+                reportTransaction: transaction,
+                reportAction: actionR14932,
+                originalTransaction: createMock<Transaction>({}),
+                policy,
+                isChatReportArchived: false,
+                rules: undefined,
+                cardList: undefined,
+            });
+        } finally {
+            // Restore the default even if the call throws, since clearAllMocks in beforeEach keeps implementations
+            isGroupPolicyMock.mockReturnValue(true);
+        }
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
