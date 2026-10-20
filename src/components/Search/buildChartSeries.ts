@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {NonEmptyTuple} from 'type-fest';
 
 import type {ChartBucketRange} from './chartGroupByConfig';
-import type {ChartComparisonPeriods, ChartPeriod, TimeGroupBy} from './comparisonBuckets';
+import type {ChartComparisonPeriods, TimeGroupBy} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
@@ -27,7 +27,7 @@ const CHART_SERIES_KEY = {
 
 /** Rows drawn as a second series against the primary one */
 type ChartComparison = {
-    /** The compared rows, paired with the chart's own rows by key, or by position in their period when `periods` is set */
+    /** The compared rows, paired with the chart's own rows by key, or time buckets by where they sit in their period when `periods` is set */
     data: GroupedItem[];
 
     /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
@@ -235,4 +235,4 @@ function buildChartSeries({
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {ChartComparison, ChartComparisonPeriods, ChartPeriod, SearchChartModel};
+export type {ChartComparison, SearchChartModel};

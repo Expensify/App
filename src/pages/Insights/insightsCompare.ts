@@ -1,4 +1,4 @@
-import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/buildChartSeries';
+import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/comparisonBuckets';
 
 import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
 
@@ -16,7 +16,7 @@ function formatPeriod(start: Date, end: Date): ChartPeriod {
     };
 }
 
-/** Resolves the period the Date filter covers and the one before it, which name the compared series. The backend picks the compared rows itself. */
+/** Resolves the period the Date filter covers and the one before it, which decide how buckets pair up and what each series is named. The backend picks the compared rows itself. */
 function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartComparisonPeriods | undefined {
     let primary;
     if ('preset' in dateFilter) {

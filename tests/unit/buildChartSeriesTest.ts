@@ -1,8 +1,8 @@
 import type {ChartDataPoint} from '@components/Charts/types';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
-import type {ChartComparisonPeriods} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import type {ChartComparisonPeriods} from '@components/Search/comparisonBuckets';
 import type {
     TransactionDayGroupListItemType,
     TransactionMerchantGroupListItemType,
