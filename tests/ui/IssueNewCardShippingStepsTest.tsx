@@ -46,16 +46,22 @@ const PRESS_EVENT = {nativeEvent: {}};
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-function renderStep(Step: React.ComponentType<{policyID: string; stepNames: readonly string[]; startStepIndex: number}>) {
-    function StepScreen() {
-        return (
-            <Step
-                policyID={POLICY_ID}
-                stepNames={STEP_NAMES}
-                startStepIndex={5}
-            />
-        );
-    }
+type StepProps = {policyID: string; stepNames: readonly string[]; startStepIndex: number};
+
+let CurrentStep: React.ComponentType<StepProps> = ShippingAddressStep;
+
+function StepScreen() {
+    return (
+        <CurrentStep
+            policyID={POLICY_ID}
+            stepNames={STEP_NAMES}
+            startStepIndex={5}
+        />
+    );
+}
+
+function renderStep(Step: React.ComponentType<StepProps>) {
+    CurrentStep = Step;
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
