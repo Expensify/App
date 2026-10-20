@@ -1578,24 +1578,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]>;
-function getAllPolicyValues(
-    policyID: Filter | undefined,
-    key: typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    policyData: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>;
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1604,16 +1587,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T] | Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);

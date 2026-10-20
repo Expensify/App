@@ -213,9 +213,11 @@ describe('ValidateCodeInput production events', () => {
         act(() => ref.current?.focusLastSelected());
         act(() => ref.current?.resetFocus());
         act(() => ref.current?.blur());
+        onChangeText.mockClear();
         act(() => ref.current?.clear());
         // Then the public handle still clears through the real callback
         expect(onChangeText).toHaveBeenLastCalledWith('');
+        expect(onChangeText).toHaveBeenCalledTimes(1);
     });
 
     it('blocks offline Enter and submits the current value after reconnect', () => {
