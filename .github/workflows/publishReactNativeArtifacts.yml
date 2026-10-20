@@ -41,9 +41,12 @@ on:
       - patches/react-native/@react-native+*.patch
       - Mobile-Expensify
       - scripts/artifacts-utils/compute-patches-hash.sh
+      # Keep in sync with the "Check if artifact publishing workflows changed" step below.
       - .github/workflows/publishReactNativeArtifacts.yml
       - .github/workflows/publishReactNativeiOSArtifacts.yml
       - .github/workflows/publishReactNativeAndroidArtifacts.yml
+      - .github/actions/composite/fetchReactNativePrebuild/action.yml
+      - scripts/artifacts-utils/ios/publish/**
 
 jobs:
   verifyPatches:
@@ -124,8 +127,14 @@ jobs:
         if: ${{ github.event.after != '' }}
         id: didWorkflowsChange
         run: |
-          # Workflow edits (e.g. the Hermes version resolution) change how artifacts are built without touching patches or the RN version.
-          if git diff --quiet '${{ github.event.before }}' '${{ github.event.after }}' -- .github/workflows/publishReactNativeArtifacts.yml .github/workflows/publishReactNativeiOSArtifacts.yml .github/workflows/publishReactNativeAndroidArtifacts.yml; then
+          # Edits to the publishing workflows, the prebuild fetch action, or the iOS publish Gradle project
+          # change how artifacts are built without touching patches or the RN version. Keep in sync with `on.push.paths`.
+          if git diff --quiet '${{ github.event.before }}' '${{ github.event.after }}' -- \
+            .github/workflows/publishReactNativeArtifacts.yml \
+            .github/workflows/publishReactNativeiOSArtifacts.yml \
+            .github/workflows/publishReactNativeAndroidArtifacts.yml \
+            .github/actions/composite/fetchReactNativePrebuild/action.yml \
+            scripts/artifacts-utils/ios/publish; then
             echo "DID_WORKFLOWS_CHANGE=false" >> "$GITHUB_OUTPUT"
           else
             echo "DID_WORKFLOWS_CHANGE=true" >> "$GITHUB_OUTPUT"
