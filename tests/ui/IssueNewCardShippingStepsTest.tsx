@@ -10,6 +10,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import CardNameStep from '@pages/workspace/expensifyCard/issueNew/CardNameStep';
 import PhoneNumberStep from '@pages/workspace/expensifyCard/issueNew/PhoneNumberStep';
 import ShippingAddressStep from '@pages/workspace/expensifyCard/issueNew/ShippingAddressStep';
 
@@ -315,6 +316,37 @@ describe('Issue card shipping steps', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then they return to the confirmation
+            expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
+        });
+    });
+
+    describe('CardNameStep', () => {
+        it('goes to the shipping address for a physical US card and to the confirmation otherwise', async () => {
+            // Given an admin naming a physical US card
+            await setFlow({...physicalCardFlow, currentStep: CONST.EXPENSIFY_CARD.STEP.CARD_NAME});
+            const {unmount} = renderStep(CardNameStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they continue
+            await pressNext();
+
+            // Then the shipping address step comes next
+            expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS);
+            unmount();
+
+            // Given an admin naming a virtual card
+            await setFlow({
+                ...physicalCardFlow,
+                currentStep: CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
+                data: {...physicalCardFlow.data, cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL, cardTitle: 'Travel'},
+            });
+            renderStep(CardNameStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they continue
+            await pressNext();
+
+            // Then the card goes straight to the confirmation, since it never ships
             expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
         });
     });
