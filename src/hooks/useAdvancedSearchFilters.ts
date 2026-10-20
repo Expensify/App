@@ -11,7 +11,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
-import {useCallback} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -323,10 +322,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isVendorFilterAvailableSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
-        [isVendorMatchingBetaEnabled],
-    );
+    const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 

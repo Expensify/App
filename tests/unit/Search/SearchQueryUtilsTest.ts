@@ -578,13 +578,16 @@ describe('SearchQueryUtils', () => {
         });
 
         test('vendor filter value', () => {
+            // Given a filter form with a picked vendor and the "No vendor" option
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 vendor: ['Acme', 'none'],
             };
 
+            // When the query string is built from the form
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
+            // Then both values are written to one vendor filter so the search matches either of them
             expect(result).toEqual('type:expense vendor:Acme,none');
         });
 
@@ -1682,6 +1685,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('vendor filter keeps the typed names and the empty value', () => {
+            // Given a typed query with a quoted vendor name and the empty value
             const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
             const queryJSON = buildSearchQueryJSON(queryString);
 
@@ -1689,8 +1693,10 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
+            // When the filter form is built from the query
             const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
+            // Then both values are kept as typed, since vendor names are matched by text and not checked against a list
             expect(result).toEqual({
                 type: 'expense',
                 vendor: ['Acme Tools', 'none'],
