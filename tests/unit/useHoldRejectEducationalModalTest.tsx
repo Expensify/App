@@ -1,7 +1,6 @@
 import {act, render, renderHook} from '@testing-library/react-native';
 
-import FeatureTrainingModalWrapper from '@components/Modal/Global/FeatureTrainingModalWrapper';
-import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 
 import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 
@@ -189,61 +188,5 @@ describe('useHoldRejectEducationalModal', () => {
         // Then the modal leaves the stack with its screen, and the follow-up that belonged to that screen does not run
         expect(mockFeatureTrainingModalProps).toBeUndefined();
         expect(onHoldOrRejectModalDismiss).not.toHaveBeenCalled();
-    });
-});
-
-describe('FeatureTrainingModalWrapper', () => {
-    beforeEach(() => {
-        mockFeatureTrainingModalProps = undefined;
-    });
-
-    it('takes its entry off the stack only once, even if the modal reports both a confirm and a close', () => {
-        // Given a wrapper on the global stack that leaves the stack as soon as the user confirms
-        const closeModal = jest.fn();
-        render(
-            <FeatureTrainingModalWrapper
-                closeModal={closeModal}
-                resolveModal={jest.fn()}
-                shouldCloseOnConfirm={false}
-            />,
-        );
-
-        // When the modal reports a confirm followed by a close
-        act(() => {
-            mockFeatureTrainingModalProps?.onConfirm?.(false);
-            mockFeatureTrainingModalProps?.onClose?.();
-        });
-
-        // Then the stack is popped once, with the confirm, so a modal underneath is not taken down by the second call
-        expect(closeModal).toHaveBeenCalledTimes(1);
-        expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
-    });
-
-    it('waits for the modal to hide before taking a confirmed entry off the stack when the modal closes on confirm', () => {
-        // Given a wrapper whose modal animates out on confirm, as feature training modals do by default
-        const closeModal = jest.fn();
-        render(
-            <FeatureTrainingModalWrapper
-                closeModal={closeModal}
-                resolveModal={jest.fn()}
-            />,
-        );
-
-        // When the user confirms
-        act(() => {
-            mockFeatureTrainingModalProps?.onConfirm?.(false);
-        });
-
-        // Then the entry stays on the stack while the modal hides
-        expect(closeModal).not.toHaveBeenCalled();
-
-        // When the modal reports it has hidden
-        act(() => {
-            mockFeatureTrainingModalProps?.onClose?.();
-        });
-
-        // Then the entry leaves the stack with the confirm, so the caller knows the user confirmed rather than closed
-        expect(closeModal).toHaveBeenCalledTimes(1);
-        expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
     });
 });

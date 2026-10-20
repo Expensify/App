@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import type FeatureTrainingComponent from '@components/FeatureTraining';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -89,6 +90,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
+    isTopmostRouteModalScreen: jest.fn(() => false),
     setParams: jest.fn(),
 }));
 
@@ -135,24 +137,18 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
-jest.mock('@components/FeatureTrainingModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View} = require('react-native');
-    return (props: {onConfirm?: (willShowAgain: boolean) => void; children?: React.ReactNode}) => (
-        <View testID="FeatureTrainingModal">
-            {props.children}
-            <View
-                testID="FeatureTrainingModal-confirm"
-                onTouchEnd={() => props.onConfirm?.(false)}
-            />
-        </View>
-    );
-});
-
+// The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
+// FeatureTrainingModal tree on the global modal stack
 jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return () => <View testID="HoldOrRejectEducationalModal" />;
+    const {default: FeatureTraining} = jest.requireActual<{default: typeof FeatureTrainingComponent}>('@components/FeatureTraining');
+    const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
+    return () => (
+        <View testID="HoldOrRejectEducationalModal">
+            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+        </View>
+    );
 });
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -405,7 +401,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // When they pick reject, which opens the educational modal on the global modal stack, and then confirm it
         fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
         await waitForBatchedUpdatesWithAct();
-        fireEvent(screen.getByTestId('FeatureTrainingModal-confirm'), 'touchEnd');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
         await waitForBatchedUpdatesWithAct();
 
         // Then the modal leaves the stack and the bulk reject flow opens
