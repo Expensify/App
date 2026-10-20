@@ -227,6 +227,7 @@ function FlagForReviewRulePageBase({
                         ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
                         onRuleGenerated={setDraftFlagForReviewRule}
+                        isCategoryEligible={(generatedCategory) => !hasExplicitFlagAmount(generatedCategory.maxExpenseAmount)}
                     />
                 )
             }

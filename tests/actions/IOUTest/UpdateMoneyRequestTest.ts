@@ -22,6 +22,7 @@ import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
@@ -3127,6 +3128,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
     describe('editTransactionMerchantInline delegateAccountID forwarding', () => {
         const DELEGATE_ACCOUNT_ID = 999;
 
+        function translate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string {
+            if (parameters.length === 0) {
+                return path;
+            }
+            return `${path}|${parameters.map(String).join('|')}`;
+        }
+
         it('sets delegateAccountID when delegateAccountID is provided', async () => {
             const transactionID = 'txnMerchantDelegate1';
             const transactionThreadReportID = 'threadMerchantDelegate1';
@@ -3161,6 +3169,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             editTransactionMerchantInline(
+                translate,
                 {
                     isVendorMatchingBetaEnabled: false,
                     hash: undefined,
