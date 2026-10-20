@@ -1,3 +1,5 @@
+import type {PaymentMethod} from '@components/KYCWall/types';
+
 import type CONST from '@src/CONST';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -71,7 +73,7 @@ type ReportPreviewActionState = {
 
 type ReportPreviewActions = {
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+    onHoldMenuOpen: (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => void;
     onHoldMenuClose: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
@@ -87,6 +89,7 @@ type ReportPreviewHoldMenuState = {
     paymentType: PaymentMethodType | undefined;
     canPay: boolean;
     methodID: number | undefined;
+    paymentMethod?: PaymentMethod;
 };
 
 type ReportPreviewMeta = {

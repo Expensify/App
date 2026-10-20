@@ -234,7 +234,23 @@ describe('PayActionButton', () => {
             });
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('opens the hold menu for paying via ABA when the report has held expenses', () => {
+        // Given a report with held expenses
+        mockedHasHeldExpenses.mockReturnValue(true);
+        const onHoldMenuOpen = jest.fn();
+        renderPayActionButton(onHoldMenuOpen);
+
+        // When "Pay via ABA" is picked
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then the hold menu asks whether to pay the held expenses too, and remembers that the report is paid via ABA
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, expect.anything(), undefined, CONST.PAYMENT_METHODS.ABA);
+        expect(mockPayReportsViaABA).not.toHaveBeenCalled();
     });
 });

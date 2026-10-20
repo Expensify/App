@@ -1,4 +1,5 @@
 import DecisionModal from '@components/DecisionModal';
+import type {PaymentMethod} from '@components/KYCWall/types';
 
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
@@ -24,6 +25,7 @@ type HoldMenuModalWrapperProps = ModalProps & {
      *  page still routes its approve action here until it gets the same treatment. */
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     nonHeldAmount?: string;
     fullAmount: string;
@@ -44,6 +46,7 @@ function HoldMenuModalWrapper({
     chatReportID,
     requestType,
     paymentType,
+    paymentMethod,
     methodID,
     nonHeldAmount = '0',
     fullAmount,
@@ -69,6 +72,7 @@ function HoldMenuModalWrapper({
         chatReport,
         requestType,
         paymentType,
+        paymentMethod,
         methodID,
         onClose: () => setIsVisible(false),
         onConfirm,
