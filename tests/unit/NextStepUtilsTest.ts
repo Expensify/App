@@ -9,6 +9,8 @@ import {
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
+import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -926,14 +928,20 @@ describe('libs/NextStepUtils', () => {
             } as Report;
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [],
-                policy: undefined,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy: undefined,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
             expect(result).toBe(currentNextStep);
         });
@@ -969,14 +977,20 @@ describe('libs/NextStepUtils', () => {
             });
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [],
-                policy,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy: undefined,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toEqual({
@@ -1021,14 +1035,20 @@ describe('libs/NextStepUtils', () => {
             };
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction],
-                policy: undefined,
-                transactionViolations,
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {[transaction.transactionID]: transaction},
+                violations: {},
+                policy: undefined,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toEqual({
@@ -1081,14 +1101,20 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [],
-                policy,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy: undefined,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
@@ -1152,14 +1178,20 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction],
-                policy,
-                transactionViolations,
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {[transaction.transactionID]: transaction},
+                violations: {},
+                policy: undefined,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toEqual({

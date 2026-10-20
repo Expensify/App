@@ -399,7 +399,7 @@ type GetReportNextStepParams = {
     rules: OnyxCollection<Rule>;
     areStrictPolicyRulesEnabled: boolean;
     isReportArchived: boolean;
-    theme: ThemeColors;
+    theme: ThemeColors | undefined;
     isOffline: boolean;
 };
 
@@ -461,7 +461,7 @@ function getReportNextStep({
             }, {});
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
             if (errors?.dewSubmitFailed) {
-                return buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
+                return buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme?.danger);
             } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
                 return buildOptimisticNextStepForDEWOffline();
             }
@@ -476,7 +476,7 @@ function getReportNextStep({
             });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
-                return buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+                return buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme?.danger);
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 return buildOptimisticNextStepForDEWOffline();
             }
