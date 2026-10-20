@@ -268,8 +268,10 @@ function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): bool
     return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
 }
 
+/** Values of the address inputs rendered by AddressFields */
 type AddressFieldValues = Partial<Pick<HomeAddressForm, ValueOf<typeof ADDRESS_INPUT_IDS>>>;
 
+/** Errors for the address inputs rendered by AddressFields */
 type AddressFieldErrors = Partial<Record<keyof AddressFieldValues, string>>;
 
 /** Length and zip format errors for the inputs rendered by AddressFields */
