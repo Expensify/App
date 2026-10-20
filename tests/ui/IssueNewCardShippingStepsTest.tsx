@@ -11,6 +11,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CardNameStep from '@pages/workspace/expensifyCard/issueNew/CardNameStep';
+import ConfirmationStep from '@pages/workspace/expensifyCard/issueNew/ConfirmationStep';
 import PhoneNumberStep from '@pages/workspace/expensifyCard/issueNew/PhoneNumberStep';
 import ShippingAddressStep from '@pages/workspace/expensifyCard/issueNew/ShippingAddressStep';
 
@@ -348,6 +349,59 @@ describe('Issue card shipping steps', () => {
 
             // Then the card goes straight to the confirmation, since it never ships
             expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
+        });
+    });
+
+    describe('ConfirmationStep', () => {
+        const shippingAddress = {
+            legalFirstName: 'Zany',
+            legalLastName: 'Smith',
+            addressStreet: '224 Main Street',
+            addressCity: 'San Francisco',
+            addressState: 'CA',
+            addressZip: '94123',
+            addressCountry: CONST.COUNTRY.US,
+        };
+        const confirmationFlow: IssueNewCard = {...physicalCardFlow, currentStep: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION};
+
+        it('shows the address the admin entered, or Prompt cardholder when there is none', async () => {
+            // Given an admin who entered an address
+            await setFlow({...confirmationFlow, data: {...confirmationFlow.data, shippingAddress: {...shippingAddress, phoneNumber: '+14155550123'}}});
+            const {unmount} = renderStep(ConfirmationStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the shipping address row shows it on one line
+            expect(screen.getByText('224 Main Street, San Francisco, CA, 94123, US')).toBeOnTheScreen();
+            unmount();
+
+            // Given an admin who prompted the cardholder
+            await setFlow(confirmationFlow);
+            renderStep(ConfirmationStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row says the cardholder will be asked
+            expect(screen.getByText(TestHelper.translateLocal('workspace.card.issueNewCard.promptCardholder'))).toBeOnTheScreen();
+        });
+
+        it('keeps Issue card disabled and explains why until there is a phone number', async () => {
+            // Given an admin who entered an address for a cardholder without a phone number, then went back without entering one
+            await setFlow({...confirmationFlow, data: {...confirmationFlow.data, shippingAddress}});
+            const {unmount} = renderStep(ConfirmationStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the phone number row says it's required and Issue card is disabled
+            expect(screen.getByText(TestHelper.translateLocal('common.error.fieldRequired'))).toBeOnTheScreen();
+            expect(screen.getByRole('button', {name: TestHelper.translateLocal('workspace.card.issueCard')})).toBeDisabled();
+            unmount();
+
+            // Given the admin then entered a phone number
+            await setFlow({...confirmationFlow, data: {...confirmationFlow.data, shippingAddress: {...shippingAddress, phoneNumber: '+14155550123'}}});
+            renderStep(ConfirmationStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error is gone and the card can be issued
+            expect(screen.queryByText(TestHelper.translateLocal('common.error.fieldRequired'))).toBeNull();
+            expect(screen.getByRole('button', {name: TestHelper.translateLocal('workspace.card.issueCard')})).toBeEnabled();
         });
     });
 });
