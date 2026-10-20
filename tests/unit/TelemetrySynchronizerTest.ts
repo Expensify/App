@@ -18,10 +18,12 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@sentry/react-native', () => ({
     setTag: jest.fn(),
     setContext: jest.fn(),
+    setUser: jest.fn(),
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
     getActivePolicies: jest.fn(),
+    getHighestPolicyRole: jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions').getHighestPolicyRole,
 }));
 
 jest.mock('@libs/telemetry/sendMemoryContext', () => ({
