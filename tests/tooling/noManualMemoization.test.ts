@@ -4,7 +4,10 @@ import type {Rule} from 'eslint';
 
 import {Linter} from 'eslint';
 
+import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
 import * as rule from '../../eslint-plugin-local-rules/no-manual-memoization';
+import {normalizeESLintResults} from '../../scripts/lint/eslint/ESLintLinter';
+import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
 
 function isRuleModule(value: unknown): value is Rule.RuleModule {
     return typeof value === 'object' && value !== null && typeof Reflect.get(value, 'create') === 'function';
@@ -15,15 +18,37 @@ function lint(code: string) {
     if (!isRuleModule(ruleModule)) {
         throw new TypeError('Expected a local ESLint rule module');
     }
-    const ruleID = 'local/noManualMemoization';
+    const ruleName = 'no-manual-memoization';
+    const ruleID = `rulesdir/${ruleName}`;
     return new Linter().verify(code, {
         languageOptions: {ecmaVersion: 2022, sourceType: 'module'},
-        plugins: {local: {rules: {noManualMemoization: ruleModule}}},
+        plugins: {rulesdir: {rules: {[ruleName]: ruleModule}}},
         rules: {[ruleID]: 'error'},
     });
 }
 
 describe('no-manual-memoization', () => {
+    it.each([
+        {source: "import {useMemo} from 'react'; function useExample(name) { return useMemo(() => ({name}), [name]); }", shouldForbid: true},
+        {
+            source: "import {useMemo, useRef} from 'react'; function useExample(name) { const ref = useRef(); ref.current = name; return useMemo(() => ({name}), [name]); }",
+            shouldForbid: false,
+        },
+    ])('enforces the real compiler verdict: $shouldForbid', async ({source, shouldForbid}) => {
+        // Given a hook that either compiles on both platforms or violates the rules for refs.
+        const filename = '/repo/src/useExample.ts';
+        const [{messages}] = normalizeESLintResults([{filePath: filename, messages: lint(source)}]);
+        expect(messages).toHaveLength(1);
+
+        // When the production compiler helpers determine whether manual memoization is redundant.
+        const bothMemoized = didBothCompilersMemoizeFile(source, filename);
+        const filtered = await filterReactCompilerMessages(messages, '/repo', () => bothMemoized);
+
+        // Then the lint pipeline enforces the restriction only for automatically memoized code.
+        expect(bothMemoized).toBe(shouldForbid);
+        expect(filtered).toHaveLength(shouldForbid ? 1 : 0);
+    });
+
     it.each([
         "import {useMemo} from 'react'; const value = useMemo(() => 1, []);",
         "import {useCallback} from 'react'; const fn = useCallback(() => 1, []);",
