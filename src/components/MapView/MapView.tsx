@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {MapState} from '@rnmapbox/maps';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {getForegroundPermissionsAsync} from 'expo-location';
 import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -60,7 +60,6 @@ function MapView({
     shouldDisplayCompass = true,
 }: MapViewProps) {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
-    const navigation = useNavigation();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -156,9 +155,7 @@ function MapView({
 
     const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
 
-    // When the page loses focus, we temporarily set the "idled" state to false.
-    // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
-    // which in turn triggers the callback.
+    // Frames the camera on every focus once the map has loaded.
     useFocusEffect(
         useCallback(() => {
             if (!isIdle) {
@@ -221,13 +218,6 @@ function MapView({
             return () => pendingFramingRef.current?.cancel();
         }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
     );
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setIsIdle(false);
-        });
-        return unsubscribe;
-    }, [navigation]);
 
     useEffect(() => {
         if (!isOffline) {
