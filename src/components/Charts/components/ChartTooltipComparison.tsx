@@ -5,7 +5,6 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -24,10 +23,9 @@ type ChartTooltipComparisonProps = {
 /** Renders each compared series' amount in the chart tooltip, followed by the change between them */
 function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const changeColor = change?.isIncrease ? theme.danger : theme.successHover;
+    const changeColor = StyleUtils.getSpendChangeColor(!!change?.isIncrease);
 
     return (
         <>

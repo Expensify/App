@@ -39,6 +39,7 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
                 <ImageSVG
                     src={illustrations.Fireworks}
                     contentFit="contain"
+                    aria-hidden
                 />
             </View>
         );
@@ -64,6 +65,7 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
             <ImageSVG
                 src={illustration}
                 contentFit="contain"
+                aria-hidden
             />
         </View>
     );
