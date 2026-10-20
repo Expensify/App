@@ -26,9 +26,9 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 const mockSetShowFullHistory = jest.fn();
 
-jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: false, hadMessagesAtSessionStart: false}),
-    useConciergeSessionActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
+jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
+    useConciergeChatHistoryState: () => ({showFullHistory: false}),
+    useConciergeChatHistoryActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
 }));
 
 jest.mock('@react-navigation/native', () => ({

@@ -16,15 +16,14 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const wrapper = ({children}: {children: React.ReactNode}) => <OnyxListItemProvider>{children}</OnyxListItemProvider>;
 
 const CONCIERGE_REPORT_ID = '1';
-const SESSION_START = '2024-06-01 12:00:00.000';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({accountID: 100})),
 }));
 
-jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: () => ({sessionStartTime: SESSION_START, showFullHistory: false, hadMessagesAtSessionStart: false}),
+jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
+    useConciergeChatHistoryState: () => ({showFullHistory: false}),
 }));
 
 let mockRouteParams: {reportActionID?: string} = {};
@@ -45,7 +44,7 @@ describe('useConciergeAskState', () => {
         mockRouteParams = {};
     });
 
-    it('shows the empty state when the session has no activity', async () => {
+    it('shows the empty state once the user has messaged Concierge', async () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
         expect(result.current.isAskConciergeChat).toBe(true);
@@ -77,7 +76,7 @@ describe('useConciergeAskState', () => {
         // Then the conversation stays on screen, because `View chat history` can't bring it back
         expect(result.current.shouldShowWelcome).toBe(false);
 
-        // When the user has messaged Concierge before this session
+        // When the user has messaged Concierge before
         const userMessage = {
             reportActionID: '6',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -94,54 +93,71 @@ describe('useConciergeAskState', () => {
         await waitForBatchedUpdates();
     });
 
-    it('keeps the empty state for a question that opens its own thread, while sending and once sent', async () => {
-        // Given a question from the current user that opened its own thread and is still sending (for example, offline)
+    it('keeps the empty state when a question arrives from any device', async () => {
+        // Given the user messaged Concierge before, and the whole chat is loaded
+        const createdAction = {
+            reportActionID: '7',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2024-06-01 10:00:00.000',
+        };
+        const earlierMessage = {
+            reportActionID: '6',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 100,
+            created: '2024-06-01 11:00:00.000',
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
+            [createdAction.reportActionID]: createdAction,
+            [earlierMessage.reportActionID]: earlierMessage,
+        });
+        await waitForBatchedUpdates();
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        // When a question sent from another device arrives before its thread is linked
         const question = {
             reportActionID: '3',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: 100,
             created: '2024-06-01 12:05:00.000',
-            childReportID: '4',
-            childType: CONST.REPORT.TYPE.CHAT,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: question});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: question});
+        await waitForBatchedUpdates();
+
+        // Then the welcome stays, so this device doesn't flicker
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        // When its thread is linked
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: '4', childType: CONST.REPORT.TYPE.CHAT}});
+        await waitForBatchedUpdates();
+
+        // Then the welcome still stays, because the question is answered in its thread
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+    });
+
+    it('keeps an open task assigned to the user on screen', async () => {
+        // Given an open task assigned to the current user in the Concierge chat
+        const task = {
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 100,
+            created: '2024-06-01 12:05:00.000',
+            childReportID: '5',
+            childType: CONST.REPORT.TYPE.TASK,
+            childManagerAccountID: 100,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[task.reportActionID]: task});
         await waitForBatchedUpdates();
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        // Then the welcome stays, because the question is answered in its thread
-        expect(result.current.shouldShowWelcome).toBe(true);
-
-        // When the question is sent (for example, after reconnecting)
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {pendingAction: null}});
-        await waitForBatchedUpdates();
-
-        // Then the welcome still stays, so the collapsed chat doesn't switch to a partial list on its own
-        expect(result.current.shouldShowWelcome).toBe(true);
-
-        // When the thread fails to be created, which clears the question's child thread
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: null, childType: ''}});
-        await waitForBatchedUpdates();
-
-        // Then the question counts as activity, so its error stays visible in this chat
-        expect(result.current.shouldShowWelcome).toBe(false);
-
-        // When the current user creates a task in the Concierge chat
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: '5', childType: CONST.REPORT.TYPE.TASK}});
-        await waitForBatchedUpdates();
-
-        // Then the welcome stays, like it does for a question
-        expect(result.current.shouldShowWelcome).toBe(true);
-
-        // When that task is assigned to the current user and still open
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
-            [question.reportActionID]: {childManagerAccountID: 100, childStateNum: CONST.REPORT.STATE_NUM.OPEN, childStatusNum: CONST.REPORT.STATUS_NUM.OPEN},
-        });
-        await waitForBatchedUpdates();
-
-        // Then the welcome stands down, so the open task stays pinned on screen
+        // Then the welcome stands down, so the task the user still has to finish stays visible
         expect(result.current.shouldShowWelcome).toBe(false);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);

@@ -1,9 +1,9 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
-
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+import useSidePanelState from '@hooks/useSidePanelState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,10 +14,12 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@pages/inbox/ConciergeSessionContext');
 jest.mock('@hooks/useCurrentUserPersonalDetails');
+jest.mock('@hooks/useIsInSidePanel');
+jest.mock('@hooks/useSidePanelState');
 
-const mockUseConciergeSessionState = jest.mocked(useConciergeSessionState);
+const mockUseIsInSidePanel = jest.mocked(useIsInSidePanel);
+const mockUseSidePanelState = jest.mocked(useSidePanelState);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 const REPORT_ID = '1';
@@ -47,8 +49,9 @@ describe('useShouldSuppressConciergeIndicators', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
-        // Safe defaults: no active session, so the existing followup-list tests behave as before.
-        mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
+        // Safe defaults: outside the side panel with no active session, so the followup-list tests only exercise the flag.
+        mockUseIsInSidePanel.mockReturnValue(false);
+        mockUseSidePanelState.mockReturnValue({sessionStartTime: null} as ReturnType<typeof useSidePanelState>);
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: CURRENT_USER_ACCOUNT_ID});
     });
 
@@ -121,10 +124,28 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
     });
 
-    describe('session activity (Concierge welcome state)', () => {
+    it('suppresses indicators in the main Concierge chat even with messages in it', async () => {
+        // Given the main Concierge chat with a Concierge reply in it
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            [REPORT_ACTION_ID]: buildAction({actorAccountID: OTHER_ACCOUNT_ID, created: '2026-06-29 10:05:00.000'}),
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook evaluates suppression outside the side panel
+        const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+        // Then the indicators stay hidden, because Concierge answers each question in its own thread
+        await waitFor(() => {
+            expect(result.current).toBe(true);
+        });
+    });
+
+    describe('side panel session activity (Concierge welcome state)', () => {
         beforeEach(() => {
-            // An active session for the main Concierge DM.
-            mockUseConciergeSessionState.mockReturnValue({sessionStartTime: SESSION_START_TIME, showFullHistory: false, hadMessagesAtSessionStart: false});
+            // An active side panel session.
+            mockUseIsInSidePanel.mockReturnValue(true);
+            mockUseSidePanelState.mockReturnValue({sessionStartTime: SESSION_START_TIME} as ReturnType<typeof useSidePanelState>);
         });
 
         it('suppresses indicators in a Concierge chat with no session activity', async () => {
