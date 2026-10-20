@@ -5114,7 +5114,6 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
  * @param reportID The reportID of the policy report (workspace room)
  */
 // TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
-// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToConciergeChatAndDeleteReport(
     reportID: string | undefined,
     conciergeReportID: string | undefined,
