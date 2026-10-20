@@ -138,7 +138,7 @@ describe('Violation Fix parity between Inbox and Home', () => {
     }
 
     function evaluateSurfaces(fixture: Awaited<ReturnType<typeof buildCell>>) {
-        const inboxShows = getViolatingReportIDForRBRInLHN(fixture.chatReport, fixture.violationsCollection, currentUserEmail) === fixture.expenseReport.reportID;
+        const inboxShows = getViolatingReportIDForRBRInLHN(fixture.chatReport, fixture.violationsCollection, fixture.policy, currentUserEmail) === fixture.expenseReport.reportID;
         const homeShows = getFlaggedExpenses(fixture.allReports, fixture.allTransactions, fixture.violationsCollection, fixture.allPolicies, fixture.session).some(
             (flagged) => flagged.reportID === fixture.expenseReport.reportID,
         );

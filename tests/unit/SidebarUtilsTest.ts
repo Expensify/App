@@ -4852,6 +4852,7 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4924,6 +4925,7 @@ describe('SidebarUtils', () => {
                 // last visible message from the report actions itself
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: report.reportID,
+                    policies: {},
                     reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
