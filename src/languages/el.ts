@@ -1071,6 +1071,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Διαχείριση',
             },
             emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
+            upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -7907,6 +7908,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
+            netSuiteOAuthMigrationRequired: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite σε OAuth 2.0 έως τον Φεβρουάριο 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Η σύνδεσή σας με το NetSuite απαιτεί άμεση αναβάθμιση σε OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
         },
         hr: {
             title: 'HR',
