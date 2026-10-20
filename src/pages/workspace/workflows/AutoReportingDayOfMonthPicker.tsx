@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import {areSemiMonthlyOffsetsEqual, getAutoReportingOffsetDisplayName, LAST_WEEKDAY_OFFSETS, parseAutoReportingOffset} from '@libs/SubmissionScheduleUtils';
+import {areSemiMonthlyOffsetsEqual, getAutoReportingOffsetDisplayName, isSemiMonthlyOffsetOrderValid, LAST_WEEKDAY_OFFSETS, parseAutoReportingOffset} from '@libs/SubmissionScheduleUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -43,11 +43,23 @@ type AutoReportingDayOfMonthPickerProps = {
     /** A day that can't be picked because the other twice a month date already uses it */
     unavailableOffset?: AutoReportingOffset;
 
+    /** Only days after this one are listed, so the second twice a month date can't be picked before the first */
+    listOnlyAfterOffset?: AutoReportingOffset;
+
     /** Called with the picked day when the admin saves */
     onSave: (offset: AutoReportingOffset) => void;
 };
 
-function AutoReportingDayOfMonthPicker({policy, routePolicyID, testID, selectedOffset, shouldShowMonthlyOnlyEntries, unavailableOffset, onSave}: AutoReportingDayOfMonthPickerProps) {
+function AutoReportingDayOfMonthPicker({
+    policy,
+    routePolicyID,
+    testID,
+    selectedOffset,
+    shouldShowMonthlyOnlyEntries,
+    unavailableOffset,
+    listOnlyAfterOffset,
+    onSave,
+}: AutoReportingDayOfMonthPickerProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
     const [userSelectedOffset, setUserSelectedOffset] = useState<AutoReportingOffset | undefined>();
     const currentOffset = userSelectedOffset ?? selectedOffset;
@@ -60,7 +72,9 @@ function AutoReportingDayOfMonthPicker({policy, routePolicyID, testID, selectedO
         CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
         ...(shouldShowMonthlyOnlyEntries ? [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH, ...LAST_WEEKDAY_OFFSETS] : []),
     ];
-    const offsets: AutoReportingOffset[] = [...Array.from({length: CONST.POLICY.AUTO_REPORTING_MAX_DAY_OF_MONTH}, (value, index) => index + 1), ...namedOffsets];
+    const offsets: AutoReportingOffset[] = [...Array.from({length: CONST.POLICY.AUTO_REPORTING_MAX_DAY_OF_MONTH}, (value, index) => index + 1), ...namedOffsets].filter(
+        (offset) => listOnlyAfterOffset === undefined || isSemiMonthlyOffsetOrderValid({offset: listOnlyAfterOffset, secondOffset: offset}),
+    );
 
     const items = offsets.map((offset) => ({
         text: getAutoReportingOffsetDisplayName(offset, translate, toLocaleOrdinal),
