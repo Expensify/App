@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
@@ -124,21 +124,18 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
     }
 
-    const applyUserFiltersResponse = useCallback(
-        (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
-            if (requestSeq !== requestSeqRef.current) {
-                return;
-            }
-            if (policyIDs && logins.length > 0) {
-                setServerScopedLoginsByPolicy((prev) => ({
-                    policyIDs,
-                    logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
-                }));
-            }
-            setPagination({hasMore, nextCursor, isLoadingMore: false});
-        },
-        [policyIDs],
-    );
+    const applyUserFiltersResponse = (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
+        if (requestSeq !== requestSeqRef.current) {
+            return;
+        }
+        if (policyIDs && logins.length > 0) {
+            setServerScopedLoginsByPolicy((prev) => ({
+                policyIDs,
+                logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
+            }));
+        }
+        setPagination({hasMore, nextCursor, isLoadingMore: false});
+    };
 
     useEffect(() => {
         if (!ready || isOffline) {
