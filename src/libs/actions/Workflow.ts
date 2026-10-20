@@ -39,10 +39,10 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import Onyx from 'react-native-onyx';
 
-import type {ApprovalWorkflowRulesOnyxDataParams} from './WorkflowRulesOnyxData';
+import type {ApprovalWorkflowRulesOnyxDataParams} from './ApprovalWorkflowRulesOnyxData';
 
+import {buildApprovalWorkflowRulesOnyxData} from './ApprovalWorkflowRulesOnyxData';
 import {completeTask} from './Task';
-import {buildApprovalWorkflowRulesOnyxData} from './WorkflowRulesOnyxData';
 
 type CreateApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflow;
