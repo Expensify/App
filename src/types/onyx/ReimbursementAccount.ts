@@ -219,7 +219,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Global reimbursement provider, derived by the server */
     globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
 
-    /** Wise onboarding data */
+    /** The business's Wise onboarding, the Wise counterpart of `corpay` above. The admin doing the setup sees the whole object here */
     wise?: WiseBusinessOnboarding;
 
     /** Date the corpay bank account was created */
@@ -285,7 +285,7 @@ type WiseBusinessOnboarding = {
         ssnLast4?: string;
 
         /** The representative has no SSN or ITIN */
-        noSSN?: boolean;
+        hasNoSSN?: boolean;
     };
 
     /** KYC requirement answers, by requirement then by Wise's field name */

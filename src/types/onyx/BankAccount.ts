@@ -34,7 +34,7 @@ type BankAccountAdditionalData = {
     /** Global reimbursement provider, derived by the server */
     globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
 
-    /** Wise onboarding status */
+    /** The business's Wise onboarding as every holder of the account sees it: the status only, the answers are the admin's */
     wise?: Pick<WiseBusinessOnboarding, 'status'>;
 
     /** Verification statuses returned by the backend, mirroring how Classic determines status */

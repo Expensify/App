@@ -13,7 +13,7 @@ type WiseKYCRequirement = {
     state: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_STATE>;
 
     /** True when only Wise's embedded page can collect it */
-    hostedOnly: boolean;
+    isHostedOnly: boolean;
 
     /** Whether we asked for it before Submit or Wise asked after */
     requestedBy: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY>;
