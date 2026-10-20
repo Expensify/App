@@ -7068,6 +7068,7 @@ const staticStyles = (theme: ThemeColors) =>
         pieChartResponsiveRow: {
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'center',
             columnGap: VictoryTheme.pie.legendGap,
         },
         pieChartResponsiveColumn: {
@@ -7075,8 +7076,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            flex: 1,
-            minWidth: VictoryTheme.pie.legendMinWidth,
+            width: VictoryTheme.pie.legendMinWidth,
             justifyContent: 'center',
             rowGap: 12,
         },

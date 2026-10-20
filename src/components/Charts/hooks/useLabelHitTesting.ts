@@ -71,13 +71,15 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
 
     const fontMetrics = fontManager ? getFontLineMetrics(fontManager, fontSize) : null;
 
-    // Wrapped bar labels are horizontal boxes centered on each tick: the hit width is the label's own
-    // width capped at the column, and the height spans the wrapped lines below the axis gap.
-    // The line height comes from wrapConfig so the box matches the reserved and painted label area.
+    // Wrapped bar labels are horizontal boxes centered on each tick spanning the full bar column, so a
+    // non-empty label's hit area always covers its painted text even when ChartXAxisLabels nudges an edge
+    // label inward to avoid canvas-edge clipping (the nudge keeps the longest line within the column).
+    // The height spans the wrapped lines below the axis gap, from wrapConfig so the box matches the
+    // reserved and painted label area. Empty labels keep a zero width so they stay non-interactive.
     const wrapHitGeometry =
         wrapConfig && wrapConfig.lineHeight > 0
             ? {
-                  halfWidths: wrapConfig.labelWidths.map((w) => Math.min(w, wrapConfig.columnWidth) / 2),
+                  halfWidths: wrapConfig.labelWidths.map((w) => (w > 0 ? wrapConfig.columnWidth / 2 : 0)),
                   topOffset: VictoryTheme.axis.xAxisLabelGap,
                   boxHeight: wrapConfig.maxLines * wrapConfig.lineHeight,
               }

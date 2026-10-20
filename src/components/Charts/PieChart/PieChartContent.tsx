@@ -192,11 +192,11 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
-    const onLegendItemMouseEnter = (slice: PieSlice) => {
+    const highlightSlice = (slice: PieSlice) => {
         tooltipPosition.set(slice.tooltipPosition);
         matchedIndex.set(slice.originalIndex);
     };
-    const onLegendItemMouseLeave = () => {
+    const clearSliceHighlight = () => {
         matchedIndex.set(-1);
     };
 
@@ -208,8 +208,8 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
             <View
                 key={`legend-${slice.originalIndex}`}
                 style={isResponsiveRow ? styles.pieChartLegendRow : [styles.flexRow, styles.alignItemsCenter]}
-                onMouseEnter={() => onLegendItemMouseEnter(slice)}
-                onMouseLeave={onLegendItemMouseLeave}
+                onMouseEnter={() => highlightSlice(slice)}
+                onMouseLeave={clearSliceHighlight}
             >
                 {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
                 <Text style={[styles.textNormal, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
