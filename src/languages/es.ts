@@ -1172,7 +1172,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Ver en Gastos',
         emptyState: {title: 'Nada que mostrar', subtitle: 'Prueba a ajustar tus criterios de arriba'},
         noExpensesState: {title: 'Ve adónde va tu dinero', subtitle: 'Una vez que tengas gastos, encontrarás tendencias de gasto, principales comercios y mucho más.'},
-        compare: {label: 'Comparar', previousPeriod: 'Periodo anterior', average: 'Promedio'},
+        compare: {
+            label: 'Comparar',
+            previousPeriod: 'Periodo anterior',
+            average: 'Promedio',
+            increase: (percentage: string) => `Sube ${percentage}`,
+            decrease: (percentage: string) => `Baja ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -5055,6 +5061,7 @@ ${amount} para ${merchant} - ${date}`,
             editPerDiemRates: 'Editar las tasas de per diem',
             editDestinationSubtitle: (destination) => `Actualizar este destino lo modificará para todas las subtasas per diem de ${destination}.`,
             editCurrencySubtitle: (destination) => `Actualizar esta moneda la modificará para todas las subtasas per diem de ${destination}.`,
+            missingPerDiemUnit: 'El per diem no está configurado correctamente en este espacio de trabajo. Ponte en contacto con Concierge para obtener ayuda.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',

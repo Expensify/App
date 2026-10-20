@@ -506,6 +506,7 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID,
     lastOriginalAction,
     rules,
+    formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -532,6 +533,7 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID?: string;
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -636,7 +638,7 @@ function getLastMessageTextForReport({
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayString);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -1308,6 +1310,7 @@ function getReportAlternateText({
             oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
             rules,
+            formatPhoneNumber,
         });
 
     const getLastActorDisplayNamePrefix = () =>

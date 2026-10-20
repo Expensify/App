@@ -1130,7 +1130,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
-        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
+        compare: {
+            label: '比较',
+            previousPeriod: '上一期',
+            average: '平均',
+            increase: (percentage: string) => `上升 ${percentage}`,
+            decrease: (percentage: string) => `下降 ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -4948,6 +4954,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             editPerDiemRates: '编辑每日津贴费率',
             editDestinationSubtitle: (destination: string) => `更新此目的地将会更改所有 ${destination} 按日津贴子费率的设置。`,
             editCurrencySubtitle: (destination: string) => `更新此货币将会更改所有 ${destination} 的每日津贴子费率。`,
+            missingPerDiemUnit: '此工作区的每日津贴设置不正确。请联系 Concierge 获取帮助。',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '设置自掏腰包报销如何导出到 QuickBooks Desktop。',

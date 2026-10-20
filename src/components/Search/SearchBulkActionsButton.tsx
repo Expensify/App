@@ -1,7 +1,6 @@
 import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -81,10 +80,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         isHoldEducationalModalVisible,
         areAllTransactionsFromDMReports,
         rejectModalAction,
-        isExpensifyCardStatementPDFModalVisible,
-        setIsExpensifyCardStatementPDFModalVisible,
-        expensifyCardStatementPDFParams,
-        handleExpensifyCardStatementPDFModalHide,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -264,14 +259,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     )
                 }
             </KYCWall>
-            {!!expensifyCardStatementPDFParams && (
-                <ExpensifyCardStatementPDFDownloadModal
-                    statementParams={expensifyCardStatementPDFParams}
-                    isVisible={isExpensifyCardStatementPDFModalVisible}
-                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
-                    onModalHide={handleExpensifyCardStatementPDFModalHide}
-                />
-            )}
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
