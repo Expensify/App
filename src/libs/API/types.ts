@@ -660,8 +660,6 @@ const WRITE_COMMANDS = {
     QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
     QUEUE_EXPORT_SEARCH_WITH_TEMPLATE: 'QueueExportSearchWithTemplate',
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
-    QUEUE_BULK_APPROVE_REPORTS: 'QueueBulkApproveReports',
-    QUEUE_BULK_SUBMIT_REPORTS: 'QueueBulkSubmitReports',
     QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
     QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
     QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
@@ -1511,8 +1509,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.QueueExportSearchItemsToCSVParams;
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE]: Parameters.QueueExportSearchWithTemplateParams;
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
-    [WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS]: Parameters.QueueBulkApproveReportsParams;
-    [WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS]: Parameters.QueueBulkSubmitReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;

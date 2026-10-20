@@ -659,8 +659,6 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
-export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
-export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
 export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
 export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
 export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
