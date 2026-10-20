@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyEmployeeList} from '@src/types/onyx';
 
 import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
 import type {ValueOf} from 'type-fest';
@@ -54,7 +55,7 @@ let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: s
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
 let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
-let mockPolicy: {id: string; policyAccountID: number} | undefined;
+let mockPolicy: {id: string; policyAccountID: number; employeeList: PolicyEmployeeList} | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
@@ -373,7 +374,7 @@ describe('AddAgentPage', () => {
         });
 
         it('forwards policyID from route params to createCompanyAgent', async () => {
-            mockPolicy = {id: 'POL_42', policyAccountID: 5444};
+            mockPolicy = {id: 'POL_42', policyAccountID: 5444, employeeList: {[OWNER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN}}};
 
             renderAddAgentPage({policyID: 'POL_42'});
 
