@@ -1177,7 +1177,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'In Ausgaben anzeigen',
         emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
         noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
-        compare: {label: 'Vergleichen', previousPeriod: 'Vorheriger Zeitraum', average: 'Durchschnitt'},
+        compare: {
+            label: 'Vergleichen',
+            previousPeriod: 'Vorheriger Zeitraum',
+            average: 'Durchschnitt',
+            increase: (percentage: string) => `Um ${percentage} gestiegen`,
+            decrease: (percentage: string) => `Um ${percentage} gesunken`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2828,6 +2834,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Globale Rückerstattungen einrichten?', subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.', getStarted: "Los geht's"},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
@@ -4116,6 +4123,7 @@ ${amount} für ${merchant} – ${date}`,
             formLabel: 'PDF anzeigen',
         },
         attachmentNotFound: 'Anhang nicht gefunden',
+        loadTimedOut: 'Dieses Bild lädt zu lange.',
         retry: 'Wiederholen',
     },
     messages: {
@@ -5131,6 +5139,7 @@ ${amount} für ${merchant} – ${date}`,
             editPerDiemRates: 'Pauschalvergütungssätze bearbeiten',
             editDestinationSubtitle: (destination: string) => `Wenn Sie dieses Ziel aktualisieren, wird es für alle ${destination}-Tagespauschalen-Teilbeträge geändert.`,
             editCurrencySubtitle: (destination: string) => `Wenn Sie diese Währung aktualisieren, wird sie für alle ${destination}-Tagesgeld-Teilbeträge geändert.`,
+            missingPerDiemUnit: 'Per Diem ist in diesem Workspace nicht korrekt eingerichtet. Bitte wenden Sie sich für Hilfe an Concierge.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Legen Sie fest, wie aus eigener Tasche bezahlte Ausgaben nach QuickBooks Desktop exportiert werden.',
@@ -8841,6 +8850,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
                     unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
                     multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                    categoryHasRule: 'Für diese Kategorie gibt es bereits eine Regel. Bearbeite die bestehende Regel oder beschreibe eine Regel für eine andere Kategorie.',
                 },
             },
             expenseDefaultsTable: {
