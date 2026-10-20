@@ -233,7 +233,16 @@ function IOURequestStartPage({
         // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
+        if (!hadPreInsertedFullscreen) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        // Close the RHP a frame later. Closed in the same update as the restore, Android dismisses it with the
+        // pre-insert's `none` animation instead of the restored slide.
+        requestAnimationFrame(() => Navigation.closeRHPFlow());
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -331,7 +340,6 @@ function IOURequestStartPage({
         }
 
         cleanupPreInsertedDestination();
-        Navigation.closeRHPFlow();
     };
 
     const onBackButtonPress = () => {

@@ -2817,6 +2817,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Configurare i rimborsi globali?', subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.', getStarted: 'Inizia'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
@@ -4094,6 +4095,7 @@ ${amount} per ${merchant} - ${date}`,
             formLabel: 'Visualizza PDF',
         },
         attachmentNotFound: 'Allegato non trovato',
+        loadTimedOut: 'Questa immagine impiega troppo tempo per caricarsi.',
         retry: 'Riprova',
     },
     messages: {

@@ -244,7 +244,7 @@ function IOURequestStepAmount({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,

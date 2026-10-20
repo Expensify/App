@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -1613,6 +1613,7 @@ function getReasonAndReportActionForGBRInLHNRow(
     report: OnyxEntry<Report>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     isReportArchived = false,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): GBRReasonAndReportAction | null {
@@ -1621,7 +1622,7 @@ function getReasonAndReportActionForGBRInLHNRow(
     }
 
     const {reason, reportAction} =
-        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived}) ?? {};
+        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived, reportMetadata}) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};

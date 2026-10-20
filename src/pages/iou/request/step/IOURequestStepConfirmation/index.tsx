@@ -202,7 +202,7 @@ function IOURequestStepConfirmationContent({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
     // moved to SubmitExpenseOrchestrator.
@@ -292,7 +292,7 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
-                          localize: {translate, dateFnsLocale, convertToDisplayString},
+                          localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                           rules,
                           // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
                           pendingDeleteMemberAccountIDs: undefined,
@@ -312,6 +312,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            formatPhoneNumber,
             rules,
         ],
     );
