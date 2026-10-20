@@ -45,6 +45,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -545,6 +546,14 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
+    const handlePaymentOptionsShow = () => {
+        // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data
+        if (policy?.outputCurrency === CONST.CURRENCY.AUD) {
+            openPaymentMethods();
+        }
+        onPaymentOptionsShow?.();
+    };
+
     const popoverUseScrollView = shouldPopoverUseScrollView(paymentButtonOptions);
 
     return (
@@ -563,7 +572,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuShow={handlePaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu

@@ -13,6 +13,8 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 
+import {openPaymentMethods} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +52,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getActiveRoute: jest.fn(() => ''),
         getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigationRef: mockRef,
     };
 });
@@ -88,20 +91,35 @@ jest.mock('@libs/actions/ReimbursementAccount', () => ({
     navigateToBankAccountRoute: jest.fn(),
 }));
 
-// Dropdown items defer onSelected until the popover finishes hiding, so the modal has to report that.
+// Dropdown items defer onSelected until the popover finishes hiding, and the payment methods load once it has shown,
+// so the modal has to report both.
 jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactElement}) {
-        const wasVisible = useRef<boolean>(isVisible);
+    return function MockReanimatedModal({
+        isVisible,
+        onModalShow,
+        onModalHide,
+        children,
+    }: {
+        isVisible: boolean;
+        onModalShow?: () => void;
+        onModalHide?: () => void;
+        children: React.ReactElement;
+    }) {
+        // The popover mounts already visible, so it starts as hidden for the first render to count as it showing
+        const wasVisible = useRef<boolean>(false);
 
         useEffect(() => {
+            if (!wasVisible.current && isVisible) {
+                onModalShow?.();
+            }
             if (wasVisible.current && !isVisible) {
                 onModalHide?.();
             }
             wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
+        }, [isVisible, onModalShow, onModalHide]);
 
         if (!isVisible) {
             return null;
@@ -110,6 +128,11 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
         return children;
     };
 });
+
+jest.mock('@userActions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
 
 const mockVerifyAccountAndResume = jest.fn();
 
@@ -214,6 +237,11 @@ function createBankAccountList(accountNumber = '1234', type: string = CONST.BANK
 
 function createPersonalBankAccount(accountNumber = '5678'): BankAccountList {
     return createBankAccountList(accountNumber, CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+}
+
+// Fires the layout event the popover waits for before showing its modal, which never happens on its own in tests
+function showMeasuredPopover() {
+    fireEvent(screen.getByText(translateLocal('iou.payElsewhere', '')), 'layout', {nativeEvent: {layout: {width: 100, height: 100}}});
 }
 
 const defaultProps: SettlementButtonProps = {
@@ -373,6 +401,66 @@ describe('SettlementButton', () => {
             const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
             fireEvent.press(payButton);
             expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
+        });
+
+        it('loads the payment methods when the options open on an AUD policy', async () => {
+            // Given an expense report on an AUD policy, which can be paid via ABA
+            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+            const onPaymentOptionsShow = jest.fn();
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={expenseReport}
+                        onPaymentOptionsShow={onPaymentOptionsShow}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            showMeasuredPopover();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment methods are loaded so the ABA option can be shown, and the caller still hears that the options opened
+            expect(openPaymentMethods).toHaveBeenCalledTimes(1);
+            expect(onPaymentOptionsShow).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not load the payment methods when the options open on a non-AUD policy', async () => {
+            // Given an expense report on a USD policy, which can't be paid via ABA
+            const expenseReport = createExpenseReport();
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            showMeasuredPopover();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is loaded, since there's no ABA option to show
+            expect(openPaymentMethods).not.toHaveBeenCalled();
         });
 
         it('does not show wallet option for expense reports (subtitle shows bank account)', async () => {
