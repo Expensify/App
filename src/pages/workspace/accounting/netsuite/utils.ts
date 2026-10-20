@@ -112,6 +112,7 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
 }
 
 function getNonReimbursableNetSuiteExportDestinations(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
+    // Credit card charges must render first in the list, which relies on CREDIT_CARD_CHARGE being the first key in NETSUITE_EXPORT_DESTINATION
     const destinations = Object.values(CONST.NETSUITE_EXPORT_DESTINATION);
     if (isNetSuiteRestConnection(config, connection)) {
         return destinations;
