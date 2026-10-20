@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -127,4 +127,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     );
 }
 
-export default memo(ReportActionItemCreated);
+export default ReportActionItemCreated;

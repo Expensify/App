@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
@@ -88,15 +88,12 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         isDisabled: !draftPolicyID,
     };
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowSearchInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-        }),
-        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
-    );
+    const textInputOptions = {
+        label: shouldShowSearchInput ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+    };
 
     return (
         <ScreenWrapper

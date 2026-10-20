@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 
-import React, {memo, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 type SidebarLinksProps = {
@@ -119,4 +119,4 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     );
 }
 
-export default memo(SidebarLinks);
+export default SidebarLinks;
