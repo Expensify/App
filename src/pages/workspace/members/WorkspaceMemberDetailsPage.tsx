@@ -2,6 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -41,11 +43,13 @@ import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDe
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
+    arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
     hasActiveExpensifyCard,
     isControlPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -110,6 +114,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -168,6 +173,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberCards = workspaceCards
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
+
+    const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
+    const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
+    const memberBankNameKey = Object.values(CONST.BANK_NAMES).find((bankName) => bankName === memberBankAccount?.bankName?.toLowerCase());
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- the bank name can be an empty string
+    const memberBankName = memberBankNameKey ? CONST.BANK_NAMES_USER_FRIENDLY[memberBankNameKey] : memberBankAccount?.bankName || translate('common.bankAccount');
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -491,6 +502,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
+                                </>
+                            )}
+                            {!!memberBankAccount?.bankAccountLastFour && (
+                                <>
+                                    <View style={[styles.ph5, styles.pt3, styles.pb1]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('common.bankAccount')}
+                                        </Text>
+                                    </View>
+                                    <MenuItem.Root>
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <Icon
+                                                    src={memberBankIcon.icon}
+                                                    width={memberBankIcon.iconSize}
+                                                    height={memberBankIcon.iconSize}
+                                                    additionalStyles={memberBankIcon.iconStyles}
+                                                />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{memberBankName}</MenuItem.Title>
+                                                <MenuItem.Description>{memberBankAccount.bankAccountLastFour}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </>
                             )}
                         </View>

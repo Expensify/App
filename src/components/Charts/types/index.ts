@@ -28,8 +28,17 @@ type ChartDataPoint = {
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
+    /** Each series' name for the dates this point covers in its period, which names its row in the tooltip */
+    seriesLabels?: Partial<Record<string, string>>;
+
+    /** Each series' share of its own period's total spend, in percentage points, set when several series are compared */
+    seriesPercentOfTotal?: Partial<Record<string, number>>;
+
     /** Color of the point's bar or slice. Left out, the chart's default color. */
     color?: string;
+
+    /** Color of each series' bar at the point, keyed by the series' key. Left out, `color` for the first series and each other series' own color. */
+    seriesColors?: Partial<Record<string, string>>;
 
     /** Number of expenses in this point */
     count?: number;

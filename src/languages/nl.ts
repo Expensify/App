@@ -1176,7 +1176,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Bekijken in Uitgaven',
         emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
         noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
-        compare: {label: 'Vergelijken', previousPeriod: 'Vorige periode', average: 'Gemiddeld'},
+        compare: {
+            label: 'Vergelijken',
+            previousPeriod: 'Vorige periode',
+            average: 'Gemiddeld',
+            dayLabel: (day?: number) => (day === undefined ? 'Dag' : `Dag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Maand' : `Maand ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartaal' : `Kwartaal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jaar' : `Jaar ${year}`),
+            increase: (percentage: string) => `Gestegen met ${percentage}`,
+            decrease: (percentage: string) => `Gedaald met ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2178,6 +2189,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de betaling is voltooid${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` vóór ${eta}` : ` ${eta}`;
+                }
+                return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2821,7 +2844,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Wereldwijde terugbetalingen instellen?', subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.', getStarted: 'Aan de slag'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Wereldwijde terugbetalingen instellen?',
+            subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
+            getStarted: 'Aan de slag',
+            headerTitle: 'Wereldwijde terugbetalingen',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
@@ -5101,6 +5130,7 @@ ${amount} voor ${merchant} - ${date}`,
             editPerDiemRates: 'Dagvergoedingen bewerken',
             editDestinationSubtitle: (destination: string) => `Als je deze bestemming bijwerkt, wordt deze gewijzigd voor alle per diem-deeltarieven van ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Als u deze valuta bijwerkt, wordt deze gewijzigd voor alle ${destination} daggeldsubtarieven.`,
+            missingPerDiemUnit: 'Per diem is niet goed ingesteld in deze workspace. Neem contact op met Concierge voor hulp.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Stel in hoe contante uitgaven worden geëxporteerd naar QuickBooks Desktop.',
@@ -8768,6 +8798,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
                     unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
                     multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
+                    categoryHasRule: 'Deze categorie heeft al een regel. Bewerk de bestaande regel of beschrijf een regel voor een andere categorie.',
                 },
             },
             expenseDefaultsTable: {
@@ -10420,6 +10451,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `heeft ${fieldName} gewijzigd in „${newValue}” (voorheen „${oldValue}”)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `stel ${fieldName} in op "${newValue}"`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `heeft ${fieldName} verwijderd (voorheen „${oldValue}”)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `heeft de werkruimte${fromPolicyName ? `(voorheen ${fromPolicyName})` : ''} gewijzigd`;

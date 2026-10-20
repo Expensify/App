@@ -1311,6 +1311,13 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
+            increase: (percentage: string) => `Up ${percentage}`,
+            decrease: (percentage: string) => `Down ${percentage}`,
         },
         emptyState: {
             title: 'Nothing to show',
@@ -2334,6 +2341,19 @@ const translations = {
 
                 return `Waiting for payment to complete${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
+                }
+
+                return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2901,9 +2921,14 @@ const translations = {
         nickname: 'Nickname',
         editNicknameInstruction: 'Give the bank account a nickname that sets it apart from others.',
         wiseGlobalReimbursementsIntro: {
+            headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
             getStarted: 'Get started',
+        },
+        wiseGlobalReimbursementsBanner: {
+            title: 'Pay people worldwide',
+            subtitle: 'Enable global reimbursements on your USD account.',
         },
         deleteCard: 'Delete card',
         deleteCardConfirmation:
@@ -5321,6 +5346,7 @@ const translations = {
             editPerDiemRates: 'Edit per diem rates',
             editDestinationSubtitle: (destination: string) => `Updating this destination will change it for all ${destination} per diem subrates.`,
             editCurrencySubtitle: (destination: string) => `Updating this currency will change it for all ${destination} per diem subrates.`,
+            missingPerDiemUnit: "Per diem isn't set up correctly on this workspace. Please reach out to Concierge for help.",
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -9171,6 +9197,7 @@ const translations = {
                     unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                    categoryHasRule: 'That category already has a rule. Edit the existing rule or describe a rule for another category.',
                 },
             },
             expenseDefaultsTable: {
@@ -10741,6 +10768,7 @@ const translations = {
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `set ${fieldName} to "${newValue}"`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `removed ${fieldName} (previously "${oldValue}")`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;

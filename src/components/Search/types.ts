@@ -482,8 +482,8 @@ type SearchChartDataRow = {
     /** The point plotted on the chart */
     point: ChartDataPoint;
 
-    /** The grouped search result the point was built from */
-    item: GroupedItem;
+    /** The grouped search result the point was built from, left out for a point only the compared period has */
+    item?: GroupedItem;
 };
 
 type SearchFilterCommonProps<T> = {

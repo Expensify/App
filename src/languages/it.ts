@@ -1177,7 +1177,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Visualizza in Spese',
         emptyState: {title: 'Niente da mostrare', subtitle: 'Prova a modificare i criteri qui sopra'},
         noExpensesState: {title: 'Scopri dove va il tuo denaro', subtitle: 'Una volta che avrai delle spese, troverai tendenze di spesa, principali esercenti e altro ancora.'},
-        compare: {label: 'Confronta', previousPeriod: 'Periodo precedente', average: 'Media'},
+        compare: {
+            label: 'Confronta',
+            previousPeriod: 'Periodo precedente',
+            average: 'Media',
+            dayLabel: (day?: number) => (day === undefined ? 'Giorno' : `Giorno ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Settimana' : `Settimana ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mese' : `Mese ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Anno' : `Anno ${year}`),
+            increase: (percentage: string) => `In aumento del ${percentage}`,
+            decrease: (percentage: string) => `In calo del ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2180,6 +2191,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `In attesa che il pagamento venga completato${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` entro le ${eta}` : ` ${eta}`;
+                }
+                return `In attesa che il pagamento annullato completi l'elaborazione${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2817,7 +2840,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Configurare i rimborsi globali?', subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.', getStarted: 'Inizia'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurare i rimborsi globali?',
+            subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',
+            getStarted: 'Inizia',
+            headerTitle: 'Rimborsi globali',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
@@ -5101,6 +5130,7 @@ ${amount} per ${merchant} - ${date}`,
             editPerDiemRates: 'Modifica le tariffe di diaria',
             editDestinationSubtitle: (destination: string) => `L’aggiornamento di questa destinazione la modificherà per tutte le sottotariffe di diaria ${destination}.`,
             editCurrencySubtitle: (destination: string) => `L’aggiornamento di questa valuta la modificherà per tutte le sottotariffe di diaria ${destination}.`,
+            missingPerDiemUnit: 'Il per diem non è configurato correttamente in questo workspace. Contatta Concierge per ricevere aiuto.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Imposta come esportare le spese anticipate in QuickBooks Desktop.',
@@ -8794,6 +8824,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     unsupported: 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
                     unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
                     multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
+                    categoryHasRule: "Questa categoria ha già una regola. Modifica la regola esistente o descrivi una regola per un'altra categoria.",
                 },
             },
             expenseDefaultsTable: {
@@ -10453,6 +10484,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `ha modificato ${fieldName} in "${newValue}" (in precedenza "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `imposta ${fieldName} su "${newValue}"`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `ha rimosso ${fieldName} (in precedenza "${oldValue}")`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ha modificato il workspace${fromPolicyName ? `(precedentemente ${fromPolicyName})` : ''}`;

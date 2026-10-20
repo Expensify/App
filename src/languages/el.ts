@@ -1224,7 +1224,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Προβολή στο Spend',
         emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
         noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
-        compare: {label: 'Σύγκριση', previousPeriod: 'Προηγούμενη περίοδος', average: 'Μέσος όρος'},
+        compare: {
+            label: 'Σύγκριση',
+            previousPeriod: 'Προηγούμενη περίοδος',
+            average: 'Μέσος όρος',
+            dayLabel: (day?: number) => (day === undefined ? 'Ημέρα' : `Ημέρα ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Εβδομάδα' : `Εβδομάδα ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Μήνας' : `Μήνας ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Τρίμηνο' : `Τρίμηνο ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Έτος' : `Έτος ${year}`),
+            increase: (percentage: string) => `Αύξηση ${percentage}`,
+            decrease: (percentage: string) => `Μείωση ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2234,6 +2245,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Αναμονή για την ολοκλήρωση της πληρωμής${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` έως ${eta}` : ` ${eta}`;
+                }
+                return `Αναμονή για την ολοκλήρωση της επεξεργασίας της ακυρωμένης πληρωμής${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2884,7 +2907,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;', subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.', getStarted: 'Ξεκινήστε'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
+            subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
+            getStarted: 'Ξεκινήστε',
+            headerTitle: 'Παγκόσμιες αποζημιώσεις',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -5206,6 +5235,7 @@ ${amount} για ${merchant} - ${date}`,
                         : 'Αυτός ο χώρος εργασίας δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.',
                 adminSubtitle: 'Προσθέστε ημερήσια επιδόματα για να οργανώσετε τις δαπάνες σας.',
             },
+            missingPerDiemUnit: 'Το ημερήσιο επίδομα δεν έχει ρυθμιστεί σωστά σε αυτόν τον χώρο εργασίας. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο QuickBooks Desktop.',
@@ -8937,6 +8967,7 @@ ${reportName}`,
                     unsupported: 'Αυτός ο κανόνας δεν υποστηρίζεται ακόμη — το δουλεύουμε. Δοκιμάστε προς το παρόν έναν διαφορετικό κανόνα.',
                     unintelligible: 'Δοκιμάστε να διατυπώσετε τον κανόνα σας έτσι: αν οι δαπάνες ξεπερνούν τα 100 $, να απαιτείται απόδειξη.',
                     multipleRules: 'Έναν κανόνα τη φορά — δοκιμάστε να περιγράψετε έναν μόνο κανόνα, π.χ.: αποκλεισμός αγορών λιανικής σε όλες τις κάρτες.',
+                    categoryHasRule: 'Αυτή η κατηγορία έχει ήδη κανόνα. Επεξεργαστείτε τον υπάρχοντα κανόνα ή περιγράψτε έναν κανόνα για άλλη κατηγορία.',
                 },
             },
             expenseDefaultsTable: {
@@ -10702,6 +10733,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue, newValue, fieldName) => `άλλαξε το ${fieldName} σε «${newValue}» (προηγουμένως «${oldValue}»)`,
                 changeFieldEmpty: (newValue, fieldName) => `ορίστε το ${fieldName} σε «${newValue}»`,
+                changeFieldRemoved: (oldValue, fieldName) => `αφαίρεσε το ${fieldName} (προηγουμένως «${oldValue}»)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `άλλαξε τον χώρο εργασίας${fromPolicyName ? `(προηγουμένως ${fromPolicyName})` : ''}`;

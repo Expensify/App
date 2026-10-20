@@ -24,6 +24,7 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
     ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+    ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
     ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED,
     // Holds SSNs and bank account numbers
     ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
@@ -153,6 +154,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     [ONYXKEYS.COLLECTION.POLICY_VENDORS]: {
         allowList: ['externalID', 'enabled', 'origin'],
         maskList: ['name'],
+    },
+    // These are other members' bank details, so mask them in exports.
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: {
+        allowList: [],
+        maskList: ['bankName', 'bankAccountLastFour'],
     },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
@@ -444,6 +450,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT,
+    ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT,
     ONYXKEYS.CONCIERGE_PROMPT_DRAFT,
     ONYXKEYS.CORPAY_FIELDS,
     ONYXKEYS.CORPAY_ONBOARDING_FIELDS,
@@ -554,6 +561,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.WALLET_STATEMENT,
     ONYXKEYS.WALLET_TERMS,
     ONYXKEYS.WALLET_TRANSFER,
+    ONYXKEYS.WISE_KYC_REQUIREMENTS,
 ]);
 
 // ============================================================
