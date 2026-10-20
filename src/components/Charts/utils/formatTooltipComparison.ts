@@ -75,7 +75,7 @@ function formatTooltipComparison(
     const [{key: primarySeriesKey}, comparedSeries] = series;
     const primaryValue = dataPoint.values[primarySeriesKey];
     const comparedValue = comparedSeries && dataPoint.values[comparedSeries.key];
-    if (primaryValue === undefined || !comparedSeries || (comparedValue === undefined && !dataPoint.seriesLabels)) {
+    if (!comparedSeries || (primaryValue === undefined && comparedValue === undefined) || (comparedValue === undefined && !dataPoint.seriesLabels)) {
         return undefined;
     }
 
@@ -94,7 +94,7 @@ function formatTooltipComparison(
         };
     });
 
-    return {rows, change: comparedValue === undefined ? undefined : formatChange(primaryValue, comparedValue, formatAmount, locale)};
+    return {rows, change: primaryValue === undefined || comparedValue === undefined ? undefined : formatChange(primaryValue, comparedValue, formatAmount, locale)};
 }
 
 export default formatTooltipComparison;

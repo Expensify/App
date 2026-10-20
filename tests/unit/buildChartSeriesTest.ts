@@ -502,9 +502,12 @@ describe('buildChartSeries with a compared period', () => {
         // When the two periods are plotted against each other
         const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER);
 
-        // Then Q1 meets Q1 and Q3 meets Q3, rather than Q3 sliding onto Q2
-        expect(model.rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 100});
-        expect(model.rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300});
+        // Then Q1 meets Q1 and Q3 meets Q3, rather than Q3 sliding onto Q2, and last year's Q2 still shows between them
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 100},
+            {[CHART_SERIES_KEY.COMPARISON]: 200},
+            {[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300},
+        ]);
     });
 });
 
@@ -640,6 +643,49 @@ describe('buildChartSeries labels for compared time buckets', () => {
 
         // Then October 1 is compared with August 31, the first day of each range, rather than with September 1
         expect(rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 500});
+    });
+
+    /** Builds a chart plotting the window on screen by day against the one before it. */
+    function buildDays(days: string[], comparedDays: string[], periods: ChartComparisonPeriods) {
+        return buildChartSeries({
+            data: days.map(dayGroup),
+            comparison: {data: comparedDays.map(dayGroup), color: themeColors.green200, periods},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+        }).rows;
+    }
+
+    it('adds the compared days the current period has no day for after its own days', () => {
+        // Given February plotted by day against January, whose 29th to 31st have no February day to pair with
+        const rows = buildDays(['2026-02-27', '2026-02-28'], ['2026-01-27', '2026-01-28', '2026-01-29', '2026-01-30', '2026-01-31'], {
+            primary: {start: '2026-02-01', end: '2026-02-28'},
+            comparison: {start: '2026-01-01', end: '2026-01-31'},
+            monthsApart: 1,
+        });
+
+        // Then January's last three days follow February's, carrying only January's spend, named like the days beside them, and with no group to open
+        expect(rows.map((row) => row.point.label)).toEqual(['27th', '28th', '29th', '30th', '31st']);
+        expect(rows.slice(2).map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.COMPARISON]: 1000}, {[CHART_SERIES_KEY.COMPARISON]: 1000}, {[CHART_SERIES_KEY.COMPARISON]: 1000}]);
+        expect(rows.at(2)?.point.seriesLabels).toEqual({[CHART_SERIES_KEY.COMPARISON]: 'January 2026'});
+        expect(rows.at(2)?.item).toBeUndefined();
+    });
+
+    it('places a compared day the current period has no day for between the days around it', () => {
+        // Given 2029 so far plotted by day against 2028, whose February 29 has no 2029 day to pair with
+        const rows = buildDays(['2029-02-28', '2029-03-01'], ['2028-02-28', '2028-02-29', '2028-03-01'], {
+            primary: {start: '2029-01-01', end: '2029-03-01'},
+            comparison: {start: '2028-01-01', end: '2028-03-01'},
+            monthsApart: 12,
+        });
+
+        // Then February 29 sits between February 28 and March 1, so the compared line keeps its date order
+        expect(rows.map((row) => row.point.label)).toEqual(['Feb 28', 'Feb 29', 'Mar 1']);
+        expect(rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.COMPARISON]: 1000});
     });
 
     /** Builds the dates the tooltip shows for each period at every point. */

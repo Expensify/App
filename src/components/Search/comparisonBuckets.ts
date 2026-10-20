@@ -221,5 +221,39 @@ function getComparedBucketLabels(
     return {label: positionLabel, shortLabel: positionLabel, seriesLabels};
 }
 
-export {formatDates, getComparedBucketLabels, getCounterpartBucketRange, isTimeGroupBy};
-export type {ChartComparisonPeriods, ChartPeriod};
+/** Returns the date in the current period a compared bucket lines up with, the counterpart lookup in reverse, so the two can be sorted together */
+function getPositionInPrimaryPeriod(range: ChartBucketRange, periods: ChartComparisonPeriods, groupBy: TimeGroupBy): string {
+    const bucketStart = parseISO(range.start);
+    const position =
+        groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined
+            ? addMonths(bucketStart, periods.monthsApart)
+            : BUCKET_ADD[groupBy](parseISO(periods.primary.start), BUCKET_OFFSET[groupBy](bucketStart, parseISO(periods.comparison.start)));
+    return format(position, CONST.DATE.FNS_FORMAT_STRING);
+}
+
+/**
+ * Returns the labels of a compared bucket no current bucket pairs with, named like the current buckets beside it:
+ * by calendar name when they have one, like "29th", or else by position in the compared period, like "Week 6".
+ */
+function getUnpairedBucketLabels(
+    range: ChartBucketRange,
+    periods: ChartComparisonPeriods,
+    groupBy: TimeGroupBy,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'],
+) {
+    const bucketDate = parseISO(range.start);
+    const patterns = getCalendarNamePatterns(groupBy, parseISO(periods.primary.start), parseISO(periods.primary.end));
+    if (patterns) {
+        return {
+            label: format(bucketDate, patterns.label, {locale: dateFnsLocale}),
+            shortLabel: format(bucketDate, patterns.shortLabel, {locale: dateFnsLocale}),
+            seriesLabel: format(bucketDate, patterns.seriesLabel, {locale: dateFnsLocale}),
+        };
+    }
+    const positionLabel = translate(BUCKET_LABEL[groupBy], BUCKET_OFFSET[groupBy](bucketDate, parseISO(periods.comparison.start)) + 1);
+    return {label: positionLabel, shortLabel: positionLabel, seriesLabel: formatDates(clipToPeriod(range, periods.comparison), dateFnsLocale)};
+}
+
+export {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy};
+export type {ChartComparisonPeriods, ChartPeriod, TimeGroupBy};

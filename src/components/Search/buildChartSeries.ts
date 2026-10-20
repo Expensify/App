@@ -13,11 +13,12 @@ import CONST from '@src/CONST';
 
 import type {NonEmptyTuple} from 'type-fest';
 
-import type {ChartComparisonPeriods, ChartPeriod} from './comparisonBuckets';
+import type {ChartBucketRange} from './chartGroupByConfig';
+import type {ChartComparisonPeriods, ChartPeriod, TimeGroupBy} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, isTimeGroupBy} from './comparisonBuckets';
+import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
@@ -128,6 +129,8 @@ function buildChartSeries({
                 value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
                 percentOfTotal: comparedItem?.percentOfTotal,
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
+                counterpartStart: counterpartRange?.start,
+                sortDate: bucketRange.start,
             };
         }
 
@@ -137,7 +140,7 @@ function buildChartSeries({
         return {value: comparedItem ? getAmount(comparedItem) : missingValue, percentOfTotal: comparedItem?.percentOfTotal};
     };
 
-    const rows = data.map((item) => {
+    const pairedRows = data.map((item) => {
         const label = StringUtils.normalize(getLabel(item));
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
@@ -165,8 +168,41 @@ function buildChartSeries({
             isInProgress,
         };
 
-        return {point, item};
+        return {row: {point, item}, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
     });
+
+    /** Builds a point for a compared bucket no current bucket pairs with, like January 31 against February, which only the compared line reaches */
+    const buildUnpairedRow = (comparedItem: GroupedItem, range: ChartBucketRange, comparisonPeriods: ChartComparisonPeriods, timeGroupBy: TimeGroupBy) => {
+        const bucketLabels = getUnpairedBucketLabels(range, comparisonPeriods, timeGroupBy, translate, dateFnsLocale);
+        const point: ChartDataPoint = {
+            label: bucketLabels.label,
+            shortLabel: bucketLabels.shortLabel,
+            values: {[CHART_SERIES_KEY.COMPARISON]: getAmount(comparedItem)},
+            seriesLabels: {[CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabel},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: comparedItem.percentOfTotal},
+            isInProgress: false,
+        };
+        return {row: {point}, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
+    };
+
+    const pairedStarts = new Set(pairedRows.map((pairedRow) => pairedRow.counterpartStart));
+    const unpairedRows =
+        comparison && periods && isTimeGroupBy(groupBy)
+            ? comparison.data.flatMap((comparedItem) => {
+                  const range = getDateRange?.(comparedItem);
+                  return range && !pairedStarts.has(range.start) ? buildUnpairedRow(comparedItem, range, periods, groupBy) : [];
+              })
+            : [];
+
+    // Sorted by where each bucket sits in the current period. Stable, so a current bucket stays ahead of a compared one sharing its date.
+    const rows: SearchChartDataRow[] = [...pairedRows, ...unpairedRows]
+        .sort((first, second) => {
+            if (first.sortDate === second.sortDate) {
+                return 0;
+            }
+            return first.sortDate < second.sortDate ? -1 : 1;
+        })
+        .map(({row}) => row);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 

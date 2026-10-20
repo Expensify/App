@@ -108,6 +108,21 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: 'Oct 31, 2026', amount: '$300', percentage: undefined}], change: undefined});
     });
 
+    it('lists only the previous period where the current period has no bucket', () => {
+        // Given January 31 plotted against February, which has no 31st
+        const point: ChartDataPoint = {
+            label: '31st',
+            values: {[CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesLabels: {[CHART_SERIES_KEY.COMPARISON]: 'January 2026'},
+        };
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then only January's amount is listed, named by its month, with no change to show
+        expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'January 2026', amount: '$100', percentage: undefined}], change: undefined});
+    });
+
     it('shows how much the primary series grew against the compared one', () => {
         // Given April spend three times the average
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100}};
