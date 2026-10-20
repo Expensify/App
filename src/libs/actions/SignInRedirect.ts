@@ -20,6 +20,7 @@ let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentCredentialsValidateCode: string | undefined;
+let lastAuthTokenWrittenAt = 0;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -38,6 +39,9 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        if (session?.authToken && session.authToken !== currentSessionAuthToken) {
+            lastAuthTokenWrittenAt = Date.now();
+        }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
     },
@@ -107,7 +111,19 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
     }
 
+    const clearStartedAt = Date.now();
+    const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
+        if (lastAuthTokenWrittenAt > clearStartedAt) {
+            Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
+                signOutReason,
+                clearDurationMs: Date.now() - clearStartedAt,
+                newSessionMs: Date.now() - lastAuthTokenWrittenAt,
+                isNewSessionWiped: !currentSessionAuthToken,
+                emailAtClearStart,
+            });
+        }
+
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
 
