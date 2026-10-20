@@ -11,7 +11,8 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
         when(intent.action) {
              Intent.ACTION_SEND -> {
                  saveSharedFile(intent, context, shouldLaunchActivity)
-                 // Open the Share screen even if persisting the attachment fails so it can display an error instead of silently discarding the share.
+                 // Expected persistence failures return from saveSharedFile(), allowing the warm-start Share screen to display an attachment error.
+                 // Cold starts use new-expensify://share/root as the activity's initial URL instead.
                  if (shouldLaunchActivity) {
                      onCompleted()
                  }
