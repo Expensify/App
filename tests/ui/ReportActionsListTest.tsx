@@ -1,6 +1,5 @@
 import {render, screen, waitFor} from '@testing-library/react-native';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
@@ -51,10 +50,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
-jest.mock('@hooks/useConciergeAskState', () => ({
-    __esModule: true,
-    default: jest.fn(jest.requireActual<{default: typeof useConciergeAskState}>('@hooks/useConciergeAskState').default),
-}));
 jest.mock('@pages/inbox/report/AskConciergeWelcome', () => {
     const {View} = jest.requireActual<typeof ReactNative>('react-native');
     return () => <View testID="AskConciergeWelcome" />;
@@ -292,7 +287,6 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useConciergeAskState).mockImplementation(jest.requireActual<{default: typeof useConciergeAskState}>('@hooks/useConciergeAskState').default);
         mockUseIsReportLoadPending.mockReturnValue(false);
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -1134,6 +1128,10 @@ describe('ReportActionsList (body)', () => {
                 if (key.includes('reportLoadingState')) {
                     return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}` && options?.selector) {
+                    const reportActions = Object.fromEntries(oldReportActions.map((action) => [action.reportActionID, action]));
+                    return [(options.selector as (actions: OnyxTypes.ReportActions) => unknown)(reportActions), {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
                 }
@@ -1148,13 +1146,8 @@ describe('ReportActionsList (body)', () => {
         };
 
         it('should show the welcome screen in place of the conversation by default', () => {
-            // Given the main Concierge chat with its history collapsed
+            // Given the main Concierge chat where the user asked before, with its history collapsed
             setupMainDMConciergeMocks();
-            jest.mocked(useConciergeAskState).mockReturnValue({
-                isHistoryExpanded: false,
-                shouldShowWelcome: true,
-                shouldCenterWelcomeWithComposer: true,
-            });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
