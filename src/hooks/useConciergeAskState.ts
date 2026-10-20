@@ -54,36 +54,37 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    // A task the user still has to finish keeps the chat on screen.
-    const hasOpenTaskSelector = (actions: OnyxEntry<ReportActions>) => !!actions && Object.values(actions).some((action) => isOpenChildTaskAction(action, currentUserAccountID));
-    const [hasOpenTask] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasOpenTaskSelector,
-    });
+    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel;
 
-    // `View chat history` only appears once the user has messaged Concierge, so earlier messages without one stay on screen.
-    const hasHistoryWithoutUserMessageSelector = (actions: OnyxEntry<ReportActions>) => {
-        if (!actions) {
+    // Other reports skip the scan.
+    const shouldKeepMessagesOnScreenSelector = (actions: OnyxEntry<ReportActions>) => {
+        if (!isAskConciergeChat || !actions) {
             return false;
         }
         const allActions = Object.values(actions);
+
+        // A task the user still has to finish stays on screen.
+        if (allActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID))) {
+            return true;
+        }
 
         // Until the chat's first action is loaded, the user's earlier messages may be on an older page.
         if (!allActions.some((action) => isCreatedAction(action))) {
             return false;
         }
+
+        // `View chat history` only appears once the user has messaged Concierge, so earlier messages without one stay on screen.
         const messages = allActions.filter((action) => !isCreatedAction(action));
         return messages.length > 0 && !messages.some((action) => action.actorAccountID === currentUserAccountID);
     };
-    const [hasHistoryWithoutUserMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasHistoryWithoutUserMessageSelector,
+    const [shouldKeepMessagesOnScreen] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: shouldKeepMessagesOnScreenSelector,
     });
-
-    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel;
 
     // A linked action opens the report at that message, so the earlier conversation is on screen either way.
     const isHistoryExpanded = showFullHistory || !!route.params?.reportActionID;
 
-    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && !hasOpenTask && !hasHistoryWithoutUserMessage;
+    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && !shouldKeepMessagesOnScreen;
 
     return {
         isAskConciergeChat,
