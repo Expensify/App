@@ -167,7 +167,9 @@ function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEnt
             return created > newestCreated ? accountData : newest;
         }
         // Accounts created in the same second fall back to the ID, which grows with each new account
-        return (accountData.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > (newest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) ? accountData : newest;
+        const accountID = accountData.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const newestAccountID = newest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        return accountID > newestAccountID ? accountData : newest;
     }, undefined);
 
     return newestAccount?.bankAccountID;
