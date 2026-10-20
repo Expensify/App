@@ -799,8 +799,6 @@ function MoneyRequestView({
     }
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
     const isTransactionOnReport = !!moneyRequestReport?.reportID && transaction?.reportID === moneyRequestReport.reportID;
-    // Flag non-reimbursable expenses on any report so single- and multi-expense reports stay consistent.
-    // "Reimbursable" is only shown for single-expense reports, where it replaces the hidden report-level breakdown.
     if (isTransactionOnReport && !isCurrentTransactionReimbursable) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
     } else if (isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
