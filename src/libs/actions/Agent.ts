@@ -21,6 +21,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -190,7 +191,7 @@ function createCompanyAgent(
     currentUserLogin: string | undefined,
     prompt: string,
     policy: Policy,
-    role: string,
+    role: ValueOf<typeof CONST.POLICY.ROLE>,
     firstName?: string,
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
