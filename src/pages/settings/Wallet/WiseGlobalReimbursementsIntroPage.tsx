@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -69,19 +70,26 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     <Header.BackButton onPress={goBackToWallet} />
                     <Header.Title title={translate('common.enableGlobalReimbursements')} />
                 </Header>
-                <ConfirmationPage
-                    illustration={illustrations.EarthWithCoins}
-                    illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
-                    heading={translate('walletPage.wiseGlobalReimbursementsIntro.title')}
-                    description={translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}
-                    descriptionStyle={styles.textSupporting}
-                    shouldShowSecondaryButton
-                    secondaryButtonText={translate('common.notNow')}
-                    onSecondaryButtonPress={goBackToWallet}
-                    shouldShowButton
-                    buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                    onButtonPress={() => {}}
-                />
+                <ConfirmationPage>
+                    <ConfirmationPage.Content>
+                        <ConfirmationPage.Illustration
+                            illustration={illustrations.EarthWithCoins}
+                            illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
+                        />
+                        <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
+                        <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}</ConfirmationPage.Description>
+                    </ConfirmationPage.Content>
+                    <FixedFooter>
+                        <ConfirmationPage.SecondaryButton
+                            text={translate('common.notNow')}
+                            onPress={goBackToWallet}
+                        />
+                        <ConfirmationPage.PrimaryButton
+                            text={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
+                            onPress={() => {}}
+                        />
+                    </FixedFooter>
+                </ConfirmationPage>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
