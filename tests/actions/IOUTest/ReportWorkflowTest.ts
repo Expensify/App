@@ -5506,20 +5506,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // When we get the chat's badge action, passing violations the same way the reportAttributes derived value does
-            const result = getIOUReportActionWithBadge(
-                fakeChatReport,
-                fakePolicy,
-                {},
-                undefined,
-                RORY_EMAIL,
-                RORY_ACCOUNT_ID,
-                mockChatReportActions,
-                {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
-                },
-                undefined,
-                undefined,
-            );
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
+            });
 
             // Then no report action gets a badge, since SUBMIT was the only candidate
             expect(result.reportAction).toBeUndefined();
