@@ -18,6 +18,7 @@ import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {walletDebugCapture, walletDebugLog} from '@libs/Wallet/walletDebugLog';
 
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
@@ -67,9 +68,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
     const actionControllerRef = useRef<AbortController | undefined>(undefined);
+    const debugProcessRunCountRef = useRef(0);
+    const debugAuthorizeCountRef = useRef(0);
 
     useEffect(
         () => () => {
+            walletDebugLog('MFA scenario-change cleanup', false, {hadActionController: !!actionControllerRef.current});
             actionControllerRef.current?.abort();
             actionControllerRef.current = undefined;
         },
@@ -193,6 +197,23 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             isFlowComplete,
         } = state;
 
+        debugProcessRunCountRef.current++;
+        walletDebugLog('MFA process run', false, {
+            debugProcessRunID: debugProcessRunCountRef.current,
+            hasScenario: !!scenario,
+            errorReason: error?.reason,
+            hasContinuableError: !!continuableError,
+            hasValidateCode: !!validateCode,
+            hasRegistrationChallenge: !!registrationChallenge,
+            hasAuthorizationChallenge: !!authorizationChallenge,
+            softPromptApproved,
+            isRegistrationComplete,
+            isAuthorizationComplete,
+            isFlowComplete,
+            isOffline,
+            hadActionController: !!actionControllerRef.current,
+        });
+
         // 0. Check if one of the early exit conditions applies:
         // - Flow is already complete,
         // - User is offline,
@@ -215,6 +236,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             addMFABreadcrumb('Flow error', error, 'error');
+            const flowErrorParams = {reason: error.reason, message: error.message, hadActionController: !!actionControllerRef.current};
+            walletDebugLog('MFA flow error', true, flowErrorParams);
+            walletDebugCapture(`MFA flow error: ${error.reason}`, flowErrorParams);
             handleCallback(false);
             return;
         }
@@ -335,11 +359,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
+            debugAuthorizeCountRef.current++;
+            const debugAuthorizeID = debugAuthorizeCountRef.current;
+            walletDebugLog('MFA authorize start', false, {debugAuthorizeID, hadActionController: !!actionControllerRef.current});
             await biometrics.authorize(
                 {
                     challenge: authorizationChallenge,
                 },
                 async (result: AuthorizeResult) => {
+                    walletDebugLog('MFA authorize result', false, {
+                        debugAuthorizeID,
+                        success: result.success,
+                        reason: result.success ? undefined : result.error.reason,
+                        authMethod: result.success ? result.authenticationMethod.code : undefined,
+                    });
                     addMFABreadcrumb(
                         'Biometric authorization completed',
                         result.success ? {success: true, authMethod: result.authenticationMethod.code} : result.error,
@@ -368,6 +401,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                     // Call backend with signed challenge
                     const controller = new AbortController();
+                    walletDebugLog('MFA scenario action dispatch', false, {debugAuthorizeID, replacedActionController: !!actionControllerRef.current});
                     actionControllerRef.current = controller;
                     const scenarioAPIResponse = await processScenarioAction(
                         scenario.action,
@@ -378,11 +412,26 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         },
                         {signal: controller.signal},
                     ).catch((scenarioActionError: unknown) => {
+                        walletDebugLog('MFA scenario action rejected', true, {
+                            debugAuthorizeID,
+                            isAborted: controller.signal.aborted,
+                            isCurrentController: actionControllerRef.current === controller,
+                            errorMessage: getErrorMessage(scenarioActionError),
+                        });
                         if (controller.signal.aborted || actionControllerRef.current !== controller) {
                             return undefined;
                         }
                         actionControllerRef.current = undefined;
                         throw scenarioActionError;
+                    });
+
+                    walletDebugLog('MFA scenario action returned', true, {
+                        debugAuthorizeID,
+                        hasResponse: !!scenarioAPIResponse,
+                        success: scenarioAPIResponse?.success,
+                        reason: scenarioAPIResponse?.success ? scenarioAPIResponse.reason : scenarioAPIResponse?.error.reason,
+                        isAborted: controller.signal.aborted,
+                        isCurrentController: actionControllerRef.current === controller,
                     });
 
                     // A canceled action can finish after the next flow has already started.
@@ -493,6 +542,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // latest state and drops the duplicate). This check exists only as a perf short-circuit
             // so the second tap doesn't pay for an extra captureCredentialsState() native call
             // and Sentry breadcrumb on the happy path.
+            walletDebugLog('MFA executeScenario called', false, {scenario, isAlreadyRunning: !!state.scenario, hadActionController: !!actionControllerRef.current});
             if (state.scenario) {
                 return;
             }
@@ -531,6 +581,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
+        walletDebugLog('MFA cancel', false, {hasScenario: !!state.scenario, hadActionController: !!actionControllerRef.current});
         actionControllerRef.current?.abort();
         if (!state.scenario || isOffline) {
             addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');

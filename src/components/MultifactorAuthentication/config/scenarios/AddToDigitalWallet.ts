@@ -5,6 +5,7 @@ import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet';
+import {walletDebugLog} from '@libs/Wallet/walletDebugLog';
 import WalletProvisioningError from '@libs/Wallet/WalletProvisioningError';
 
 import CONST from '@src/CONST';
@@ -20,11 +21,19 @@ type Payload = {
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM],
     action: async ({card, cardHolderName, cardDescription, signedChallenge, authenticationMethod}, context) => {
+        walletDebugLog('scenario action start', false, {
+            cardID: card.cardID,
+            hasSignedChallenge: !!signedChallenge,
+            authenticationMethod,
+            hasContext: !!context,
+            isAborted: !!context?.signal.aborted,
+        });
         try {
             const status = await handleAddCardToWallet(card, cardHolderName, cardDescription, {
                 authentication: {signedChallenge, authenticationMethod},
                 signal: context?.signal,
             });
+            walletDebugLog('scenario action got status', false, {cardID: card.cardID, status: String(status), statusType: typeof status, isAborted: !!context?.signal.aborted});
             if (status === 'success' && !context?.signal.aborted) {
                 return {httpStatusCode: 200, reason: undefined, message: undefined};
             }
@@ -37,6 +46,13 @@ export default {
                 message: undefined,
             };
         } catch (error) {
+            walletDebugLog('scenario action caught', false, {
+                cardID: card.cardID,
+                isProvisioningError: error instanceof WalletProvisioningError,
+                reason: error instanceof WalletProvisioningError ? error.response.reason : undefined,
+                errorType: error instanceof Error ? error.name : typeof error,
+                isAborted: !!context?.signal.aborted,
+            });
             if (error instanceof WalletProvisioningError) {
                 return error.response;
             }

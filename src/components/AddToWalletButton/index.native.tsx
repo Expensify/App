@@ -9,6 +9,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet/index';
+import {walletDebugLog} from '@libs/Wallet/walletDebugLog';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +33,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
     const handleOnPress = () => {
+        walletDebugLog('Add to wallet pressed', false, {cardID: card.cardID, isUkEuCard: isUkEuExpensifyCard(card), isLoading, isCardLoading});
         if (isUkEuExpensifyCard(card)) {
             executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, {card, cardHolderName, cardDescription});
             return;
