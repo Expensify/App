@@ -192,14 +192,12 @@ type BulkActionStatusModalProps = {
     /** The bulk action ID to subscribe to */
     bulkActionID: string;
 
-    isVisible: boolean;
-
     /** Callback when the modal is closed */
     onClose: () => void;
 };
 
 /** Shows the progress and result of a bulk action started from Search "Select all". */
-function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionStatusModalProps) {
+function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalProps) {
     const styles = useThemeStyles();
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -220,7 +218,7 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
 
     return (
         <Modal
-            isVisible={isVisible}
+            isVisible
             onClose={isRunning ? () => {} : onClose}
             onBackdropPress={isRunning ? () => {} : undefined}
             shouldTreatModalAsCovering

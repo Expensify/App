@@ -64,7 +64,6 @@ function BulkActionStatusManager() {
         <BulkActionStatusModal
             key={openBulkActionID}
             bulkActionID={openBulkActionID}
-            isVisible
             onClose={handleClose}
         />
     );
