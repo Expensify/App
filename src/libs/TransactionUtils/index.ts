@@ -60,7 +60,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
-import parseDistanceMerchant from './parseDistanceMerchant';
+import parseDistanceMerchant, {getDistanceMerchantPrefix} from './parseDistanceMerchant';
 // eslint-disable-next-line import/no-cycle
 import {
     calculateTaxAmount,
@@ -295,7 +295,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         Number.isFinite(storedReducedAmount) &&
         !!parsedReducedMerchant;
     function restoreSavedReducedValues(): OnyxEntry<Transaction> {
-        if (!transaction || !unit || typeof fullDistance !== 'number' || !canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
+        if (!transaction || !unit || !storedUnit || typeof fullDistance !== 'number' || !canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
             return transaction;
         }
 
@@ -313,7 +313,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
             amount: (storedReducedAmount ?? 0) < 0 ? -fullAmount : fullAmount,
             convertedAmount: undefined,
             modifiedAmount: undefined,
-            merchant: `${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${rateText}`,
+            merchant: `${getDistanceMerchantPrefix(fullDistance, storedUnit)}${rateText}`,
             modifiedMerchant: undefined,
         };
     }

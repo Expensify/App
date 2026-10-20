@@ -1,6 +1,10 @@
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 
+function getDistanceMerchantPrefix(distance: number, unit: Unit): string {
+    return `${distance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${unit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
+}
+
 /**
  * Compatibility parser for historical distance expenses without a structured rate snapshot.
  * Distance, unit, and currency must come from the transaction, not from the label or live policy.
@@ -24,7 +28,7 @@ function parseDistanceMerchant({
         return;
     }
 
-    const prefix = `${distance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${unit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
+    const prefix = getDistanceMerchantPrefix(distance, unit);
     if (!merchant?.startsWith(prefix)) {
         return;
     }
@@ -48,4 +52,5 @@ function parseDistanceMerchant({
     return {rateText, rate};
 }
 
+export {getDistanceMerchantPrefix};
 export default parseDistanceMerchant;

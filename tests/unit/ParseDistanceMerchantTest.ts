@@ -1,7 +1,7 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {getDistanceMerchantForTransaction} from '@libs/TransactionUtils/getUpdatedTransaction';
-import parseDistanceMerchant from '@libs/TransactionUtils/parseDistanceMerchant';
+import parseDistanceMerchant, {getDistanceMerchantPrefix} from '@libs/TransactionUtils/parseDistanceMerchant';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -41,7 +41,7 @@ describe('parseDistanceMerchant', () => {
 
             // Then the exact rate survives the formatter/parser boundary, including fractional and large rates
             expect(parsed?.rate).toBeCloseTo(rate, 8);
-            expect(`${distance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${unit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${parsed?.rateText}`).toBe(merchant);
+            expect(`${getDistanceMerchantPrefix(distance, unit)}${parsed?.rateText}`).toBe(merchant);
         });
     });
 
