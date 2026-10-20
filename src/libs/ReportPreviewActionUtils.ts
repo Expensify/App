@@ -27,6 +27,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
     hasSettledZeroReimbursableSpend,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -230,7 +231,7 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy, tr
     }
 
     if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
-        return isReimbursed || ((isApproved || isClosed) && hasOnlyNonReimbursableTransactions(report.reportID, transactions));
+        return isReimbursed || ((isApproved || isClosed) && isCardOnlyReport(report, transactions));
     }
 
     return isApproved || isReimbursed || isClosed;

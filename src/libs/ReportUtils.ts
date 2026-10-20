@@ -2939,6 +2939,18 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, tra
 }
 
 /**
+ * Whether a report is card-only (has non-reimbursable spend and nothing reimbursable). Prefers the per-transaction answer when
+ * expenses are loaded, and falls back to the stored report totals otherwise, matching the backend's "no reimbursable transaction" check.
+ */
+function isCardOnlyReport(report: OnyxEntry<Report>, transactionsParam?: Transaction[]): boolean {
+    if (transactionsParam && transactionsParam.length > 0) {
+        return hasOnlyNonReimbursableTransactions(report?.reportID, transactionsParam);
+    }
+
+    return getReimbursableTotal(report) === 0 && (report?.nonReimbursableTotal ?? 0) !== 0;
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
@@ -14151,13 +14163,12 @@ function getIntegrationIcon(
 }
 
 /**
- * Whether an export is already in flight. Reads both the cached actions and lastActionType, since cached actions can be
- * empty, stale or partial on a cold start or offline.
+ * Whether an export is already in flight, which the backend records as the report's latest action.
  */
-function isQueuedForExport(reportActions?: ReportAction[], report?: OnyxEntry<Report>): boolean {
+function isQueuedForExport(reportActions?: ReportAction[]): boolean {
     const latestAction = reportActions?.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
 
-    return latestAction?.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT || report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
+    return latestAction?.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
 }
 
 function canBeExported(report: OnyxEntry<Report>) {
@@ -15608,6 +15619,7 @@ export {
     hasExpensifyGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
     hasSettledZeroReimbursableSpend,
     isPayOptional,
     getReportLastMessage,

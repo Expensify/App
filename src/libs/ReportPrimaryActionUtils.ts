@@ -44,6 +44,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
     hasSettledZeroReimbursableSpend,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
@@ -338,7 +339,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     }
 
     // An export already in flight needs no second one, unless the last one failed
-    if (isQueuedForExportUtil(reportActions, report) && !hasExportError) {
+    if (isQueuedForExportUtil(reportActions) && !hasExportError) {
         return false;
     }
 
@@ -352,7 +353,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
 
     // Cash basis holds back only reimbursable spend, so a card-only approved or closed report can still export
     if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
-        return isReportReimbursed || ((isReportApproved || isReportClosed) && hasOnlyNonReimbursableTransactions(report.reportID, options?.reportTransactions));
+        return isReportReimbursed || ((isReportApproved || isReportClosed) && isCardOnlyReport(report, options?.reportTransactions));
     }
 
     if (isReportApproved || isReportReimbursed || isReportClosed) {
