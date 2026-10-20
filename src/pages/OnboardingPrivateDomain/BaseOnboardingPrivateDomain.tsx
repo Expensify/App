@@ -6,6 +6,7 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -73,6 +74,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const {joinWorkspaceMessages} = useOnboardingMessages();
     const {isBetaEnabled} = usePermissions();
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -108,13 +110,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
-        if (onboardingValues?.shouldValidate === false) {
+        const backTo = route.params?.backTo as Route | undefined;
+        // When this screen was opened directly from the intent list (backTo is the purpose route), go straight
+        // back there instead of running the work-email restore path, which would insert a work-email screen.
+        if (onboardingValues?.shouldValidate === false && backTo !== ROUTES.ONBOARDING_PURPOSE.getRoute()) {
             updateOnboardingValuesAndNavigation(onboardingValues);
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-        Navigation.goBack(routeToNavigate);
+        Navigation.goBack(backTo ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
     }, [route.params?.backTo, onboardingValues]);
 
     const navigateToNextOnboardingStep = useCallback(
@@ -166,6 +170,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
                 reportNameValuePairs,
+                isAnonymousUser,
                 onboardingPolicyID,
                 onboardingAdminsChatReportID,
                 false,
@@ -183,6 +188,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         email,
         introSelected,
         isBetaEnabled,
+        isAnonymousUser,
         firstName,
         isCompletingOnboarding,
         isSelfTourViewed,

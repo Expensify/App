@@ -1,7 +1,6 @@
 import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams} from '@components/KYCWall/types';
@@ -75,10 +74,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment,
-        isExpensifyCardStatementPDFModalVisible,
-        setIsExpensifyCardStatementPDFModalVisible,
-        expensifyCardStatementPDFParams,
-        handleExpensifyCardStatementPDFModalHide,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
@@ -256,14 +251,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     )
                 }
             </KYCWall>
-            {!!expensifyCardStatementPDFParams && (
-                <ExpensifyCardStatementPDFDownloadModal
-                    statementParams={expensifyCardStatementPDFParams}
-                    isVisible={isExpensifyCardStatementPDFModalVisible}
-                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
-                    onModalHide={handleExpensifyCardStatementPDFModalHide}
-                />
-            )}
         </>
     );
 }

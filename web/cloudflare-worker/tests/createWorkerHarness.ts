@@ -30,8 +30,21 @@ const FAKE_WEB_BUILD: Record<string, string> = {
     '.well-known/apple-app-site-association': '{"applinks":{"details":[]}}',
 };
 
+type PreviousBuildFile = {
+    path: string;
+    contents: string;
+    contentType: string;
+};
+
+/** The part of the R2 binding the tests use; the full Workers types conflict with Node's globals in this project. */
+type PreviousBuildsEnv = {
+    PREVIOUS_BUILDS?: {put: (key: string, value: string, options: {httpMetadata: {contentType: string}}) => Promise<unknown>};
+};
+
 type WorkerHarness = {
     server: ReturnType<typeof createTestHarness>;
+    /** Stores files in the Worker's local PREVIOUS_BUILDS bucket, as a deploy of an earlier build would have. */
+    addPreviousBuildFiles: (files: PreviousBuildFile[]) => Promise<void>;
     cleanup: () => Promise<void>;
 };
 
@@ -70,8 +83,18 @@ function createWorkerHarness(env?: 'test-staging' | 'staging' | 'production', {o
     );
 
     const server = createTestHarness({workers: [{configPath, env}]});
+    const workerName = (env ? rawConfig.env?.[env]?.name : undefined) ?? rawConfig.name ?? '';
     return {
         server,
+        addPreviousBuildFiles: async (files) => {
+            const {PREVIOUS_BUILDS: previousBuilds} = await server.getWorker<PreviousBuildsEnv>(workerName).getEnv();
+            if (!previousBuilds) {
+                throw new Error(`The ${env ?? 'default'} environment has no PREVIOUS_BUILDS binding`);
+            }
+            for (const file of files) {
+                await previousBuilds.put(file.path, file.contents, {httpMetadata: {contentType: file.contentType}});
+            }
+        },
         cleanup: async () => {
             await server.close();
             rmSync(tempDir, {recursive: true, force: true});
