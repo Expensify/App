@@ -1,3 +1,6 @@
+/**
+ * Pairs the time buckets of two compared periods and names them, so a chart can draw one period against the other.
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
