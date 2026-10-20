@@ -4112,13 +4112,15 @@ describe('ReportUtils', () => {
                 expect(actual.reportName?.replaceAll('\u00A0', ' ')).toBe('Sender Workspace & Passed Receiver Name');
             });
 
-            it('falls back to the unavailable label when the caller has no receiver policy', () => {
+            it('never falls back to the cached policy when the caller has no receiver policy', () => {
                 // Given the same invoice, but a caller that has not loaded the receiver policy yet
                 // When the subtitle is built with no receiver policy
                 const actual = getParentNavigationSubtitle(invoiceReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
 
-                // Then the cached policy name is still not used, because the lookup no longer reads the cache
-                expect(actual.reportName).not.toContain('Cached Receiver Name');
+                // Then the payer falls back to the invoice room's own `policyName`, which is how `getInvoicePayerName`
+                // has always resolved a business receiver without a policy. What matters here is that the cached
+                // 'Cached Receiver Name' never appears: the subtitle is built purely from what the caller passed in.
+                expect(actual.reportName?.replaceAll('\u00A0', ' ')).toBe('Sender Workspace & Sender Workspace');
             });
         });
     });
