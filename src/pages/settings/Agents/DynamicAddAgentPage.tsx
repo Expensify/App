@@ -29,6 +29,7 @@ import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -167,9 +168,32 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             ? {file: buildFileFromAvatarCropResult(uploadedAvatar), optimisticAvatarURI: uploadedAvatar.uri}
             : {customExpensifyAvatarID: selectedPresetID ?? AGENT_AVATARS.getRandomID()};
 
-        const {optimisticReportID, optimisticPersonalDetailPromise} = isAddingCompanyAgent
-            ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI)
-            : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI);
+        let result: {
+            optimisticAccountID: number;
+            avatarURI: string | undefined;
+            optimisticReportID: string;
+            optimisticPersonalDetailPromise: Promise<void>;
+        };
+        if (isAddingCompanyAgent) {
+            if (!policy) {
+                Log.warn('Invalid policy is used to when trying to create company agent');
+                return;
+            }
+            result = createCompanyAgent(
+                currentUserAccountID,
+                currentUserLogin,
+                prompt,
+                policy,
+                role,
+                firstName,
+                avatarArgs.customExpensifyAvatarID,
+                avatarArgs.file,
+                avatarArgs.optimisticAvatarURI,
+            );
+        } else {
+            result = createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI);
+        }
+        const {optimisticReportID, optimisticPersonalDetailPromise} = result;
         const backToAgentsListRoute = isAddingCompanyAgent ? ROUTES.WORKSPACE_AGENTS.getRoute(policy?.id) : ROUTES.SETTINGS_AGENTS;
 
         clearNewAgentTemplate();
