@@ -274,6 +274,9 @@ type WiseBusinessOnboarding = {
 
     /** Business page answers */
     business?: {
+        /** The legal form, prefilled from the account's incorporation type where it maps cleanly */
+        companyType: ValueOf<typeof CONST.WISE.COMPANY_TYPE>;
+
         companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
         industryCategories: Array<TupleToUnion<typeof CONST.WISE.INDUSTRY_CATEGORIES>>;
         description: string;
