@@ -3,7 +3,7 @@ import StatusBar from './types';
 // Only has custom web implementation
 StatusBar.getBackgroundColor = () => null;
 
-// Overwrite setTranslucent and setBackgroundColor suppress warnings on iOS
+// React Native has no setTranslucent or setBackgroundColor on iOS; keep the wrapper API as no-ops
 StatusBar.setTranslucent = () => {};
 StatusBar.setBackgroundColor = () => {};
 

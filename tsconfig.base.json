@@ -9,6 +9,10 @@
         // line flag: the whole typecheck gate now depends on this option coming from a config file.
         "noEmit": true,
         "incremental": true,
+        // React Native 0.88 serves its Strict TypeScript API (`types_generated/`) by default. Opt out until the app is
+        // migrated to it: this condition resolves the legacy types (`types_DEPRECATED/`) and the `react-native/Libraries/*`
+        // deep imports. `customConditions` replaces the array inherited from `expo/tsconfig.base`, so "react-native" is restated.
+        "customConditions": ["react-native-legacy-deep-imports", "react-native"],
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],

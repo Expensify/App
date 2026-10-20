@@ -1,0 +1,18 @@
+diff --git a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+index 17614ca..358f835 100644
+--- a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
++++ b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+@@ -11,8 +11,12 @@ internal struct ImageFixOrientationTransformer: ImageTransformer {
+     guard let cgImage = image.cgImage else {
+       throw ImageNotFoundException()
+     }
++    // A PQ or HLG transfer function cannot be carried into the formats `saveAsync` writes: the profile survives
++    // into the file and decoders without ITU-R BT.2100 support render it black. Redrawing tone-maps the image down
++    // to the renderer's standard-range output, so it is worth doing even when the orientation needs no fixing.
++    let usesHDRTransferFunction = cgImage.colorSpace.map(CGColorSpaceUsesITUR_2100TF) ?? false
+     // Upright pixels need no redraw. Normalize the scale to pixel coordinates.
+-    guard image.imageOrientation != .up else {
++    guard image.imageOrientation != .up || usesHDRTransferFunction else {
+       return image.scale == 1 ? image : UIImage(cgImage: cgImage)
+     }
+     // `draw(in:)` applies the orientation. The renderer accepts 10-bit HDR sources that `CGContext` rejects.

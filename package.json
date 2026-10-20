@@ -356,7 +356,7 @@
     "portfinder": "^1.0.34",
     "react-native-clean-project": "^4.0.0-alpha4.0",
     "react-refresh": "^0.14.2",
-    "react-test-renderer": "19.2.3",
+    "react-test-renderer": "19.3.0",
     "reassure": "^1.0.0",
     "rock": "0.13.4",
     "semver": "7.5.2",
@@ -449,7 +449,6 @@
       ],
       "android": {
         "buildFromSource": [
-          "expo-location",
           "expo-task-manager",
           "unimodules-app-loader"
         ]

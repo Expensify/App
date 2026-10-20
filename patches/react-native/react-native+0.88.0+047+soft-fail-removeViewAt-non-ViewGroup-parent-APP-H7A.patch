@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+index d46de43..b8fd078 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+@@ -428,12 +428,11 @@ internal constructor(
+     }
+ 
+     val parentView = parentViewState.view
+-    checkNotNull(parentView) { "Unable to find parentView for tag $parentTag" }
+     if (parentView !is ViewGroup) {
+       ReactSoftExceptionLogger.logSoftException(
+           TAG,
+           ReactNoCrashSoftException(
+-              "Unable to remove a view from a non-ViewGroup ${parentView.javaClass.simpleName} when removing [$tag] from parent [$parentTag]",
++              "Unable to remove a view from a non-ViewGroup ${parentView?.javaClass?.simpleName} when removing [$tag] from parent [$parentTag]",
+           ),
+       )
+       return
