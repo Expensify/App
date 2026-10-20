@@ -10,6 +10,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import PhoneNumberStep from '@pages/workspace/expensifyCard/issueNew/PhoneNumberStep';
 import ShippingAddressStep from '@pages/workspace/expensifyCard/issueNew/ShippingAddressStep';
 
 import CONST from '@src/CONST';
@@ -229,6 +230,92 @@ describe('Issue card shipping steps', () => {
             expect(screen.getByLabelText(TestHelper.translateLocal('common.stateOrProvince')).props.value).toBe('');
             expect(screen.getByLabelText(TestHelper.translateLocal('common.city')).props.value).toBe('');
             expect(screen.getByLabelText(TestHelper.translateLocal('common.zipPostCode')).props.value).toBe('');
+        });
+    });
+
+    describe('PhoneNumberStep', () => {
+        const shippingAddress = {
+            legalFirstName: 'Zany',
+            legalLastName: 'Smith',
+            addressStreet: '224 Main Street',
+            addressCity: 'San Francisco',
+            addressState: 'CA',
+            addressZip: '94123',
+            addressCountry: CONST.COUNTRY.US,
+        };
+        const phoneNumberFlow: IssueNewCard = {...physicalCardFlow, currentStep: CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER, data: {...physicalCardFlow.data, shippingAddress}};
+
+        async function enterPhoneNumber(phoneNumber: string) {
+            fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.phoneNumber')), phoneNumber);
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('saves the number in E.164 and goes to the confirmation', async () => {
+            // Given an admin asked for a phone number for a US shipping address
+            await setFlow(phoneNumberFlow);
+            renderStep(PhoneNumberStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they enter a local number
+            await enterPhoneNumber('(415) 555-0123');
+
+            // Then it's saved with the country code and the admin reaches the confirmation
+            const issueNewCard = await getIssueNewCard();
+            expect(issueNewCard?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
+            expect(issueNewCard?.data?.shippingAddress?.phoneNumber).toBe('+14155550123');
+        });
+
+        it('reads a number without a country code as one from the shipping country', async () => {
+            // Given a card shipping to the UK
+            await setFlow({...phoneNumberFlow, data: {...phoneNumberFlow.data, shippingAddress: {...shippingAddress, addressCountry: 'GB'}}});
+            renderStep(PhoneNumberStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin enters a UK number without +44
+            await enterPhoneNumber('020 7946 0018');
+
+            // Then it gets the UK country code, not the admin's
+            expect((await getIssueNewCard())?.data?.shippingAddress?.phoneNumber).toBe('+442079460018');
+        });
+
+        it('rejects a number that cannot be a phone number', async () => {
+            // Given an admin on the phone number step
+            await setFlow(phoneNumberFlow);
+            renderStep(PhoneNumberStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they enter too few digits
+            await enterPhoneNumber('123');
+
+            // Then they see the phone number error and stay on the step
+            expect(screen.getByText(TestHelper.translateLocal('common.error.phoneNumber'))).toBeOnTheScreen();
+            expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER);
+        });
+
+        it('goes back to the address, or to the confirmation when editing a number', async () => {
+            // Given an admin who came from the address, and one editing a number from the confirmation
+            await setFlow(phoneNumberFlow);
+            const {unmount} = renderStep(PhoneNumberStep);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first one goes back
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they return to the address
+            expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS);
+            unmount();
+
+            // When the second one goes back
+            await setFlow({...phoneNumberFlow, isEditing: true, data: {...phoneNumberFlow.data, shippingAddress: {...shippingAddress, phoneNumber: '+14155550123'}}});
+            renderStep(PhoneNumberStep);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they return to the confirmation
+            expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
         });
     });
 });
