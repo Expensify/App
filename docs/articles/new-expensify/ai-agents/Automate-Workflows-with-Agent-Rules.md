@@ -33,8 +33,8 @@ To create an agent rule:
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Add rule**.
-4. Select **Describe your rule**.
-5. Describe the behavior you want in plain English and select **Build rule**.
+4. Under **Or just describe it below**, describe the behavior you want in plain English.
+5. Select **Next**.
 6. Review or edit the agent rule that Concierge drafts.
 7. Select **Create rule**.
 

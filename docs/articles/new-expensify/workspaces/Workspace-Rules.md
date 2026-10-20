@@ -138,13 +138,14 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 
 ## How to add a rule from any tab
 
-**Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page, where you choose what the rule should do:
+**Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page. Under **Start with a template**, choose what the rule should do:
 
-- **Describe your rule** – Tell Concierge what you need and it will build the rule.
 - **Restrict card spend** – Block or limit spend at the point of sale.
-- **Flag for review** – Notify approvers when expenses exceed category limits.
-- **Set field requirements** – Require specific expense fields or waive requiring them.
-- **Apply expense defaults** – Update fields without the submitter doing anything.
+- **Flag for review** – Notify when your conditions are met.
+- **Require fields** – Receipts, categories, etc.
+- **Apply expense defaults** – Update fields automatically.
+
+You can also describe the rule in plain English under **Or just describe it below**, and Concierge builds it for you.
 
 ---
 
@@ -153,13 +154,13 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Add rule**.
-4. Select **Describe your rule**.
-5. Describe the rule in plain English and select **Build rule**.
+4. Under **Or just describe it below**, describe the rule in plain English. For example, "Block all spend above $2,000."
+5. Select **Next**.
 6. Review the rule that Concierge fills in and select **Save rule**.
 
-If Concierge can't build your description as one of the other rule types, it drafts an agent rule instead. Review the draft and select **Create rule**. Nothing is saved until you do.
+If Concierge can't build your description as one of the template rules, it drafts an agent rule instead. Review the draft and select **Create rule**. Nothing is saved until you do.
 
-You can also select **Describe** next to **Save rule** in any rule you're creating, except an agent rule. Describe the rule and select **Next**, and Concierge fills in that form.
+You can also select **Describe** next to **Save rule** in any rule you're creating from a template. Describe the rule and select **Next**, and Concierge fills in that form.
 
 ---
 
