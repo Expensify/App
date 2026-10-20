@@ -43,6 +43,21 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    billPay: {
+        bills: 'Bills',
+        createBill: 'Create bill',
+        vendorEmail: 'Vendor email',
+        domain: 'Receiving domain',
+        invoiceDetails: 'Invoice details',
+        attachPDF: 'Attach PDF',
+        payByACH: 'Pay by ACH',
+        markAsPaid: 'Mark as paid',
+        paymentFailed: 'We couldn’t pay this bill. Please try again.',
+        createFailed: 'We couldn’t create this bill. Please try again.',
+        payBills: ({count}: {count: number}) => ({one: 'Pay 1 bill', other: `Pay ${count} bills`}),
+        primaryContactHint: (domain: string) =>
+            `The primary contact is the main point of contact for ${domain} and will receive bills sent to this domain's bill pay address ${domain}@expensify.cash`,
+    },
     earlyRenewal: {
         title: 'Renew your Expensify subscription',
         subtitle: 'One less thing to do before the new year.',
@@ -1706,6 +1721,7 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `started payment, but is waiting for ${vendorDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,

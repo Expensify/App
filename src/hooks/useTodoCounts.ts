@@ -8,6 +8,7 @@ import {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 
+import useBillPayCounts from './useBillPayCounts';
 import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 type TodoCounts = {
@@ -15,6 +16,8 @@ type TodoCounts = {
     [CONST.SEARCH.SEARCH_KEYS.APPROVE]: number;
     [CONST.SEARCH.SEARCH_KEYS.PAY]: number;
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: number;
+    [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]?: number;
+    [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]?: number;
 };
 
 type TodoSingleReportIDs = {
@@ -35,6 +38,7 @@ const TODO_KEYS = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APP
  * last computed result, so e.g. an unfocused screen stops recomputing to-do counts on background Onyx writes.
  */
 function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: TodoSingleReportIDs} {
+    const {billsApprove, billsPay} = useBillPayCounts();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -77,6 +81,8 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
         [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: billsApprove,
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: billsPay,
     };
 
     const singleReportIDs: TodoSingleReportIDs = {
@@ -90,7 +96,11 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
 
     // Capture the latest result so it can be returned verbatim once the consumer freezes. Only re-store when a
     // count or single-report ID actually changes, so the setState-during-render can't loop.
-    const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
+    const hasChanged =
+        !frozen ||
+        frozen.counts.billsApprove !== billsApprove ||
+        frozen.counts.billsPay !== billsPay ||
+        TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
     if (hasChanged) {
         setFrozen(value);
         return value;
