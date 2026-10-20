@@ -5,6 +5,7 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Rule} from '@src/types/onyx';
 import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
@@ -15,6 +16,7 @@ import type {
     ExpenseDefaultTaxValue,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -451,6 +453,11 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
+/** Returns the merchant rule draft for generated values */
+function getMerchantRuleDraftFromGeneratedValues(values: GeneratedRuleValues): Partial<MerchantRuleForm> {
+    return {...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT};
+}
+
 export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
@@ -458,6 +465,7 @@ export {
     canEditMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
+    getMerchantRuleDraftFromGeneratedValues,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleMerchantMatchSummary,

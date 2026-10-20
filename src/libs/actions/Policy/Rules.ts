@@ -332,11 +332,12 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
 };
 
 /**
- * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
- * queued. The answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * Asks Concierge to turn a description into rule form values. The answer carries its own rule type, which can differ
+ * from `ruleType`. The response only confirms that the server queued the job. The answer arrives later under
+ * `ONYXKEYS.GENERATED_RULE`. Therefore the form stays in the loading state until the answer arrives.
  * @returns the generationID the answer carries
  */
-function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {
+function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRuleType): string {
     const generationID = rand64();
     type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
 
@@ -377,6 +378,13 @@ function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         isLoading: false,
         errors: getMicroSecondOnyxErrorWithTranslationKey(translationKey),
+    });
+}
+
+/** Shows the empty description error above the submit button of the new rule prompt form */
+function setNewRulePromptEmptyError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.rules.newRule.selectTemplateOrDescribe'),
     });
 }
 
@@ -654,6 +662,7 @@ export {
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
     generateRule,
+    setNewRulePromptEmptyError,
     setNewRulePromptError,
     setNewRulePromptErrorMessage,
     clearGeneratedRule,
