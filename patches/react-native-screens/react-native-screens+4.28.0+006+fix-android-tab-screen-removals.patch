@@ -1,0 +1,38 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+index 05a6d07..df28d6f 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+@@ -118,6 +118,11 @@ class TabsHost(
+         container.removeAllTabsScreens()
+     }
+ 
++    internal val reactSubviewCount: Int
++        get() = renderedScreens.size
++
++    internal fun getReactSubviewAt(index: Int): TabsScreen = renderedScreens[index]
++
+     internal fun updateJSNavigationStateUpdateRequest(navStateRequest: TabsNavigationStateUpdateRequest) {
+         jsNavStateRequest = navStateRequest
+         container.setPendingNavigationStateUpdate(navStateRequest.copy())
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+index c640543..04fa109 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+@@ -58,6 +58,17 @@ class TabsHostViewManager :
+         parent.unmountAllReactSubviews()
+     }
+ 
++    // Tab screens are mounted through fragments into the inner container, not as raw view children
++    // of TabsHost. Fabric's SurfaceMountingManager verifies every removal via getChildAt and skips
++    // it when the expected tag is not found among the children, so without these overrides no tab
++    // screen is ever unmounted and the stale entries overflow the bottom navigation menu.
++    override fun getChildCount(parent: TabsHost): Int = parent.reactSubviewCount
++
++    override fun getChildAt(
++        parent: TabsHost,
++        index: Int,
++    ): View = parent.getReactSubviewAt(index)
++
+     override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+         mutableMapOf(
+             makeEventRegistrationInfo(TabsHostTabSelectedEvent),

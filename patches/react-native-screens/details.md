@@ -97,3 +97,34 @@
 - Upstream PR/issue: TBD
 - E/App issue: [#104226](https://github.com/Expensify/App/issues/104226)
 - PR introducing patch: [#104238](https://github.com/Expensify/App/pull/104238)
+
+### [react-native-screens+4.28.0+006+fix-android-tab-screen-removals.patch](react-native-screens+4.28.0+006+fix-android-tab-screen-removals.patch)
+
+- Reason:
+
+    ```
+    Fixes a fatal Android crash (java.lang.IllegalArgumentException: Maximum number of items supported
+    by CustomBottomNavigationView is 6) thrown from TabsContainer.updateNavigationMenuStructure when a
+    screen stack re-attaches the native tab container.
+
+    Tab screens are not raw view children of TabsHost: mountReactSubviewAt stores them in the internal
+    renderedScreens list and mounts them through fragments into the container's content view. Fabric's
+    SurfaceMountingManager.removeViewAt verifies every removal through the view manager's getChildAt
+    and, when the expected tag is not found among the parent's raw view children, logs "view already
+    removed from parent!" and returns without calling the view manager's removeViewAt.
+    TabsHostViewManager did not override getChildCount/getChildAt, so the default implementation saw
+    only the inner TabsContainer, and every tab screen removal was silently skipped. The stale screens
+    stayed in renderedScreens and in TabsContainer's tabsModel; when React recreated the six tab
+    screens while the TabsHost view survived (for example a navigation state reset regenerating the
+    route keys), the replacements were appended after the stale entries, and the next menu rebuild on
+    re-attach tried to add a seventh item to the six-item bottom navigation menu and threw.
+
+    The patch overrides getChildCount/getChildAt in TabsHostViewManager to answer from renderedScreens,
+    the same way ScreenStackViewManager and ScreenContainerViewManager already do for their
+    fragment-based children, so Fabric's verification finds the expected tag at the expected index and
+    removals reach unmountReactSubviewAt again.
+    ```
+
+- Upstream PR/issue: TBD (the missing overrides are still present on the latest nightly, where the tabs code moved out of the `gamma` namespace)
+- E/App issue: https://github.com/Expensify/App/issues/104505
+- PR introducing patch: TBD
