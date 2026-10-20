@@ -1,0 +1,688 @@
+// cspell:disable -- names and queries deliberately use diacritics, non-Latin scripts and misspelled forms
+/* eslint-disable @typescript-eslint/naming-convention -- logins and IDs are object keys throughout this file */
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Logins, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {ReportAttributes, SortedReportActionsDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../getOnyxValue';
+import waitForBatchedUpdates from '../waitForBatchedUpdates';
+
+const CURRENT_USER_ACCOUNT_ID = 1;
+const CURRENT_USER_EMAIL = 'current.user@example.com';
+const OWN_POLICY_ID = 'A1B2C3D4E5F60001';
+const OTHER_POLICY_ID = 'A1B2C3D4E5F60002';
+const MISSING_POLICY_ID = 'A1B2C3D4E5F60003';
+/** A DM participant with no personal details, as after a partial personal details load. */
+const UNKNOWN_ACCOUNT_ID = 999;
+const SESSION = {
+    accountID: CURRENT_USER_ACCOUNT_ID,
+    email: CURRENT_USER_EMAIL,
+};
+const CONCIERGE_ACCOUNT_ID = 21;
+/** Contacts and reports carry fixed IDs, so adding one never renumbers the others and churns the golden master. */
+const FIRST_FILLER_ACCOUNT_ID = 100;
+/** A contact's generated 1:1 DM is DM_REPORT_ID_OFFSET + its accountID. */
+const DM_REPORT_ID_OFFSET = 1000;
+/** Every reportID is above this, and a report's timestamp is derived from its distance to it. */
+const REPORT_ID_TIMESTAMP_ORIGIN = 1000;
+
+/** The values Onyx derives from the fixture, which the app passes to the search next to the raw collections. */
+type SearchFixtureDerivedData = {
+    reportAttributes: Record<string, ReportAttributes>;
+    visibleReportActions: VisibleReportActionsDerivedValue;
+    sortedReportActions: SortedReportActionsDerivedValue;
+};
+
+type SearchFixture = {
+    personalDetails: PersonalDetailsList;
+    reports: NonNullable<OnyxCollection<Report>>;
+    reportActions: NonNullable<OnyxCollection<ReportActions>>;
+    policies: NonNullable<OnyxCollection<Policy>>;
+    privateIsArchivedMap: PrivateIsArchivedMap;
+    /** Empty until writeSearchFixtureToOnyx returns what Onyx derived. */
+    derived: SearchFixtureDerivedData;
+    draftComments: NonNullable<OnyxCollection<string>>;
+    loginList: Logins;
+    conciergeReportID: string;
+};
+
+const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displayName' | 'firstName' | 'lastName'>> = [
+    {
+        accountID: CURRENT_USER_ACCOUNT_ID,
+        login: CURRENT_USER_EMAIL,
+        displayName: 'Current User',
+        firstName: 'Current',
+        lastName: 'User',
+    },
+    {
+        accountID: 2,
+        login: 'jose.nunez@example.com',
+        displayName: 'Jos\u00e9 \u00d1\u00fa\u00f1ez',
+    },
+    {
+        accountID: 3,
+        login: 'vit.novak@example.com',
+        displayName: 'V\u00edt Nov\u00e1k',
+    },
+    {
+        accountID: 4,
+        login: 'ismail@example.com',
+        displayName: '\u0130smail Y\u0131lmaz',
+    },
+    {
+        accountID: 5,
+        login: 'strasse@example.com',
+        displayName: 'Gro\u00df Stra\u00dfe',
+    },
+    {
+        accountID: 6,
+        login: 'lukasz@example.com',
+        displayName: '\u0141ukasz W\u00f3jcik',
+    },
+    {
+        accountID: 7,
+        login: 'odysseus@example.com',
+        displayName: '\u039f\u03b4\u03c5\u03c3\u03c3\u03b5\u03cd\u03c2',
+    },
+    {
+        accountID: 8,
+        login: 'zoe@example.com',
+        displayName: 'Zo\u00eb \ud83d\udc69\u200d\ud83d\udcbb',
+    },
+    {
+        accountID: 9,
+        login: 'ana.maria@example.com',
+        displayName: 'Ana\u200bMaria',
+    },
+    {
+        accountID: 10,
+        login: 'bob.builder@example.com',
+        displayName: 'Bob\u00a0Builder',
+    },
+    {
+        accountID: 11,
+        login: 'obrien@example.com',
+        displayName: "Mary-Jane O'Brien",
+    },
+    {accountID: 12, login: 'first.last+tag@x.com', displayName: ''},
+    {accountID: 13, login: '+15005550006@expensify.sms', displayName: ''},
+    {accountID: 14, login: 'alex.smith@example.com', displayName: 'Alex Smith'},
+    // Shares the "alex smith" prefix but not the full name, so the two contacts never tie when sorted by name
+    {
+        accountID: 15,
+        login: 'alex.smith2@example.com',
+        displayName: 'Alex Smith Jr.',
+    },
+    {
+        accountID: 16,
+        login: CONST.EMAIL.NOTIFICATIONS,
+        displayName: 'Expensify Notifications',
+    },
+    {
+        accountID: 17,
+        login: CONST.ACCOUNT_EXECUTIVE_LOGIN,
+        displayName: 'Account Executive',
+    },
+    {accountID: 18, login: 'admin@example.com', displayName: 'Domain Admin'},
+    {accountID: 19, login: undefined, displayName: 'No Login'},
+    // Stored decomposed (NFD: "e" + combining acute), unlike every other name
+    {
+        accountID: 20,
+        login: 'rene@example.com',
+        displayName: 'Rene\u0301 Dupont',
+    },
+    {
+        accountID: CONCIERGE_ACCOUNT_ID,
+        login: CONST.EMAIL.CONCIERGE,
+        displayName: 'Concierge',
+    },
+];
+
+const SEARCH_QUERIES = [
+    '',
+    'a',
+    'al',
+    'alex smith',
+    'ada byrd',
+    'smith jr',
+    'jr alex',
+    'cole lou',
+    'vit workspace',
+    'ex sm',
+    'vit',
+    'nunez',
+    'ismail',
+    'strasse',
+    'lukasz',
+    '\u03b4\u03c5\u03c3\u03c3\u03b5\u03c5\u03c2',
+    '\ud83d\udc69\u200d\ud83d\udcbb',
+    'anamaria',
+    'bob builder',
+    // Punctuation and phone digits, which a tokenizing search splits differently from a substring match
+    'obrien',
+    'mary-jane',
+    'firstlast',
+    'last+tag',
+    'x.com',
+    '@example',
+    'rene',
+    'concierge',
+    'acme',
+    'example.com',
+    'you',
+    'me',
+    'hiking',
+    'thread',
+    '\u03b4\u03c5\u03c3\u03c3\u03b5\u03c5\u03c3',
+    'admins',
+    'workspace',
+    'new.person@example.com',
+    '+1 650 555 0100',
+    '5550006',
+    '(500) 555',
+    // A padded login: the displayed passes rank by the raw query, which then matches no login exactly
+    ' alex.smith@example.com ',
+    'to:al',
+    'zzzqqq',
+    // Infixes, which a substring search finds and a word-prefix index does not: in a name, a room name, a workspace subtitle and a group participant's name
+    'mith',
+    'ikin',
+    'nounce',
+    'orkspace',
+    'oldings',
+    'ovak',
+    // Matches a thread only through its "Thread" alternate text
+    'packing thread',
+    // Regular expression metacharacters, which a matcher must treat literally
+    '*',
+    '[',
+    '\\',
+    '.*',
+];
+
+const FIRST_NAMES = ['Ada', 'Bea', 'Cyd', 'Dan', 'Eve', 'Fay', 'Gus', 'Hal', 'Ivy', 'Jon', 'Kim', 'Lou'];
+const LAST_NAMES = ['Ames', 'Byrd', 'Cole', 'Dunn', 'Eads', 'Ford', 'Gray', 'Hale'];
+// Every filler gets a distinct "First Last" pair (up to FIRST_NAMES.length * LAST_NAMES.length), so no two contacts tie when sorted by name
+const FILLER_CONTACT_COUNT = 40;
+
+/** The derived name of a DM with a nameless phone-number contact. */
+const FORMATTED_PHONE_LOGINS: Record<string, string> = {
+    '+15005550006@expensify.sms': '(500) 555-0006',
+};
+
+/** Per-contact overrides of the generated 1:1 DM, keyed by accountID. */
+const DM_OVERRIDES: Record<number, Partial<Report>> = {
+    // Unread: the contact wrote last and the current user has not read it since
+    10: {
+        lastActorAccountID: 10,
+        lastReadTime: '2024-01-01 00:00:00.000',
+        lastMessageText: 'See you at the trailhead',
+    },
+    // Read: the current user wrote last and read everything
+    4: {
+        lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+        lastReadTime: '2024-12-31 00:00:00.000',
+        lastMessageText: 'Thanks!',
+    },
+};
+
+/** A unique timestamp per report: `day` sets the coarse recency, `sequence` (unique per report, below 3600) breaks every tie. */
+function timestamp(day: number, sequence: number): string {
+    const minutes = String(Math.floor(sequence / 60) % 60).padStart(2, '0');
+    const seconds = String(sequence % 60).padStart(2, '0');
+    return `2024-01-${String((day % 28) + 1).padStart(2, '0')} 10:${minutes}:${seconds}.000`;
+}
+
+function buildPolicy(id: string, name: string, role: Policy['role']): Policy {
+    return {
+        id,
+        name,
+        type: CONST.POLICY.TYPE.TEAM,
+        role,
+        owner: CURRENT_USER_EMAIL,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        outputCurrency: CONST.CURRENCY.USD,
+    };
+}
+
+function participantsOf(accountIDs: number[], hiddenAccountIDs: number[] = []): Report['participants'] {
+    const participants: NonNullable<Report['participants']> = {};
+    for (const accountID of accountIDs) {
+        participants[accountID] = {
+            notificationPreference: hiddenAccountIDs.includes(accountID) ? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN : CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        };
+    }
+    return participants;
+}
+
+/**
+ * Builds a deterministic fixture covering every searchable report type and edge case (DMs, groups, rooms, threads, tasks, expenses, and status indicators).
+ * Reports have unique timestamps and contacts have unique names.
+ */
+function generateSearchFixture(): SearchFixture {
+    const personalDetails: PersonalDetailsList = {};
+    const contactAccountIDs: number[] = [];
+
+    for (const contact of NAMED_CONTACTS) {
+        personalDetails[contact.accountID] = contact;
+        contactAccountIDs.push(contact.accountID);
+    }
+    for (let index = 0; index < FILLER_CONTACT_COUNT; index++) {
+        const accountID = FIRST_FILLER_ACCOUNT_ID + index;
+        const firstName = FIRST_NAMES.at(index % FIRST_NAMES.length) ?? '';
+        const lastName = LAST_NAMES.at(Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length) ?? '';
+        personalDetails[accountID] = {
+            accountID,
+            login: `${firstName}.${lastName}.${index}@example.com`.toLowerCase(),
+            displayName: `${firstName} ${lastName}`,
+            firstName,
+            lastName,
+        };
+        contactAccountIDs.push(accountID);
+    }
+
+    const policies: SearchFixture['policies'] = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${OWN_POLICY_ID}`]: buildPolicy(OWN_POLICY_ID, 'V\u00edt Workspace', CONST.POLICY.ROLE.ADMIN),
+        [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: buildPolicy(OTHER_POLICY_ID, 'Acme Holdings', CONST.POLICY.ROLE.USER),
+    };
+
+    const reports: SearchFixture['reports'] = {};
+    const reportActions: SearchFixture['reportActions'] = {};
+    const privateIsArchivedMap: Record<string, boolean> = {};
+    const draftComments: SearchFixture['draftComments'] = {};
+    const dmReportIDByAccountID: Record<number, string> = {};
+
+    // Real reports always carry a reportName (shouldReportBeInOptionList drops those that don't), so it defaults to the derived name.
+    const addReport = (reportIDNumber: number, report: Omit<Report, 'reportID'>, reportName: string, day: number) => {
+        const reportID = String(reportIDNumber);
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        if (reports[reportKey]) {
+            throw new Error(`Two fixture reports share the reportID ${reportID}`);
+        }
+        reports[reportKey] = {
+            reportID,
+            reportName,
+            lastVisibleActionCreated: timestamp(day, reportIDNumber - REPORT_ID_TIMESTAMP_ORIGIN),
+            ...report,
+        };
+        return reportID;
+    };
+
+    // Assigns a 1:1 DM to roughly two-thirds of contacts, picked by accountID so adding a contact never moves another contact's DM.
+    // No contact receives multiple DMs to avoid collection order dependence.
+    for (const accountID of contactAccountIDs) {
+        if (accountID === CURRENT_USER_ACCOUNT_ID || accountID % 3 === 2) {
+            continue;
+        }
+        const contact = personalDetails[accountID];
+        // A DM with a nameless contact is named after the contact's login, formatted when it is a phone number
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty displayName must fall back too
+        const name = contact?.displayName || FORMATTED_PHONE_LOGINS[contact?.login ?? ''] || (contact?.login ?? '');
+        dmReportIDByAccountID[accountID] = addReport(
+            DM_REPORT_ID_OFFSET + accountID,
+            {
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, accountID]),
+                ...DM_OVERRIDES[accountID],
+            },
+            name,
+            accountID % 21,
+        );
+    }
+
+    // The only DM with this contact, so the contact row has exactly one DM to point at.
+    const archivedDMReportID = addReport(
+        2000,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 11]),
+        },
+        "Mary-Jane O'Brien (archived) ",
+        25,
+    );
+    privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedDMReportID}`] = true;
+
+    addReport(
+        2001,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 14], [CURRENT_USER_ACCOUNT_ID]),
+        },
+        'Alex Smith',
+        26,
+    );
+
+    addReport(
+        2002,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, UNKNOWN_ACCOUNT_ID]),
+        },
+        '',
+        6,
+    );
+
+    addReport(
+        2003,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            reportName: 'Weekend Hiking',
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2, 3, 11]),
+        },
+        'Weekend Hiking',
+        5,
+    );
+
+    addReport(
+        2004,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+        },
+        'Current User (you)',
+        1,
+    );
+
+    // GBR: the current user has something to do in their own workspace chat
+    addReport(
+        2005,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: OWN_POLICY_ID,
+            policyName: 'V\u00edt Workspace',
+            isOwnPolicyExpenseChat: true,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            hasOutstandingChildRequest: true,
+        },
+        "Current User's expenses",
+        7,
+    );
+
+    addReport(
+        2006,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: OWN_POLICY_ID,
+            policyName: 'V\u00edt Workspace',
+            isOwnPolicyExpenseChat: false,
+            ownerAccountID: 5,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 5]),
+        },
+        "Gro\u00df Stra\u00dfe's expenses",
+        7,
+    );
+
+    addReport(
+        2007,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            policyID: OWN_POLICY_ID,
+            policyName: 'V\u00edt Workspace',
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                accountID: 5,
+            },
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 5]),
+        },
+        'Gro\u00df Stra\u00dfe',
+        12,
+    );
+
+    const rooms = [
+        [2010, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins', OWN_POLICY_ID, 3, {}],
+        [2011, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce', OWN_POLICY_ID, 8, {}],
+        // RBR: the room has an error
+        [2012, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#v\u00edt-room', OTHER_POLICY_ID, 14, {errorFields: {joinRoom: {joinRoom: 'Could not join the room'}}}],
+        [2013, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#orphan-room', MISSING_POLICY_ID, 19, {}],
+    ] as const satisfies ReadonlyArray<readonly [number, Report['chatType'], string, string, number, Partial<Report>]>;
+    for (const [reportID, chatType, reportName, policyID, day, reportFields] of rooms) {
+        addReport(
+            reportID,
+            {
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType,
+                reportName,
+                policyID,
+                policyName: policyID === MISSING_POLICY_ID ? 'Gone Workspace' : undefined,
+                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2, 4]),
+                ...reportFields,
+            },
+            reportName,
+            day,
+        );
+    }
+
+    // Parent chat containing comments from which subsequent threads originate
+    const threadParentReportID = addReport(
+        2020,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+        },
+        'Jos\u00e9 \u00d1\u00fa\u00f1ez',
+        3,
+    );
+    const threadParentActions: ReportActions = {};
+    reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadParentReportID}`] = threadParentActions;
+
+    // A thread is named after its parent comment, so every thread gets one in the parent DM.
+    const addThread = (reportIDNumber: number, reportName: string, report: Partial<Report> = {}) => {
+        const parentReportActionID = String(reportIDNumber);
+        const reportID = addReport(
+            reportIDNumber,
+            {
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: threadParentReportID,
+                parentReportActionID,
+                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+                ...report,
+            },
+            reportName,
+            4,
+        );
+        threadParentActions[parentReportActionID] = {
+            reportActionID: parentReportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: timestamp(3, reportIDNumber - REPORT_ID_TIMESTAMP_ORIGIN),
+            actorAccountID: 2,
+            childReportID: reportID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: reportName,
+                    text: reportName,
+                },
+            ],
+        };
+        return reportID;
+    };
+
+    const addReply = (threadReportID: string, text: string) => {
+        reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`] = {
+            '1': {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: reports[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]?.lastVisibleActionCreated ?? '',
+                actorAccountID: 2,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: text, text}],
+            },
+        };
+    };
+
+    // Thread with replies to verify that non-empty threads are kept in options
+    addReply(addThread(2021, 'Thread about the offsite'), 'Count me in');
+    // Hidden for the current user: every call site drops it except the task share destination, which includes threads and never sets excludeHidden
+    addThread(2022, 'Hidden thread', {
+        participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2], [CURRENT_USER_ACCOUNT_ID]),
+    });
+    // Empty threads are dropped by shouldReportBeInOptionList unless a draft or a pin keeps them
+    addThread(2023, 'Empty thread');
+    const draftedThreadReportID = addThread(2024, 'Empty thread with a draft');
+    draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftedThreadReportID}`] = 'unsent draft';
+    addThread(2025, 'Empty pinned thread', {isPinned: true});
+    // The only thread whose name lacks "thread", so a query reaches it through its "Thread" alternate text alone
+    addReply(addThread(2026, 'Packing list'), 'Tent and stove');
+
+    addReport(
+        2030,
+        {
+            type: CONST.REPORT.TYPE.TASK,
+            reportName: 'Book flights',
+            parentReportID: threadParentReportID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+        },
+        'Book flights',
+        9,
+    );
+
+    addReport(
+        2031,
+        {
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Offsite expenses',
+            policyID: OWN_POLICY_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+        },
+        'Offsite expenses',
+        11,
+    );
+
+    // Dropped by shouldReportBeInOptionList: an empty submitted expense report whose only action is CREATED.
+    const emptySubmittedReportID = addReport(
+        2032,
+        {
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Empty submitted report',
+            policyID: OWN_POLICY_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            total: 0,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        },
+        'Empty submitted report',
+        13,
+    );
+    reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${emptySubmittedReportID}`] = {
+        '1': {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: timestamp(13, 0),
+        },
+    };
+
+    // Dropped by processReport: neither a room nor any participants.
+    addReport(2033, {type: CONST.REPORT.TYPE.CHAT, participants: {}}, 'Empty', 2);
+
+    // Dropped by shouldReportBeInOptionList: still loading, so the report itself has no reportName yet.
+    addReport(
+        2034,
+        {
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            reportName: undefined,
+            policyID: OWN_POLICY_ID,
+            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+        },
+        '#loading-room',
+        27,
+    );
+
+    const conciergeReportID = dmReportIDByAccountID[CONCIERGE_ACCOUNT_ID];
+    if (!conciergeReportID) {
+        throw new Error('The fixture must give the Concierge contact a DM');
+    }
+
+    return {
+        personalDetails,
+        reports,
+        reportActions,
+        policies,
+        privateIsArchivedMap,
+        derived: {
+            reportAttributes: {},
+            visibleReportActions: {},
+            sortedReportActions: {
+                sortedActions: {},
+                lastActions: {},
+                transactionThreadIDs: {},
+            },
+        },
+        draftComments,
+        conciergeReportID,
+        loginList: {
+            [CURRENT_USER_EMAIL]: {
+                created: '2024-01-01 00:00:00.000',
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                partnerID: 1,
+                partnerUserID: CURRENT_USER_EMAIL,
+                lastLogin: '2024-01-01 00:00:00.000',
+                validatedDate: '2024-01-01 00:00:00.000',
+            },
+        },
+    };
+}
+
+/** Shared by every archived report, so an unchanged archive keeps its reference between writes. */
+const ARCHIVED_REPORT_NAME_VALUE_PAIRS = {
+    private_isArchived: '2024-01-27 10:00:00.000',
+};
+
+/** The account's Onyx keys and values, for every key the search reads back. */
+function getOnyxEntries(fixture: SearchFixture): Record<string, unknown> {
+    return {
+        [ONYXKEYS.SESSION]: SESSION,
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fixture.personalDetails,
+        [ONYXKEYS.LOGINS]: fixture.loginList,
+        ...fixture.reports,
+        ...fixture.reportActions,
+        ...fixture.policies,
+        ...fixture.draftComments,
+        // Mirrors privateIsArchivedMap so module-level archived reads agree with the map passed to createFilteredOptionList
+        ...Object.fromEntries(Object.keys(fixture.privateIsArchivedMap).map((key) => [key, ARCHIVED_REPORT_NAME_VALUE_PAIRS])),
+    };
+}
+
+async function writeOnyxEntries(entries: Record<string, unknown>): Promise<SearchFixtureDerivedData> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entries come from the fixture's typed collections, which Onyx's per-key input type cannot follow through Object.entries
+    await Onyx.multiSet(entries as OnyxMultiSetInput);
+    await waitForBatchedUpdates();
+    const [reportAttributes, visibleReportActions, sortedReportActions] = await Promise.all([
+        getOnyxValue(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES),
+        getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS),
+        getOnyxValue(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS),
+    ]);
+    // Without derived values every report would silently fall back to defaults the app never computed
+    if (!reportAttributes?.reports || !visibleReportActions || !sortedReportActions) {
+        throw new Error('Onyx did not derive the report values; call initOnyxDerivedValues before writing the fixture');
+    }
+    return {
+        reportAttributes: reportAttributes.reports,
+        visibleReportActions,
+        sortedReportActions,
+    };
+}
+
+/** Writes the whole account to Onyx and returns what Onyx derived from it. */
+function writeSearchFixtureToOnyx(fixture: SearchFixture): Promise<SearchFixtureDerivedData> {
+    return writeOnyxEntries(getOnyxEntries(fixture));
+}
+
+export {generateSearchFixture, writeSearchFixtureToOnyx, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, OWN_POLICY_ID, SEARCH_QUERIES};
+export type {SearchFixture};
