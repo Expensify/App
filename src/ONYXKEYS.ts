@@ -963,6 +963,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_VENDORS: 'policyVendors_',
+        POLICY_MEMBER_BANK_ACCOUNTS: 'policyMemberBankAccounts_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
         POLICY_RECENTLY_USED_DESTINATIONS: 'nvp_recentlyUsedDestinations_',
         // Whether the policy's connection data was attempted to be fetched in
@@ -976,6 +977,7 @@ const ONYXKEYS = {
         RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
+        WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT: 'workspaceInviteWorkArrangementDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
         WORKSPACE_INVITE_APPROVER_DRAFT: 'workspaceInviteApproverDraft_',
         REPORT: 'report_',
@@ -1623,12 +1625,14 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
     [ONYXKEYS.COLLECTION.POLICY_VENDORS]: OnyxTypes.PolicyVendors;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: OnyxTypes.PolicyMemberBankAccounts;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
