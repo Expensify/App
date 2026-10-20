@@ -130,11 +130,7 @@ object FileUtils {
         } catch (e: Exception) {
             null
         }
-        val extension = if (mimeType != null) {
-            mimeTypeMap.getExtensionFromMimeType(mimeType)
-        } else {
-            null
-        } ?: "bin"
+        val extension = mimeType?.let(mimeTypeMap::getExtensionFromMimeType) ?: "bin"
         return "${getUniqueFilePrefix()}.$extension"
     }
 
