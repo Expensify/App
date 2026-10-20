@@ -991,30 +991,30 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
-        // Server-derived state of the Wise onboarding
+        /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
-        // Wise's state for one KYC requirement
+        /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',
             IN_REVIEW: 'IN_REVIEW',
             VERIFIED: 'VERIFIED',
             REJECTED: 'REJECTED',
         },
-        // Who asked for the requirement: us before Submit, Wise after
+        /** Who asked for the requirement: us before Submit, Wise after */
         KYC_REQUIREMENT_REQUESTED_BY: {
             EXPENSIFY: 'EXPENSIFY',
             WISE: 'WISE',
         },
-        // Wise's KYC requirement types we collect
+        /** Wise's KYC requirement types we collect */
         KYC_REQUIREMENT: {
             ID_DOCUMENT: 'ID_DOCUMENT',
         },
-        // Wise's companyType values, the legal form
+        /** Wise's companyType values, the legal form */
         COMPANY_TYPE: {
             LIMITED: 'LIMITED',
             PARTNERSHIP: 'PARTNERSHIP',
@@ -1032,13 +1032,13 @@ const CONST = {
             TRUST: 'TRUST',
             OTHER: 'OTHER',
         },
-        // Wise's companyRole values
+        /** Wise's companyRole values */
         COMPANY_ROLE: {
             OWNER: 'OWNER',
             DIRECTOR: 'DIRECTOR',
             OTHER: 'OTHER',
         },
-        // Wise's industryCategories values, keys only
+        /** Wise's industryCategories values, keys only */
         INDUSTRY_CATEGORIES: [
             'GROWING_OF_CROPS_AGRICULTURE',
             'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',
