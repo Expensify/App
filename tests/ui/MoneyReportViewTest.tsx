@@ -19,20 +19,6 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// Pinned to a wide layout so the column-count assertion below exercises the `shouldUseSingleColumn` prop rather than
-// the narrow-layout fallback, which would collapse the fields to one per row on its own.
-jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
-    __esModule: true,
-    default: () => ({
-        shouldUseNarrowLayout: false,
-        shouldUseNarrowLayoutIgnoringWideRHP: false,
-        isSmallScreenWidth: false,
-        isInNarrowPaneModal: false,
-        isWideRHPDisplayedOnWideLayout: true,
-        isSuperWideRHPDisplayedOnWideLayout: false,
-    }),
-}));
-
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -355,38 +341,6 @@ describe('MoneyReportView report fields visibility', () => {
         });
     });
 
-    const buildFourFieldReport = () => {
-        const customFields = Array.from({length: 4}, (_unused, index) => ({
-            ...buildCustomTextField(),
-            fieldID: `field_test${index}`,
-            name: `Test${index}`,
-            orderWeight: index + 2,
-        }));
-        const fieldList: Record<string, OnyxTypes.PolicyReportField> = {[CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField()};
-        for (const field of customFields) {
-            fieldList[`expensify_${field.fieldID}`] = field;
-        }
-        return {policy: buildReportFieldsPolicy(fieldList), report: buildExpenseReport({fieldList})};
-    };
-
-    it('edits the report fields inline, one per row on a wide layout', async () => {
-        // Given a one-expense report with 4 custom fields on a wide layout
-        const {policy, report} = buildFourFieldReport();
-        await seedReportFieldsPolicy(policy, report);
-
-        // When this view renders them
-        renderMoneyReportView(report, policy);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then each field is an input on its own row. Four fields would fill two rows of three if the grid were in use,
-        // so four rows proves this view asks for a single column: it renders inside a container too narrow for three
-        // fields side by side even though the window itself is wide
-        await waitFor(() => {
-            expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
-        });
-        expect(screen.getByLabelText('Test0')).toBeOnTheScreen();
-    });
-
     it('keeps a custom report field visible for a non-admin submitter after the report is approved (single-expense combined view)', async () => {
         const fieldList = {
             [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
@@ -405,7 +359,7 @@ describe('MoneyReportView report fields visibility', () => {
 
         // The custom field (rendered read-only after approval) must still show for the submitter.
         await waitFor(() => {
-            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
+            expect(screen.getByText('Test')).toBeOnTheScreen();
         });
     });
 

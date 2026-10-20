@@ -10455,7 +10455,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `alterou ${fieldName} para "${newValue}" (antes "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `definir ${fieldName} como "${newValue}"`,
-                changeFieldRemoved: (oldValue: string, fieldName: string) => `removeu ${fieldName} (antes "${oldValue}")`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `alterou o espaço de trabalho${fromPolicyName ? `(antes ${fromPolicyName})` : ''}`;
