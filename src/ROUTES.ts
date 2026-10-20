@@ -227,6 +227,11 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
+    WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
+        path: 'global-reimbursements/:bankAccountID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS],
+        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
@@ -2636,10 +2641,6 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
-    SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
-        route: 'settings/wallet/:bankAccountID/global-reimbursements',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/global-reimbursements` as const,
-    },
     SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
         route: 'settings/wallet/:bankAccountID/edit-nickname',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
@@ -3468,15 +3469,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES route');
             }
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
-        },
-    },
-    WORKSPACE_WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
-        route: 'workspaces/:policyID/workflows/global-reimbursements/:bankAccountID',
-        getRoute: (policyID: string | undefined, bankAccountID: number | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO route');
-            }
-            return `workspaces/${policyID}/workflows/global-reimbursements/${bankAccountID}` as const;
         },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {

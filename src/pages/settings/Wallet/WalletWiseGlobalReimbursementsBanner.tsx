@@ -7,11 +7,12 @@ import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalU
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {getWiseGlobalReimbursementsBannerBankAccountID} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,7 +39,7 @@ function WalletWiseGlobalReimbursementsBanner() {
     return (
         <View style={[pageGutterMargin, cardGapBottom]}>
             <WiseGlobalReimbursementsBanner
-                onGetStartedPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))}
+                onGetStartedPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))}
                 onDismissPress={() => dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER, true)}
                 sentryLabels={CONST.SENTRY_LABEL.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER}
             />

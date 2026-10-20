@@ -9,12 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {getWorkspaceWiseGlobalReimbursementsBannerBankAccountID} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,7 +49,7 @@ function WorkspaceWiseGlobalReimbursementsBanner({policyID}: WorkspaceWiseGlobal
     return (
         <View style={styles.mt6}>
             <WiseGlobalReimbursementsBanner
-                onGetStartedPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(policyID, bankAccountID))}
+                onGetStartedPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))}
                 onDismissPress={() => dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER, true)}
                 sentryLabels={CONST.SENTRY_LABEL.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER}
             />

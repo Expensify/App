@@ -607,7 +607,9 @@ function WalletPage() {
                                   return;
                               }
                               if (isWiseGlobalReimbursementsEnabled) {
-                                  closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                                  closeModal(() =>
+                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                                  );
                                   return;
                               }
                               closeModal(() =>
