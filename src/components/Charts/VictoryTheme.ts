@@ -1,7 +1,10 @@
 /**
  * Centralized styles and layout constants for the chart components.
  */
+import type {ColorScheme} from '@styles/index';
 import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
 
 import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
@@ -46,6 +49,16 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
+const CHART_COMPARISON_SHADE = 200;
+const CHART_COMPARISON_SHADE_DARK = 700;
+
+/** Returns the color to draw a compared period in, for an item or series drawn in `color` */
+function getComparisonColor(color: string, colorScheme: ColorScheme): string {
+    const index = CHART_PALETTE.indexOf(color);
+    const hue = index < 0 ? undefined : CHART_PALETTE_HUES.at(index % CHART_PALETTE_HUES.length);
+    return (hue && colors[`${hue}${colorScheme === CONST.COLOR_SCHEME.DARK ? CHART_COMPARISON_SHADE_DARK : CHART_COMPARISON_SHADE}`]) ?? color;
+}
+
 /** Index of the default single-color chart color (green400). */
 const DEFAULT_CHART_COLOR_INDEX = 3;
 
@@ -55,6 +68,7 @@ const VictoryTheme = {
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
+        getComparisonColor,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {
@@ -91,6 +105,12 @@ const VictoryTheme = {
     },
 } as const;
 
+const CARTESIAN_Y_AXIS = {
+    tickCount: VictoryTheme.axis.tickCount,
+    axisSide: 'right',
+    lineWidth: 0,
+} as const;
+
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
 
@@ -108,6 +128,9 @@ const SIN_45 = Math.sin(Math.PI / 4);
 
 /** Minimum gap between adjacent labels (px) */
 const LABEL_PADDING = 4;
+
+/** Minimum clear space between adjacent horizontal x-axis labels on stepped axes (px) */
+const X_AXIS_LABEL_MIN_GAP = 24;
 
 const ELLIPSIS = '...';
 
@@ -131,7 +154,9 @@ const DASH_INTERVALS = [4, 8];
 const GLYPH_PADDING = 4;
 
 export {
+    CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,

@@ -2777,7 +2777,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined, personalDetailsByLogins);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: submitterEmail,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins,
+            });
 
             // The client route isn't reliable here, so we let the server route the report by the live workflow.
             const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2823,7 +2831,16 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, personalDetailsByLogins, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins,
+                managerEmail: chosenManagerEmail,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2883,7 +2900,16 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined, personalDetailsByLogins, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: submitterEmail,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins,
+                managerEmail: chosenManagerEmail,
+            });
 
             const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(parameters.managerEmail).toBe(chosenManagerEmail);
@@ -2935,7 +2961,16 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, personalDetailsByLogins, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins,
+                managerEmail: chosenManagerEmail,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2966,7 +3001,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined, {});
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: {},
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2983,7 +3026,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined, {});
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: {},
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -3005,7 +3056,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, {});
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: {},
+            });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(typeof parameters.reportActionID).toBe('string');
@@ -3940,6 +3999,50 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When checking whether it can be marked as paid
             // Then it cannot, because the failed scan's real amount is unknown, so the report may still owe money
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, transactions, true, false)).toBeFalsy();
+        });
+
+        it('should return false for report with only non-reimbursable expenses when preventPayoutNonReimbursableReports is true', async () => {
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '9981';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                preventPayoutNonReimbursableReports: true,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -6500,
+                nonReimbursableTotal: -6500,
+            };
+
+            const zeroAmountNonReimbursableTransactions: Transaction[] = [
+                {
+                    ...createRandomTransaction(1),
+                    reportID,
+                    amount: 0,
+                    currency: 'USD',
+                    reimbursable: false,
+                },
+            ];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, true, false)).toBeFalsy();
         });
 
         it('allows non-reimburser admin to pay in manual reimbursement mode', async () => {
