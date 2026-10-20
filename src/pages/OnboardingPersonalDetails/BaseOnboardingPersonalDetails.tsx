@@ -11,6 +11,7 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -56,6 +57,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const delegateAccountID = useDelegateAccountID();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -135,6 +137,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
                     reportNameValuePairs,
+                    isAnonymousUser,
                     onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && !onboardingPolicy ? undefined : onboardingPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -161,6 +164,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingPolicy,
             isBetaEnabled,
             reportNameValuePairs,
+            isAnonymousUser,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,

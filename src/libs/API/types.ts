@@ -1739,6 +1739,7 @@ const READ_COMMANDS = {
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
     OPEN_PROFILE_PAGE: 'OpenProfilePage',
+    OPEN_RECIPIENT_PICKER: 'OpenRecipientPicker',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1864,6 +1865,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_PROFILE_PAGE]: null;
+    [READ_COMMANDS.OPEN_RECIPIENT_PICKER]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

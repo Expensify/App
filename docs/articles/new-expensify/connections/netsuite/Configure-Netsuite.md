@@ -41,7 +41,7 @@ To control what data is imported from NetSuite:
   - Employee Defaults
 - **Customers and Projects** – Import as Tags or Report Fields
   - To support **cross-subsidiary data**, enable **Intercompany Time and Expense** under **Setup > Company > Enable Features > Advanced Features**
-- **Tax** – Imports NetSuite Tax Groups into the **Taxes** tab
+- **Tax** – Imports Tax Groups from legacy tax accounts or individual Tax Codes from SuiteTax accounts
 - **Custom Segments and Records** – Import as Tags or Report Fields
   - Use Field IDs from NetSuite’s **Transactions** tab
   - Do not use the “Filtered by” feature in NetSuite Custom Segments
