@@ -7572,12 +7572,17 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
 }
 
 /** Swaps each local attachment URI in a draft for its synced attachment, or drops them while the upload is pending. */
-function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
+function replaceLocalAttachmentReferences(
+    draftMarkdown: string,
+    currentCommentHtml: string | undefined,
+    reportActionID: string,
+    attachmentIDByLocalSource: Partial<Record<string, string>> = {},
+): string {
     const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
-    if (!localAttachmentReferenceRegex.test(draftMarkdown)) {
+    const localReferences = draftMarkdown.match(localAttachmentReferenceRegex) ?? [];
+    if (localReferences.length === 0) {
         return draftMarkdown;
     }
-    localAttachmentReferenceRegex.lastIndex = 0;
 
     const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
     if (isStillUploading) {
@@ -7593,10 +7598,18 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
         return draftMarkdown;
     }
 
+    // Without a known attachment ID, a reference can only be matched by position when none were removed.
+    const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
-    localAttachmentReferenceRegex.lastIndex = 0;
     return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
-        const syncedAttachmentTag = syncedAttachmentTags.at(localReferenceIndex);
+        const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
+        const attachmentID = attachmentIDByLocalSource[localSource];
+        let syncedAttachmentTag: string | undefined;
+        if (attachmentID) {
+            syncedAttachmentTag = syncedAttachmentTags.find((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID);
+        } else if (canMatchByPosition) {
+            syncedAttachmentTag = syncedAttachmentTags.at(localReferenceIndex);
+        }
         localReferenceIndex++;
         if (!syncedAttachmentTag) {
             return '';
@@ -7613,10 +7626,9 @@ function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachme
     return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
 }
 
-/** The still-uploading attachment tags, re-appended to an edit's optimistic message so they stay on screen. */
-function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined, removedSources: string[] = []): string | undefined {
+function getUploadingAttachmentTags(currentCommentHtml: string | undefined): string[] {
     if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
-        return undefined;
+        return [];
     }
     const attachmentTagRegex = new RegExp(
         `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
@@ -7624,18 +7636,25 @@ function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | unde
             `|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
         'gi',
     );
-    const optimisticSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
-    const keptTags = (currentCommentHtml.match(attachmentTagRegex) ?? []).filter((tag) => !removedSources.includes(tag.match(optimisticSourceRegex)?.at(1) ?? ''));
+    return currentCommentHtml.match(attachmentTagRegex) ?? [];
+}
+
+/** The still-uploading attachment tags, re-appended to an edit's optimistic message so they stay on screen. */
+function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined, removedAttachmentIDs: string[] = []): string | undefined {
+    const keptTags = getUploadingAttachmentTags(currentCommentHtml).filter((tag) => !removedAttachmentIDs.includes(tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? ''));
     return keptTags.length > 0 ? keptTags.join('<br />') : undefined;
 }
 
 /**
- * The local URIs of still-uploading attachments a draft dropped. Compared against the local URI, not the parsed HTML,
+ * The attachment IDs of still-uploading attachments a draft dropped. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
-function getUploadingAttachmentSourcesRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): string[] {
-    const localSources = [...(currentCommentHtml ?? '').matchAll(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`, 'g'))].map((match) => match[1]);
-    return localSources.filter((localSource) => !draftMarkdown.includes(localSource));
+function getUploadingAttachmentIDsRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): string[] {
+    const optimisticSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+    return getUploadingAttachmentTags(currentCommentHtml)
+        .filter((tag) => !draftMarkdown.includes(tag.match(optimisticSourceRegex)?.at(1) ?? ''))
+        .map((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? '')
+        .filter((attachmentID) => !!attachmentID);
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -15683,7 +15702,7 @@ export {
     canMergeReports,
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
-    getUploadingAttachmentSourcesRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
     parseMovedTransactionReportIDs,

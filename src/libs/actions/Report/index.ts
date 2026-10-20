@@ -176,7 +176,7 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
-    getUploadingAttachmentSourcesRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
@@ -603,6 +603,9 @@ Onyx.connectWithoutView({
     callback: (value) => (allAttachments = value),
 });
 
+// Lets an edit saved after the upload finishes find which synced attachment each local URI in the draft became.
+const attachmentIDByLocalSource: Partial<Record<string, string>> = {};
+
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
@@ -943,9 +946,11 @@ function addActions({
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
-        for (const additionalAttachment of additionalAttachments) {
-            cacheAttachment({attachmentID: additionalAttachment.attachmentID, uri: additionalAttachment.file.uri ?? '', mimeType: additionalAttachment.file.type});
+        for (const sentAttachment of [{file, attachmentID}, ...additionalAttachments]) {
+            cacheAttachment({attachmentID: sentAttachment.attachmentID, uri: sentAttachment.file.uri ?? '', mimeType: sentAttachment.file.type});
+            if (sentAttachment.file.uri) {
+                attachmentIDByLocalSource[sentAttachment.file.uri] = sentAttachment.attachmentID;
+            }
         }
     }
 
@@ -3735,8 +3740,8 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
-    const removedAttachmentSources = getUploadingAttachmentSourcesRemovedFromDraft(textForNewComment, originalCommentHTML);
-    const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
+    const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(textForNewComment, originalCommentHTML);
+    const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID, attachmentIDByLocalSource);
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === draftForNewComment) {
@@ -3764,7 +3769,7 @@ function editReportComment(
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
-    const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentSources);
+    const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentIDs);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
@@ -3867,7 +3872,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, removedAttachmentSources);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, removedAttachmentIDs);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },

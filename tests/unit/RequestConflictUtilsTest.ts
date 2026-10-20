@@ -152,7 +152,7 @@ describe('RequestConflictUtils', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
         const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:local']);
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5']);
         expect(result).toEqual({
             conflictAction: {
                 type: 'replace',
@@ -175,7 +175,7 @@ describe('RequestConflictUtils', () => {
         const parameters = {reportID: '1', reportActionID, reportComment: 'b removed'};
 
         // When the edit removes the middle file
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:b']);
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['6']);
 
         // Then the request still sends the other two files, renumbered with their own IDs
         expect(result.conflictAction).toEqual({
@@ -202,7 +202,7 @@ describe('RequestConflictUtils', () => {
         const parameters = {reportID: '1', reportActionID, reportComment: 'only b left'};
 
         // When the edit removes the first and last files
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['blob:a', 'blob:c']);
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5', '7']);
 
         // Then the request sends the one file left as a single attachment
         expect(result.conflictAction).toEqual({
