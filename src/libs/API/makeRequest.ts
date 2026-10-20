@@ -115,6 +115,8 @@ async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
         Log.info('[API] Read command. Processing request with middleware', false, {command: request.command});
+        // Recorded here and not in prepareRequest, because API.read() can wait for the queue between the two and the READ then already includes those WRITEs
+        request.latestWriteRequestIndexWhenSent = latestWriteRequestIndex;
         processWithMiddleware(request);
         return Promise.resolve();
     }

@@ -48,14 +48,13 @@ const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: P
         if (
             request.data?.apiRequestType === CONST.API_REQUEST_TYPE.READ &&
             readsToResendWhenOlderThanLatestWrite.has(request.command) &&
-            (request.requestIndex ?? latestWriteRequestIndex) < latestWriteRequestIndex
+            (request.latestWriteRequestIndexWhenSent ?? latestWriteRequestIndex) < latestWriteRequestIndex
         ) {
             Log.info('[SaveResponseInOnyx] READ response is older than the latest WRITE, sending it again once the queue is idle', false, {
                 command: request.command,
-                requestIndex: request.requestIndex,
+                latestWriteRequestIndexWhenSent: request.latestWriteRequestIndexWhenSent,
                 latestWriteRequestIndex,
             });
-            request.requestIndex = latestWriteRequestIndex;
             waitForSequentialQueueIdle().then(() => processRequest(request, CONST.API_REQUEST_TYPE.READ));
             return Promise.resolve(response);
         }
