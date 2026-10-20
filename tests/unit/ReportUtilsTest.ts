@@ -21196,7 +21196,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
@@ -21317,7 +21317,9 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
 
                 // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
             });
 
             describe('cross-border payment', () => {
@@ -21330,7 +21332,7 @@ describe('ReportUtils', () => {
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -21345,7 +21347,7 @@ describe('ReportUtils', () => {
                 it('stores the same wording on the report action as the localized preview shows', () => {
                     // The hardcoded English copy must not drift from the localized function
                     expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
+                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber),
                     );
                 });
 
@@ -21361,7 +21363,7 @@ describe('ReportUtils', () => {
                     });
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -21388,9 +21390,13 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params, formatPhoneNumber)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -21414,7 +21420,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
+                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneNumber);
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -21437,7 +21443,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('owes');
             });
 
@@ -21487,7 +21493,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('spent');
             });
         });
