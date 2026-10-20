@@ -73,7 +73,6 @@ import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -4611,6 +4610,7 @@ type BuildNewReportOptimisticDataParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
     reportName?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function buildNewReportOptimisticData({
@@ -4625,6 +4625,7 @@ function buildNewReportOptimisticData({
     getCurrencyDecimals,
     rules,
     reportName,
+    formatPhoneNumber,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -4867,12 +4868,13 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    localize: {getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
+    const {getCurrencyDecimals, formatPhoneNumber} = localize;
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -4890,6 +4892,7 @@ function createNewReport(
         getCurrencyDecimals,
         rules,
         reportName,
+        formatPhoneNumber,
     });
 
     if (shouldDismissEmptyReportsConfirmation) {
@@ -8101,6 +8104,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions,
     rules,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8119,6 +8123,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8611,6 +8616,7 @@ function changeReportPolicy({
     reportTransactions,
     rules,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8629,6 +8635,7 @@ function changeReportPolicy({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8651,6 +8658,7 @@ function changeReportPolicy({
         reportTransactions,
         rules,
         delegateAccountID,
+        formatPhoneNumber,
     });
 
     const params = {
@@ -8689,6 +8697,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules,
     personalDetailsByLogins,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8709,6 +8718,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules: OnyxCollection<Rule>;
     personalDetailsByLogins: PersonalDetailsByLogin;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (
         !report.reportID ||
@@ -8774,6 +8784,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportTransactions,
         rules,
         delegateAccountID,
+        formatPhoneNumber,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

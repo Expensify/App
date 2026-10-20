@@ -15,7 +15,6 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -88,6 +87,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -120,6 +120,7 @@ type SubmitReportFunctionParams = {
 
     /** Set when the user confirmed "Submit anyway" on a report with violations. */
     shouldResolveAcknowledgedViolations?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -157,6 +158,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -1015,6 +1017,7 @@ function submitReport({
     shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;

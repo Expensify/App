@@ -34,7 +34,6 @@ import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -292,6 +291,7 @@ type HandleActionButtonPressParams = {
     personalDetailsByLogins: PersonalDetailsByLogin;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function handleActionButtonPress({
@@ -336,6 +336,7 @@ function handleActionButtonPress({
     personalDetailsByLogins,
     conciergeChat,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -391,6 +392,7 @@ function handleActionButtonPress({
                 getCurrencyDecimals,
                 rules,
                 iouReportTransactions: allReportTransactions,
+                formatPhoneNumber,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -426,6 +428,7 @@ function handleActionButtonPress({
                 allViolations,
                 rules,
                 getCurrencyDecimals,
+                formatPhoneNumber,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -641,6 +644,7 @@ type GetPayActionCallbackParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
     iouReportTransactions: Transaction[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getPayActionCallback({
@@ -672,6 +676,7 @@ function getPayActionCallback({
     getCurrencyDecimals,
     rules,
     iouReportTransactions,
+    formatPhoneNumber,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -748,6 +753,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getApproveActionCallback({
@@ -770,6 +776,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -796,6 +803,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
 }
 
@@ -1887,6 +1895,7 @@ function rejectMoneyRequestInBulk(
     isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
@@ -1963,6 +1972,7 @@ function rejectMoneyRequestsOnSearch({
     getCurrencyDecimals,
     allReportsTransactionsAndViolations,
     rules,
+    formatPhoneNumber,
 }: {
     hash: number;
     selectedTransactions: Record<string, TransactionReportInfo>;
@@ -1976,6 +1986,7 @@ function rejectMoneyRequestsOnSearch({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined;
     rules: OnyxCollection<Rule>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -2022,6 +2033,7 @@ function rejectMoneyRequestsOnSearch({
                 isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 getCurrencyDecimals,
+                formatPhoneNumber,
                 rules,
                 reportTransactionsCollection,
                 hash,
