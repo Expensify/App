@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
 
+import {accountIDSelector} from '@selectors/Session';
 import React, {createContext, useContext, useState} from 'react';
 
 type ConciergeChatHistoryStateContextType = {
@@ -22,8 +23,6 @@ const ConciergeChatHistoryStateContext = createContext<ConciergeChatHistoryState
 const ConciergeChatHistoryActionsContext = createContext<ConciergeChatHistoryActionsContextType>({
     setShowFullHistory: () => {},
 });
-
-const accountIDSelector = (session: {accountID?: number} | undefined) => session?.accountID;
 
 function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     const [showFullHistory, setShowFullHistory] = useState(false);
