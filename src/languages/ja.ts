@@ -1165,7 +1165,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
-        compare: {label: '比較', previousPeriod: '前の期間', average: '平均'},
+        compare: {
+            label: '比較',
+            previousPeriod: '前の期間',
+            average: '平均',
+            increase: (percentage: string) => `${percentage} 増加`,
+            decrease: (percentage: string) => `${percentage} 減少`,
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -5064,6 +5070,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             editPerDiemRates: '日当レートを編集',
             editDestinationSubtitle: (destination: string) => `この行き先を更新すると、すべての ${destination} 日当サブレートに適用されます。`,
             editCurrencySubtitle: (destination: string) => `この通貨を更新すると、すべての${destination}の日当サブレートの通貨が変更されます。`,
+            missingPerDiemUnit: 'このワークスペースでは日当が正しく設定されていません。ヘルプが必要な場合は Concierge までお問い合わせください。',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '自己負担経費を QuickBooks Desktop にエクスポートする方法を設定します。',
