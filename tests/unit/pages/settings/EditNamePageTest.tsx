@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
 import {updateAgentName} from '@libs/actions/Agent';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -13,7 +14,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import EditNamePage from '@pages/settings/Agents/Fields/DynamicEditNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -149,7 +150,7 @@ describe('EditNamePage', () => {
     it.each([false, true])('saves and returns to the resolved agent when mapping arrives before mount: %s', async (mappingExistsOnMount) => {
         const optimisticAccountID = 7234567890123456;
         const realAccountID = 13001;
-        const backPath = `settings/agents/${realAccountID}/edit` as Route;
+        const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
         await Onyx.clear();
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Saved name'}},

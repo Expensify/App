@@ -1,8 +1,9 @@
-import {act, fireEvent, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type useOnyx from '@hooks/useOnyx';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -12,8 +13,10 @@ import DynamicEditAgentAvatarPage from '@pages/settings/Agents/Fields/DynamicEdi
 import {updateAgentAvatar} from '@userActions/Agent';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type * as ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -21,7 +24,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../../utils/createMock';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-const mockBackPath = 'settings/agents/14001/edit' as Route;
+const mockBackPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(14001), ROUTES.SETTINGS_AGENTS);
 let mockSave: () => void;
 let mockBack: () => void;
 
@@ -37,8 +40,8 @@ jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({suppressDiscardP
 jest.mock('@components/AttachmentPicker', () => () => null);
 jest.mock('@components/Avatar/UserAvatar', () => () => null);
 jest.mock('@components/Icon', () => () => null);
-jest.mock('@components/Text', () => jest.requireActual<typeof import('react-native')>('react-native').Text);
-jest.mock('@components/Pressable', () => ({PressableWithFeedback: jest.requireActual<typeof import('react-native')>('react-native').Pressable}));
+jest.mock('@components/Text', () => jest.requireActual<typeof ReactNative>('react-native').Text);
+jest.mock('@components/Pressable', () => ({PressableWithFeedback: jest.requireActual<typeof ReactNative>('react-native').Pressable}));
 jest.mock(
     '@components/ScreenWrapper',
     () =>
@@ -89,7 +92,7 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
         [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
     });
     const mockSetParams = jest.fn();
-    const {getAllByLabelText} = render(
+    render(
         <DynamicEditAgentAvatarPage
             route={createMock<AvatarProps['route']>({params: {accountID: optimisticAccountID}})}
             navigation={createMock<AvatarProps['navigation']>({setParams: mockSetParams})}
@@ -103,7 +106,7 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
         });
     }
     expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
-    const presetButton = getAllByLabelText('avatarPage.selectAvatar').at(0);
+    const presetButton = screen.getAllByLabelText('avatarPage.selectAvatar').at(0);
     if (!presetButton) {
         throw new Error('Expected at least one agent avatar preset button');
     }

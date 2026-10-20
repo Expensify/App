@@ -1,16 +1,17 @@
 import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getPersonalDetail, personalDetailsHydrationPromise} from '@libs/PersonalDetailsStore';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Agent, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {Agent, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -60,16 +61,6 @@ Onyx.connectWithoutView({
 
 // Cleanup runs outside React. Read the hydrated records so retained mappings don't cause redundant writes
 // on every reload. Absence of these records does not imply that report participants have been repaired.
-let personalDetails: OnyxEntry<PersonalDetailsList>;
-const personalDetailsHydrationPromise = new Promise<void>((resolve) => {
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        callback: (value) => {
-            personalDetails = value;
-            resolve();
-        },
-    });
-});
 let agents: OnyxCollection<Agent>;
 const agentsHydrationPromise = new Promise<void>((resolve) => {
     Onyx.connectWithoutView({
@@ -132,7 +123,7 @@ function clearOptimisticAgentData(accountIDs: Map<number, number>) {
     const detailsToRemove: Record<number, null> = {};
     const updates: AnyOnyxUpdate[] = [];
     for (const optimisticAccountID of accountIDs.keys()) {
-        if (personalDetails?.[optimisticAccountID]) {
+        if (getPersonalDetail(optimisticAccountID)) {
             detailsToRemove[optimisticAccountID] = null;
         }
         const agentKey = `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const;

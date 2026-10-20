@@ -508,12 +508,12 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             await ColdStartOnyx.clear();
             await ColdStartOnyx.multiSet({
                 [coldStartOnyxKeys.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created agent'}},
-                [`${coldStartOnyxKeys.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved instructions'},
                 [coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID, [secondOptimisticID]: 12003},
-                [`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}` as const]: {
-                    reportID,
-                    participants: {[hasOrphanReport ? optimisticAccountID : realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
-                },
+            });
+            await ColdStartOnyx.set(`${coldStartOnyxKeys.COLLECTION.AGENT}${realAccountID}`, {prompt: 'Saved instructions'});
+            await ColdStartOnyx.set(`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                participants: {[hasOrphanReport ? optimisticAccountID : realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
             });
             await waitForBatchedUpdates();
             const mergeSpy = jest.spyOn(ColdStartOnyx, 'merge');
