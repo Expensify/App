@@ -12,6 +12,9 @@ type UseIsCardInWalletType = {
     isLoading: boolean;
     isCardAvailable: boolean;
     isWalletAvailable: boolean;
+
+    /** Re-reads the card status from the device wallet, e.g. right after the user adds the card */
+    recheckIsInWallet: () => Promise<void>;
 };
 
 function useIsCardInWallet(card: Card): UseIsCardInWalletType {
@@ -19,18 +22,20 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const [isWalletAvailable, setIsWalletAvailable] = useState(false);
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const checkIfCardIsInWallet = useCallback(() => {
-        isCardInWallet(card)
-            .then((result) => {
-                setIsInWallet(result);
-            })
-            .catch(() => {
-                setIsInWallet(false);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [card]);
+    const checkIfCardIsInWallet = useCallback(
+        () =>
+            isCardInWallet(card)
+                .then((result) => {
+                    setIsInWallet(result);
+                })
+                .catch(() => {
+                    setIsInWallet(false);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                }),
+        [card],
+    );
 
     useEffect(() => {
         if (!isCardAvailable) {
@@ -69,6 +74,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
         isLoading,
         isCardAvailable,
         isWalletAvailable,
+        recheckIsInWallet: checkIfCardIsInWallet,
     };
 }
 

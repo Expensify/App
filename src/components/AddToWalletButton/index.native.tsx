@@ -26,7 +26,7 @@ const isIOS = getPlatform() === CONST.PLATFORM.IOS;
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable, recheckIsInWallet} = useIsCardInWallet(card);
 
     const handleOnPress = useCallback(() => {
         setIsLoading(true);
@@ -34,8 +34,10 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');
-                    setIsLoading(false);
                     getPaymentMethods();
+
+                    // Keep the spinner until the new wallet status is known, so the Add button does not flash back in the meantime
+                    recheckIsInWallet().finally(() => setIsLoading(false));
                     if (isIOS) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                     }
@@ -48,7 +50,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    }, [card, cardDescription, cardHolderName, recheckIsInWallet]);
 
     if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;

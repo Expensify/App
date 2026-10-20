@@ -117,7 +117,7 @@ describe('AddToWalletButton', () => {
         expect(screen.queryByText('cardPage.cardAddedToWallet')).not.toBeOnTheScreen();
     });
 
-    it('brings the button back instead of a spinner when the added pass is not visible to the app yet', async () => {
+    it('brings the button back instead of a spinner when the wallet does not report the added card yet', async () => {
         // Given a card that is not in the wallet yet
         mockGetCardStatus.mockResolvedValue('not found');
         let resolveAdd: (status: TokenizationStatus) => void = () => {};
@@ -129,7 +129,7 @@ describe('AddToWalletButton', () => {
         renderCardWalletSection();
         expect(await screen.findByTestId('add-to-wallet-button')).toBeOnTheScreen();
 
-        // When the add succeeds but the wallet status has not been re-checked yet
+        // When the add succeeds but the wallet still reports the card as not found
         fireEvent(screen.getByTestId('add-to-wallet-button'), 'touchEnd');
         expect(screen.getByTestId('add-to-wallet-spinner')).toBeOnTheScreen();
         await act(async () => {
@@ -139,6 +139,30 @@ describe('AddToWalletButton', () => {
         // Then the card page does not get stuck on a spinner until it remounts
         expect(screen.queryByTestId('add-to-wallet-spinner')).not.toBeOnTheScreen();
         expect(screen.getByTestId('add-to-wallet-button')).toBeOnTheScreen();
+    });
+
+    it('does not flash the Add button after a successful add', async () => {
+        // Given a card that is not in the wallet yet
+        mockGetCardStatus.mockResolvedValue('not found');
+        let resolveAdd: (status: TokenizationStatus) => void = () => {};
+        mockAddCardToAppleWallet.mockReturnValue(
+            new Promise((resolve) => {
+                resolveAdd = resolve;
+            }),
+        );
+        renderCardWalletSection();
+        expect(await screen.findByTestId('add-to-wallet-button')).toBeOnTheScreen();
+
+        // When the add succeeds and the wallet already has the card, without the app returning to the foreground (Android has no screen change after an add)
+        fireEvent(screen.getByTestId('add-to-wallet-button'), 'touchEnd');
+        mockGetCardStatus.mockResolvedValue('active');
+        await act(async () => {
+            resolveAdd('success');
+        });
+
+        // Then the button stays hidden, because the spinner is only cleared once the new wallet status is known
+        expect(screen.queryByTestId('add-to-wallet-button')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('add-to-wallet-spinner')).not.toBeOnTheScreen();
     });
 
     it('does not leave a spinner on the card page after a successful add that still needs verification', async () => {
