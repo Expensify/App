@@ -1725,6 +1725,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             expect(lastMessage).toBe(
