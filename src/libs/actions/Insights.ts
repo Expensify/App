@@ -86,7 +86,7 @@ function saveInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStr
         },
     ];
 
-    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {searchKey, inputQuery: query}, {optimisticData});
+    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
 }
 
 export {getInsights, saveInsightsFilters, setInsightsFilters};

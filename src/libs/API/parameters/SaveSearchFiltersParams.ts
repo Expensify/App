@@ -1,10 +1,6 @@
-import type {SearchQueryString} from '@components/Search/types';
-
-import type {InsightsSearchKey} from '@src/types/onyx';
-
 type SaveSearchFiltersParams = {
-    searchKey: InsightsSearchKey;
-    inputQuery: SearchQueryString;
+    /** Stringified JSON holding the `searchKey` the filters are saved under and their `inputQuery` */
+    jsonQuery: string;
 };
 
 export default SaveSearchFiltersParams;
