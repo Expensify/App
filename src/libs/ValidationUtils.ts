@@ -6,9 +6,12 @@ import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {HomeAddressForm} from '@src/types/form/HomeAddressForm';
+import type ADDRESS_INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Report, TaxRates} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
@@ -265,18 +268,13 @@ function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): bool
     return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
 }
 
-type AddressFieldValues = {
-    addressLine1?: string;
-    addressLine2?: string;
-    city?: string;
-    state?: string;
-    zipPostCode?: string;
-    country?: Country | '';
-};
+type AddressFieldValues = Partial<Pick<HomeAddressForm, ValueOf<typeof ADDRESS_INPUT_IDS>>>;
+
+type AddressFieldErrors = Partial<Record<keyof AddressFieldValues, string>>;
 
 /** Length and zip format errors for the inputs rendered by AddressFields */
 function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate) {
-    const errors: Partial<Record<'addressLine1' | 'addressLine2' | 'city' | 'state' | 'zipPostCode', string>> = {};
+    const errors: AddressFieldErrors = {};
     for (const addressInputID of ['addressLine1', 'addressLine2', 'city'] as const) {
         const addressPart = values[addressInputID] ?? '';
         if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
