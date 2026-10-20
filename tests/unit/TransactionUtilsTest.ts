@@ -1481,7 +1481,11 @@ describe('TransactionUtils', () => {
             }
         });
 
-        it('preserves the saved commuter exclusion when recalculating edited waypoints', () => {
+        it.each([
+            {context: 'with commuter exclusion enabled by default', shouldApplyCommuterExclusion: undefined, expectedAmount: 170, expectedDistance: 17},
+            {context: 'in Self DM with commuter exclusion disabled', shouldApplyCommuterExclusion: false, expectedAmount: 200, expectedDistance: 20},
+        ])('recalculates edited waypoints $context', ({shouldApplyCommuterExclusion, expectedAmount, expectedDistance}) => {
+            // Given a saved three-mile deduction and a policy that still enables commuter exclusion
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 commuterExclusions: {
@@ -1513,16 +1517,24 @@ describe('TransactionUtils', () => {
                 },
             });
 
+            // When new waypoints and route geometry replace the original ten-mile trip with a twenty-mile trip
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
                 transaction,
                 isFromExpenseReport: false,
+                shouldApplyCommuterExclusion,
                 policy: fakePolicy,
                 transactionChanges: {
                     waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
                     routes: {
                         route0: {
                             distance: 32186.88,
-                            geometry: {coordinates: [[0, 0]], type: 'LineString'},
+                            geometry: {
+                                coordinates: [
+                                    [0, 0],
+                                    [0.1, 0.1],
+                                ],
+                                type: 'LineString',
+                            },
                         },
                     },
                 },
@@ -1531,8 +1543,18 @@ describe('TransactionUtils', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
-            expect(updatedTransaction.modifiedAmount).toBe(170);
+            // Then Self DM restores the entire new trip and clears deductions; the default behavior preserves the saved exclusion
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.routeDistanceMeters).toBe(32186.88);
+            expect(updatedTransaction.modifiedAmount).toBe(expectedAmount);
+            expect(updatedTransaction.modifiedMerchant).toBe(`${expectedDistance.toFixed(2)} mi @ $0.10 / mi`);
+            if (shouldApplyCommuterExclusion === false) {
+                expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeNull();
+                expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeNull();
+                expect(updatedTransaction.comment?.customUnit?.commuterExclusionMethod).toBeNull();
+            } else {
+                expect(updatedTransaction.comment?.customUnit).toMatchObject({commuterExclusion: 3, reimbursableDistance: 17});
+            }
         });
 
         it('does not carry a home and office exclusion onto edited waypoints', () => {
