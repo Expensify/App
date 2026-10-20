@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -26,9 +26,13 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const progress = useSharedValue(0);
+    const wasBackdropVisible = useRef(false);
 
     useEffect(() => {
-        if (!isBackdropVisible) {
+        // Only fade in when the backdrop goes from hidden to visible, so a timing change (for example, crossing the small-screen breakpoint) doesn't restart it
+        const isOpening = isBackdropVisible && !wasBackdropVisible.current;
+        wasBackdropVisible.current = isBackdropVisible;
+        if (!isOpening) {
             return;
         }
         progress.set(0);
