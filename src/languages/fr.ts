@@ -984,6 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter'},
             addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
             addBankAccount: {title: 'Ajoutez un compte bancaire pour être remboursé'},
+            addDepositAccount: {title: 'Ajoutez un compte bancaire pour recevoir des paiements'},
             activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Carte Expensify',
@@ -1180,7 +1181,13 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
-        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
+        compare: {
+            label: 'Comparer',
+            previousPeriod: 'Période précédente',
+            average: 'Moyenne',
+            increase: (percentage: string) => `En hausse de ${percentage}`,
+            decrease: (percentage: string) => `En baisse de ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2832,6 +2839,11 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
         },
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurer les remboursements globaux ?',
+            subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
+            getStarted: 'Commencer',
+        },
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Ajouter la carte à ${walletName}`,
@@ -4122,6 +4134,7 @@ ${amount} pour ${merchant} - ${date}`,
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        loadTimedOut: 'Cette image met trop de temps à se charger.',
         retry: 'Réessayer',
     },
     messages: {
@@ -5136,6 +5149,7 @@ ${amount} pour ${merchant} - ${date}`,
             editPerDiemRates: 'Modifier les taux de per diem',
             editDestinationSubtitle: (destination: string) => `La mise à jour de cette destination la modifiera pour tous les sous-taux de per diem ${destination}.`,
             editCurrencySubtitle: (destination: string) => `La mise à jour de cette devise la modifiera pour tous les sous-taux de per diem de ${destination}.`,
+            missingPerDiemUnit: 'Le per diem n’est pas configuré correctement sur cet espace de travail. Veuillez contacter Concierge pour obtenir de l’aide.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Définissez comment les dépenses hors poche sont exportées vers QuickBooks Desktop.',
@@ -8488,6 +8502,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
+                preventPayoutNonReimbursableReportsTitle: 'Empêcher de marquer les notes de frais non remboursables comme payées',
+                preventPayoutNonReimbursableReportsSubtitle: 'Ne pas autoriser les administrateurs à marquer les notes de frais non remboursables comme payées.',
             },
             agentsPromoBanner: {
                 title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
@@ -9293,6 +9309,51 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
             noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            advanced: {
+                autoSyncDescription: 'Synchronisez Dynamics 365 Business Central et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+                accountingMethods: {
+                    label: 'Méthode d’exportation',
+                    description: 'Choisissez quand exporter les dépenses.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’engagement',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois approuvées définitivement',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
+                    },
+                },
+                postingMode: {
+                    label: 'Mode de validation',
+                    description: 'Choisissez si les écritures sont validées automatiquement ou nécessitent d’abord une vérification manuelle.',
+                    note: 'Remarque : Expensify valide chaque journal ouvert dans le lot de journal général que vous avez choisi sur la page Expensify Setup de Business Central, et pas seulement ceux qu’il a créés. Utilisez un lot réservé à Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Créer et valider',
+                            description: 'Valider automatiquement les écritures dans le grand livre lors de l’export',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Créer uniquement',
+                            description: 'Valider manuellement les écritures dans Dynamics 365 Business Central après l’export',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Créer automatiquement des employés/fournisseurs',
+                exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
+                exportToNextOpenPeriodDescription:
+                    'Lorsqu’une note de frais est datée dans une période clôturée de Dynamics 365 Business Central, elle est exportée vers la période ouverte suivante.',
+                syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+                syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+                reimbursementBankAccount: {
+                    label: 'Compte de paiement des factures',
+                    description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+                settlementsBankAccount: {
+                    label: 'Compte de règlement de la Carte Expensify',
+                    description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Vos comptes Dynamics 365 Business Central seront importés en tant que catégories.',
             dimensionsImportAsTags: 'Toutes les dimensions Dynamics 365 Business Central sont importées en tant que tags',
             customers: 'Clients',
@@ -10013,6 +10074,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -10248,6 +10311,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             past: 'Passé',
             submitted: 'Soumis',
             approved: 'Approuvé',
+            anyApproval: 'Toute approbation',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
             paidBy: 'Payé par',
@@ -10256,6 +10320,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             posted: 'Publié',
             withdrawn: 'Retiré',
             billable: 'Facturable',
+            rejected: 'Rejeté',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
             sortOrder: {
@@ -11519,6 +11584,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 refundedOn: ({date}: {date: string}) => `Remboursé le ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
             },
+            billedTo: 'Facturé à',
+            viewReceipt: 'Voir le reçu',
+            viewInvoice: 'Voir la facture',
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
@@ -12080,22 +12148,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         addPaymentCardButton: 'Ajouter une carte de paiement',
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nouveau dans Concierge IA',
-        confirmText: 'Allons-y !',
-        spendAnalysis: {
-            title: 'Analyse interactive des dépenses',
-            description: `<muted-text>Concierge met en avant des analyses mensuelles des dépenses et vous permet d’examiner en détail chaque chiffre. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">En savoir plus</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Découvrez votre nouvel assistant de dépenses',
-            description: `<muted-text>Discutez avec Concierge pour créer et mettre à jour des dépenses, directement dans l’application ou par e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">En savoir plus</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Créez vos propres agents',
-            description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problème d’e-mail',
         intro: (login: string) => `Notre fournisseur d’e-mails a interrompu l’envoi vers <strong>${login}</strong> en raison de problèmes de distribution. Pour résoudre ce problème :`,
