@@ -148,9 +148,10 @@ export default {
     SKIP_ONBOARDING: get(Config, 'SKIP_ONBOARDING', 'false') === 'true',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
-    // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
+    // Auth for the Cloudflare Access-protected QA server
     QA_AUTH: {
         API_ROOT: qaExpensifyURL,
+        SECURE_API_ROOT: qaSecureExpensifyURL,
         TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
         CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
         // Which Access-protected endpoint the test tool calls to verify auth is a property of the

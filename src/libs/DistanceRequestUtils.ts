@@ -17,6 +17,7 @@ import {format, parseISO} from 'date-fns';
 
 import DateUtils from './DateUtils';
 import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
+import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConversionUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
@@ -36,8 +37,6 @@ type MileageRate = {
 
 type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
 
-const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
-const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
 function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
@@ -117,22 +116,13 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
 }
 
 /**
- * Converts a given distance in meters to the specified unit (kilometers or miles).
- *
- * @param distanceInMeters - The distance in meters to be converted.
- * @param unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
- *
- * @returns The converted distance in the specified unit.
+ * Converts a distance into the given unit at the two decimal places the backend stores distances with. The
+ * commuter exclusion arithmetic has to use this: the backend rounds both the trip and the commute before
+ * subtracting, so an amount derived from unrounded values lands a cent away from the one the backend calculates
+ * and is then mistaken for an amount the member typed themselves.
  */
-function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
-    switch (unit) {
-        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS:
-            return distanceInMeters * METERS_TO_KM;
-        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES:
-            return distanceInMeters * METERS_TO_MILES;
-        default:
-            throw new Error('Unsupported unit. Supported units are "mi" or "km".');
-    }
+function convertRoundedDistanceUnit(distanceInMeters: number, unit: Unit): number {
+    return Number(convertDistanceUnit(distanceInMeters, unit).toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 }
 
 /**
@@ -370,7 +360,7 @@ function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distan
 
     const fixedDistanceUnit: Unit =
         commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+    const fixedDistanceInRequestUnit = convertRoundedDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
 
     return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
 }
@@ -418,7 +408,7 @@ function getTransactionCommuterExclusionData({
     if (typeof existingCustomUnit?.quantity === 'number') {
         routeDistance = existingCustomUnit.quantity;
     } else if (routeDistanceInMeters !== undefined) {
-        routeDistance = convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
+        routeDistance = convertRoundedDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
     }
     if (routeDistance === undefined) {
         return;
@@ -437,7 +427,7 @@ function getTransactionCommuterExclusionData({
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
     if (shouldReuseStoredExclusion) {
-        const storedExclusionInRequestUnit = convertDistanceUnit(
+        const storedExclusionInRequestUnit = convertRoundedDistanceUnit(
             convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
             requestDistanceUnit,
         );
@@ -454,7 +444,7 @@ function getTransactionCommuterExclusionData({
             // still comes out at nothing reimbursable when the member picked a different alternate route.
             commuterExclusion = routeDistance;
         } else {
-            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
+            commuterExclusion = Math.min(routeDistance, convertRoundedDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
         }
         commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     } else {
@@ -537,20 +527,6 @@ function getDistanceDisplayDetailsWithCommuter(
             },
         ),
     };
-}
-
-/**
- * Converts the distance from kilometers or miles to meters.
- *
- * @param distance - The distance to be converted.
- * @param unit - The unit of measurement for the distance.
- * @returns The distance in meters.
- */
-function convertToDistanceInMeters(distance: number, unit: Unit): number {
-    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) {
-        return distance / METERS_TO_KM;
-    }
-    return distance / METERS_TO_MILES;
 }
 
 /**

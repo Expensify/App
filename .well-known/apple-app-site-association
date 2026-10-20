@@ -54,6 +54,15 @@
                         "comment": "Every other path on this domain"
                     }
                 ]
+            },
+            {
+                "appIDs": ["368M544MTT.com.expensify.expensifylite.adhoc"],
+                "components": [
+                    {
+                        "/": "/oauth/native-callback",
+                        "comment": "Ad-hoc PR builds claim only the QA OAuth callback"
+                    }
+                ]
             }
         ]
     },
