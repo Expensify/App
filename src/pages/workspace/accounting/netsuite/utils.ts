@@ -126,6 +126,8 @@ function shouldShowNetSuiteOAuthMigrationNudge(policy: Policy | undefined, allPo
         return false;
     }
 
+    // OAuth updates all policies that share a NetSuite account.
+    // Therefore each policy must have a simple configuration before we show the nudge.
     return !Object.values(allPolicies).some((sharedPolicy) => {
         const sharedNetSuite = sharedPolicy?.connections?.netsuite;
         return (

@@ -47,6 +47,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import ExactOnlineWaitlistRow from './ExactOnlineWaitlistRow';
 import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationNudge} from './netsuite/utils';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
@@ -419,6 +420,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
+                            <ExactOnlineWaitlistRow
+                                policy={policy}
+                                style={styles.sectionMenuItemTopDescription}
+                                titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                            />
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon

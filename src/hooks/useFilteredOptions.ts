@@ -39,6 +39,8 @@ type UseFilteredOptionsConfig = {
      * an option per contact on open. Leave false for contact pickers (default: false).
      */
     deferContactsUntilSearch?: boolean;
+    /** The user's default workspace. Its expense chat is always kept by the recent-reports pre-filter */
+    activePolicyID?: string;
 };
 
 type UseFilteredOptionsResult = {
@@ -90,7 +92,7 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false, activePolicyID} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
@@ -147,6 +149,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           locale: preferredLocale,
                           pendingDeleteMemberAccountIDsByReportID,
                           formatPhoneNumber,
+                          activePolicyID,
                       },
                       rules,
                       undefined,
@@ -179,6 +182,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             dateFnsLocale,
             convertToDisplayString,
             formatPhoneNumber,
+            activePolicyID,
         ],
     );
 
