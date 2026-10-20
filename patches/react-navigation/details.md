@@ -42,6 +42,7 @@
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
 - PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346) [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
+- Note: The `popstate` listener skips upstream's `isPoppingLastEntry` → `GO_BACK` shortcut when the last root history entry is a custom string entry (e.g. a `useSyncModalWithHistory` back-guard). No router can pop such an entry with `GO_BACK`, so it falls back to `resetRoot(record.state)` (the pre-7.3 behavior), which drops the entry and lets the modal close on browser Back.
 
 ### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
@@ -76,6 +77,14 @@
 - Upstream PR/issue: not reported, because hiding an item from a native tab bar has no native counterpart and this works around it in JS for the App's tab set; the accessibility label part is already in v8.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+004+stable-native-tab-identity.patch](@react-navigation+bottom-tabs+7.19.2+004+stable-native-tab-identity.patch)
+
+- Reason: Identifies each native tab by its route name instead of its route key. The App gives the focused tab route a new key on purpose when it pre-inserts a screen under the RHP (`markFocusedTabRouteForRemount` in `GetStateForActionHandlers.ts`, #90985), so the split navigator remounts without a push-transition flash. Keyed by route key, that new key replaced the whole `Tabs.Screen`. Android never removes the old one: `TabsHostViewManager` does not override `getChildAt`/`getChildCount`, so Fabric's `removeViewAt` finds no child at that index ("view already removed from parent!") and skips `TabsHost.unmountReactSubviewAt`, while the insert goes through. The bar then shows the tab twice, and the stale copy opens a blank page. With this patch the native tab (`key`, `screenKey`, `navStateRequest.selectedScreenKey` and the selection events) uses the route name, which stays the same, and only the tab's content is keyed by the route key, so a re-keyed route still remounts its content inside the same native tab. **Remove this patch** once react-native-screens removes Android tabs correctly and React Navigation's native tab view no longer recreates a tab when its route key changes.
+- Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
+- E/App issue: [#104230](https://github.com/Expensify/App/issues/104230), [#104233](https://github.com/Expensify/App/issues/104233)
+- PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
 - PR Updating Patch: N/A
 
 ### Removed patches
