@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.13-3",
+  "version": "9.5.14-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -275,6 +275,7 @@
     "@rsdoctor/rspack-plugin": "^1.5.17",
     "@rspack/core": "^2.1.2",
     "@rspack/plugin-react-refresh": "^2.0.2",
+    "@sentry/browser-utils": "10.75.0",
     "@sentry/cli": "3.3.0",
     "@sentry/webpack-plugin": "5.2.0",
     "@storybook/addon-a11y": "10.4.6",
