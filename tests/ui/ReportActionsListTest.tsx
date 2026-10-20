@@ -1113,7 +1113,7 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (showFullHistory = false, hasOnceLoadedReportActions = true) => {
+        const setupMainDMConciergeMocks = (showFullHistory = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
@@ -1132,7 +1132,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
