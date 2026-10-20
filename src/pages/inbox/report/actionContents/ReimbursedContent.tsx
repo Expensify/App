@@ -32,10 +32,7 @@ function ReimbursedContent({action, reportOwnerAccountID, originalReport}: Reimb
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [submitterLogin] = usePersonalDetail(reportOwnerAccountID, loginSelector);
     const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
-    // Only subscribe to the actual child report when the action has reasoning (the only case where it's used,
-    // passed to ReportActionItemMessageWithExplain below). Otherwise key on an undefined ID, which Onyx never
-    // populates, so reimbursed actions without reasoning don't re-render on every unrelated child report change.
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${hasReasoning(action) ? getNonEmptyStringOnyxID(action.childReportID) : undefined}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
     // getReimbursedMessage can fall back to '' when there's no paymentMethod/creditBankAccountLast4 to build a
