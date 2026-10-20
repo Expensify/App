@@ -25,6 +25,7 @@ import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@re
 import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
+import getActiveTabRoute from './getActiveTabRoute';
 import getTabWithoutBarItem from './getTabWithoutBarItem';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
@@ -60,7 +61,7 @@ function useNativeTabNavigator() {
     // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
-    const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
+    const activeTabRoute = getActiveTabRoute(tabState);
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
