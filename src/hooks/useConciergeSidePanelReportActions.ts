@@ -79,6 +79,14 @@ function useConciergeSidePanelReportActions({
         return hasUserMessageInLoadedSet || hasOlderActions;
     }, [isConciergeHiddenHistory, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
 
+    const hasPreviousMessages = useMemo(() => {
+        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
+            return false;
+        }
+        const hasPreSessionActionInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+        return hasPreSessionActionInLoadedSet || hasOlderActions;
+    }, [isConciergeHiddenHistory, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
+
     // A re-stamp flips `hasUserSentMessage` too, so the sticky set is what keeps the welcome state from coming back.
     const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
     const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory;
@@ -173,13 +181,6 @@ function useConciergeSidePanelReportActions({
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
     const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
-
-    const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
-            return false;
-        }
-        return visibleReportActions.some((action) => !isCurrentSessionAction(action)) || hasOlderActions;
-    }, [isConciergeHiddenHistory, hadUserMessageAtSessionStart, sessionStartTime, visibleReportActions, isCurrentSessionAction, hasOlderActions]);
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistory(true);
