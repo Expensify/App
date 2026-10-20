@@ -131,10 +131,9 @@ describe('useMentionedAccountIDToNameMap', () => {
 
         // Given only account IDs 1001 and 1003 are mentioned in the HTML
         // Then the map should only contain those two accounts
-        expect(hook.result.current).toEqual({
-            '1001': 'alice@expensify.com',
-            '1003': 'Carol',
-        });
+        expect(hook.result.current['1001']).toBe('alice@expensify.com');
+        expect(hook.result.current['1003']).toBe('Carol');
+        expect(Object.keys(hook.result.current)).toHaveLength(2);
         // When account 1002 is not mentioned
         // Then it should not appear in the map
         expect(hook.result.current['1002']).toBeUndefined();
