@@ -14,6 +14,7 @@
     "observability": {
         "enabled": true,
     },
+    "upload_source_maps": true,
     "assets": {
         "directory": "../../dist",
         "binding": "ASSETS",
