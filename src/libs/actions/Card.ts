@@ -30,6 +30,7 @@ import {getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType} from 
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import deferNavigate from '@libs/Navigation/deferNavigate';
@@ -763,19 +764,29 @@ function updateSettlementAccount(
     programKey: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
+    isTravelSettlementAccountPending = false,
 ) {
     if (!settlementBankAccountID) {
         return;
     }
 
-    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+    const optimisticValue = {
+        [programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}},
+        isLoading: true,
+        // The backend writes its error to this root field, which Travel Billing shares, so leave it alone while Travel's error is pending
+        ...(!isTravelSettlementAccountPending && {errorFields: {paymentBankAccountID: null}}),
+    };
 
-    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+    // Clears a marker left by an earlier queued change that failed after this one's optimistic clear
+    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}}, isLoading: false};
 
     const failureValue = {
-        [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
+        // Kept under the program so it marks a card failure without touching the root field Travel Billing reads
+        [programKey]: {
+            paymentBankAccountID: currentSettlementBankAccountID,
+            errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
         isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -808,6 +819,10 @@ function updateSettlementAccount(
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
+function clearSettlementAccountError(workspaceAccountID: number, programKey: CardProgramKey) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {[programKey]: {errorFields: {paymentBankAccountID: null}}});
 }
 
 function getCardDefaultName(userName?: string) {
@@ -1973,13 +1988,6 @@ function resolveFraudAlert(
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
 }
 
-function escapeCsvField(value: string): string {
-    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
-        return `"${value.replaceAll('"', '""')}"`;
-    }
-    return value;
-}
-
 function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     return personalDetailsList?.[String(accountID)]?.login ?? '';
@@ -2078,6 +2086,7 @@ export {
     unfreezeCard,
     updateExpensifyCardTitle,
     updateSettlementAccount,
+    clearSettlementAccountError,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,

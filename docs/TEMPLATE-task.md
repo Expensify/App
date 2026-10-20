@@ -3,14 +3,12 @@
 Task articles should describe things the user intentionally does. Outcomes, consequences, and eligibility rules belong inside those task articles or in related topic articles.
 
 ---
-title: Clear task-based title using the feature name
+title: Clear Task-Based Title Using the Feature Name (title case)
 description: A concise summary of the article for search results.
 keywords: [primary search phrases]
 internalScope: Audience is [who this article is for]. Covers [single workflow]. Does not cover [closely related workflows].
 contentType: task
 platform: [platform value]
-contentType: topic
-platform: [platform]
 ---
 
 <!--
@@ -33,6 +31,8 @@ Remember:
 - Explain concepts before details.
 - Prioritize clarity over completeness.
 - Remove anything that doesn't help the customer succeed.
+- Use title case for the title and sentence case for every ## heading.
+- Follow docs/HELPSITE_NAMING_CONVENTIONS.md for UI references, navigation, and capitalization.
 
 -->
 
@@ -50,7 +50,7 @@ Avoid marketing language, implementation details, and unnecessary UI narration.
 
 ---
 
-## Who can use [Feature Name]
+## Who can use [feature name]
 
 State only the information the reader needs:
 
@@ -61,13 +61,13 @@ State only the information the reader needs:
 
 If another workflow must be completed first, link to it using a relative link.
 
-If unavailable on mobile, state:
+If unavailable on a platform, name the platform where it is available:
 
-This feature is not available on mobile.
+This feature is only available on web. It isn't available on mobile.
 
 ---
 
-## How to [Complete Primary Task]
+## How to [complete primary task]
 
 Keep the steps focused.
 
@@ -75,7 +75,14 @@ Describe only the actions necessary to complete the task.
 
 Do not document every click if it doesn't help the reader.
 
-If web and mobile differ, separate the instructions.
+Use **select** for UI interactions and **choose** only for decisions between options.
+
+Start navigation in the navigation tabs with a bolded navigation path:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > [Section name]**.
+2. Select **[Exact button name, matching the UI]**.
+
+If web and mobile differ, separate the instructions under "On web:" and "On mobile:".
 
 If they're identical, combine them.
 
@@ -93,7 +100,7 @@ Include this section only when the workflow changes behavior or has important co
 
 -->
 
-## What happens after you [Complete Task]
+## What happens after you [complete task]
 
 Explain what changes after completing the workflow.
 

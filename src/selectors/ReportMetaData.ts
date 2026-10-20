@@ -105,6 +105,9 @@ const pendingNewTransactionsSelector = (reportMetadata: OnyxEntry<ReportMetadata
     return {activeFlagKeys, expiredFlagKeys};
 };
 
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
+
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
 
 export {
@@ -116,6 +119,7 @@ export {
     isOptimisticReportSelector,
     pendingNewTransactionsSelector,
     pendingChatMembersSelector,
+    pendingExpenseActionSelector,
     pendingDeleteMemberAccountIDsSelector,
     pendingDeleteMemberAccountIDsByReportIDSelector,
 };
