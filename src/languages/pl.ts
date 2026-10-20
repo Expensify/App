@@ -2861,7 +2861,12 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Skonfigurować globalne zwroty kosztów?', subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.', getStarted: 'Zacznij'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Skonfigurować globalne zwroty kosztów?',
+            subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
+            getStarted: 'Zacznij',
+            headerTitle: 'Globalne zwroty',
+        },
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Dodaj kartę do ${walletName}`,

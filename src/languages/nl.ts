@@ -2827,7 +2827,12 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Wereldwijde terugbetalingen instellen?', subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.', getStarted: 'Aan de slag'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Wereldwijde terugbetalingen instellen?',
+            subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
+            getStarted: 'Aan de slag',
+            headerTitle: 'Wereldwijde terugbetalingen',
+        },
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,

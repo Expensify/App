@@ -2728,7 +2728,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
         },
-        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用'},
+        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用', headerTitle: '全球报销'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,
