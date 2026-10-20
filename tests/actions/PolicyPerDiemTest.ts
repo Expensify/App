@@ -167,29 +167,32 @@ describe('actions/Policy/PerDiem', () => {
         );
     });
 
-    it('restores the previous rate when an edit fails', async () => {
+    it('restores the previous subrate and attaches the error to the edited row when an edit fails', async () => {
         // Given a Per Diem destination stored in Onyx and a paused API request.
         mockFetch.pause();
 
-        // When the destination is optimistically renamed and the request fails.
-        editPerDiemRateDestination('policy', rateID, customUnit, 'Updated Destination');
+        // When the Breakfast amount is optimistically updated and the request fails.
+        editPerDiemRateAmount('policy', rateID, 'breakfast', customUnit, 1701);
         await waitForBatchedUpdates();
         let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.name).toBe('Updated Destination');
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates?.[0].rate).toBe(1701);
 
         mockFetch.fail();
         await mockFetch.resume();
         await waitForBatchedUpdates();
 
-        // Then the previous destination is restored and the failure is recorded.
+        // Then the previous amount is restored and only the edited subrate receives the error.
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.name).toBe(currentRate.name);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.pendingAction).toBeFalsy();
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.errors).toBeTruthy();
+        const failedRate = policy?.customUnits?.[customUnitID]?.rates?.[rateID];
+        expect(failedRate?.subRates?.[0].rate).toBe(currentRate.subRates?.[0].rate);
+        expect(failedRate?.pendingAction).toBeFalsy();
+        expect(failedRate?.errors).toBeFalsy();
+        expect(failedRate?.errorFields?.breakfast).toBeTruthy();
+        expect(failedRate?.errorFields?.lunch).toBeFalsy();
 
-        clearPerDiemRateError('policy', customUnitID, rateID);
+        clearPerDiemRateError('policy', customUnitID, rateID, 'breakfast');
         await waitForBatchedUpdates();
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.errors).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.errorFields?.breakfast).toBeFalsy();
     });
 });

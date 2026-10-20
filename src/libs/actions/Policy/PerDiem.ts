@@ -187,7 +187,7 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: string) {
+function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: string, subRateID?: string) {
     if (!policyID || !customUnitID || !rateID) {
         return;
     }
@@ -198,6 +198,7 @@ function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: s
                 rates: {
                     [rateID]: {
                         errors: null,
+                        ...(subRateID ? {errorFields: {[subRateID]: null}} : {}),
                     },
                 },
             },
@@ -269,8 +270,9 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, currentRate: Rate, updatedRate: Rate) {
+function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, currentRate: Rate, updatedRate: Rate, errorSubRateID?: string) {
     const rateID = updatedRate.customUnitRateID;
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -283,6 +285,7 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
                                 [rateID]: {
                                     ...updatedRate,
                                     errors: null,
+                                    errorFields: null,
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                             },
@@ -301,6 +304,7 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
                             rates: {
                                 [rateID]: {
                                     errors: null,
+                                    errorFields: null,
                                     pendingAction: null,
                                 },
                             },
@@ -319,7 +323,8 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
                             rates: {
                                 [rateID]: {
                                     ...currentRate,
-                                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    errors: errorSubRateID ? null : error,
+                                    errorFields: errorSubRateID ? {[errorSubRateID]: error} : null,
                                     pendingAction: null,
                                 },
                             },
@@ -377,7 +382,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
         }
         return subRate;
     });
-    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
 }
 
 function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newAmount: number) {
@@ -398,7 +403,7 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return subRate;
     });
 
-    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
 }
 
 function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newCurrency: string) {

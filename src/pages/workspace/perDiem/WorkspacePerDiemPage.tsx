@@ -76,8 +76,8 @@ function getSubRatesData(customUnitRates: Rate[]) {
             for (const [index, subRate] of subRates.entries()) {
                 subRatesData.push({
                     pendingAction: rate.pendingAction,
-                    // Errors are stored on the rate, so show them on only one of its subrate rows
-                    errors: index === 0 ? rate.errors : undefined,
+                    // Rate-level errors appear once; subrate errors appear on the row that was edited.
+                    errors: rate.errorFields?.[subRate.id] ?? (index === 0 ? rate.errors : undefined),
                     destination: rate.name ?? '',
                     subRateName: subRate.name,
                     rate: subRate.rate,
@@ -219,7 +219,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             if (!customUnit) {
                                 return;
                             }
-                            clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID);
+                            clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
                         },
                     };
                 }),
