@@ -149,6 +149,10 @@ function LazyPlaceholder() {
     );
 }
 
+function renderLazyPlaceholder() {
+    return <LazyPlaceholder />;
+}
+
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 // It also takes 2 more optional callbacks to manage the focus trap container elements of the tab bar and the active tab
@@ -414,7 +418,7 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
                             ...defaultScreenOptions,
                             swipeEnabled: false,
                             lazy: lazyLoadEnabled,
-                            lazyPlaceholder: LazyPlaceholder,
+                            lazyPlaceholder: renderLazyPlaceholder,
                         }}
                     >
                         {children}
