@@ -183,6 +183,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
             return (
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                !accountData.additionalData?.isForABA &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&

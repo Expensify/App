@@ -384,6 +384,19 @@ describe('PaymentUtils', () => {
             expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
         });
 
+        it('drops accounts that are only used for ABA files', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {isForABA: true},
+                    },
+                }),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
         it('drops PERSONAL account type (only BUSINESS included)', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({

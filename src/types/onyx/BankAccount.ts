@@ -22,6 +22,10 @@ type BankAccountAdditionalData = {
 
     country?: string;
     isBillingCard?: boolean;
+
+    /** Whether it's an AU withdrawal account that's only used for ABA files, which Expensify can't pay from directly */
+    isForABA?: boolean;
+
     policyID?: string;
     corpay?: {
         /** Powerform files */
