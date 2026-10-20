@@ -87,6 +87,14 @@
 - PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch](@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch)
+
+- Reason: Keeps the native tab bar on screen while a route with `tabBarItemHidden` (patch 003) is focused, the way the JS tab bar on web stays with no tab selected. With the Insights beta, Account has no item in the native bar and opens from the avatar in the top bar, and the design wants the bar to stay with none of its items selected. Patch 003 drew the hidden route over the whole native host and hid the bar. A view drawn over the host also covers the bar, so this patch draws the hidden routes inside the native tab of the first visible route instead, where they sit under the bar like the content of any tab. While a hidden route is focused, the host selects that tab and passes `tabBarItemSelectionHidden` (react-native-screens patch 006), so the bar draws no item as selected. A fixed tab keeps the hidden routes mounted in one place, whichever tab they were opened from. Tapping the host tab while a hidden route is focused opens the host tab, so its repeated-selection effects (pop to root, scroll to top) are turned off for that time. Native also rejects a repeated request for the host tab while a hidden route is focused, and the rejection handler no longer takes that as a reason to move JS to the host tab.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: TBD
+- PR Introducing Patch: TBD
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.
