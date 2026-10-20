@@ -52,6 +52,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
@@ -98,7 +101,8 @@ function TransactionGroupListExpandedImpl({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    // Search snapshots never carry the full policy snapshot marker, so it is read from live Onyx
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
