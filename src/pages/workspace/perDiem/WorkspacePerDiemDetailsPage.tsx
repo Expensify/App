@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -84,7 +84,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                 style={[styles.defaultModalContainer]}
                 testID="WorkspacePerDiemDetailsPage"
             >
-                <HeaderWithBackButton title={translate('workspace.perDiem.editPerDiemRate')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.perDiem.editPerDiemRate')} />
                 <ScrollView
                     addBottomSafeAreaPadding
                     contentContainerStyle={styles.flexGrow1}

@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
@@ -104,10 +104,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.reportFields.addValue')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.reportFields.addValue')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={createValue}

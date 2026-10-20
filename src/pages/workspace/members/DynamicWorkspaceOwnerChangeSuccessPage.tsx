@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -54,7 +54,7 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
             canBeAccessedIfArchived
         >
             <ScreenWrapper testID="DynamicWorkspaceOwnerChangeSuccessPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
                 />
