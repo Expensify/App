@@ -112,9 +112,9 @@ describe('useContinueJoinWorkspaceOnboarding', () => {
         expect(mockNavigateAfterOnboarding).not.toHaveBeenCalled();
     });
 
-    it('completes with the trimmed saved name and caller-provided onboarding data', async () => {
+    it.each([false, true])('completes with the trimmed saved name and caller-provided onboarding data (anonymous: %s)', async (isAnonymousUser) => {
         // Given a saved name and an admins chat that completion must receive before state is cleared.
-        const params = createParams();
+        const params = createParams({session: createMock({email: WORK_EMAIL, authTokenType: isAnonymousUser ? CONST.AUTH_TOKEN_TYPES.ANONYMOUS : undefined})});
         await Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, '67890');
         const {result} = renderHook(() => useContinueJoinWorkspaceOnboarding(params));
         await waitForBatchedUpdatesWithAct();
@@ -142,7 +142,7 @@ describe('useContinueJoinWorkspaceOnboarding', () => {
         expect(setOnboardingAdminsChatReportID).toHaveBeenCalledWith();
         expect(setOnboardingPolicyID).toHaveBeenCalledWith();
         expect(mockNavigateAfterOnboarding).toHaveBeenCalledTimes(1);
-        expect(mockNavigateAfterOnboarding).toHaveBeenCalledWith(false, false, params.conciergeReportID, params.reportNameValuePairs, undefined, undefined, false);
+        expect(mockNavigateAfterOnboarding).toHaveBeenCalledWith(false, false, params.conciergeReportID, params.reportNameValuePairs, isAnonymousUser, undefined, undefined, false);
         expect(navigate).not.toHaveBeenCalled();
     });
 
@@ -179,6 +179,7 @@ describe('useContinueJoinWorkspaceOnboarding', () => {
             false,
             params.conciergeReportID,
             params.reportNameValuePairs,
+            false,
             policyState === 'joined' ? POLICY_ID : undefined,
             undefined,
             false,
@@ -266,6 +267,7 @@ describe('useContinueJoinWorkspaceOnboarding', () => {
             false,
             '99999',
             mergedParams.reportNameValuePairs,
+            false,
             undefined,
             shouldRedirectToClassicAfterMerge ? undefined : '99999',
             false,

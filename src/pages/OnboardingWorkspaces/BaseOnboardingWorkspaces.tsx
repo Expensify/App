@@ -12,6 +12,7 @@ import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceO
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -82,6 +83,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         parentReportAction: joinWorkspaceTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
 
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const isValidated = isCurrentUserValidated(loginList, currentUserEmail);
@@ -198,6 +200,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             conciergeReportID,
             reportNameValuePairs,
+            isAnonymousUser,
             policy.automaticJoiningEnabled ? policy.policyID : undefined,
             undefined,
             false,
@@ -416,7 +419,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             });
             setOnboardingAdminsChatReportID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), conciergeReportID, reportNameValuePairs, undefined, undefined, false);
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                undefined,
+                undefined,
+                false,
+            );
             return;
         }
 

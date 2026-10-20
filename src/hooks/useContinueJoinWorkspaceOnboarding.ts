@@ -70,6 +70,7 @@ function useContinueJoinWorkspaceOnboarding({
     const isSelfTourViewed = hasSeenTourSelector(onboardingValues);
 
     const workEmail = session?.email ?? '';
+    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     const isValidated = isCurrentUserValidated(loginList, workEmail);
     const firstName = onboardingPersonalDetails?.firstName?.trim();
     const lastName = onboardingPersonalDetails?.lastName?.trim() ?? '';
@@ -107,6 +108,7 @@ function useContinueJoinWorkspaceOnboarding({
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
                 reportNameValuePairs,
+                isAnonymousUser,
                 onboardingPolicy ? onboardingPolicyID : undefined,
                 mergedAccountConciergeReportID,
                 false,
