@@ -220,5 +220,5 @@ function getComparedBucketLabels(
     return {label: positionLabel, shortLabel: positionLabel, seriesLabels};
 }
 
-export {getComparedBucketLabels, getCounterpartBucketRange};
+export {formatDates, getComparedBucketLabels, getCounterpartBucketRange};
 export type {ChartComparisonPeriods, ChartPeriod};
