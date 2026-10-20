@@ -137,6 +137,11 @@ function getLoadedGroupRowKeys(data: SearchData): Set<string> {
     return new Set(isGroupedItemArray(data) ? data.flatMap((group) => group.transactions.map((transaction) => transaction.keyForList)) : []);
 }
 
+/** The keys of the rows the groups' own searches returned that the list now hides, which have left their group, as an expense submitted under a drafts filter has. */
+function getHiddenGroupRowKeys(data: SearchData): Set<string> {
+    return new Set(isGroupedItemArray(data) ? data.flatMap((group) => group.hiddenTransactionIDs ?? []) : []);
+}
+
 /**
  * The transaction behind a row, the one it was split from, and its parent report, which every selection entry is built from.
  * Live Onyx comes first, since the hold and split flags read the optimistic row and the snapshot only refreshes when the search returns.
@@ -210,6 +215,8 @@ function useReconcileSelectionWithData({
         const inferredExcludedTransactions: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
         const presentGroupKeys = new Set<string>();
+        // Neither pass that keeps rows the list does not show keeps one that left its group.
+        const hiddenRowKeys = getHiddenGroupRowKeys(filteredData);
         const nonEmptyReportKeys = new Set<string>();
         const excludedReportKeys = new Set(
             isExpenseReportType
@@ -350,11 +357,11 @@ function useReconcileSelectionWithData({
                     }
                 }
 
-                // A refresh can bring back only a group's first page, so the selected rows it left out stay selected while the group has rows still to load, unless the list now hides them because they left the group.
+                // A refresh can bring back only a group's first page, so the selected rows it left out stay selected while the group has rows still to load.
                 if (reportKey && !isExpenseReportType && hasUnloadedRows) {
                     for (const key of selectedRowKeysByGroupKey.get(reportKey) ?? []) {
                         const selection = selectedTransactions[key];
-                        if (selection && !loadedRowKeys.has(key) && !transactionGroup.hiddenTransactionIDs?.includes(key)) {
+                        if (selection && !loadedRowKeys.has(key) && !hiddenRowKeys.has(key)) {
                             newTransactionList[key] = {...selection, isKeptOffPage: true, ...(isClaimEnding ? {isSelectedViaGroup: false} : {})};
                         }
                     }
@@ -452,7 +459,8 @@ function useReconcileSelectionWithData({
                     Object.hasOwn(newTransactionList, key) ||
                     Object.hasOwn(excludedTransactions, key) ||
                     Object.hasOwn(excludedTransactions, parentGroupKey) ||
-                    !presentGroupKeys.has(parentGroupKey)
+                    !presentGroupKeys.has(parentGroupKey) ||
+                    hiddenRowKeys.has(key)
                 ) {
                     continue;
                 }
