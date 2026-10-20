@@ -67,7 +67,7 @@ type DynamicAddAgentPageContentProps = {
 
 function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
-    const policy = usePolicy(route.params.policyID);
+    const policy = usePolicy(route.params?.policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
