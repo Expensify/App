@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {after, before, describe, test} from 'node:test';
+import {brotliCompressSync} from 'node:zlib';
 
 import createWorkerHarness from './createWorkerHarness.ts';
 
@@ -185,13 +186,13 @@ describe('staging worker', () => {
         }
     });
 
-    test('does not publish files listed in .assetsignore', async () => {
-        // Given the build contains Brotli twins and a merged source map
-        for (const path of [`${HASHED_BUNDLE_PATH}.br`, '/merged-source-map.js.map']) {
-            // When they are requested
+    test('does not serve source maps or Brotli twins at their own URLs', async () => {
+        // Given the build contains a merged source map, which .assetsignore keeps out of the upload, and Brotli twins
+        for (const path of ['/merged-source-map.js.map', `${HASHED_BUNDLE_PATH}.br`]) {
+            // When they are requested directly
             const response = await server.fetch(path);
 
-            // Then they are not served, since they were never uploaded as assets
+            // Then they are not served: maps must stay private, and twins are only served as an encoding of the original
             assert.equal(response.status, 404, path);
         }
     });
@@ -207,9 +208,87 @@ describe('staging worker', () => {
     });
 });
 
+// The test harness decodes responses before the test reads them, so the twin is identified by its ETag.
+describe('staging worker serving Brotli twins', () => {
+    const {server, cleanup} = createWorkerHarness('staging');
+    const BROTLI = {'Accept-Encoding': 'br'};
+
+    before(async () => {
+        await server.listen();
+    });
+
+    after(async () => {
+        await cleanup();
+    });
+
+    async function getETag(path: string): Promise<string> {
+        const response = await server.fetch(path, {method: 'HEAD', headers: BROTLI});
+        return response.headers.get('ETag') ?? '';
+    }
+
+    test("serves the build's Brotli twin", async () => {
+        // Given a bundle the build also compressed with Brotli 11
+        // When a browser requests it
+        const response = await server.fetch(HASHED_BUNDLE_PATH, {headers: BROTLI});
+
+        // Then it gets the twin, labeled with the original's type, so it downloads fewer bytes than edge compression gives
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('mf-content-encoding'), 'br');
+        assert.match(response.headers.get('ETag') ?? '', /-br"$/);
+        assert.match(response.headers.get('Content-Type') ?? '', /javascript/);
+        assert.match(response.headers.get('Vary') ?? '', /Accept-Encoding/);
+        assert.equal(response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
+        assert.equal(await response.text(), 'window.fixtureBundle = true;');
+        assertSecurityHeaders(response);
+    });
+
+    test('answers revalidation with 304', async () => {
+        // Given files browsers revalidate on every load: one with a twin and one without
+        for (const path of ['/service-worker.js', '/version.json']) {
+            const etag = await getETag(path);
+
+            // When the browser revalidates the copy it has, including after Cloudflare weakened the ETag
+            for (const ifNoneMatch of [etag, `W/${etag}`, `"something-else", ${etag}`]) {
+                const response = await server.fetch(path, {headers: {...BROTLI, 'If-None-Match': ifNoneMatch}});
+
+                // Then it gets a 304 with no body instead of downloading the file again
+                assert.equal(response.status, 304, `${path} ${ifNoneMatch}`);
+                assert.equal(await response.text(), '', `${path} ${ifNoneMatch}`);
+                assert.equal(response.headers.get('ETag'), etag, `${path} ${ifNoneMatch}`);
+                assert.equal(response.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate', `${path} ${ifNoneMatch}`);
+            }
+        }
+    });
+
+    test("does not revalidate the twin with the original's ETag", async () => {
+        // Given a browser holding the original, whose ETag is the twin's without the `-br` suffix
+        const originalETag = (await getETag('/service-worker.js')).replace(/-br"$/, '"');
+
+        // When it revalidates
+        const response = await server.fetch('/service-worker.js', {headers: {...BROTLI, 'If-None-Match': originalETag}});
+
+        // Then it gets the twin in full, because its cached bytes are a different representation
+        assert.equal(response.status, 200);
+        assert.match(response.headers.get('ETag') ?? '', /-br"$/);
+        assert.equal(await response.text(), 'self.fixtureServiceWorker = true;');
+    });
+
+    test('answers HEAD for a twin without a body', async () => {
+        // Given a bundle with a twin
+        // When it is requested with HEAD
+        const response = await server.fetch(HASHED_BUNDLE_PATH, {method: 'HEAD', headers: BROTLI});
+
+        // Then the headers describe the twin, without sending it
+        assert.equal(response.status, 200);
+        assert.match(response.headers.get('ETag') ?? '', /-br"$/);
+        assert.equal(await response.text(), '');
+    });
+});
+
 describe('staging worker with files from previous builds', () => {
     const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('staging');
     const PREVIOUS_CHUNK_PATH = '/main-aaaaaaaaaaaaaaaa.bundle.js';
+    const PREVIOUS_TWINNED_CHUNK_PATH = '/main-bbbbbbbbbbbbbbbb.bundle.js';
 
     before(async () => {
         await server.listen();
@@ -218,6 +297,8 @@ describe('staging worker with files from previous builds', () => {
             {path: 'canvaskit-0.40.0.wasm', contents: 'previous wasm', contentType: 'application/wasm'},
             {path: HASHED_BUNDLE_PATH.slice(1), contents: 'window.previousCopyOfCurrentChunk = true;', contentType: 'text/javascript'},
             {path: 'r/123/receipt.pdf', contents: 'not a page', contentType: 'application/pdf'},
+            {path: PREVIOUS_TWINNED_CHUNK_PATH.slice(1), contents: 'window.previousTwinnedChunk = true;', contentType: 'text/javascript'},
+            {path: `${PREVIOUS_TWINNED_CHUNK_PATH.slice(1)}.br`, contents: brotliCompressSync('window.previousTwinnedChunk = true;'), contentType: 'application/octet-stream'},
         ]);
     });
 
@@ -277,6 +358,31 @@ describe('staging worker with files from previous builds', () => {
         // Then it gets the app shell, because only script and image requests can need an older build's files
         assert.equal(response.status, 200);
         assert.match(await response.text(), /New Expensify fixture/);
+    });
+
+    test("serves a previous build's Brotli twin", async () => {
+        // Given an older build's chunk and its twin in the bucket
+        // When a tab on that build requests the chunk
+        const response = await server.fetch(PREVIOUS_TWINNED_CHUNK_PATH, {headers: {'Accept-Encoding': 'br'}});
+
+        // Then it gets the twin, typed as JavaScript rather than with the twin's own stored type
+        assert.equal(response.status, 200);
+        assert.match(response.headers.get('ETag') ?? '', /-br"$/);
+        assert.equal(response.headers.get('Content-Type'), 'text/javascript');
+        assert.match(response.headers.get('Vary') ?? '', /Accept-Encoding/);
+        assert.equal(response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
+        assert.equal(await response.text(), 'window.previousTwinnedChunk = true;');
+    });
+
+    test('answers revalidation of a previous build file with 304', async () => {
+        // Given a browser holding a chunk served from the bucket
+        const {headers} = await server.fetch(PREVIOUS_TWINNED_CHUNK_PATH, {method: 'HEAD', headers: {'Accept-Encoding': 'br'}});
+
+        // When it revalidates
+        const response = await server.fetch(PREVIOUS_TWINNED_CHUNK_PATH, {headers: {'Accept-Encoding': 'br', 'If-None-Match': headers.get('ETag') ?? ''}});
+
+        // Then it gets a 304
+        assert.equal(response.status, 304);
     });
 
     test('returns 404 for a file no build has', async () => {
