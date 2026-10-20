@@ -9,7 +9,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only import from react-native
 import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 
