@@ -20,7 +20,9 @@ type Payload = {
 
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM],
-    action: async ({card, cardHolderName, cardDescription, signedChallenge, authenticationMethod}, context) => {
+    // Hermes V1 does not suspend at await inside async arrows with destructured parameters, so destructure in the body.
+    action: async (params, context) => {
+        const {card, cardHolderName, cardDescription, signedChallenge, authenticationMethod} = params;
         walletDebugLog('scenario action start', false, {
             cardID: card.cardID,
             hasSignedChallenge: !!signedChallenge,
