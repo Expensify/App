@@ -688,6 +688,28 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.COMPARISON]: 1000});
     });
 
+    it('numbers a compared month the current period has no month for when the months beside it are numbered', () => {
+        // Given March and April as a custom range, compared by position with the 61 days before it, which touch December, January and February
+        const {rows} = buildChartSeries({
+            data: [monthGroup(2026, 3), monthGroup(2026, 4)],
+            comparison: {
+                data: [monthGroup(2025, 12), monthGroup(2026, 1), monthGroup(2026, 2)],
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-03-01', end: '2026-04-30'}, comparison: {start: '2025-12-30', end: '2026-02-28'}},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+        });
+
+        // Then February, which no current month pairs with, is numbered like the months before it rather than named "February"
+        expect(rows.map((row) => row.point.label)).toEqual(['Month 1', 'Month 2', 'Month 3']);
+    });
+
     /** Builds the dates the tooltip shows for each period at every point. */
     function buildSeriesLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
         return buildChartSeries({

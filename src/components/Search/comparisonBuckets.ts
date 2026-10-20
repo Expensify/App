@@ -244,7 +244,9 @@ function getUnpairedBucketLabels(
 ) {
     const bucketDate = parseISO(range.start);
     const patterns = getCalendarNamePatterns(groupBy, parseISO(periods.primary.start), parseISO(periods.primary.end));
-    if (patterns) {
+    // Days paired by date always share a name. Others take a calendar name only if it matches their spot, as paired buckets do.
+    const isPairedByDate = groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined;
+    if (patterns && (isPairedByDate || format(bucketDate, patterns.label) === format(parseISO(getPositionInPrimaryPeriod(range, periods, groupBy)), patterns.label))) {
         return {
             label: format(bucketDate, patterns.label, {locale: dateFnsLocale}),
             shortLabel: format(bucketDate, patterns.shortLabel, {locale: dateFnsLocale}),
