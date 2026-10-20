@@ -38,7 +38,7 @@ import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type AssigneeListItem = ListItem & {
     value: string;
@@ -78,11 +78,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         excludedUsers[login] = true;
     }
 
-    const {
-        assignedGuideEmail,
-        accountManagerLogin,
-        exclusions: softExclusions,
-    } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,

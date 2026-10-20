@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import CategoryForm from './CategoryForm';
 
@@ -58,34 +58,14 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
 
     const policyHasTags = hasTags(policyTags);
 
-    const createCategory = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            createPolicyCategory({
-                policyID: route.params.policyID,
-                categoryName: StringUtils.sanitizeName(values.categoryName),
-                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                setupCategoryTaskReport,
-                setupCategoryTaskParentReport,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                setupCategoriesAndTagsTaskReport,
-                setupCategoriesAndTagsTaskParentReport,
-                isSetupCategoriesAndTagsTaskParentReportArchived,
-                setupCategoriesAndTagsHasOutstandingChildTask,
-                setupCategoriesAndTagsParentReportAction,
-                policyHasTags,
-            });
-            Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
-        },
-        [
-            route.params.policyID,
-            isSetupCategoryTaskParentReportArchived,
+    const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        createPolicyCategory({
+            policyID: route.params.policyID,
+            categoryName: StringUtils.sanitizeName(values.categoryName),
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            isQuickSettingsFlow,
-            backPath,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
             setupCategoriesAndTagsTaskReport,
@@ -94,8 +74,9 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
-        ],
-    );
+        });
+        Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+    };
 
     return (
         <AccessOrNotFoundWrapper

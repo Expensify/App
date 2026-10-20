@@ -22,7 +22,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VENDORS>;
@@ -43,14 +43,10 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const connectedIntegration = getActiveVendorMatchingIntegration(policy);
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
 
-    const vendorRows: WorkspaceVendorTableRowData[] = useMemo(
-        () =>
-            sortedVendors.map((vendor) => ({
-                keyForList: vendor.id,
-                name: vendor.name,
-            })),
-        [sortedVendors],
-    );
+    const vendorRows: WorkspaceVendorTableRowData[] = sortedVendors.map((vendor) => ({
+        keyForList: vendor.id,
+        name: vendor.name,
+    }));
 
     const headerContent = currentConnectionName ? (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

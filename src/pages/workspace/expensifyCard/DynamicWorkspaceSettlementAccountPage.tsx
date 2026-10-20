@@ -39,7 +39,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useNavigationState} from '@react-navigation/native';
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
@@ -89,12 +89,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
-    const fetchPolicyAccountingData = useCallback(() => {
+    const fetchPolicyAccountingData = () => {
         if (!policyID) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID]);
+    };
 
     useEffect(() => {
         if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
