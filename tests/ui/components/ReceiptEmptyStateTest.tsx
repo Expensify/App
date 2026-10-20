@@ -43,6 +43,7 @@ describe('ReceiptEmptyState', () => {
 
     describe('wide RHP attachment picker flow', () => {
         it('calls openPicker when pressed and isDisplayedInWideRHP is true', () => {
+            // Given a wide receipt panel with its own picker action.
             render(
                 <Wrapper>
                     <ReceiptEmptyState
@@ -52,15 +53,18 @@ describe('ReceiptEmptyState', () => {
                 </Wrapper>,
             );
 
-            const uploadButton = screen.getByLabelText(translateLocal('receipt.upload'));
+            const uploadButton = screen.getByRole('button', {name: translateLocal('receipt.upload')});
+            // When its upload control is activated.
             fireEvent.press(uploadButton);
 
+            // Then the picker, not a missing caller callback, handles the action.
             expect(mockOpenPicker).toHaveBeenCalledTimes(1);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Jest matcher for callback
             expect(mockOpenPicker).toHaveBeenCalledWith({onPicked: expect.any(Function)});
         });
 
         it('does not call openPicker when isDisplayedInWideRHP is false and calls onPress instead', () => {
+            // Given an upload control with a caller-owned navigation action.
             const onPress = jest.fn();
             render(
                 <Wrapper>
@@ -71,9 +75,11 @@ describe('ReceiptEmptyState', () => {
                 </Wrapper>,
             );
 
-            const uploadButton = screen.getByLabelText(translateLocal('receipt.upload'));
+            const uploadButton = screen.getByRole('button', {name: translateLocal('receipt.upload')});
+            // When that control is activated.
             fireEvent.press(uploadButton);
 
+            // Then its callback runs instead of the wide-panel picker.
             expect(mockOpenPicker).not.toHaveBeenCalled();
             expect(onPress).toHaveBeenCalledTimes(1);
         });
@@ -94,6 +100,7 @@ describe('ReceiptEmptyState', () => {
         });
 
         it('does not show "Add a receipt" text when isDisplayedInWideRHP is false', () => {
+            // Given a receipt placeholder without an upload action.
             render(
                 <Wrapper>
                     <ReceiptEmptyState
@@ -103,8 +110,11 @@ describe('ReceiptEmptyState', () => {
                 </Wrapper>,
             );
 
+            // When its accessible output is inspected.
+            // Then it remains a static placeholder, not a misleading upload button.
             expect(screen.queryByText(translateLocal('receipt.addAReceipt.phrase1'))).not.toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('receipt.addAReceipt.phrase2'))).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(translateLocal('receipt.upload'))).not.toHaveProp('accessibilityRole', 'button');
         });
     });
 });

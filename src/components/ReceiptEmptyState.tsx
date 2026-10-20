@@ -91,7 +91,8 @@ function ReceiptEmptyState({
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
-    const Wrapper = onPress ? PressableWithoutFeedback : View;
+    const isInteractive = !!onPress || isDisplayedInWideRHP;
+    const Wrapper = isInteractive ? PressableWithoutFeedback : View;
     const containerStyle = isCompact
         ? [styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptEmptyStateCompact, styles.moneyRequestAttachReceipt, style]
         : [
@@ -116,7 +117,7 @@ function ReceiptEmptyState({
         <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
             {({openPicker}) => (
                 <Wrapper
-                    accessibilityRole="imagebutton"
+                    accessibilityRole={isInteractive ? 'button' : undefined}
                     accessibilityLabel={translate('receipt.upload')}
                     onPress={() => {
                         if (isDisplayedInWideRHP) {
