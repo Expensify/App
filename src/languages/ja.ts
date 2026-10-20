@@ -1018,6 +1018,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: '管理',
             },
             emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
+            upgradeNetSuiteConnection: {title: 'NetSuite 接続をアップグレードする'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -7639,6 +7640,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
             qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
+            netSuiteOAuthMigrationRequired: '2027年2月までに、NetSuite 接続を OAuth 2.0 にアップグレードしてください。',
+            netSuiteOAuthMigrationRequiredUrgent: 'NetSuite との接続は、ただちに OAuth 2.0 へのアップグレードが必要です。',
+            netSuiteOAuthUpgradeNow: '今すぐアップグレード',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
