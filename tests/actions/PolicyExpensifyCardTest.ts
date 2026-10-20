@@ -157,6 +157,18 @@ describe('actions/PolicyExpensifyCard', () => {
             const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
             expect(body instanceof FormData && body.has('shippingAddress')).toBe(false);
         });
+
+        it('leaves out the address when the admin prompts the cardholder', async () => {
+            // Given a physical US card where the admin picked Prompt cardholder, so no address was entered
+            // When the admin issues it
+            issueExpensifyCard(workspaceFundID, policyID, '', undefined, {...physicalCardData, shippingAddress: null});
+            await waitForBatchedUpdates();
+
+            // Then the card is still issued, without an address, so the cardholder is asked for theirs
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
+            expect(body instanceof FormData).toBe(true);
+            expect(body instanceof FormData && body.has('shippingAddress')).toBe(false);
+        });
     });
 
     describe('openIssueNewCardShippingAddressStep', () => {
