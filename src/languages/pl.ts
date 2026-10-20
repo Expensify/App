@@ -994,6 +994,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj'},
             addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
             addBankAccount: {title: 'Dodaj konto bankowe, aby otrzymać zwrot'},
+            addDepositAccount: {title: 'Dodaj konto bankowe, aby otrzymywać płatności'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Karta Expensify',
@@ -1201,7 +1202,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Zobacz w Wydatkach',
         emptyState: {title: 'Nic do wyświetlenia', subtitle: 'Spróbuj zmienić kryteria powyżej'},
         noExpensesState: {title: 'Zobacz, na co idą twoje pieniądze', subtitle: 'Gdy będziesz mieć wydatki, zobaczysz trendy w wydawaniu, najważniejszych sprzedawców i więcej.'},
-        compare: {label: 'Porównaj', previousPeriod: 'Poprzedni okres', average: 'Średnia'},
+        compare: {
+            label: 'Porównaj',
+            previousPeriod: 'Poprzedni okres',
+            average: 'Średnia',
+            dayLabel: (day?: number) => (day === undefined ? 'Dzień' : `Dzień ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Tydzień' : `Tydzień ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Miesiąc' : `Miesiąc ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartał' : `Kwartał ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Rok' : `Rok ${year}`),
+            increase: (percentage: string) => `Wzrost o ${percentage}`,
+            decrease: (percentage: string) => `Spadek o ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2217,6 +2229,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie płatności${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` do ${eta}` : ` ${eta}`;
+                }
+                return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2858,6 +2882,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
         },
+        wiseGlobalReimbursementsIntro: {
+            title: 'Skonfigurować globalne zwroty kosztów?',
+            subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
+            getStarted: 'Zacznij',
+            headerTitle: 'Globalne zwroty kosztów',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Dodaj kartę do ${walletName}`,
@@ -4131,6 +4162,7 @@ ${amount} dla ${merchant} - ${date}`,
             formLabel: 'Wyświetl PDF',
         },
         attachmentNotFound: 'Załącznik nie został znaleziony',
+        loadTimedOut: 'Ładowanie tego obrazu trwa zbyt długo.',
         retry: 'Ponów próbę',
     },
     messages: {
@@ -5134,6 +5166,7 @@ ${amount} dla ${merchant} - ${date}`,
             editPerDiemRates: 'Edytuj stawki diet',
             editDestinationSubtitle: (destination: string) => `Zaktualizowanie tego miejsca docelowego zmieni je dla wszystkich podstawek diet ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Zaktualizowanie tej waluty spowoduje jej zmianę dla wszystkich podrzędnych stawek diet w ${destination}.`,
+            missingPerDiemUnit: 'Dieta nie jest poprawnie skonfigurowana w tym workspace. Skontaktuj się z Concierge, żeby uzyskać pomoc.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ustaw sposób eksportu wydatków z własnej kieszeni do QuickBooks Desktop.',
@@ -7422,6 +7455,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
+            exactOnline: {
+                comingSoon: 'Wkrótce dostępne',
+                joinWaitlist: 'Dołącz do listy oczekujących',
+                onWaitlist: 'Jesteś na liście oczekujących',
+                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
+            },
             setup: 'Połącz',
             connectToSandbox: 'Połącz z sandboxem',
             lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,
@@ -8425,6 +8464,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
+                preventPayoutNonReimbursableReportsTitle: 'Zapobiegaj oznaczaniu nierozliczanych raportów jako opłaconych',
+                preventPayoutNonReimbursableReportsSubtitle: 'Nie pozwalaj administratorom oznaczać nierozliczanych raportów jako opłacone.',
             },
             agentsPromoBanner: {title: 'Nie widzisz potrzebnej reguły? Dodaj agenta', subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki własnym agentom.', cta: 'Wypróbuj'},
             merchantRules: {
@@ -8792,6 +8833,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     unsupported: 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
+                    categoryHasRule: 'Ta kategoria ma już regułę. Edytuj istniejącą regułę lub opisz regułę dla innej kategorii.',
                 },
             },
             expenseDefaultsTable: {
@@ -9207,6 +9249,50 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noBankAccountsFoundDescription: 'Dodaj konta bankowe w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
             noPaymentMethodsFound: 'Nie znaleziono metod płatności',
             noPaymentMethodsFoundDescription: 'Dodaj metody płatności w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
+            advanced: {
+                autoSyncDescription: 'Synchronizuj Dynamics 365 Business Central i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+                accountingMethods: {
+                    label: 'Metoda eksportu',
+                    description: 'Wybierz, kiedy eksportować wydatki.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                    },
+                },
+                postingMode: {
+                    label: 'Tryb księgowania',
+                    description: 'Wybierz, czy zapisy mają być księgowane automatycznie, czy najpierw wymagają ręcznej weryfikacji.',
+                    note: 'Uwaga: Expensify księguje każdy otwarty dziennik w partii dziennika głównego wybranej na stronie Expensify Setup w Business Central, a nie tylko te, które samo utworzyło. Używaj partii tylko dla Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Utwórz i zaksięguj',
+                            description: 'Automatycznie księguj zapisy w księdze głównej podczas eksportu',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Tylko utwórz',
+                            description: 'Ręcznie księguj zapisy w Dynamics 365 Business Central po eksporcie',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Automatycznie twórz pracowników/dostawców',
+                exportToNextOpenPeriod: 'Eksportuj do następnego otwartego okresu',
+                exportToNextOpenPeriodDescription: 'Gdy raport ma datę w zamkniętym okresie w Dynamics 365 Business Central, zostanie wyeksportowany do następnego otwartego okresu.',
+                syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+                syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowany wiersz dziennika ogólnego.',
+                reimbursementBankAccount: {
+                    label: 'Rachunek bankowy do płatności',
+                    description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+                settlementsBankAccount: {
+                    label: 'Rachunek rozliczeniowy Karty Expensify',
+                    description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Twoje konta Dynamics 365 Business Central zostaną zaimportowane jako kategorie.',
             dimensionsImportAsTags: 'Wszystkie wymiary z Dynamics 365 Business Central są importowane jako tagi',
             customers: 'Klienci',
@@ -9830,6 +9916,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą do ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą od ${startDate} do ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, z ${taxReclaimableAmount} podatku do odzyskania w ramach „${taxRateName}”`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `zaktualizowano stawkę za dystans „${rateName}”, aby obowiązywała ${newDateRange} (wcześniej ${oldDateRange})`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -9920,6 +10007,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `zaktualizowano „Zapobiegaj oznaczaniu raportów niepodlegających zwrotowi jako opłacone” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -10161,6 +10250,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             past: 'Przeszłe',
             submitted: 'Przesłano',
             approved: 'Zatwierdzono',
+            anyApproval: 'Jakiekolwiek zatwierdzenie',
             firstApprover: 'Pierwszy zatwierdzający',
             firstApproved: 'Najpierw zatwierdzono',
             paidBy: 'Zapłacone przez',
@@ -10169,6 +10259,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             posted: 'Opublikowano',
             withdrawn: 'Wycofano',
             billable: 'Fakturowalne',
+            rejected: 'Odrzucone',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
             sortOrder: {
@@ -10386,6 +10477,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `zmieniono ${fieldName} na „${newValue}” (wcześniej „${oldValue}”)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `ustaw ${fieldName} na „${newValue}”`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `usunięto ${fieldName} (wcześniej „${oldValue}”)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `zmieniono przestrzeń roboczą${fromPolicyName ? `(wcześniej ${fromPolicyName})` : ''}`;
@@ -11988,22 +12080,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         addPaymentCardButton: 'Dodaj kartę płatniczą',
     },
     monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nowość w Concierge AI',
-        confirmText: 'Jedziemy!',
-        spendAnalysis: {
-            title: 'Interaktywna analiza wydatków',
-            description: `<muted-text>Concierge przedstawia miesięczne informacje o wydatkach i pozwala zagłębić się w szczegóły stojące za każdą liczbą. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Poznaj swojego nowego asystenta wydatków',
-            description: `<muted-text>Rozmawiaj z Concierge, aby tworzyć i aktualizować wydatki bezpośrednio w aplikacji, e-mailem lub SMS-em. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Zbuduj własne agentów',
-            description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'Problem z e‑mailem',
         intro: (login: string) => `Nasz dostawca poczty wstrzymał wysyłanie na adres <strong>${login}</strong> z powodu problemów z dostarczaniem. Aby rozwiązać ten problem:`,

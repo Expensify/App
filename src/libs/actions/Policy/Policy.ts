@@ -79,6 +79,7 @@ import type {
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
+    SetPolicyPreventPayoutNonReimbursableReportsParams,
 } from '@libs/API/parameters';
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
@@ -6038,8 +6039,9 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
  * Optimistically setting DEFAULT_MAX_* for those caused a brief "90 days" / "$2,000" flash (#74401).
  *
  * Receipt thresholds: UpgradeToCorporate responds with DISABLED and wipes existing values, then they
- * come back shortly after (enable Rules / sync). Re-apply prior values (or Control defaults) in
- * successData so the Rules row does not flash "Don't require receipts" between those updates.
+ * come back shortly after (enable Rules / sync). Re-apply prior values in successData so the Rules
+ * row does not flash "Don't require receipts" between those updates. Never fall back to Control
+ * defaults: the API does not persist them, so they would vanish on the next policy fetch (#101524).
  */
 function getCorporateUpgradeReceiptThresholds(policy: OnyxEntry<Policy>) {
     const receiptAmount = policy?.maxExpenseAmountNoReceipt;
@@ -6050,8 +6052,8 @@ function getCorporateUpgradeReceiptThresholds(policy: OnyxEntry<Policy>) {
     const isReceiptThresholdEnabled = (amount: number | undefined): amount is number => amount !== undefined && amount !== CONST.DISABLED_MAX_EXPENSE_VALUE && amount !== 0;
 
     return {
-        maxExpenseAmountNoReceipt: isReceiptThresholdEnabled(receiptAmount) ? receiptAmount : CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
-        maxExpenseAmountNoItemizedReceipt: isReceiptThresholdEnabled(itemizedAmount) ? itemizedAmount : CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
+        ...(isReceiptThresholdEnabled(receiptAmount) ? {maxExpenseAmountNoReceipt: receiptAmount} : {}),
+        ...(isReceiptThresholdEnabled(itemizedAmount) ? {maxExpenseAmountNoItemizedReceipt: itemizedAmount} : {}),
     };
 }
 
@@ -7446,6 +7448,71 @@ function setPolicyPreventSelfApproval(
 }
 
 /**
+ * Call the API to control whether non-reimbursable reports can be marked as paid
+ * @param policyID - ID of the policy to update
+ * @param preventPayoutNonReimbursableReports - Whether non-reimbursable reports can be marked as paid. Set to true to prevent payout, false to allow it.
+ * @param currentPreventPayoutNonReimbursableReports - current value of preventPayoutNonReimbursableReports
+ */
+function setPolicyPreventPayoutNonReimbursableReports(policyID: string, preventPayoutNonReimbursableReports: boolean, currentPreventPayoutNonReimbursableReports: boolean | undefined) {
+    if (preventPayoutNonReimbursableReports === currentPreventPayoutNonReimbursableReports) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                preventPayoutNonReimbursableReports,
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: null,
+                },
+                errorFields: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                preventPayoutNonReimbursableReports: currentPreventPayoutNonReimbursableReports ?? null,
+                pendingFields: {
+                    preventPayoutNonReimbursableReports: null,
+                },
+                errorFields: {
+                    preventPayoutNonReimbursableReports: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: SetPolicyPreventPayoutNonReimbursableReportsParams = {
+        policyID,
+        enabled: preventPayoutNonReimbursableReports,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
  * Call the API to apply automatic approval limit for the given policy
  * @param policyID - id of the policy to apply the limit to
  * @param limit - max amount for auto-approval of the reports in the given policy
@@ -8219,6 +8286,7 @@ export {
     clearQBDErrorField,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyPreventPayoutNonReimbursableReports,
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalRate,
     setPolicyAutoReimbursementLimit,
