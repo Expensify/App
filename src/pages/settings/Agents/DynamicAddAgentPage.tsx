@@ -87,7 +87,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
-    const defaultRole = availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN;
+    const defaultRole = availableRoleItems.at(0)?.value;
     const roleOptions = availableRoleItems.map((roleItem) => ({
         label: roleItem.text,
         value: roleItem.value,
@@ -146,6 +146,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         const errors: Errors = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
+        }
+        if (!values[INPUT_IDS.ROLE]) {
+            errors[INPUT_IDS.ROLE] = translate('common.error.fieldRequired');
         }
         return errors;
     };

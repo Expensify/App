@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+
 import type {ValueOf} from 'type-fest';
 
 import type Form from './Form';
@@ -15,7 +17,7 @@ type AddAgentForm = Form<
     {
         [INPUT_IDS.FIRST_NAME]: string;
         [INPUT_IDS.PROMPT]: string;
-        [INPUT_IDS.ROLE]: string;
+        [INPUT_IDS.ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     }
 >;
 
