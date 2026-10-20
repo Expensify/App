@@ -10338,6 +10338,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue, newValue, fieldName) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: (newValue, fieldName) => `estableció ${fieldName} a ${newValue}`,
+                changeFieldRemoved: (oldValue, fieldName) => `eliminó ${fieldName} (previamente "${oldValue}")`,
                 changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
