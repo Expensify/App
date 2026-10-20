@@ -183,15 +183,8 @@ describe('DynamicWorkspaceSettlementAccountPage', () => {
 
         // Then accountData.bankAccountID and methodID fallback both retain their exact action arguments.
         expect(updateSettlementAccount).toHaveBeenCalledTimes(2);
-        const settlementCalls = jest.mocked(updateSettlementAccount).mock.calls;
-        expect(settlementCalls.map((call) => call.slice(0, 6))).toEqual([
-            ['example.com', fundID, policyID, programKey, 22, 11],
-            ['example.com', fundID, policyID, programKey, 33, 11],
-        ] satisfies Array<Parameters<typeof updateSettlementAccount>>);
-        // Upstream adds an optional pending-state argument. These settings have no pending update.
-        for (const call of settlementCalls) {
-            expect(call.slice(6)).toStrictEqual(call.length === 6 ? [] : [false]);
-        }
+        expect(updateSettlementAccount).toHaveBeenNthCalledWith(1, 'example.com', fundID, policyID, programKey, 22, 11, false);
+        expect(updateSettlementAccount).toHaveBeenNthCalledWith(2, 'example.com', fundID, policyID, programKey, 33, 11, false);
         expect(Navigation.goBack).toHaveBeenCalledTimes(2);
     });
 
@@ -216,11 +209,7 @@ describe('DynamicWorkspaceSettlementAccountPage', () => {
 
         // Then the real selector delivers the selected ID rather than a display name or list index.
         expect(updateSettlementAccount).toHaveBeenCalledTimes(1);
-        const settlementCalls = jest.mocked(updateSettlementAccount).mock.calls;
-        expect(settlementCalls.map((call) => call.slice(0, 6))).toEqual([['example.com', fundID, policyID, programKey, 11, 11]] satisfies Array<Parameters<typeof updateSettlementAccount>>);
-        for (const call of settlementCalls) {
-            expect(call.slice(6)).toStrictEqual(call.length === 6 ? [] : [false]);
-        }
+        expect(updateSettlementAccount).toHaveBeenNthCalledWith(1, 'example.com', fundID, policyID, programKey, 11, 11, false);
     });
 
     it.each([
