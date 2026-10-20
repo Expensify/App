@@ -1,94 +1,103 @@
 ---
 name: ship-pr
-description: Take finished work in Expensify/App to a PR a human can review without fighting CI or bots. Runs the CI checks locally, verifies the change in the running app, gets a fresh-context review, opens a draft PR from your fork with the App template, then babysits it. Use when asked to open, create, ship or submit a PR, or when implementation is done and the next step is review.
+description: Take finished work in Expensify/App to a PR a human can review without fighting CI or bots. Runs the checks, verifies the change in the running app, gets a fresh-context self-review for the human to triage, opens a PR from your fork (draft by default) with the App template, then babysits it. Use whenever you are asked to open, create, ship, or submit a PR, or when implementation is done and the next step is review.
 ---
 
 # Ship a PR
 
-Opening the PR isn't the finish line. The finish line is a PR where the human only has judgment calls left: checks green, the change shown working in the app, reviewed by a fresh pair of eyes, and every bot comment handled.
+You're done when the human only has judgment calls left on the PR: the checks are green, the change is shown working in the app, a fresh reviewer has read the diff, and every bot comment is handled.
 
-Run every step. If one can't run, say which and why in the handoff instead of skipping it quietly. Nothing gets committed, pushed or posted without the human's approval.
+Run every step. If one can't run, say which one and why in the handoff. Nothing gets committed, pushed or posted without the human's approval: they own what goes on the PR (`contributingGuides/AI_ETIQUETTE.md`).
 
 ## 1. Checks
 
 Run what CI runs for what you touched, and fix everything:
 
 ```bash
-npm run fmt                                             # oxfmt, a CI gate the CLAUDE.md checklist doesn't list
+npm run fmt                                              # oxfmt, a CI gate the CLAUDE.md post-edit checklist doesn't list
 npm run lint-changed
 npm run typecheck
 npm run react-compiler-compliance-check check-changed
 npm run spell-changed
-npm test -- <test files for the code you changed>       # the direct test files, not --findRelatedTests
+npm test -- <test files for the code you changed>        # direct test files; CI runs the full suite
 ```
 
-`lint-changed` and `spell-changed` diff against `origin/main`. If `origin` is your fork and its `main` is behind upstream, they also check a few files you didn't touch. Ignore findings in those.
+- `lint-changed` and `spell-changed` diff against `origin/main`. If `origin` is your fork and its `main` is behind upstream, they also check files you didn't touch: ignore findings there.
+- Skip `--findRelatedTests`. Core libs are imported almost everywhere, so it pulls in most of the suite (over 10 minutes for `MoneyRequestReportUtils`). CI runs everything in about 2.5 minutes.
 
-Don't use `--findRelatedTests` for Jest. Core libs like `MoneyRequestReportUtils` are imported almost everywhere, so it pulls in a large part of the suite and ran for over 10 minutes. CI runs the full suite in about 2.5 minutes across 8 shards, so leave the wider run to CI.
+Then the repo rules the tooling cannot see (`CLAUDE.md`, `tests/README.md`):
 
-Then the repo rules no tool checks:
-
-- Every new test has `// Given`, `// When`, `// Then` comments saying why (`tests/README.md`).
-- A bug fix comes with a test that fails without the fix, unless the fix can't be tested at that level. Say so if not.
+- Every test has `// Given`, `// When`, `// Then` comments explaining why.
+- A bug fix comes with a test that fails without the fix, or the handoff says why it can't.
 - A new `Onyx.connectWithoutView` has a comment justifying it. In a component it also needs `@frontend-performance` approval linked in the PR body.
-- New strings exist in every file under `src/languages/` (typecheck enforces the shape). PRs from forks don't get translations generated automatically.
-- No new `useMemo`, `useCallback` or `React.memo` in a file the compiler handles.
+- New strings exist in every file under `src/languages/`. PRs from forks don't get translations generated automatically.
+- No new `useMemo`, `useCallback` or `React.memo` in a file the React Compiler handles.
 - The `Mobile-Expensify` submodule pointer didn't move by accident: `git diff --ignore-submodules=none upstream/main -- Mobile-Expensify`.
 
 ## 2. Verify
 
-Show the change working on the surface it touches. CI can't see this part, so it's the evidence the reviewer needs.
+Prove the change on the surface it touches. CI can't see this part, so it's the evidence the reviewer needs.
 
-| Change                     | How                                                                               | Evidence                                                |
-| -------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Web UI                     | `/playwright-app-testing` against the local dev server on :8082, never production | Screenshots or a recording for `MacOS: Chrome / Safari` |
-| Native UI or platform code | `/agent-device` on the iOS simulator or Android emulator                          | `/agent-device-evidence` MP4s for the native sections   |
-| Logic with no UI           | Jest                                                                              | The test names, in `### Tests`                          |
-| Performance                | `/measure-telemetry-span`, before and after, with realistic data                  | The before/after numbers                                |
+| Change | Run | Evidence |
+|---|---|---|
+| Web UI | `/playwright-app-testing` against the local dev server (:8082), never production | Screenshots or a recording for `MacOS: Chrome / Safari` |
+| Native UI or platform code | `/agent-device` on the iOS simulator or Android emulator | `/agent-device-evidence` MP4s for the native sections |
+| Logic with no UI | Jest | The test names, in `### Tests` |
+| Performance | `/measure-telemetry-span`, before and after, on realistic data | A before/after table |
 
-For a bug fix, capture the bug before fixing it: write the failing test first, or record the broken behavior first. Checking out `main` later costs a fresh `npm install` in another worktree.
+- For a bug fix, capture the bug before fixing it, with the failing test first or a recording of the broken behavior. Checking out `main` later costs a fresh `npm install` in another worktree.
+- The template asks for five platforms. Cover what you can and name the rest in the handoff. Never tick a box for a platform you didn't test.
+- Ad hoc builds (the test builds an Expensify employee triggers on a PR) are out of scope. If a change needs one, say so in the handoff.
 
-The App template asks for five platforms. Cover what you can, and in the handoff name the platforms you didn't run. Never tick a platform box for a platform you didn't test.
+If you couldn't verify something, say so and name what stopped you. "Inconclusive" is more useful to the reviewer than a confident claim with no evidence.
 
-## 3. Fresh-context review
+## 3. Self-review in a fresh context
 
-The agent that wrote the change doesn't get to judge it. Start two subagents that haven't seen this conversation, in parallel:
+The agent that wrote the change doesn't get to judge it. Spawn two reviewers with no memory of this conversation, in parallel:
 
-1. **Bug hunt:** give it [references/fresh-review.md](references/fresh-review.md) with the base filled in.
-2. **Rules:** have it check the local diff (`git diff $(git merge-base upstream/main HEAD)`, not `gh pr diff`, because there's no PR yet) against every rule in `.claude/skills/app-coding-standards/rules/`. These are the same rules claude-review applies once the PR is out of draft, so catching them now saves a round.
+1. Bug hunt: give it [references/review-prompt.md](references/review-prompt.md) with `<base>` and `<triage-file>` filled in.
+2. Rules: have it check the local diff (`git diff $(git merge-base upstream/main HEAD)`, since there is no PR for `gh pr diff` yet) against every rule in `.claude/skills/app-coding-standards/rules/`. claude-review applies the same rules once the PR is out of draft, so fixing them now saves a review round.
 
-Fix every `critical` and `important` finding you agree with, then rerun steps 1 and 2 for whatever the fixes touched. For every finding you reject, keep a one-line reason for the handoff.
+Don't fix anything yet. Show the human every `critical` and `important` finding with:
 
-If you can't start a subagent, reread the whole diff cold against the same prompt yourself and say so in the handoff.
+- the finding as `file:line`, severity, and what breaks
+- your verdict: agree or disagree, with one line why (check the claim against the code first)
+- the fix you'd make, for the ones you agree with
 
-## 4. Open
+The human decides which to fix. Fix only those, then rerun steps 1 and 2 for what the fixes touched. Keep a one-line reason for every finding left unfixed, for the handoff.
 
-- Branch from an up-to-date `upstream/main`. Titles and commits use `<type>: <description>` (fix, feat, refactor, upgrade, chore, docs, test, perf, ci), and the branch name starts with the same type (`fix/...`). Keep commit messages to one line.
-- The body is `.github/PULL_REQUEST_TEMPLATE.md` exactly as it is:
+If you can't spawn a reviewer, re-read the whole diff cold against the same prompt yourself and say so in the handoff.
+
+## 4. Commit and open
+
+- Branch off an up-to-date `upstream/main`. Titles and commits use `<type>: <description>` (fix, feat, refactor, upgrade, chore, docs, test, perf, ci), the branch name starts with the same type (`fix/...`), and commit messages stay on one line.
+- The body is `.github/PULL_REQUEST_TEMPLATE.md` as it is:
     - `### Explanation of Change`: a few plain sentences on what changed and why.
     - `### Fixed Issues`: the full `$ https://github.com/Expensify/App/issues/<id>` link and the `PROPOSAL:` link.
-    - `### Tests`, `### Offline tests`, `### QA Steps`: numbered steps a reviewer can repeat, built from what you ran in step 2.
-    - `### Screenshots/Videos`: the evidence from step 2 under each platform.
-    - The author checklist: never change its text. Leave the boxes for the human. They're the human's attestation.
-    - Put `[No QA]` in the title when there's nothing for QA to test.
-- Show the human the title, the body, the media list and the commits. After approval, push to your fork (`origin` below) and open a draft:
+    - `### Tests`, `### Offline tests`, `### QA Steps`: numbered steps a reviewer can repeat, built from step 2. `[No QA]` goes in the title when QA has nothing to test.
+    - `### Screenshots/Videos`: the step 2 evidence under each platform.
+    - The author checklist: never change its text, and leave the boxes to the human. The human ticks them to vouch for the PR.
+- Show the human the title, body, media list and commits, and ask whether to open it as a draft or ready for review. Default to draft:
+    - Draft: claude-review and Codex skip drafts, so babysit clears CI first and the bot round starts when the human marks it ready.
+    - Ready for review: the bots and reviewers start right away.
+- After approval, push to your fork (`origin` below) and open it. Drop `--draft` when the human picked ready for review:
 
 ```bash
 git push origin HEAD
 gh pr create --repo Expensify/App --base main --head <fork-owner>:<branch> --draft --title "<type>: <description>" --body-file <file>
 ```
 
-Local `gh` can't upload media (`--attach` needs 2.99+), so the human drags the files from step 2 into the PR in the browser. List their paths in the handoff.
+Media upload with `gh pr create --attach` needs `gh` 2.99+. With an older `gh`, the human drags the step 2 files into the PR in the browser: list their paths in the handoff.
 
 ## 5. Babysit
 
-Hand the PR to the [babysit](../babysit/SKILL.md) skill and run it until it's `READY`. Because the PR is a draft, claude-review hasn't run yet. Once the human marks it ready, babysit again for the bot round that follows.
+Hand the PR to the [babysit](../babysit/SKILL.md) skill and run it to `READY`. If you opened a draft, babysit again once the human marks it ready, for the claude-review and Codex round that follows.
 
 ## Handoff
 
-Tell the human:
+Reply to the human with:
 
 - the PR URL and the babysit verdict
-- how it was verified: the surface, what you ran, what you saw, where the media files are, and which platforms weren't covered
-- what you fixed from the fresh review, and what you dismissed and why
-- what's left for them: checklist boxes, uploading media, marking it ready, escalated threads, anything you couldn't verify
+- how it was verified (surface, what you ran, what you saw, where the media is, platforms not covered)
+- which review findings the human chose to fix, and the one-line reason for each one left unfixed
+- anything left for them: checklist boxes, media upload, marking it ready, escalated threads, parts you could not verify
