@@ -97,7 +97,9 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
         action: jest.fn(),
         dismissError: jest.fn(),
         onToggleEnabled: jest.fn(),
-        onRenameName: (newName: string) => renameDistanceRateInline(POLICY_ID, CUSTOM_UNIT, rate, newName),
+        onRenameName: (newName: string) => {
+            renameDistanceRateInline(TestHelper.translateLocal, POLICY_ID, CUSTOM_UNIT, rate, newName);
+        },
         onChangeRate: jest.fn(),
     };
 }
