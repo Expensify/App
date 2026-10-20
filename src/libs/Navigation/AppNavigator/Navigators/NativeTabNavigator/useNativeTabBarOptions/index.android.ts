@@ -27,7 +27,7 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     direction: 'stacked',
 };
 
-function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarSelectionHidden, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
@@ -48,7 +48,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarSelectionHidden
         // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
         tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
             name,
-            color: isSelected && !isTabBarSelectionHidden ? theme.iconMenu : theme.icon,
+            color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
         })),

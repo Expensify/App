@@ -1,237 +1,76 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index f7fc390..1f544b5 100644
+index f7fc390..b5e82e2 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-@@ -35,6 +35,7 @@ internal class TabsAppearanceApplicator(
-         context: Context,
-         tabBarAppearance: TabsAppearance?,
-         isTabBarHidden: Boolean,
-+        isTabBarItemSelectionHidden: Boolean,
-     ) {
-         bottomNavigationView.isVisible = !isTabBarHidden
-         // A GONE child keeps the bounds it had while visible, and React Native's TouchTargetHelper does not check
-@@ -64,7 +65,14 @@ internal class TabsAppearanceApplicator(
-             tabBarAppearance?.normal?.tabBarItemTitleFontColor
-                 ?: resolveColorAttr(context, R.attr.colorSecondary)
- 
--        val fontColors = intArrayOf(fontDisabledColor, fontSelectedColor, fontFocusedColor, fontNormalColor)
-+        // A hidden selection draws the selected label in the color of the others.
-+        val fontColors =
-+            intArrayOf(
-+                fontDisabledColor,
-+                if (isTabBarItemSelectionHidden) fontNormalColor else fontSelectedColor,
-+                fontFocusedColor,
-+                fontNormalColor,
-+            )
-         bottomNavigationView.itemTextColor = ColorStateList(states, fontColors)
- 
-         // Icon color
-@@ -98,13 +106,14 @@ internal class TabsAppearanceApplicator(
-                 ?: resolveColorAttr(context, R.attr.colorSecondaryContainer)
- 
-         bottomNavigationView.isItemActiveIndicatorEnabled =
--            tabBarAppearance?.tabBarItemActiveIndicatorEnabled ?: true
-+            !isTabBarItemSelectionHidden && (tabBarAppearance?.tabBarItemActiveIndicatorEnabled ?: true)
-         bottomNavigationView.itemActiveIndicatorColor = ColorStateList.valueOf(activeIndicatorColor)
-     }
- 
-     fun updateFontStyles(
-         context: Context,
-         tabBarAppearance: TabsAppearance?,
-+        isTabBarItemSelectionHidden: Boolean,
-     ) {
-         val bottomNavigationMenuView = bottomNavigationView.getChildAt(0) as ViewGroup
- 
-@@ -162,7 +171,7 @@ internal class TabsAppearanceApplicator(
+@@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.ColorStateList
++import android.graphics.Color
+ import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+@@ -162,7 +163,7 @@ internal class TabsAppearanceApplicator(
              // Bold is set here rather than with `setItemTextAppearanceActiveBoldEnabled`, which re-applies Material's text size
              // to this label alone, so Material lifts the selected item by the size difference between the two labels.
              largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
 -            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
-+            largeLabel.setTypeface(fontFamily, if (isTabBarItemSelectionHidden) Typeface.NORMAL else Typeface.BOLD)
++            largeLabel.setTypeface(fontFamily, if (tabBarAppearance?.tabBarItemActiveIndicatorColor == Color.TRANSPARENT) Typeface.NORMAL else Typeface.BOLD)
              largeLabel.letterSpacing = 0f
          }
      }
-diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
-index d827309..7994902 100644
---- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
-+++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
-@@ -18,9 +18,14 @@ internal class TabsAppearanceCoordinator(
-         tabsContainer: TabsContainer,
-     ) {
-         val selectedTabAppearance = tabsContainer.selectedTab.tabsScreen.appearance
--        appearanceApplicator.updateSharedAppearance(context, selectedTabAppearance, tabsContainer.tabBarHidden)
-+        appearanceApplicator.updateSharedAppearance(
-+            context,
-+            selectedTabAppearance,
-+            tabsContainer.tabBarHidden,
-+            tabsContainer.tabBarItemSelectionHidden,
-+        )
-         updateMenuItems(context, selectedTabAppearance)
--        appearanceApplicator.updateFontStyles(context, selectedTabAppearance) // It needs to be updated after updateMenuItems
-+        appearanceApplicator.updateFontStyles(context, selectedTabAppearance, tabsContainer.tabBarItemSelectionHidden) // It needs to be updated after updateMenuItems
-     }
- 
-     private fun updateMenuItems(
-diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-index b98825c..c681b8a 100644
---- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-+++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-@@ -172,6 +172,16 @@ class TabsContainer internal constructor(
-         }
-     }
- 
-+    /** Draws the selected item like the others, so the bar shows no selection. The selected tab does not change. */
-+    internal var tabBarItemSelectionHidden: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
-+        if (newValue != oldValue) {
-+            invalidationFlags.isNavigationMenuAppearanceInvalidated = true
-+            post {
-+                flushPendingUpdates()
-+            }
-+        }
-+    }
-+
-     init {
-         addView(contentView)
-         addView(bottomNavigationView)
-diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
-index 05a6d07..dad98ed 100644
---- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
-+++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
-@@ -51,6 +51,8 @@ class TabsHost(
- 
-     var tabBarHidden: Boolean by container::tabBarHidden
- 
-+    var tabBarItemSelectionHidden: Boolean by container::tabBarItemSelectionHidden
-+
-     var nativeContainerBackgroundColor: Int? by Delegates.observable(null) { _, oldValue, newValue ->
-         if (newValue != oldValue) {
-             container.background = newValue?.toDrawable()
-diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
-index c640543..67a023e 100644
---- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
-+++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
-@@ -108,6 +108,13 @@ class TabsHostViewManager :
-         view.tabBarHidden = value
-     }
- 
-+    override fun setTabBarItemSelectionHidden(
-+        view: TabsHost,
-+        value: Boolean,
-+    ) {
-+        view.tabBarItemSelectionHidden = value
-+    }
-+
-     override fun setNativeContainerBackgroundColor(
-         view: TabsHost,
-         value: Int?,
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
-index d76842a..5dea64e 100644
+index d76842a..bc62e29 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
-@@ -133,6 +133,14 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -133,6 +133,8 @@ NS_ASSUME_NONNULL_BEGIN
   */
  @property (nonatomic, readwrite) BOOL rejectStaleNavigationStateUpdates;
  
-+/**
-+ * Draws the selected tab bar item like the others, so the bar shows no selection while the app displays a screen that
-+ * has no item in the bar. The controller keeps its selected view controller. UIKit offers no way to show the bar with
-+ * no item selected, so on iOS 26 the liquid glass lens and the selected copy of the items are hidden. Below iOS 26 the
-+ * selection is only the item's selected image and colors, which the app supplies to match the unselected ones.
-+ */
 +@property (nonatomic, readwrite) BOOL tabBarItemSelectionHidden;
 +
  /**
   * Tell the controller that react provided tabs have changed (count / instances) & the child
   * view controllers need to be updated.
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 06c1957..a8cb06a 100644
+index 06c1957..95cad83 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-@@ -89,6 +89,9 @@ @implementation RNSTabBarController {
-   RNSTabsNavigationStateObserverRegistry *_observerRegistry;
- 
-   RNSParentContainerItemRegistry *_Nonnull _parentContainerRegistry;
-+
-+  /// Views of the tab bar hidden to draw no selection, restored when the selection shows again.
-+  NSHashTable<UIView *> *_Nonnull _viewsHiddenForTabBarItemSelection;
- }
- 
- - (instancetype)init
-@@ -102,6 +105,7 @@ - (instancetype)init
-     _shouldProgressStateOnMoreNavigationControllerPush = NO;
-     _observerRegistry = [RNSTabsNavigationStateObserverRegistry new];
-     _parentContainerRegistry = [RNSParentContainerItemRegistry new];
-+    _viewsHiddenForTabBarItemSelection = [NSHashTable weakObjectsHashTable];
- 
-     // Delegate field retains weakly, no risk of cycle.
-     self.delegate = self;
-@@ -177,6 +181,56 @@ - (void)detachFromParentContainerItem
+@@ -177,6 +177,34 @@ - (void)detachFromParentContainerItem
  
  #pragma mark - UIKit callbacks
  
 +- (void)viewDidLayoutSubviews
 +{
 +  [super viewDidLayoutSubviews];
-+  // UIKit may rebuild the bar's subviews on layout, e.g. after a size or trait change.
-+  [self updateTabBarItemSelectionVisibility];
++  if (_tabBarItemSelectionHidden) {
++    [self updateTabBarItemSelectionIn:self.tabBar];
++  }
 +}
 +
 +- (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
 +{
-+  if (_tabBarItemSelectionHidden == tabBarItemSelectionHidden) {
-+    return;
-+  }
 +  _tabBarItemSelectionHidden = tabBarItemSelectionHidden;
-+  [self updateTabBarItemSelectionVisibility];
++  [self updateTabBarItemSelectionIn:self.tabBar];
 +}
 +
-+- (void)updateTabBarItemSelectionVisibility
-+{
-+  if (!_tabBarItemSelectionHidden) {
-+    for (UIView *view in _viewsHiddenForTabBarItemSelection) {
-+      view.hidden = NO;
-+    }
-+    [_viewsHiddenForTabBarItemSelection removeAllObjects];
-+    return;
-+  }
-+
-+  if (@available(iOS 26.0, *)) {
-+    [self hideTabBarItemSelectionViewsIn:self.tabBar];
-+  }
-+}
-+
-+/// The liquid glass bar marks the selected item with private views: a lens under it, a copy of the items in their
-+/// selected colors that only shows through the lens, and a view that cuts the selected item out of the plain copy.
-+/// UIKit animates their alpha, so they are hidden instead. A UIKit release that renames them leaves the selection on.
-+- (void)hideTabBarItemSelectionViewsIn:(UIView *)view
++// Private views that draw the iOS 26 liquid glass selection.
++- (void)updateTabBarItemSelectionIn:(UIView *)view
 +{
 +  for (UIView *subview in view.subviews) {
 +    NSString *className = NSStringFromClass(subview.class);
 +    if ([className hasSuffix:@"LiquidLensView"] || [className hasSuffix:@"SelectedContentView"] ||
 +        [className hasSuffix:@"DestOutView"]) {
-+      if (!subview.hidden) {
-+        subview.hidden = YES;
-+        [_viewsHiddenForTabBarItemSelection addObject:subview];
-+      }
-+      continue;
++      subview.hidden = _tabBarItemSelectionHidden;
++    } else {
++      [self updateTabBarItemSelectionIn:subview];
 +    }
-+    [self hideTabBarItemSelectionViewsIn:subview];
 +  }
 +}
 +
  - (void)didMoveToParentViewController:(UIViewController *)parent
  {
    [super didMoveToParentViewController:parent];
-@@ -443,6 +497,9 @@ - (BOOL)tabBarController:(UITabBarController *)tabBarController
-     }
-   }
- 
-+  // The lens travels from the item the controller keeps selected, so it shows as soon as the user picks a tab.
-+  self.tabBarItemSelectionHidden = NO;
-+
-   _isHandlingExplicitSelectionUpdate = YES;
-   return YES;
- }
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 index 60c9ab2..fa2afb9 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
@@ -247,84 +86,6 @@ index 60c9ab2..fa2afb9 100644
    if (newComponentProps.bottomAccessoryHidden != oldComponentProps.bottomAccessoryHidden) {
      _bottomAccessoryHidden = newComponentProps.bottomAccessoryHidden;
  #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
-diff --git a/node_modules/react-native-screens/lib/typescript/components/tabs/host/TabsHost.types.d.ts b/node_modules/react-native-screens/lib/typescript/components/tabs/host/TabsHost.types.d.ts
-index cf2e551..07ce754 100644
---- a/node_modules/react-native-screens/lib/typescript/components/tabs/host/TabsHost.types.d.ts
-+++ b/node_modules/react-native-screens/lib/typescript/components/tabs/host/TabsHost.types.d.ts
-@@ -166,6 +166,16 @@ export interface TabsHostPropsBase {
-      * @platform android, ios
-      */
-     tabBarHidden?: boolean | undefined;
-+    /**
-+     * @summary Draws the selected tab bar item like the others, so the bar shows no selection.
-+     *
-+     * Meant for a screen that has no item in the tab bar. The selected tab does not change.
-+     *
-+     * @default false
-+     *
-+     * @platform android, ios
-+     */
-+    tabBarItemSelectionHidden?: boolean | undefined;
-     /**
-      * @summary Allows for native container view customization.
-      *
-diff --git a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostAndroidNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostAndroidNativeComponent.d.ts
-index 19fd4d6..51f5afa 100644
---- a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostAndroidNativeComponent.d.ts
-+++ b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostAndroidNativeComponent.d.ts
-@@ -30,6 +30,7 @@ export interface NativeProps extends ViewProps {
-     onTabSelectionRejected?: CT.DirectEventHandler<TabSelectionRejectedEvent> | undefined;
-     onTabSelectionPrevented?: CT.DirectEventHandler<TabSelectionPreventedEvent> | undefined;
-     tabBarHidden?: CT.WithDefault<boolean, false>;
-+    tabBarItemSelectionHidden?: CT.WithDefault<boolean, false>;
-     nativeContainerBackgroundColor?: ColorValue | undefined;
-     colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
-     tabBarRespectsIMEInsets?: CT.WithDefault<boolean, false>;
-diff --git a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostIOSNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostIOSNativeComponent.d.ts
-index e756dc3..e52b643 100644
---- a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostIOSNativeComponent.d.ts
-+++ b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsHostIOSNativeComponent.d.ts
-@@ -38,6 +38,7 @@ export interface NativeProps extends ViewProps {
-     onTabSelectionPrevented?: CT.DirectEventHandler<TabSelectionPreventedEvent> | undefined;
-     onMoreTabSelected?: CT.DirectEventHandler<MoreTabSelectedEvent> | undefined;
-     tabBarHidden?: CT.WithDefault<boolean, false>;
-+    tabBarItemSelectionHidden?: CT.WithDefault<boolean, false>;
-     nativeContainerBackgroundColor?: ColorValue | undefined;
-     colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
-     layoutDirection?: CT.WithDefault<LayoutDirection, 'inherit'>;
-diff --git a/node_modules/react-native-screens/src/components/tabs/host/TabsHost.types.ts b/node_modules/react-native-screens/src/components/tabs/host/TabsHost.types.ts
-index 1d2851f..ce55e82 100644
---- a/node_modules/react-native-screens/src/components/tabs/host/TabsHost.types.ts
-+++ b/node_modules/react-native-screens/src/components/tabs/host/TabsHost.types.ts
-@@ -186,6 +186,16 @@ export interface TabsHostPropsBase {
-    * @platform android, ios
-    */
-   tabBarHidden?: boolean | undefined;
-+  /**
-+   * @summary Draws the selected tab bar item like the others, so the bar shows no selection.
-+   *
-+   * Meant for a screen that has no item in the tab bar. The selected tab does not change.
-+   *
-+   * @default false
-+   *
-+   * @platform android, ios
-+   */
-+  tabBarItemSelectionHidden?: boolean | undefined;
-   /**
-    * @summary Allows for native container view customization.
-    *
-diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
-index 138da4d..d3b8cef 100644
---- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
-+++ b/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
-@@ -61,6 +61,7 @@ export interface NativeProps extends ViewProps {
- 
-   // General
-   tabBarHidden?: CT.WithDefault<boolean, false>;
-+  tabBarItemSelectionHidden?: CT.WithDefault<boolean, false>;
-   nativeContainerBackgroundColor?: ColorValue | undefined;
-   colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
- 
 diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
 index fcd0b7f..64b2a09 100644
 --- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts

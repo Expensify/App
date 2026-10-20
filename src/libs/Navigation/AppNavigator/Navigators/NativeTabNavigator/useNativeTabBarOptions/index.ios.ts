@@ -38,7 +38,7 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
  * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
  * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
  */
-function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarSelectionHidden, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
     const {windowWidth} = useWindowDimensions();
@@ -64,23 +64,20 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarSelectionHidden
     };
 
     const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
-        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => {
-            const isDrawnSelected = isSelected && !isTabBarSelectionHidden;
-            return {
-                name,
-                color: isDrawnSelected ? theme.iconMenu : theme.icon,
-                avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
-                dotColor: dotColors[name],
-                label: {
-                    text: tabLabels[name],
-                    color: isDrawnSelected ? theme.text : theme.textSupporting,
-                    isBold: isDrawnSelected,
-                    fontSize: fontScale.micro,
-                    gap: variables.nativeTabIconLabelGap,
-                    maxWidth: labelMaxWidth,
-                },
-            };
-        }),
+        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
+            name,
+            color: isSelected ? theme.iconMenu : theme.icon,
+            avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
+            dotColor: dotColors[name],
+            label: {
+                text: tabLabels[name],
+                color: isSelected ? theme.text : theme.textSupporting,
+                isBold: isSelected,
+                fontSize: fontScale.micro,
+                gap: variables.nativeTabIconLabelGap,
+                maxWidth: labelMaxWidth,
+            },
+        })),
         // The label is drawn into the icon, so VoiceOver reads it from here.
         tabBarAccessibilityLabel: tabLabels[name],
     });
