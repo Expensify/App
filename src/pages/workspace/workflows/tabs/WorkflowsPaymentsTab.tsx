@@ -429,7 +429,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     <ToggleSettingOptionRow
                         title={translate('workflowsPage.collectEmployeeBankDetails')}
                         switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
-                        wrapperStyle={[styles.mt3, styles.pv3, styles.mbn3]}
+                        wrapperStyle={[styles.mt3, styles.pv3, styles.mbn3, styles.borderTop]}
                         isActive={!!policy?.isCollectDepositAccountsEnabled}
                         onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
                         pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
