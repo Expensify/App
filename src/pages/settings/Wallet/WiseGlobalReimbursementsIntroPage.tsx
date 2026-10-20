@@ -67,7 +67,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
             >
                 <Header>
                     <Header.BackButton onPress={goBackToWallet} />
-                    <Header.Title title={translate('common.enableGlobalReimbursements')} />
+                    <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
                 <ConfirmationPage
                     illustration={illustrations.EarthWithCoins}
