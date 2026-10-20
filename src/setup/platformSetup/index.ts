@@ -74,10 +74,10 @@ export default function () {
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
 
-    // Service worker is only emitted in production builds (GenerateSW is skipped in dev).
+    // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
     if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+            navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}).catch((error) => {
                 // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
                 // eslint-disable-next-line no-console
                 console.warn('[SW] registration failed', error);
