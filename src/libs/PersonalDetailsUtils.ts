@@ -263,18 +263,15 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
  * Extracts logins from personal details updates in Onyx data.
  */
 function getLoginsFromOnyxUpdates(onyxData?: AnyOnyxUpdate[]): string[] {
-    const logins: string[] = [];
-    for (const update of onyxData ?? []) {
-        const updateKey = typeof update.key === 'string' ? update.key : '';
-        if (updateKey === ONYXKEYS.PERSONAL_DETAILS_LIST && isRecord(update.value)) {
-            for (const detail of Object.values(update.value)) {
-                if (isRecord(detail) && typeof detail.login === 'string') {
-                    logins.push(detail.login);
-                }
-            }
-        }
+    const update = onyxData?.find((item) => item.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    if (!isRecord(update?.value)) {
+        return [];
     }
-    return logins;
+
+    return Object.values(update.value)
+        .filter(isRecord)
+        .map((detail) => detail.login)
+        .filter((login): login is string => typeof login === 'string');
 }
 
 // The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
