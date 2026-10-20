@@ -17,7 +17,8 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getLineRuns, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import type {LineRun} from '@components/Charts/utils/getLineRuns';
 import VictoryTheme, {
     CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
@@ -71,10 +72,8 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
     const openPointFlags = data.map((point) => !!point.isInProgress);
 
-    // Periods that haven't ended, the current one and any later ones, are drawn dashed, starting from the segment that leads into the first of them.
-    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
-    const firstOpenPointIndex = openPointFlags.indexOf(true);
-    const shouldDashOpenPoints = firstOpenPointIndex !== -1 && data.length > 1;
+    // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
+    const primaryLineRuns = getLineRuns(openPointFlags);
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
@@ -248,50 +247,42 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const renderOutside = (args: CartesianChartRenderArg<TupleToUnion<typeof chartData>, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        // Periods that haven't ended are dashed on the primary series. A compared period has already ended.
-        const getCompletePoints = (seriesKey: string) => {
-            const seriesPoints = args.points[seriesKey] ?? [];
-            return shouldDashOpenPoints && seriesKey === primarySeriesKey ? seriesPoints.slice(0, firstOpenPointIndex) : seriesPoints;
-        };
-        const primaryCompletePoints = getCompletePoints(primarySeriesKey);
+        const primaryPoints = args.points[primarySeriesKey] ?? [];
 
         return (
             <>
-                {primaryCompletePoints.length > 0 && (
-                    <AreaGradient
-                        points={primaryCompletePoints}
-                        baselineY={chartBoundsBottom}
-                        color={primarySeriesColor}
-                    />
-                )}
+                {primaryLineRuns
+                    .filter((run) => !run.isDashed && run.end > run.start)
+                    .map((run) => (
+                        <AreaGradient
+                            key={`area-${run.start}`}
+                            points={primaryPoints.slice(run.start, run.end + 1)}
+                            baselineY={chartBoundsBottom}
+                            color={primarySeriesColor}
+                        />
+                    ))}
                 {/* Drawn last, the primary line sits on top of the compared one */}
                 {[...series].reverse().map((seriesItem) => {
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
-                    const completePoints = getCompletePoints(seriesItem.key);
+                    const seriesPoints = args.points[seriesItem.key] ?? [];
+
+                    // A compared period has already ended, so its whole line is solid
+                    const lineRuns: LineRun[] = seriesItem.key === primarySeriesKey ? primaryLineRuns : [{start: 0, end: seriesPoints.length - 1, isDashed: false}];
                     return (
                         <React.Fragment key={seriesItem.key}>
-                            {completePoints.length > 0 && (
+                            {lineRuns.map((run) => (
                                 <Line
-                                    points={completePoints}
-                                    color={color}
-                                    strokeWidth={VictoryTheme.line.strokeWidth}
-                                    strokeCap="round"
-                                    strokeJoin="round"
-                                    curveType="linear"
-                                />
-                            )}
-                            {shouldDashOpenPoints && seriesItem.key === primarySeriesKey && (
-                                <Line
-                                    points={(args.points[seriesItem.key] ?? []).slice(Math.max(firstOpenPointIndex - 1, 0))}
+                                    key={`line-${run.start}`}
+                                    points={seriesPoints.slice(run.start, run.end + 1)}
                                     color={color}
                                     strokeWidth={VictoryTheme.line.strokeWidth}
                                     strokeCap="round"
                                     strokeJoin="round"
                                     curveType="linear"
                                 >
-                                    <DashPathEffect intervals={DASH_INTERVALS} />
+                                    {run.isDashed && <DashPathEffect intervals={DASH_INTERVALS} />}
                                 </Line>
-                            )}
+                            ))}
                         </React.Fragment>
                     );
                 })}
