@@ -31,6 +31,7 @@ function Backdrop({
         if (!isBackdropVisible) {
             return;
         }
+        progress.set(0);
         progress.set(withTiming(1, {duration: animationInTiming, easing, reduceMotion: ReduceMotion.Never}));
     }, [animationInTiming, isBackdropVisible, progress]);
 
