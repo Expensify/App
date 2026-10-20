@@ -59,7 +59,7 @@ function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilter
 
 /** Resolves a chart's rows, and the rows it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {chart, queryJSON, snapshot} = dashboardChart;
+    const {queryJSON, snapshot} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -68,8 +68,9 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
-    const comparedChart = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && chart.view === CONST.SEARCH.VIEW.LINE ? getComparedChart(dashboardChart, filters, translate) : undefined;
-    const comparedSortedData = useGroupedItems(comparedChart?.snapshot, queryJSON);
+    const comparedChart = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? getComparedChart(dashboardChart, filters, translate) : undefined;
+    // Keeps every compared group, so each plotted group finds its own and not only the top ones.
+    const comparedSortedData = useGroupedItems(comparedChart?.snapshot, queryJSON && {...queryJSON, limit: undefined});
 
     if (!comparedChart || current.state !== INSIGHTS_CHART_STATE.READY) {
         return {...current, comparison: undefined};

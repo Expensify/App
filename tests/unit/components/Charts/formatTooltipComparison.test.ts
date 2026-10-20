@@ -55,6 +55,22 @@ describe('formatTooltipComparison', () => {
         ]);
     });
 
+    it("colors a bar's rows like its own bars rather than like the series", () => {
+        // Given a blue bar and its lighter average bar, where the compared series keeps the line's color
+        const point: ChartDataPoint = {
+            label: 'Amazon',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesColors: {[CHART_SERIES_KEY.PRIMARY]: colors.blue400, [CHART_SERIES_KEY.COMPARISON]: colors.blue200},
+        };
+        const series: NonEmptyTuple<ChartSeries> = [{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average'}];
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, series, formatAmount, 'en');
+
+        // Then the dots match the bars drawn: the bar's own blue, and a lighter blue for the average amount
+        expect(comparison?.rows.map((row) => row.color)).toEqual([colors.blue400, colors.blue200]);
+    });
+
     it('leaves the tooltip as it is when a single series is plotted', () => {
         // Given a point of a chart that compares nothing
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};
@@ -114,14 +130,14 @@ describe('formatTooltipComparison', () => {
         expect(comparison?.change).toEqual({amount: '$50', percentage: '50%', isIncrease: false});
     });
 
-    it('shows spend that is new against nothing as an infinite increase', () => {
+    it('shows a dash for the percentage of spend that is new against nothing', () => {
         // Given April spend for a group with no spend in the compared period
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 0}};
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
 
-        // Then the change has no finite share of nothing, so it reads as an infinite increase
-        expect(comparison?.change).toEqual({amount: '$300', percentage: '∞%', isIncrease: true});
+        // Then the change has no meaningful share of nothing, so a dash stands in for its percentage
+        expect(comparison?.change).toEqual({amount: '$300', percentage: '—', isIncrease: true});
     });
 });

@@ -259,6 +259,10 @@ function SearchPageNarrow({
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
+    // Static rendering also covers Spend mounted in the background by native tabs, which may be first shown before
+    // any results exist, so it needs the loading skeleton too. The submit overlay is the exception: Search has to
+    // mount under it even without results, to flush the deferred write and dismiss the overlay.
+    const shouldShowStaticLoadingSkeleton = shouldShowLoadingSkeleton && !isOverlayActive;
 
     return (
         <View
@@ -343,20 +347,23 @@ function SearchPageNarrow({
                         <View style={styles.flex1}>
                             {useStaticRendering && (
                                 <>
-                                    {isInteractive && (
-                                        <Search
-                                            searchResults={contentSearchResults}
-                                            queryJSON={contentQueryJSON}
-                                            key={contentQueryJSON.hash}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
-                                    )}
+                                    {isInteractive &&
+                                        (shouldShowStaticLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <Search
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                key={contentQueryJSON.hash}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        ))}
                                     {!isInteractive && !searchOverlayContent && (
                                         <SearchRowSkeleton
                                             shouldAnimate={hasBeenFocused}

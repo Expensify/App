@@ -7,6 +7,8 @@ import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 import StringUtils from '@libs/StringUtils';
 
+import type {ColorScheme} from '@styles/index';
+
 import CONST from '@src/CONST';
 
 import type {NonEmptyTuple} from 'type-fest';
@@ -15,7 +17,7 @@ import type {ChartComparisonPeriods, ChartPeriod} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import {getComparedBucketLabels, getCounterpartBucketRange} from './comparisonBuckets';
+import {formatDates, getComparedBucketLabels, getCounterpartBucketRange} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
@@ -30,7 +32,7 @@ type ChartComparison = {
     /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
     label?: string;
 
-    /** Color of the compared line */
+    /** Color of the compared line. Compared bars take a shade of their own bar's color instead. */
     color: string;
 
     /** Set when the rows are another period's */
@@ -44,7 +46,7 @@ type BuildChartSeriesParams = {
     /** Rows the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
-    /** Decides how the groups of the two periods pair up */
+    /** Decides how compared groups pair up, and whether a missing one plots as nothing or as 0 */
     groupBy: SearchGroupBy;
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
@@ -67,6 +69,9 @@ type BuildChartSeriesParams = {
 
     /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
+
+    /** Decides the shade of a compared bar */
+    colorScheme: ColorScheme;
 };
 
 type SearchChartModel = {
@@ -105,6 +110,7 @@ function buildChartSeries({
     translate,
     dateFnsLocale,
     getInProgressLabel,
+    colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
     const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const periods = bucketUnit && getBucketRange ? comparison?.periods : undefined;
@@ -146,6 +152,9 @@ function buildChartSeries({
             if (comparedItem) {
                 point.values[CHART_SERIES_KEY.COMPARISON] = getAmount(comparedItem);
                 point.seriesPercentOfTotal[CHART_SERIES_KEY.COMPARISON] = comparedItem.percentOfTotal;
+            } else if (!getBucketRange) {
+                // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
+                point.values[CHART_SERIES_KEY.COMPARISON] = 0;
             }
         }
 
@@ -166,16 +175,29 @@ function buildChartSeries({
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 
     return {
-        series: [{key: CHART_SERIES_KEY.PRIMARY}, ...(comparison ? [{key: CHART_SERIES_KEY.COMPARISON, color: comparison.color, label: comparison.label}] : [])],
+        series: [
+            {key: CHART_SERIES_KEY.PRIMARY, label: comparison?.periods && formatDates(comparison.periods.primary, dateFnsLocale)},
+            ...(comparison
+                ? [
+                      {
+                          key: CHART_SERIES_KEY.COMPARISON,
+                          color: comparison.color,
+                          label: comparison.label ?? (comparison.periods && formatDates(comparison.periods.comparison, dateFnsLocale)),
+                      },
+                  ]
+                : []),
+        ],
         rows: rows.map((row, index) => {
-            let color;
             if (pieColors) {
-                color = pieColors.at(index);
-            } else if (view === CONST.SEARCH.VIEW.BAR) {
-                color = VictoryTheme.colors.getColor(index);
+                return {...row, point: {...row.point, color: pieColors.at(index)}};
+            }
+            if (view !== CONST.SEARCH.VIEW.BAR) {
+                return row;
             }
 
-            return {...row, point: {...row.point, color}};
+            const color = VictoryTheme.colors.getColor(index);
+            const seriesColors = {[CHART_SERIES_KEY.PRIMARY]: color, ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: VictoryTheme.colors.getComparisonColor(color, colorScheme)})};
+            return {...row, point: {...row.point, color, seriesColors}};
         }),
     };
 }

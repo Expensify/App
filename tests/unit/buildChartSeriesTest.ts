@@ -69,6 +69,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
@@ -90,6 +91,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
@@ -111,6 +113,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
@@ -132,6 +135,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
@@ -153,6 +157,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
@@ -173,6 +178,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
@@ -192,6 +198,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.PIE,
             getLabel,
@@ -213,6 +220,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.PIE,
             getLabel,
@@ -234,6 +242,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.PIE,
             getLabel,
@@ -251,9 +260,10 @@ describe('buildChartSeries', () => {
 
         // When the series is built for a line chart
         const {rows} = buildChartSeries({
-            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
@@ -275,6 +285,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.PIE,
             getLabel,
@@ -298,6 +309,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -319,6 +331,7 @@ describe('buildChartSeries', () => {
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -328,6 +341,77 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([450, undefined]);
     });
 
+    it('compares a ranked group the compared rows leave out against nothing spent', () => {
+        // Given this month's top merchants, one of which had no spend last month, so last month's rows leave it out
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+        const previousMonth = [merchantGroup('Person', 240000)];
+
+        // When the series is built for a bar chart compared against last month
+        const {rows} = buildChartSeries({
+            data,
+            comparison: {data: previousMonth, color: themeColors.green200},
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then the new merchant compares against $0, since a ranking only lists groups that spent, rather than drawing no bar
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2400, 0]);
+    });
+
+    it("shades each compared bar with its own bar's color", () => {
+        // Given this month's top two merchants compared against the average amounts
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+
+        // When the series is built for a bar chart
+        const {rows} = buildChartSeries({
+            data,
+            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Average', color: themeColors.green200},
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each pair shares its rank's hue, the compared bar lighter, rather than every compared bar taking the series' green
+        expect(rows.map((row) => row.point.seriesColors)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400, [CHART_SERIES_KEY.COMPARISON]: themeColors.yellow200},
+            {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400, [CHART_SERIES_KEY.COMPARISON]: themeColors.tangerine200},
+        ]);
+    });
+
+    it('names each series by the period it covers when comparing periods', () => {
+        // Given this month's merchants compared against last month
+        const data = [merchantGroup('Person', 480000)];
+
+        // When the series is built with the two periods
+        const {series} = buildChartSeries({
+            data,
+            comparison: {
+                data: [merchantGroup('Person', 240000)],
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-10-01', end: '2026-10-31'}, comparison: {start: '2026-09-01', end: '2026-09-30'}},
+            },
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then the tooltip can tell the two bars apart by their months, since neither period has a name of its own
+        expect(series.map((seriesItem) => seriesItem.label)).toEqual(['October 2026', 'September 2026']);
+    });
+
     it('relabels the group still collecting expenses, keeping its axis label', () => {
         // Given two quarter groups, the last of which is still in progress
         const data = [quarterGroup(3, 100000), quarterGroup(4, 20000)];
@@ -335,9 +419,10 @@ describe('buildChartSeries', () => {
 
         // When the series is built with a label for the in-progress group
         const {rows} = buildChartSeries({
-            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             view: CONST.SEARCH.VIEW.LINE,
             getLabel: quarterLabel,
@@ -413,6 +498,7 @@ describe('buildChartSeries with a compared period', () => {
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
         });
     }
 
@@ -471,6 +557,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
         }).rows.map((row) => [row.point.label, row.point.shortLabel]);
     }
 
@@ -525,6 +612,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
         }).rows.map((row) => row.point.values);
     }
 
@@ -562,6 +650,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
         }).rows.map((row) => row.point.seriesLabels);
     }
 
@@ -588,6 +677,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
             getInProgressLabel: () => 'Oct 8 so far',
         });
         const october8 = model.rows.at(0)?.point;
