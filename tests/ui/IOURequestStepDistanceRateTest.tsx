@@ -252,15 +252,25 @@ describe('IOURequestStepDistanceRate', () => {
     });
 
     it('shows dated rate names without their date suffix, sorted by the cleaned name', async () => {
-        // Given an ended band and the current band that share a base name, plus a rate that sorts before them
+        // Given an ended and a current government band that share a base name, a rate that sorts before them,
+        // and a custom dated rate that a user named with a date on purpose
         const baseRate = {attributes: {}, currency: CONST.CURRENCY.USD, enabled: true, rate: 100, subRates: []};
+        const governmentAttributes = {governmentRate: {sourceRateID: 'GB_2026-09-01', rate: 100, startDate: '2026-09-01'}};
         await act(async () => {
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
                 buildPolicyWithRates({
-                    endedBand: {...baseRate, customUnitRateID: 'endedBand', name: 'Cars - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'},
-                    currentBand: {...baseRate, customUnitRateID: 'currentBand', name: 'Cars - From 9/1/26', startDate: '2026-09-01'},
+                    endedBand: {
+                        ...baseRate,
+                        customUnitRateID: 'endedBand',
+                        name: 'Cars - 6/1/26 - 8/31/26',
+                        startDate: '2026-06-01',
+                        endDate: '2026-08-31',
+                        attributes: governmentAttributes,
+                    },
+                    currentBand: {...baseRate, customUnitRateID: 'currentBand', name: 'Cars - From 9/1/26', startDate: '2026-09-01', attributes: governmentAttributes},
                     bicycle: {...baseRate, customUnitRateID: 'bicycle', name: 'Bicycle'},
+                    summer: {...baseRate, customUnitRateID: 'summer', name: 'Summer - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'},
                 }),
             );
         });
@@ -269,12 +279,20 @@ describe('IOURequestStepDistanceRate', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then both bands show the cleaned name, because their date range is already shown as the alternate text
+        // Then both government bands show the cleaned name, because their date range is already shown as the alternate text
         expect(screen.getAllByText('Cars')).toHaveLength(2);
         expect(screen.queryByText('Cars - 6/1/26 - 8/31/26')).toBeNull();
         expect(screen.queryByText('Cars - From 9/1/26')).toBeNull();
 
+        // And the custom dated rate keeps its full name, because only government rates get the date suffix from the backend
+        expect(screen.getByText('Summer - 6/1/26 - 8/31/26')).toBeOnTheScreen();
+
         // And the rates sort by cleaned name, with the current band above the ended band
-        expect(rowOrder()).toEqual([`${CONST.BASE_LIST_ITEM_TEST_ID}bicycle`, `${CONST.BASE_LIST_ITEM_TEST_ID}currentBand`, `${CONST.BASE_LIST_ITEM_TEST_ID}endedBand`]);
+        expect(rowOrder()).toEqual([
+            `${CONST.BASE_LIST_ITEM_TEST_ID}bicycle`,
+            `${CONST.BASE_LIST_ITEM_TEST_ID}currentBand`,
+            `${CONST.BASE_LIST_ITEM_TEST_ID}endedBand`,
+            `${CONST.BASE_LIST_ITEM_TEST_ID}summer`,
+        ]);
     });
 });

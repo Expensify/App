@@ -196,8 +196,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <InlineTextEditCell
-                                value={rate.name ?? ''}
-                                displayText={rateDisplayName}
+                                value={rateDisplayName}
                                 accessibilityLabel={translate('common.name')}
                                 canEdit={item.canEditName && !item.disabled}
                                 onSave={item.onRenameName}

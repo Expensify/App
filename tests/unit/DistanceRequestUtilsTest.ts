@@ -1187,10 +1187,11 @@ describe('DistanceRequestUtils', () => {
 
     describe('getRateDisplayName', () => {
         const baseName = 'Cars & Vans (Diesel/Hybrid) - Up to 1600cc';
+        const governmentAttributes = {governmentRate: {sourceRateID: 'GB_2026-06-01', rate: 14, startDate: '2026-06-01'}};
 
-        it('strips a trailing date range suffix from an ended band', () => {
-            // Given an ended band whose name carries the date range the backend appends for uniqueness
-            const rate = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31'};
+        it('strips a trailing date range suffix from an ended government band', () => {
+            // Given an ended government band whose name carries the date range the backend appends for uniqueness
+            const rate = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1199,9 +1200,9 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBe(baseName);
         });
 
-        it('strips a trailing "From" suffix', () => {
-            // Given an open-ended band whose name carries a "From" date suffix
-            const rate = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01'};
+        it('strips a trailing "From" suffix from a government band', () => {
+            // Given an open-ended government band whose name carries a "From" date suffix
+            const rate = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1210,20 +1211,20 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBe(baseName);
         });
 
-        it('keeps the suffix when the rate has no start or end date', () => {
-            // Given a custom rate that a user named with a date on purpose, with no date bounds
-            const rate = {name: `${baseName} - 6/1/26 - 8/31/26`};
+        it('keeps the suffix on a custom dated rate', () => {
+            // Given a custom rate with dates that a user named with a date on purpose, so it has no government rate snapshot
+            const rate = {name: 'Summer - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
 
-            // Then the name is unchanged, because no date range is shown next to it
+            // Then the name is unchanged, because the backend only adds the suffix to government rates
             expect(result).toBe(rate.name);
         });
 
         it('leaves names that start with a date unchanged', () => {
-            // Given a country rate whose name puts the date range first
-            const rate = {name: '4/6/26 - 4/5/27 United Kingdom', startDate: '2026-04-06', endDate: '2027-04-05'};
+            // Given a government rate whose name puts the date range first
+            const rate = {name: '4/6/26 - 4/5/27 United Kingdom', startDate: '2026-04-06', endDate: '2027-04-05', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1233,8 +1234,8 @@ describe('DistanceRequestUtils', () => {
         });
 
         it('leaves names without a suffix unchanged', () => {
-            // Given a dated rate whose name has no date suffix
-            const rate = {name: baseName, startDate: '2026-09-01'};
+            // Given a government rate whose name has no date suffix
+            const rate = {name: baseName, startDate: '2026-09-01', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1244,8 +1245,8 @@ describe('DistanceRequestUtils', () => {
         });
 
         it('ignores a date in the middle of a name', () => {
-            // Given a dated rate whose name has a date that isn't at the end
-            const rate = {name: `${baseName} - 6/1/26 - 8/31/26 (Legacy)`, startDate: '2026-06-01', endDate: '2026-08-31'};
+            // Given a government rate whose name has a date that isn't at the end
+            const rate = {name: `${baseName} - 6/1/26 - 8/31/26 (Legacy)`, startDate: '2026-06-01', endDate: '2026-08-31', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1255,8 +1256,8 @@ describe('DistanceRequestUtils', () => {
         });
 
         it('returns the raw name when stripping would leave it empty', () => {
-            // Given a dated rate whose whole name is a date suffix
-            const rate = {name: ' - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'};
+            // Given a government rate whose whole name is a date suffix
+            const rate = {name: ' - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31', attributes: governmentAttributes};
 
             // When getting its display name
             const result = DistanceRequestUtils.getRateDisplayName(rate);
@@ -1266,11 +1267,49 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
+    describe('getRateNameWithDateSuffix', () => {
+        const governmentAttributes = {governmentRate: {sourceRateID: 'GB_2026-09-01', rate: 14, startDate: '2026-09-01'}};
+
+        it('appends the hidden date suffix to the edited name', () => {
+            // Given a government band whose date suffix is hidden in the editors
+            const rate = {name: 'Cars - From 9/1/26', startDate: '2026-09-01', attributes: governmentAttributes};
+
+            // When the user renames it from "Cars" to "Vans"
+            const result = DistanceRequestUtils.getRateNameWithDateSuffix(rate, 'Vans');
+
+            // Then the saved name keeps the original suffix, so Onyx and the API still get the full raw name
+            expect(result).toBe('Vans - From 9/1/26');
+        });
+
+        it('returns the edited name as is when no suffix is hidden', () => {
+            // Given a custom dated rate that keeps its date in the editors, because it has no government rate snapshot
+            const rate = {name: 'Summer - 6/1/26 - 8/31/26', startDate: '2026-06-01', endDate: '2026-08-31'};
+
+            // When the user renames it
+            const result = DistanceRequestUtils.getRateNameWithDateSuffix(rate, 'Winter');
+
+            // Then nothing is appended, because the editors showed the full name
+            expect(result).toBe('Winter');
+        });
+
+        it('keeps an empty name empty', () => {
+            // Given a government band whose date suffix is hidden in the editors
+            const rate = {name: 'Cars - From 9/1/26', startDate: '2026-09-01', attributes: governmentAttributes};
+
+            // When the user clears the name
+            const result = DistanceRequestUtils.getRateNameWithDateSuffix(rate, '');
+
+            // Then the name stays empty, so the required-name check fails instead of saving only the suffix
+            expect(result).toBe('');
+        });
+    });
+
     describe('compareRatesByDisplayName', () => {
         const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => a.localeCompare(b);
         const baseName = 'Cars & Vans (Diesel/Hybrid) - Up to 1600cc';
-        const currentBand = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01'};
-        const endedBand = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31'};
+        const governmentAttributes = {governmentRate: {sourceRateID: 'GB_2026-09-01', rate: 14, startDate: '2026-09-01'}};
+        const currentBand = {name: `${baseName} - From 9/1/26`, startDate: '2026-09-01', attributes: governmentAttributes};
+        const endedBand = {name: `${baseName} - 6/1/26 - 8/31/26`, startDate: '2026-06-01', endDate: '2026-08-31', attributes: governmentAttributes};
         const undatedRate = {name: baseName};
         const otherRate = {name: 'Bicycle', startDate: '2026-01-01'};
 
