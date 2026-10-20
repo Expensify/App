@@ -12,16 +12,19 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
-import type {PolicyCategories} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {TextInputKeyPressEvent} from 'react-native';
@@ -45,21 +48,30 @@ type DescribeRuleModalProps = {
 
     /** Called with the generated form values once Concierge has built the rule */
     onRuleGenerated: (values: GeneratedRuleValues) => void;
+
+    /** Whether a new rule can use the category, so a generated category that already has this kind of rule shows an error */
+    isCategoryEligible?: (category: PolicyCategory) => boolean;
 };
 
-/** Replaces the generated category with the workspace's own spelling of it, or drops it when the workspace has no such category */
-function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
-    const {category, ...rest} = values;
-    if (!category) {
-        return values;
-    }
-    const policyCategory = Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(category));
-    return policyCategory ? {...rest, category: policyCategory.name} : rest;
+/** Replaces the generated categories with the workspace's own spelling of them, and drops any the workspace has no enabled category for */
+function withPolicyCategories(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
+    const {category, categoriesToMatch, ...rest} = values;
+    const findPolicyCategoryName = (categoryName: string) =>
+        Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(categoryName))?.name;
+    const policyCategoryName = category ? findPolicyCategoryName(category) : undefined;
+    return {
+        ...rest,
+        ...(policyCategoryName ? {category: policyCategoryName} : {}),
+        ...(categoriesToMatch ? {categoriesToMatch: categoriesToMatch.flatMap((categoryName) => findPolicyCategoryName(categoryName) ?? [])} : {}),
+    };
 }
 
-function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated}: DescribeRuleModalProps) {
+function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated, isCategoryEligible}: DescribeRuleModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -67,7 +79,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const pendingGenerationIDRef = useRef<string>(undefined);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
-    const [newRulePromptForm] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const generatedRuleID = generatedRule?.generationID;
     const generatedRuleState = generatedRule?.state;
@@ -96,16 +107,19 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
-        close();
-    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onRuleGenerated, policyCategories, ruleType]);
-
-    useEffect(() => {
-        if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationIDRef.current) {
+        const values = withPolicyCategories(generatedRuleValues ?? {}, policyCategories);
+        const hasCategoryWithRule = [values.category, ...(values.categoriesToMatch ?? [])].some((categoryName) => {
+            const policyCategory = categoryName ? policyCategories?.[categoryName] : undefined;
+            return !!policyCategory && !!isCategoryEligible && !isCategoryEligible(policyCategory);
+        });
+        if (hasCategoryWithRule) {
+            setNewRulePromptErrorMessage('workspace.rules.newRule.promptErrors.categoryHasRule');
+            clearGeneratedRule();
             return;
         }
-        clearNewRulePrompt();
-    }, [isVisible, newRulePromptForm?.isLoading]);
+        onRuleGenerated(values);
+        close();
+    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, isCategoryEligible, onRuleGenerated, policyCategories, ruleType]);
 
     // Focus only after the open animation, because focusing mid-animation blurs the input on mWeb and native
     useFocusEffect(() => {
@@ -144,6 +158,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             onClose={close}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            outerStyle={isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : undefined}
             avoidKeyboard
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -162,7 +177,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
-                <View style={styles.describeRulePromptInput}>
+                <View style={isSmallScreenWidth ? styles.describeRulePromptInputNarrow : styles.describeRulePromptInput}>
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputRef}
