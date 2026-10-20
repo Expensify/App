@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- fixtures use `rules_<id>` Onyx collection keys */
 import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
