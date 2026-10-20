@@ -36,7 +36,7 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, cardDes
         const status = await addCardToAppleWallet(data, async (nonce, nonceSignature, certificates) => {
             try {
                 // Apple's Try Again callback must not replay a consumed signed challenge.
-                // Wallet 0.1.22 has no public abort API; rejection cannot dismiss its sheet.
+                // Wallet 0.1.22 has no public abort API. Rejection cannot dismiss its sheet.
                 if (didRequestProvisioning || signal?.aborted) {
                     throw new Error('Wallet attempt requires fresh authentication');
                 }

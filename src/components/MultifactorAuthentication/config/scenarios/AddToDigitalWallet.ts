@@ -42,7 +42,7 @@ export default {
             if (error instanceof WalletProvisioningError) {
                 return error.response;
             }
-            // Native exceptions can contain card data; the shared MFA failure UI needs only a reason.
+            // Native exceptions can contain card data. The shared MFA failure UI only needs a reason.
             return {
                 httpStatusCode: undefined,
                 reason: context?.signal.aborted ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
