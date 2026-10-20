@@ -131,3 +131,4 @@ function FeatureTrainingModal({
 }
 
 export default FeatureTrainingModal;
+export type {FeatureTrainingModalProps};

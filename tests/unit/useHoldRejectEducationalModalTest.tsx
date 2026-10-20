@@ -1,9 +1,11 @@
 import {act, render, renderHook} from '@testing-library/react-native';
 
-import HoldOrRejectEducationalModalWrapper from '@components/Modal/Global/HoldOrRejectEducationalModalWrapper';
+import FeatureTrainingModalWrapper from '@components/Modal/Global/FeatureTrainingModalWrapper';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 
 import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -11,27 +13,40 @@ import React from 'react';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type MockEducationalModalProps = {
-    onClose: () => void;
-    onConfirm: () => void;
-    isDM?: boolean;
+type MockFeatureTrainingModalProps = {
+    onClose?: () => void;
+    onConfirm?: (willShowAgain: boolean) => void;
+    shouldCloseOnConfirm?: boolean;
+    shouldUseScrollView?: boolean;
+    width?: number;
+    children?: React.ReactNode;
 };
 
-let mockHoldOrRejectModalProps: MockEducationalModalProps | undefined;
-let mockHoldSubmitterModalProps: MockEducationalModalProps | undefined;
+let mockFeatureTrainingModalProps: MockFeatureTrainingModalProps | undefined;
+let mockRenderedContent: string | undefined;
+let mockHoldSubmitterIsDM: boolean | undefined;
 
-jest.mock('@components/HoldOrRejectEducationalModal', () => ({
+jest.mock('@components/FeatureTrainingModal', () => ({
     __esModule: true,
-    default: (props: MockEducationalModalProps) => {
-        mockHoldOrRejectModalProps = props;
+    default: (props: MockFeatureTrainingModalProps) => {
+        mockFeatureTrainingModalProps = props;
+        return props.children ?? null;
+    },
+}));
+
+jest.mock('@components/HoldOrRejectEducationalModalContent', () => ({
+    __esModule: true,
+    default: () => {
+        mockRenderedContent = 'HoldOrRejectEducationalModalContent';
         return null;
     },
 }));
 
-jest.mock('@components/HoldSubmitterEducationalModal', () => ({
+jest.mock('@components/HoldSubmitterEducationalModalContent', () => ({
     __esModule: true,
-    default: (props: MockEducationalModalProps) => {
-        mockHoldSubmitterModalProps = props;
+    default: ({isDM}: {isDM?: boolean}) => {
+        mockRenderedContent = 'HoldSubmitterEducationalModalContent';
+        mockHoldSubmitterIsDM = isDM;
         return null;
     },
 }));
@@ -47,8 +62,9 @@ function renderEducationalModalHook(initialParams: HookParams) {
 
 describe('useHoldRejectEducationalModal', () => {
     beforeEach(() => {
-        mockHoldOrRejectModalProps = undefined;
-        mockHoldSubmitterModalProps = undefined;
+        mockFeatureTrainingModalProps = undefined;
+        mockRenderedContent = undefined;
+        mockHoldSubmitterIsDM = undefined;
     });
 
     it('runs the dismiss handler with the action that opened the hold/reject modal once the user closes it', async () => {
@@ -59,11 +75,16 @@ describe('useHoldRejectEducationalModal', () => {
             result.current.showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
             await waitForBatchedUpdates();
         });
-        expect(mockHoldOrRejectModalProps).toBeDefined();
+
+        // Then a feature training modal opens with the hold/reject content and the layout the inline modal used
+        expect(mockRenderedContent).toBe('HoldOrRejectEducationalModalContent');
+        expect(mockFeatureTrainingModalProps?.width).toBe(variables.holdEducationModalWidth);
+        expect(mockFeatureTrainingModalProps?.shouldUseScrollView).toBe(true);
+        expect(mockFeatureTrainingModalProps?.shouldCloseOnConfirm).toBe(false);
 
         // When the user closes the modal
         await act(async () => {
-            mockHoldOrRejectModalProps?.onClose();
+            mockFeatureTrainingModalProps?.onClose?.();
             await waitForBatchedUpdates();
         });
 
@@ -72,7 +93,7 @@ describe('useHoldRejectEducationalModal', () => {
         expect(onHoldOrRejectModalDismiss).toHaveBeenCalledWith(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     });
 
-    it('passes isDM to the hold submitter modal and runs its dismiss handler once the user confirms', async () => {
+    it('passes isDM to the hold submitter content and runs its dismiss handler once the user confirms', async () => {
         // Given a caller that opened the hold submitter modal for an expense from a DM
         const onHoldSubmitterModalDismiss = jest.fn();
         const {result} = renderEducationalModalHook({onHoldSubmitterModalDismiss});
@@ -81,12 +102,13 @@ describe('useHoldRejectEducationalModal', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then the modal gets the DM copy
-        expect(mockHoldSubmitterModalProps?.isDM).toBe(true);
+        // Then the modal shows the hold submitter content with the DM copy
+        expect(mockRenderedContent).toBe('HoldSubmitterEducationalModalContent');
+        expect(mockHoldSubmitterIsDM).toBe(true);
 
         // When the user confirms
         await act(async () => {
-            mockHoldSubmitterModalProps?.onConfirm();
+            mockFeatureTrainingModalProps?.onConfirm?.(false);
             await waitForBatchedUpdates();
         });
 
@@ -106,7 +128,7 @@ describe('useHoldRejectEducationalModal', () => {
 
         // When the user confirms the modal
         await act(async () => {
-            mockHoldOrRejectModalProps?.onConfirm();
+            mockFeatureTrainingModalProps?.onConfirm?.(false);
             await waitForBatchedUpdates();
         });
 
@@ -127,7 +149,7 @@ describe('useHoldRejectEducationalModal', () => {
         // When the caller re-renders with fresh data while the modal is open, and the user then closes it
         rerender({onHoldOrRejectModalDismiss: latestHandler});
         await act(async () => {
-            mockHoldOrRejectModalProps?.onClose();
+            mockFeatureTrainingModalProps?.onClose?.();
             await waitForBatchedUpdates();
         });
 
@@ -155,43 +177,72 @@ describe('useHoldRejectEducationalModal', () => {
         await act(async () => {
             await waitForBatchedUpdates();
         });
-        expect(mockHoldOrRejectModalProps).toBeDefined();
+        expect(mockFeatureTrainingModalProps).toBeDefined();
 
         // When the screen that opened it goes away before the user answers
-        mockHoldOrRejectModalProps = undefined;
+        mockFeatureTrainingModalProps = undefined;
         rerender(<Screen isCallerMounted={false} />);
         await act(async () => {
             await waitForBatchedUpdates();
         });
 
         // Then the modal leaves the stack with its screen, and the follow-up that belonged to that screen does not run
-        expect(mockHoldOrRejectModalProps).toBeUndefined();
+        expect(mockFeatureTrainingModalProps).toBeUndefined();
         expect(onHoldOrRejectModalDismiss).not.toHaveBeenCalled();
     });
 });
 
-describe('HoldOrRejectEducationalModalWrapper', () => {
+describe('FeatureTrainingModalWrapper', () => {
     beforeEach(() => {
-        mockHoldOrRejectModalProps = undefined;
+        mockFeatureTrainingModalProps = undefined;
     });
 
     it('takes its entry off the stack only once, even if the modal reports both a confirm and a close', () => {
-        // Given the wrapper on the global stack
+        // Given a wrapper on the global stack that leaves the stack as soon as the user confirms
         const closeModal = jest.fn();
         render(
-            <HoldOrRejectEducationalModalWrapper
+            <FeatureTrainingModalWrapper
                 closeModal={closeModal}
                 resolveModal={jest.fn()}
+                shouldCloseOnConfirm={false}
             />,
         );
 
         // When the modal reports a confirm followed by a close
         act(() => {
-            mockHoldOrRejectModalProps?.onConfirm();
-            mockHoldOrRejectModalProps?.onClose();
+            mockFeatureTrainingModalProps?.onConfirm?.(false);
+            mockFeatureTrainingModalProps?.onClose?.();
         });
 
         // Then the stack is popped once, with the confirm, so a modal underneath is not taken down by the second call
+        expect(closeModal).toHaveBeenCalledTimes(1);
+        expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
+    });
+
+    it('waits for the modal to hide before taking a confirmed entry off the stack when the modal closes on confirm', () => {
+        // Given a wrapper whose modal animates out on confirm, as feature training modals do by default
+        const closeModal = jest.fn();
+        render(
+            <FeatureTrainingModalWrapper
+                closeModal={closeModal}
+                resolveModal={jest.fn()}
+            />,
+        );
+
+        // When the user confirms
+        act(() => {
+            mockFeatureTrainingModalProps?.onConfirm?.(false);
+        });
+
+        // Then the entry stays on the stack while the modal hides
+        expect(closeModal).not.toHaveBeenCalled();
+
+        // When the modal reports it has hidden
+        act(() => {
+            mockFeatureTrainingModalProps?.onClose?.();
+        });
+
+        // Then the entry leaves the stack with the confirm, so the caller knows the user confirmed rather than closed
         expect(closeModal).toHaveBeenCalledTimes(1);
         expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
     });

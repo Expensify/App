@@ -1,12 +1,17 @@
-import HoldOrRejectEducationalModalWrapper from '@components/Modal/Global/HoldOrRejectEducationalModalWrapper';
-import HoldSubmitterEducationalModalWrapper from '@components/Modal/Global/HoldSubmitterEducationalModalWrapper';
-import {useModal} from '@components/Modal/Global/ModalContext';
+import HoldOrRejectEducationalModalContent from '@components/HoldOrRejectEducationalModalContent';
+import HoldSubmitterEducationalModalContent from '@components/HoldSubmitterEducationalModalContent';
+
+import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import {useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useRef} from 'react';
+
+import useFeatureTrainingModal from './useFeatureTrainingModal';
+import useThemeStyles from './useThemeStyles';
 
 /** The action the user picked before the hold/reject educational modal was shown, which decides what runs once they dismiss it */
 type RejectModalAction = ValueOf<
@@ -37,7 +42,8 @@ type UseHoldRejectEducationalModalParams = {
  * data the caller has at that point.
  */
 const useHoldRejectEducationalModal = ({onHoldOrRejectModalDismiss, onHoldSubmitterModalDismiss}: UseHoldRejectEducationalModalParams) => {
-    const context = useModal();
+    const styles = useThemeStyles();
+    const {showFeatureTrainingModal, closeFeatureTrainingModal} = useFeatureTrainingModal();
     const instanceID = useId();
     const holdOrRejectModalID = `holdOrRejectEducationalModal${instanceID}`;
     const holdSubmitterModalID = `holdSubmitterEducationalModal${instanceID}`;
@@ -50,13 +56,13 @@ const useHoldRejectEducationalModal = ({onHoldOrRejectModalDismiss, onHoldSubmit
         dismissHandlersRef.current = {onHoldOrRejectModalDismiss, onHoldSubmitterModalDismiss};
     }, [onHoldOrRejectModalDismiss, onHoldSubmitterModalDismiss]);
 
-    // Read through a ref so the unmount cleanup below can be registered once. The context takes a new identity
+    // Read through a ref so the unmount cleanup below can be registered once. The close function takes a new identity
     // whenever the modal stack changes, and an effect that listed it as a dependency would close the modal as soon
     // as it opened.
-    const contextRef = useRef(context);
+    const closeFeatureTrainingModalRef = useRef(closeFeatureTrainingModal);
     useEffect(() => {
-        contextRef.current = context;
-    }, [context]);
+        closeFeatureTrainingModalRef.current = closeFeatureTrainingModal;
+    }, [closeFeatureTrainingModal]);
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -66,19 +72,26 @@ const useHoldRejectEducationalModal = ({onHoldOrRejectModalDismiss, onHoldSubmit
             // them with it, without running the dismiss handler, which belongs to a screen that is no longer there.
             isMountedRef.current = false;
             for (const modalID of openModalIDs) {
-                contextRef.current.closeModalByID(modalID);
+                closeFeatureTrainingModalRef.current(modalID);
             }
             openModalIDs.clear();
         };
     }, []);
 
-    const openModal = (modalID: string, modalPromise: () => Promise<unknown>, onDismiss: () => void) => {
+    const openModal = (modalID: string, children: ReactNode, onDismiss: () => void) => {
         // A second tap while the modal is open must not run the dismiss handler twice
         if (openModalIDsRef.current.has(modalID)) {
             return;
         }
         openModalIDsRef.current.add(modalID);
-        modalPromise().then(() => {
+        showFeatureTrainingModal({
+            id: modalID,
+            width: variables.holdEducationModalWidth,
+            modalInnerContainerStyle: styles.pt0,
+            shouldCloseOnConfirm: false,
+            shouldUseScrollView: true,
+            children,
+        }).then(() => {
             openModalIDsRef.current.delete(modalID);
             if (!isMountedRef.current) {
                 return;
@@ -88,19 +101,11 @@ const useHoldRejectEducationalModal = ({onHoldOrRejectModalDismiss, onHoldSubmit
     };
 
     const showHoldOrRejectEducationalModal = (action: RejectModalAction) => {
-        openModal(
-            holdOrRejectModalID,
-            () => context.showModal({component: HoldOrRejectEducationalModalWrapper, id: holdOrRejectModalID}),
-            () => dismissHandlersRef.current.onHoldOrRejectModalDismiss?.(action),
-        );
+        openModal(holdOrRejectModalID, <HoldOrRejectEducationalModalContent />, () => dismissHandlersRef.current.onHoldOrRejectModalDismiss?.(action));
     };
 
     const showHoldSubmitterEducationalModal = (options?: HoldSubmitterEducationalModalOptions) => {
-        openModal(
-            holdSubmitterModalID,
-            () => context.showModal({component: HoldSubmitterEducationalModalWrapper, props: options ?? {}, id: holdSubmitterModalID}),
-            () => dismissHandlersRef.current.onHoldSubmitterModalDismiss?.(),
-        );
+        openModal(holdSubmitterModalID, <HoldSubmitterEducationalModalContent isDM={options?.isDM} />, () => dismissHandlersRef.current.onHoldSubmitterModalDismiss?.());
     };
 
     return {showHoldOrRejectEducationalModal, showHoldSubmitterEducationalModal};

@@ -135,17 +135,24 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
-jest.mock('@components/HoldOrRejectEducationalModal', () => {
+jest.mock('@components/FeatureTrainingModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return (props: {onConfirm: () => void}) => (
-        <View testID="HoldOrRejectEducationalModal">
+    return (props: {onConfirm?: (willShowAgain: boolean) => void; children?: React.ReactNode}) => (
+        <View testID="FeatureTrainingModal">
+            {props.children}
             <View
-                testID="HoldOrRejectEducationalModal-confirm"
-                onTouchEnd={props.onConfirm}
+                testID="FeatureTrainingModal-confirm"
+                onTouchEnd={() => props.onConfirm?.(false)}
             />
         </View>
     );
+});
+
+jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => <View testID="HoldOrRejectEducationalModal" />;
 });
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -398,7 +405,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // When they pick reject, which opens the educational modal on the global modal stack, and then confirm it
         fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
         await waitForBatchedUpdatesWithAct();
-        fireEvent(screen.getByTestId('HoldOrRejectEducationalModal-confirm'), 'touchEnd');
+        fireEvent(screen.getByTestId('FeatureTrainingModal-confirm'), 'touchEnd');
         await waitForBatchedUpdatesWithAct();
 
         // Then the modal leaves the stack and the bulk reject flow opens
