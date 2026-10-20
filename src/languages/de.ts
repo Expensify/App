@@ -532,6 +532,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
+        shareReport: 'Bericht teilen',
+        reportShared: 'Bericht geteilt',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -981,6 +983,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Hinzufügen'},
             addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
+            addDepositAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um Zahlungen zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify Karte',
@@ -1174,7 +1177,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'In Ausgaben anzeigen',
         emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
         noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
-        compare: {label: 'Vergleichen', previousPeriod: 'Vorheriger Zeitraum', average: 'Durchschnitt'},
+        compare: {
+            label: 'Vergleichen',
+            previousPeriod: 'Vorheriger Zeitraum',
+            average: 'Durchschnitt',
+            increase: (percentage: string) => `Um ${percentage} gestiegen`,
+            decrease: (percentage: string) => `Um ${percentage} gesunken`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2825,6 +2834,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Globale Rückerstattungen einrichten?', subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.', getStarted: "Los geht's"},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
@@ -4051,6 +4061,10 @@ ${amount} für ${merchant} – ${date}`,
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `${name} bearbeiten`,
+        removeItem: ({name}: {name: string}) => `${name} entfernen`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4062,7 +4076,13 @@ ${amount} für ${merchant} – ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
             invalidOption: 'Wähle eine der verfügbaren Optionen',
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+            tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
+            tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `${item} hinzufügen`,
+        removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
+        removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -4103,6 +4123,7 @@ ${amount} für ${merchant} – ${date}`,
             formLabel: 'PDF anzeigen',
         },
         attachmentNotFound: 'Anhang nicht gefunden',
+        loadTimedOut: 'Dieses Bild lädt zu lange.',
         retry: 'Wiederholen',
     },
     messages: {
@@ -5118,6 +5139,7 @@ ${amount} für ${merchant} – ${date}`,
             editPerDiemRates: 'Pauschalvergütungssätze bearbeiten',
             editDestinationSubtitle: (destination: string) => `Wenn Sie dieses Ziel aktualisieren, wird es für alle ${destination}-Tagespauschalen-Teilbeträge geändert.`,
             editCurrencySubtitle: (destination: string) => `Wenn Sie diese Währung aktualisieren, wird sie für alle ${destination}-Tagesgeld-Teilbeträge geändert.`,
+            missingPerDiemUnit: 'Per Diem ist in diesem Workspace nicht korrekt eingerichtet. Bitte wenden Sie sich für Hilfe an Concierge.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Legen Sie fest, wie aus eigener Tasche bezahlte Ausgaben nach QuickBooks Desktop exportiert werden.',
@@ -8455,6 +8477,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
+                preventPayoutNonReimbursableReportsTitle: 'Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden',
+                preventPayoutNonReimbursableReportsSubtitle: 'Verhindern, dass Admins nicht erstattungsfähige Berichte als bezahlt markieren.',
             },
             agentsPromoBanner: {
                 title: 'Sie sehen die benötigte Regel nicht? Fügen Sie eine:n Agent:in hinzu',
@@ -9043,7 +9067,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     toggleTitle: 'Büros',
                     allSelected: 'Alle Büros',
                 },
-                enableJobStagesOrTags: 'Aktivieren Sie Jobphasen oder Tags, um fortzufahren',
+                enableJobStagesOrTags: 'Wählen Sie mindestens eine Jobphase oder ein Tag aus, um fortzufahren',
             },
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
@@ -9258,6 +9282,51 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
             noPaymentMethodsFound: 'Keine Zahlungsformen gefunden',
             noPaymentMethodsFoundDescription: 'Bitte fügen Sie Zahlungsformen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            advanced: {
+                autoSyncDescription: 'Dynamics 365 Business Central und Expensify automatisch jeden Tag synchronisieren. Berichte werden in Echtzeit synchronisiert.',
+                accountingMethods: {
+                    label: 'Exportmethode',
+                    description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen aus eigener Tasche werden nach endgültiger Genehmigung exportiert',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                    },
+                },
+                postingMode: {
+                    label: 'Buchungsmodus',
+                    description: 'Wählen Sie, ob Einträge automatisch gebucht werden oder zuerst manuell geprüft werden müssen.',
+                    note: 'Hinweis: Expensify bucht jedes offene Buch.-Blatt im Fibu Buch.-Blattnamen, den Sie auf der Seite „Expensify Setup“ in Business Central ausgewählt haben, nicht nur die von Expensify erstellten. Verwenden Sie einen Buch.-Blattnamen nur für Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Erstellen und buchen',
+                            description: 'Einträge beim Export automatisch im Hauptbuch buchen',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Nur erstellen',
+                            description: 'Einträge nach dem Export manuell in Dynamics 365 Business Central buchen',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Mitarbeitende/Lieferanten automatisch erstellen',
+                exportToNextOpenPeriod: 'In die nächste offene Periode exportieren',
+                exportToNextOpenPeriodDescription:
+                    'Wenn ein Bericht auf eine geschlossene Periode in Dynamics 365 Business Central datiert ist, wird er in die nächste offene Periode exportiert.',
+                syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+                syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erstellt.',
+                reimbursementBankAccount: {
+                    label: 'Rechnungskonto',
+                    description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
+                settlementsBankAccount: {
+                    label: 'Verrechnungskonto der Expensify Karte',
+                    description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Ihre Dynamics 365 Business Central-Konten werden als Kategorien importiert.',
             dimensionsImportAsTags: 'Alle Dimensionen aus Dynamics 365 Business Central werden als Tags importiert',
             customers: 'Kunden',
@@ -9974,6 +10043,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `aktualisierte „Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -10210,6 +10281,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             past: 'Vergangenes',
             submitted: 'Eingereicht',
             approved: 'Genehmigt',
+            anyApproval: 'Jede Genehmigung',
             firstApprover: 'Erste:r Genehmiger:in',
             firstApproved: 'Zuerst genehmigt',
             paidBy: 'Bezahlt von',
@@ -10218,6 +10290,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             posted: 'Gebucht',
             withdrawn: 'Zurückgezogen',
             billable: 'Abrechenbar',
+            rejected: 'Abgelehnt',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
             sortOrder: {
@@ -11238,6 +11311,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     systemMessage: {
         mergedWithCashTransaction: 'hat eine Quittung mit dieser Transaktion abgeglichen',
+        mergedExpenseDeleted: 'hat Ausgaben zusammengeführt und eine in Gelöscht verschoben',
     },
     subscription: {
         authenticatePaymentCard: 'Zahlungskarte authentifizieren',
@@ -11479,6 +11553,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 refundedOn: ({date}: {date: string}) => `Erstattet am ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
             },
+            billedTo: 'Abgerechnet an',
+            viewReceipt: 'Beleg anzeigen',
+            viewInvoice: 'Rechnung anzeigen',
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
@@ -12036,22 +12113,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         addPaymentCardButton: 'Zahlungskarte hinzufügen',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Neu bei Concierge AI',
-        confirmText: 'Los geht’s!',
-        spendAnalysis: {
-            title: 'Interaktive Ausgabenanalyse',
-            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
-            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Erstellen Sie Ihre eigenen Agenten',
-            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'E-Mail-Problem',
         intro: (login: string) => `Unser E-Mail-Anbieter hat das Senden an <strong>${login}</strong> aufgrund von Zustellproblemen pausiert. Um dieses Problem zu beheben:`,

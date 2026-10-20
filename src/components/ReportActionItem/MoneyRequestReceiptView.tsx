@@ -173,7 +173,7 @@ function MoneyRequestReceiptView({
     const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
-    const reportsParentHierarchy = useReportsParentHierarchy();
+    const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
@@ -471,6 +471,7 @@ function MoneyRequestReceiptView({
               transactionThreadReport: resolvedTransactionThreadReport,
               transactionViolations: rawTransactionViolations,
               currentUserPersonalDetails: currentUserPersonalDetail,
+              introSelected,
           }
         : undefined;
 
