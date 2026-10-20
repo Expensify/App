@@ -1,5 +1,5 @@
+import {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@libs/getTransactionFromSearchItem';
 import Log from '@libs/Log';
-import {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';

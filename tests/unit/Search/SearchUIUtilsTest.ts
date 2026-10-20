@@ -33,6 +33,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import getTransactionFromSearchItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromSearchItem';
 import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -13507,7 +13508,7 @@ describe('SearchUIUtils', () => {
             // Then only the real transaction fields are saved, so display values can't shadow later edits
             const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
             expect(transaction?.transactionID).toBe(transactionListItem.transactionID);
-            for (const fieldName of SearchUIUtils.SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
                 expect(transaction).not.toHaveProperty(fieldName);
             }
         });
@@ -13530,10 +13531,10 @@ describe('SearchUIUtils', () => {
             const transactionListItem = getTransactionListItem(0);
 
             // When it is turned back into a transaction
-            const transaction = SearchUIUtils.getTransactionFromSearchItem(transactionListItem);
+            const transaction = getTransactionFromSearchItem(transactionListItem);
 
             // Then the row-only fields are gone and the real transaction fields are untouched
-            for (const fieldName of SearchUIUtils.SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
                 expect(transaction).not.toHaveProperty(fieldName);
             }
             expect(transaction.transactionID).toBe(transactionListItem.transactionID);

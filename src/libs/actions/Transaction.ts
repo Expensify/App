@@ -13,6 +13,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getTransactionFromSearchItem from '@libs/getTransactionFromSearchItem';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -41,7 +42,6 @@ import {
     isReportTotalPending,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {getTransactionFromSearchItem} from '@libs/SearchUIUtils';
 import {
     getDistanceInMeters,
     hasSubmissionBlockingViolationInList,
