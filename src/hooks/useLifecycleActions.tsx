@@ -479,7 +479,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
 

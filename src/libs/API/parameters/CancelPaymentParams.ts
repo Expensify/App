@@ -1,6 +1,6 @@
 type CancelPaymentParams = {
     iouReportID: string;
-    chatReportID: string;
+    chatReportID?: string;
     managerAccountID: number;
     reportActionID: string;
 };
