@@ -49,6 +49,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     );
 
     const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(expense.transaction, isSettled(expense.report));
+    const shouldShowScanFailureMessage = hasFailedScanAmountPlaceholder && expense.transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
     const formattedAmount = hasFailedScanAmountPlaceholder ? '' : convertToDisplayString(expense.amount, expense.currency);
 
     // The row always uses the stacked ("mobile") layout because it lives in the narrow right column on web/desktop
@@ -78,7 +79,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                         style={[styles.mutedNormalTextLabel, styles.flexShrink1]}
                     >
                         {formattedDate}
-                        {hasFailedScanAmountPlaceholder && (
+                        {shouldShowScanFailureMessage && (
                             <>
                                 {` ${CONST.DOT_SEPARATOR} `}
                                 <Text style={styles.textLabelError}>{translate('violations.shortName.smartscanFailed')}</Text>

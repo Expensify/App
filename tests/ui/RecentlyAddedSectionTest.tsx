@@ -337,6 +337,30 @@ describe('RecentlyAddedSection', () => {
             expect(screen.getByText(/violations\.shortName\.smartscanFailed/)).toBeOnTheScreen();
         });
 
+        it('does not show a scan failure status for an offline Scan edit that has not failed', async () => {
+            // Given an incomplete Scan that is OPEN while its merchant edit is pending offline
+            const offlineScanRow = {
+                ...ROW_1,
+                amount: 0,
+                transaction: {
+                    ...ROW_1.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN},
+                    pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+            };
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [offlineScanRow], isAwaitingFirstResult: false});
+
+            // When the Recently Added row is rendered
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then its placeholder amount stays hidden without incorrectly claiming that scanning failed
+            expect(screen.queryByText('USD 0')).not.toBeOnTheScreen();
+            expect(screen.queryByText(/violations\.shortName\.smartscanFailed/)).not.toBeOnTheScreen();
+        });
+
         it('shows a zero amount that the user explicitly confirmed', async () => {
             // Given a Scan whose zero amount was explicitly confirmed by the user
             const confirmedZeroRow = {
