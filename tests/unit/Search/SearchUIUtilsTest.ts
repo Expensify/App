@@ -10908,6 +10908,32 @@ describe('SearchUIUtils', () => {
             expect(withReport.visibility.approve).toBe(true);
         });
 
+        test('Should not throw when employeeList contains a null entry', () => {
+            // Given an approval-enabled policy whose employeeList holds a null entry, which Onyx can leave behind when
+            // several policy updates are applied in one batch
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                        'removed@policy.com': null as unknown as OnyxTypes.PolicyEmployee,
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: adminEmail},
+                    },
+                },
+            };
+
+            // When the suggested searches visibility is computed
+            const getVisibility = () => SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            // Then it skips the null entry instead of crashing, and still finds the member who submits to the user
+            expect(getVisibility).not.toThrow();
+            expect(getVisibility().visibility.approve).toBe(true);
+        });
+
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
             const policyKey = `policy_${policyID}`;
 
