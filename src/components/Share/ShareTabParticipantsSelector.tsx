@@ -42,15 +42,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: emptySelector});
-    const [, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: emptySelector});
     const [amountOwed, amountOwedMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-
-    const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID;
-    const isDestinationReady =
-        isPersonalDetailsReady &&
-        !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
 
     const canUseDefaultPolicy =
         isSubmitFlow &&
@@ -59,15 +53,23 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         // a default expense policy; passing SUBMIT would always return false.
         shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountID);
 
-    // When the user's domain security group restricts submission to a single workspace, skip the participant picker and
-    // go straight to confirmation for the locked workspace's expense chat, matching the in-product submit flow. Falls back
-    // to the picker if the locked policy's expense chat isn't in Onyx yet, so we never navigate to an empty report.
-    const lockedExpenseChatReportID =
-        isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
-    const defaultExpenseChatReportID = canUseDefaultPolicy ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
-    const autoNavigateReportID = lockedExpenseChatReportID ?? defaultExpenseChatReportID;
-    const autoNavigatePolicyID = lockedExpenseChatReportID ? preferredPolicyID : defaultExpensePolicy?.id;
-    const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);
+    // A domain restriction always wins over the unrestricted default-workspace optimization.
+    const lockedPolicyID = isSubmitFlow && isRestrictedToPreferredPolicy ? preferredPolicyID : undefined;
+    const defaultPolicyID = canUseDefaultPolicy ? defaultExpensePolicy?.id : undefined;
+    const autoNavigatePolicyID = lockedPolicyID ?? defaultPolicyID;
+
+    // Subscribe to the matching expense chat instead of reading it only from ReportUtils' cache. On a cold start the
+    // policy can resolve before its report hydrates; this selector rerenders when that specific destination arrives.
+    const [autoNavigateReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentUserAccountID, autoNavigatePolicyID, reports)?.reportID,
+    });
+
+    const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID;
+    const isDestinationReady =
+        isPersonalDetailsReady &&
+        !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
+    const isAwaitingExpenseChat = !!autoNavigatePolicyID && !autoNavigateReportID;
+    const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady || isAwaitingExpenseChat);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
     // the guard flips immediately: clearing the draft transaction mutates draftTransactionIDs, which re-runs the effect

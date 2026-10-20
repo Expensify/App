@@ -15,6 +15,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -177,6 +178,38 @@ describe('ShareTabParticipantsSelector', () => {
         // Picker must remain visible (not null/blank) and not auto-navigate away
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('waits for an eligible default workspace expense chat to hydrate before navigating', async () => {
+        // Given an eligible default workspace whose expense chat has not hydrated yet
+        const mockPolicy = {
+            ...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE),
+            id: 'policy-hydrating',
+        };
+        const mockExpenseChat = {
+            ...createRandomReport(30),
+            reportID: 'report-hydrated-1',
+        };
+
+        jest.mocked(useDefaultExpensePolicy).mockReturnValue(mockPolicy);
+        jest.mocked(shouldUseDefaultExpensePolicy).mockReturnValue(true);
+        jest.mocked(getPolicyExpenseChat).mockImplementation((_ownerAccountID, _policyID, reports) =>
+            reports?.[`${ONYXKEYS.COLLECTION.REPORT}${mockExpenseChat.reportID}`] ? mockExpenseChat : undefined,
+        );
+
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the picker is not committed while the known destination is still hydrating
+        expect(screen.queryByTestId('mock-select-participant')).toBeNull();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        // When the matching expense chat arrives from Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockExpenseChat.reportID}`, mockExpenseChat);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow navigates directly to confirmation instead of remaining on the picker
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('report-hydrated-1'), expect.objectContaining({afterTransition: expect.any(Function)}));
     });
 
     it('clears the draft on the initial selection but preserves every field when selecting the same destination again', async () => {
