@@ -75,6 +75,7 @@ type ThemeColors = {
     textDark: Color;
     textReversed: Color;
     textBackground: Color;
+    textSelectionBackground: Color;
     textMutedReversed: Color;
     textError: Color;
     textSuccess: Color;
