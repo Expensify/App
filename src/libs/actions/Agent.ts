@@ -5,6 +5,7 @@ import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
@@ -20,7 +21,7 @@ import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -45,7 +46,7 @@ function prepareNewAgentOnyxData(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
-    policy?: Policy,
+    policy?: OnyxEntry<Policy>,
     firstName?: string,
     customExpensifyAvatarID?: string,
     optimisticAvatarURI?: string,
@@ -190,13 +191,17 @@ function createCompanyAgent(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
-    policy: Policy,
+    policy: OnyxEntry<Policy>,
     role: ValueOf<typeof CONST.POLICY.ROLE>,
     firstName?: string,
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
 ) {
+    if (!policy) {
+        Log.warn('Invalid policy is used to createCompanyAgent');
+    }
+
     const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
         currentUserAccountID,
         currentUserLogin,
@@ -209,7 +214,7 @@ function createCompanyAgent(
 
     write(
         WRITE_COMMANDS.CREATE_COMPANY_AGENT,
-        {prompt, policyID: policy.id, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
+        {prompt, policyID: policy?.id ?? '', role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 

@@ -1,5 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -32,6 +33,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
@@ -65,7 +67,8 @@ type DynamicAddAgentPageContentProps = {
 
 function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
-    const policy = usePolicy(route.params?.policyID);
+    const policyID = route.params?.policyID;
+    const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -92,6 +95,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         value: roleItem.value,
         description: roleItem.alternateText,
     }));
+    const isAddingCompanyAgent = !!policyID;
+    const canWriteAgents = isAddingCompanyAgent ? canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS) : true;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -162,10 +167,10 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             ? {file: buildFileFromAvatarCropResult(uploadedAvatar), optimisticAvatarURI: uploadedAvatar.uri}
             : {customExpensifyAvatarID: selectedPresetID ?? AGENT_AVATARS.getRandomID()};
 
-        const {optimisticReportID, optimisticPersonalDetailPromise} = policy
+        const {optimisticReportID, optimisticPersonalDetailPromise} = isAddingCompanyAgent
             ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI)
             : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI);
-        const backToAgentsListRoute = policy ? ROUTES.WORKSPACE_AGENTS.getRoute(policy.id) : ROUTES.SETTINGS_AGENTS;
+        const backToAgentsListRoute = isAddingCompanyAgent ? ROUTES.WORKSPACE_AGENTS.getRoute(policy?.id) : ROUTES.SETTINGS_AGENTS;
 
         clearNewAgentTemplate();
 
@@ -225,91 +230,93 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
-            <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
-                    title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                />
-            </CollapsibleHeaderOnKeyboard>
-            <FormProvider
-                ref={formRef}
-                formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
-                onSubmit={handleSubmit}
-                validate={validate}
-                submitButtonText={translate('addAgentPage.createAgent')}
-                style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={false}
-                shouldHideFixErrorsAlert
-                enabledWhenOffline
-                // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
-                isSubmitDisabled={isDraftLoading}
-            >
-                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
-                    <View style={[styles.alignItemsCenter]}>
-                        <AvatarButtonWithIcon
-                            text={translate('addAgentPage.editAvatar')}
-                            avatar={agentAvatar}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
-                            editIcon={expensifyIcons.Pencil}
-                            editIconStyle={styles.smallEditIconAccount}
-                            sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
-                        />
-                    </View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.FIRST_NAME}
-                        label={translate('addAgentPage.agentName')}
-                        accessibilityLabel={translate('addAgentPage.agentName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        autoCapitalize="words"
-                        spellCheck={false}
-                        defaultValue={defaultAgentName}
+            <FullPageNotFoundView shouldShow={!canWriteAgents}>
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('addAgentPage.title')}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
-                    {!!policy && (
-                        <View style={[styles.mhn5]}>
-                            <InputWrapper
-                                InputComponent={ValuePicker}
-                                inputID={INPUT_IDS.ROLE}
-                                label={translate('common.role')}
-                                items={roleOptions}
-                                defaultValue={defaultRole}
-                                shouldShowTooltips={false}
+                </CollapsibleHeaderOnKeyboard>
+                <FormProvider
+                    ref={formRef}
+                    formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
+                    onSubmit={handleSubmit}
+                    validate={validate}
+                    submitButtonText={translate('addAgentPage.createAgent')}
+                    style={[styles.flex1, styles.ph5]}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={false}
+                    shouldHideFixErrorsAlert
+                    enabledWhenOffline
+                    // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
+                    isSubmitDisabled={isDraftLoading}
+                >
+                    <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                        <View style={[styles.alignItemsCenter]}>
+                            <AvatarButtonWithIcon
+                                text={translate('addAgentPage.editAvatar')}
+                                avatar={agentAvatar}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
+                                editIcon={expensifyIcons.Pencil}
+                                editIconStyle={styles.smallEditIconAccount}
+                                sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
                             />
                         </View>
-                    )}
-                    <View
-                        style={
-                            shouldShrinkPromptInput
-                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
-                        }
-                        onLayout={(event) => {
-                            promptTopOffsetRef.current = event.nativeEvent.layout.y;
-                        }}
-                    >
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('addAgentPage.instructions')}
-                            accessibilityLabel={translate('addAgentPage.instructions')}
+                            inputID={INPUT_IDS.FIRST_NAME}
+                            label={translate('addAgentPage.agentName')}
+                            accessibilityLabel={translate('addAgentPage.agentName')}
                             role={CONST.ROLE.PRESENTATION}
-                            type="markdown"
-                            excludedMarkdownStyles={['mentionReport']}
-                            onKeyPress={submitFormOnModEnter}
-                            defaultValue={defaultPrompt}
-                            multiline
-                            autoGrowHeight={shouldAutoGrowPromptInput}
-                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
-                            containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
-                            touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
-                            inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
-                            onFocus={handleInputFocus}
+                            autoCapitalize="words"
+                            spellCheck={false}
+                            defaultValue={defaultAgentName}
                         />
+                        {isAddingCompanyAgent && (
+                            <View style={[styles.mhn5]}>
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID={INPUT_IDS.ROLE}
+                                    label={translate('common.role')}
+                                    items={roleOptions}
+                                    defaultValue={defaultRole}
+                                    shouldShowTooltips={false}
+                                />
+                            </View>
+                        )}
+                        <View
+                            style={
+                                shouldShrinkPromptInput
+                                    ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                    : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
+                            }
+                            onLayout={(event) => {
+                                promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                            }}
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={translate('addAgentPage.instructions')}
+                                accessibilityLabel={translate('addAgentPage.instructions')}
+                                role={CONST.ROLE.PRESENTATION}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
+                                onKeyPress={submitFormOnModEnter}
+                                defaultValue={defaultPrompt}
+                                multiline
+                                autoGrowHeight={shouldAutoGrowPromptInput}
+                                maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                                containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
+                                touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
+                                inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
+                                onFocus={handleInputFocus}
+                            />
+                        </View>
+                        <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
-                </View>
-            </FormProvider>
+                </FormProvider>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
