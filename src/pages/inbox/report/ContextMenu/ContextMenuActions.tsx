@@ -677,12 +677,17 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isOffline,
                 personalDetails,
                 reportIDToName,
+                report,
+                policy,
             },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
+                    // The child report shares the policy of the report the action lives in
+                    const fullPolicySnapshot =
+                        report?.policyID && policy?.fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: policy.fullPolicySnapshotLastModified} : undefined;
+                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat, fullPolicySnapshot});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
