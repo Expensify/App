@@ -116,14 +116,18 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
 
     const trimmedSearchTerm = debouncedSearchTerm.trim();
 
+    const [prevSearchKey, setPrevSearchKey] = useState({trimmedSearchTerm, policyIDs, isOffline});
+    if (prevSearchKey.trimmedSearchTerm !== trimmedSearchTerm || prevSearchKey.policyIDs !== policyIDs || prevSearchKey.isOffline !== isOffline) {
+        setPrevSearchKey({trimmedSearchTerm, policyIDs, isOffline});
+        setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
+    }
+
     useEffect(() => {
         if (!ready || isOffline) {
-            setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
             return;
         }
 
         const requestSeq = ++requestSeqRef.current;
-        setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
 
         openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: '', policyIDs: policyIDs || undefined}, true)
             .then(({hasMore, nextCursor, logins}) => {

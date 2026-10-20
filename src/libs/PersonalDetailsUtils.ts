@@ -6,7 +6,7 @@ import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import Onyx from 'react-native-onyx';
 
 import {getCountryCode} from './CountryUtils';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {isRecord} from './ObjectUtils';
 import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -256,6 +257,24 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: personalDetails,
     };
+}
+
+/**
+ * Extracts logins from personal details updates in Onyx data.
+ */
+function getLoginsFromOnyxUpdates(onyxData?: AnyOnyxUpdate[]): string[] {
+    const logins: string[] = [];
+    for (const update of onyxData ?? []) {
+        const updateKey = typeof update.key === 'string' ? update.key : '';
+        if (updateKey === ONYXKEYS.PERSONAL_DETAILS_LIST && isRecord(update.value)) {
+            for (const detail of Object.values(update.value)) {
+                if (isRecord(detail) && typeof detail.login === 'string') {
+                    logins.push(detail.login);
+                }
+            }
+        }
+    }
+    return logins;
 }
 
 // The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
@@ -550,4 +569,5 @@ export {
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
     buildPersonalDetailsUpdate,
+    getLoginsFromOnyxUpdates,
 };
