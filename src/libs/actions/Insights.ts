@@ -77,6 +77,7 @@ function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStri
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
+/** Stores the dashboard's filters locally and on the server, for changes that don't trigger a GetInsights call to save them */
 function saveInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
         {

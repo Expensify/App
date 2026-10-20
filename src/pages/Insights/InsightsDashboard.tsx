@@ -205,7 +205,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         requestDashboard();
     });
 
-    // Skips the Compare mode, which every response covers, but not the Group by the user picked, which the hash leaves out and GetInsights saves
+    // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
     useEffect(() => {
         if (!isFocused) {
             return;
