@@ -304,6 +304,43 @@ describe('useRecentlyAddedData — live report updates', () => {
         // Then the row receives the current settled status instead of the stale snapshot status
         expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
     });
+
+    it('uses the current report after a failed scan is moved during an offline payment', () => {
+        // Given Search still places a failed scan on the original report while the optimistic payment has moved it to a new report
+        setupSnapshot(
+            [
+                makeTransaction({
+                    transactionID: 'failedScan',
+                    inserted: '2026-06-01 10:00:00',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                    amount: 0,
+                }),
+            ],
+            [makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN})],
+        );
+        setupLocalTransactions([
+            makeTransaction({
+                transactionID: 'failedScan',
+                reportID: 'report_unpaid',
+                inserted: '2026-06-01 10:00:00',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                amount: 0,
+            }),
+        ]);
+        setupLocalReports([
+            makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+            makeReport('report_unpaid', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN}),
+        ]);
+
+        // When Recently Added resolves the expense while the Search snapshot is stale
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // Then the row stays associated with the new unpaid report instead of inheriting the settled status of the original report
+        expect(result.current.transactions.at(0)?.reportID).toBe('report_unpaid');
+        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+    });
 });
 
 describe('useRecentlyAddedData — unreported expenses', () => {

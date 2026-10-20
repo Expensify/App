@@ -259,18 +259,19 @@ function useRecentlyAddedData(): RecentlyAddedData {
                 // snapshot keeps the stale, pre-edit copy. Prefer the local copy when present so the row reflects the
                 // edit and can render the offline pending treatment, matching how the Search transaction list behaves.
                 const sourceTransaction = getLocalTransaction(localTransactions, transaction.transactionID) ?? transaction;
-                const snapshotReport = reportByReportID.get(transaction.reportID);
-                const localReport = localReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                const sourceReportID = sourceTransaction.reportID ?? transaction.reportID;
+                const snapshotReport = reportByReportID.get(sourceReportID);
+                const localReport = localReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
                 const sourceReport = localReport ? {...snapshotReport, ...localReport} : snapshotReport;
                 const reportType = sourceReport?.type;
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
                 // sign must be preserved too. Without this, a self-DM credit/refund is collapsed to its absolute
                 // value and loses its negative sign.
-                const isFromTrackedExpense = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || sourceReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
+                const isFromTrackedExpense = sourceReportID === CONST.REPORT.UNREPORTED_REPORT_ID || sourceReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
                 return {
                     transactionID: transaction.transactionID,
-                    reportID: transaction.reportID,
+                    reportID: sourceReportID,
                     created: getCreated(sourceTransaction),
                     merchant: getMerchantName(sourceTransaction, translate),
                     // Expense-report, self-DM, and tracked transactions are stored with an inverted sign, so the
