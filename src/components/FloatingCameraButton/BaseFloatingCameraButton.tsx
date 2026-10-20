@@ -14,7 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
+import {generateReportID, getFirstWorkspaceChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -62,8 +62,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         if (isEmptyObject(activePolicy) || !isGroupPolicy(activePolicy)) {
             return undefined;
         }
-        const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [accountID], reports);
-        return policyChatsForActivePolicy.at(0);
+        return getFirstWorkspaceChat(activePolicyID, [accountID], reports);
     };
     const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatForActivePolicySelector});
 

@@ -6,7 +6,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
+import {generateReportID, getFirstWorkspaceChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import Tab from '@userActions/Tab';
@@ -17,7 +17,6 @@ import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -28,8 +27,8 @@ function useScanActions() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [currentUserPersonalDetails.accountID], reports);
-    const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
+    const firstWorkspaceChatSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getFirstWorkspaceChat(activePolicyID, [currentUserPersonalDetails.accountID], reports);
+    const [firstPolicyChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: firstWorkspaceChatSelector});
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -38,8 +37,7 @@ function useScanActions() {
     // useState lazy initializer generates the ID once on mount and keeps it stable across renders
     const [reportID] = useState(() => generateReportID());
 
-    const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+    const policyChatForActivePolicy: OnyxTypes.Report = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && firstPolicyChat ? firstPolicyChat : ({} as OnyxTypes.Report);
 
     const startScan = () => {
         interceptAnonymousUser(() => {

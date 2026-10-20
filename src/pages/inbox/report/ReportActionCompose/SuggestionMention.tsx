@@ -87,25 +87,22 @@ function SuggestionMention({
     const policy = usePolicy(policyID);
     suggestionValuesRef.current = suggestionValues;
 
-    // Filter reports to only include those that can be mentioned within the current policy
-    const mentionableReportsSelector = useCallback(
+    // Keep only the names of reports that can be mentioned within the current policy, so unrelated report writes don't re-render the composer
+    const mentionableReportNamesSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
-            return Object.keys(reports ?? {}).reduce(
-                (acc, reportID) => {
-                    const report = reports?.[reportID];
-                    if (report && canReportBeMentionedWithinPolicy(report, policyID)) {
-                        acc[reportID] = report;
-                    }
-                    return acc;
-                },
-                {} as Record<string, Report>,
-            );
+            const names: string[] = [];
+            for (const report of Object.values(reports ?? {})) {
+                if (report?.reportName && canReportBeMentionedWithinPolicy(report, policyID)) {
+                    names.push(report.reportName);
+                }
+            }
+            return names;
         },
         [policyID],
     );
 
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector});
+    const [mentionableReportNames] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportNamesSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -478,19 +475,19 @@ function SuggestionMention({
     const getRoomMentionOptions = useCallback(
         (searchTerm: string): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
-            for (const report of Object.values(mentionableReports ?? {})) {
-                if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
+            for (const reportName of mentionableReportNames ?? []) {
+                if (reportName.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
-                        text: report.reportName,
-                        handle: report.reportName,
-                        alternateText: report.reportName,
+                        text: reportName,
+                        handle: reportName,
+                        alternateText: reportName,
                     });
                 }
             }
 
             return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         },
-        [mentionableReports],
+        [mentionableReportNames],
     );
 
     const calculateMentionSuggestion = useCallback(
