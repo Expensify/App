@@ -606,7 +606,7 @@ function WalletPage() {
                                   return;
                               }
                               if (isWiseGlobalReimbursementsEnabled) {
-                                  closeModal();
+                                  closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
                                   return;
                               }
                               closeModal(() =>
