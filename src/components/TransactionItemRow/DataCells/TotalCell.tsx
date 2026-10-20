@@ -9,10 +9,10 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {formatToParts} from '@libs/NumberFormatUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import {getCurrency as getTransactionCurrency, isExpenseUnreported, isFailedScanAmountPlaceholder, isScanning} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -89,6 +89,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             ? (value) => {
                   const normalizedValue = getNormalizedValue(value, isNegative);
                   if (normalizedValue === undefined) {
+                      showInlineEditError(translate('iou.error.invalidAmount'));
                       return;
                   }
                   onSave(normalizedValue);
@@ -139,16 +140,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         inputRef.current?.blur();
     };
 
-    // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
-    // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
-    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
-    const sanitizedCurrency = sanitizeCurrencyCode(currency);
-    const hasSymbolSpaceInPreview = formatToParts(preferredLocale, 0, {
-        style: 'currency',
-        currency: sanitizedCurrency,
-        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
-        maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
-    }).some((part) => part.type === 'literal' && part.value.trim() === '');
+    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
@@ -157,6 +149,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
             style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1, styles.textAlignRight]}
+            isSelectable
         />
     );
 

@@ -250,6 +250,18 @@ function escapeRegExp(str: string): string {
     return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Cuts a string to at most maxLength UTF-16 code units, without splitting a surrogate pair (for example an emoji) in half.
+ */
+function truncate(str: string, maxLength: number): string {
+    if (str.length <= maxLength) {
+        return str;
+    }
+    const lastCharCode = str.charCodeAt(maxLength - 1);
+    const isHighSurrogate = lastCharCode >= 0xd800 && lastCharCode <= 0xdbff;
+    return str.slice(0, isHighSurrogate ? maxLength - 1 : maxLength);
+}
+
 export default {
     sanitizeString,
     sanitizeName,
@@ -275,4 +287,5 @@ export default {
     camelToKebabCase,
     toLowerCase,
     escapeRegExp,
+    truncate,
 };

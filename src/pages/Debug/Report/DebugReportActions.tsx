@@ -49,7 +49,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID),
     });
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 
     const getReportActionDebugText = useCallback(
@@ -112,7 +112,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             value: searchValue,
             label: translate('common.search'),
             onChangeText: setSearchValue,
-            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+            headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
         }),
         [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
     );

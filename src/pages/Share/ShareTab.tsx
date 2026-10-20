@@ -42,7 +42,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
@@ -106,6 +106,7 @@ function ShareTab() {
               translate,
               getReportByID,
               rules,
+              formatPhoneNumber,
           }).options
         : defaultListOptions;
 
@@ -140,7 +141,7 @@ function ShareTab() {
         canShowSeveralIndicators: true,
     }));
 
-    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
+    const header = getHeaderMessage(translate, styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;

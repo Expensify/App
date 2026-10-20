@@ -13,6 +13,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -33,6 +34,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -93,6 +95,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
@@ -202,12 +205,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         canEditSubrate: canEdit,
                         canEditAmount: canEdit,
                         action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
-                        onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
-                        onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
-                        onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
+                        onRenameDestination: (newName: string) =>
+                            showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
+                        onRenameSubrate: (newName: string) =>
+                            showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
+                        onChangeAmount: (newAmount: string) =>
+                            showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
                     };
                 }),
-        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
+        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit, translate],
     );
 
     const secondaryActions = useMemo(() => {
@@ -412,7 +418,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{headerButtons}</View>}
                 {!hasVisibleSubRates && subtitleContent}
                 <WorkspacePerDiemTable
                     perDiemData={perDiemRows}
