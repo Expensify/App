@@ -105,6 +105,9 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
+    /** Opens the system contact picker and adds the picked contacts to the list. Only set where contacts can't be imported in bulk (Android) */
+    pickContact?: () => void;
+
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -360,7 +363,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -406,7 +409,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -449,7 +452,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:

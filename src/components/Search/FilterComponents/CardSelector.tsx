@@ -149,6 +149,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                 <SelectionListWithSections<CardFilterItem>
                     sections={sections}
                     ListItem={CardListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateNewCards}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowSearchInput}
