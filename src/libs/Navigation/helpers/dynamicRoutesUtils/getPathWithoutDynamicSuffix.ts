@@ -7,10 +7,16 @@ import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
 import getDynamicRouteQueryParams from './getDynamicRouteQueryParams';
 import splitPathAndQuery from './splitPathAndQuery';
 
-/** The screens registered under each dynamic route path, to tell which screen a suffix matched at the end of a path stands for. */
-const screensByDynamicRoutePath = new Map<string, string[]>();
-for (const {path, screen} of Object.values(normalizedConfigs)) {
-    screensByDynamicRoutePath.set(path, [...(screensByDynamicRoutePath.get(path) ?? []), screen]);
+/** The screens registered under each dynamic route path, to tell which screen a suffix matched at the end of a path stands for. Built on first use, so importing this module doesn't read the linking config. */
+let screensByDynamicRoutePath: Map<string, string[]> | undefined;
+function getScreensByDynamicRoutePath(): Map<string, string[]> {
+    if (!screensByDynamicRoutePath) {
+        screensByDynamicRoutePath = new Map();
+        for (const {path, screen} of Object.values(normalizedConfigs)) {
+            screensByDynamicRoutePath.set(path, [...(screensByDynamicRoutePath.get(path) ?? []), screen]);
+        }
+    }
+    return screensByDynamicRoutePath;
 }
 
 /**
@@ -24,7 +30,11 @@ for (const {path, screen} of Object.values(normalizedConfigs)) {
 function getQueryParamsOfRouteUnderneath(basePath: string, strippedSuffix: string): Set<string> {
     const entryScreens = Object.values(DYNAMIC_ROUTES).find((route) => route.path === strippedSuffix)?.entryScreens ?? [];
     const params = findAllMatchingDynamicSuffixes(basePath)
-        .filter((match) => screensByDynamicRoutePath.get(match.pattern)?.some((screen) => entryScreens.some((entryScreen) => entryScreen === screen)))
+        .filter((match) =>
+            getScreensByDynamicRoutePath()
+                .get(match.pattern)
+                ?.some((screen) => entryScreens.some((entryScreen) => entryScreen === screen)),
+        )
         .flatMap((match) => getDynamicRouteQueryParams(match.pattern) ?? []);
     return new Set(params);
 }
