@@ -29,7 +29,6 @@ function Backdrop({
 
     useEffect(() => {
         if (!isBackdropVisible) {
-            progress.set(0);
             return;
         }
         progress.set(withTiming(1, {duration: animationInTiming, easing, reduceMotion: ReduceMotion.Never}));
