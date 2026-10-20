@@ -9047,6 +9047,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books 組織',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
             prerequisitesTitle: '接続する前に…',

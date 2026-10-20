@@ -8801,6 +8801,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books 组织',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
             prerequisitesTitle: '在你连接之前…',

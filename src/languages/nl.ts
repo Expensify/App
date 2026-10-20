@@ -9146,6 +9146,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books-organisatie',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
             prerequisitesTitle: 'Voordat je verbinding maakt...',

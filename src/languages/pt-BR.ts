@@ -9152,6 +9152,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Organização Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
             prerequisitesTitle: 'Antes de você se conectar...',

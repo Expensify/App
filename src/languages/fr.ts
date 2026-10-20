@@ -9252,6 +9252,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Organisation Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
             prerequisitesTitle: 'Avant de vous connecter...',

@@ -9393,6 +9393,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Οργανισμός Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
             prerequisitesTitle: 'Πριν συνδεθείτε...',

@@ -6606,6 +6606,9 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books organization',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
             prerequisitesTitle: 'Before you connect...',

@@ -9229,6 +9229,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books-Organisation',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
             prerequisitesTitle: 'Bevor Sie eine Verbindung herstellen …',

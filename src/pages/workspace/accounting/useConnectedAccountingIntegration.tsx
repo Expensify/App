@@ -263,6 +263,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
         const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
+        const zohoBooksOrganizationList = policy?.connections?.zohoBooks?.data?.organizations;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -440,6 +441,19 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                return !zohoBooksOrganizationList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.zohoBooks.organization'),
+                          title: zohoBooksOrganizationList.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID)?.name ?? '',
+                          wrapperStyle: menuItemWrapperStyle,
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: false,
+                          pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
+                          brickRoadIndicator: policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                      };
 
             default:
                 return undefined;
@@ -470,7 +484,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        const configurationOptions = canWriteAccounting
+        // Zoho Books import, export, and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        const configurationOptions = shouldShowConfigurationOptions
             ? [
                   {
                       icon: icons.Pencil,
