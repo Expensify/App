@@ -120,7 +120,7 @@ describe('PaymentDetailsPage Activity list', () => {
         expect(screen.queryByText(BOB.displayName)).toBeNull();
     });
 
-    it('shows an empty state for a failed month with no billed members', async () => {
+    it('hides the Activity section for a month with no billed members', async () => {
         // Given a failed month nobody was billed for
         await setPurchase([], CONST.BILLING.TYPE_FAILED);
 
@@ -128,9 +128,10 @@ describe('PaymentDetailsPage Activity list', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Activity section is still there, with an empty state instead of a blank section or a search field
-        expect(await screen.findByText('Activity')).toBeOnTheScreen();
-        expect(screen.getByText('No active users this month.')).toBeOnTheScreen();
+        // Then the details still show, but the Activity label, the search field, and the count are all hidden
+        expect(await screen.findByText('$10.00')).toBeOnTheScreen();
+        expect(screen.queryByText('Activity')).toBeNull();
         expect(screen.queryByTestId('selection-list-text-input')).toBeNull();
+        expect(screen.queryByText(/active user/)).toBeNull();
     });
 });

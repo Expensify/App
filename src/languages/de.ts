@@ -11547,7 +11547,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billedTo: 'Abgerechnet an',
             activity: 'Aktivität',
             findActiveUser: 'Aktiven Benutzer suchen',
-            noActiveUsers: 'In diesem Monat gab es keine aktiven Benutzer.',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },

@@ -11573,7 +11573,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billedTo: 'Facturé à',
             activity: 'Activité',
             findActiveUser: 'Rechercher un utilisateur actif',
-            noActiveUsers: 'Aucun utilisateur actif ce mois-ci.',
             viewReceipt: 'Voir le reçu',
             viewInvoice: 'Voir la facture',
         },

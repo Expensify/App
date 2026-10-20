@@ -174,25 +174,20 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                     </MenuItem.Row>
                 </MenuItem.Root>
             )}
-            <Text
-                style={[styles.textLabelSupporting, styles.ph5, styles.pv2, styles.mb3]}
-                accessibilityRole={CONST.ROLE.HEADER}
-            >
-                {translate('subscription.paymentHistory.activity')}
-            </Text>
+            {hasActiveUsers && (
+                <Text
+                    style={[styles.textLabelSupporting, styles.ph5, styles.pv2, styles.mb3]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('subscription.paymentHistory.activity')}
+                </Text>
+            )}
         </>
     );
 
     // The count sits under the Activity header and tops the card the active user rows render into, so it's hidden when a search matches nobody.
-    let activityHeader = null;
-    if (!hasActiveUsers) {
-        activityHeader = (
-            <View style={[styles.mh5, styles.p4, styles.highlightBG, styles.borderRadiusComponentNormal]}>
-                <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{translate('subscription.paymentHistory.noActiveUsers')}</Text>
-            </View>
-        );
-    } else if (sortedActiveUsers.length > 0) {
-        activityHeader = (
+    const activityHeader =
+        sortedActiveUsers.length > 0 ? (
             <View style={[styles.mh5, styles.ph4, styles.h9, styles.justifyContentCenter, styles.highlightBG, styles.tableTopRadius, styles.borderBottom]}>
                 <Text
                     variant="micro"
@@ -201,8 +196,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                     {translate('subscription.paymentHistory.activeUsers', {count: activeUsers.length})}
                 </Text>
             </View>
-        );
-    }
+        ) : null;
 
     return (
         <ScreenWrapper
@@ -228,7 +222,6 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                         headerMessage: debouncedSearchTerm && !sortedActiveUsers.length ? translate('common.noResultsFound') : '',
                         disableAutoFocus: true,
                         shouldBeInsideList: true,
-                        style: {inputWrapperStyle: styles.h11},
                     }}
                     shouldShowListEmptyContent={false}
                     showScrollIndicator

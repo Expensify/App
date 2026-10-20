@@ -11807,7 +11807,6 @@ const translations = {
             billedTo: 'Billed to',
             activity: 'Activity',
             findActiveUser: 'Find an active user',
-            noActiveUsers: 'No active users this month.',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
