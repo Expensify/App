@@ -1176,7 +1176,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Ver em Gastos',
         emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
         noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
-        compare: {label: 'Comparar', previousPeriod: 'Período anterior', average: 'Média'},
+        compare: {
+            label: 'Comparar',
+            previousPeriod: 'Período anterior',
+            average: 'Média',
+            increase: (percentage: string) => `Alta de ${percentage}`,
+            decrease: (percentage: string) => `Queda de ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -2812,6 +2818,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Configurar reembolsos globais?', subtitle: 'Pague membros no mundo todo na moeda local deles.', getStarted: 'Começar'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,
@@ -4083,6 +4090,7 @@ ${amount} para ${merchant} - ${date}`,
             formLabel: 'Ver PDF',
         },
         attachmentNotFound: 'Anexo não encontrado',
+        loadTimedOut: 'Esta imagem está demorando muito para carregar.',
         retry: 'Tentar novamente',
     },
     messages: {
@@ -5091,6 +5099,7 @@ ${amount} para ${merchant} - ${date}`,
             editPerDiemRates: 'Editar diárias',
             editDestinationSubtitle: (destination: string) => `Atualizar este destino irá alterá-lo para todas as subdiárias de ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Atualizar esta moeda irá alterá-la para todas as subdiárias de ${destination}.`,
+            missingPerDiemUnit: 'O per diem não está configurado corretamente neste workspace. Fale com o Concierge para obter ajuda.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Defina como as despesas reembolsáveis serão exportadas para o QuickBooks Desktop.',
