@@ -141,7 +141,7 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
 
     return (
         <>
-            <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
+            <Text style={[styles.exportDownloadTitle, total === 0 || failedReportIDs.length > 0 ? styles.mb2 : styles.mb5]}>{doneTitle}</Text>
             {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
             {failedReportIDs.length > 0 && (
                 <>
