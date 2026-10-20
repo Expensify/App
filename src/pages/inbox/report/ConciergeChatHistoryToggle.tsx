@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import CONST from '@src/CONST';
 
@@ -39,7 +39,7 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
-    const {setShowFullHistory} = useConciergeSessionActions();
+    const {setShowFullHistory} = useConciergeChatHistoryActions();
     const route = useRoute();
     const navigation = useNavigation();
 

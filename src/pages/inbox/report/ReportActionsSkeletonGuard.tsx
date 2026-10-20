@@ -4,7 +4,6 @@ import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
-import useStartConciergeSession from '@hooks/useStartConciergeSession';
 
 import CONST from '@src/CONST';
 
@@ -38,31 +37,11 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
-    const {
-        isConciergeMainDM,
-        oldestUnreadReportAction,
-        hasOnceLoadedReportActions,
-        hasCachedReportActions,
-        isMissingReportActions,
-        hasOlderActions,
-        hasNewerActions,
-        isOffline,
-        isLoadingOlderReportActions,
-        hasLoadingOlderReportActionsError,
-        oldestReportActionID,
-    } = readinessSignals;
+    const {isMissingReportActions, hasOlderActions, hasNewerActions, isOffline, isLoadingOlderReportActions, hasLoadingOlderReportActionsError, oldestReportActionID} = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionEvent();
     usePendingConciergeResponse(reportID);
-
-    useStartConciergeSession({
-        reportID,
-        isConciergeMainDM,
-        oldestUnreadReportAction,
-        hasOnceLoadedReportActions,
-        hasCachedReportActions,
-    });
 
     useBackfillWhenNoVisibleActions({
         reportID,

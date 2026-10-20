@@ -105,7 +105,7 @@ import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
 import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 
-import {useConciergeSessionActions} from './ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -161,7 +161,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-    const {resetSession: resetConciergeSession} = useConciergeSessionActions();
+    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -322,7 +322,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const startNewConciergeChat = () => {
-        resetConciergeSession();
+        setConciergeShowFullHistory(false);
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
 

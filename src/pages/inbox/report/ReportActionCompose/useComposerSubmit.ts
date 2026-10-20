@@ -17,7 +17,7 @@ import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
-import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import {setIsComposerFullSize} from '@userActions/Report';
 
@@ -47,7 +47,7 @@ function useComposerSubmit(reportID: string) {
     const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useActionListContext();
-    const {setShowFullHistory} = useConciergeSessionActions();
+    const {setShowFullHistory} = useConciergeChatHistoryActions();
 
     const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);

@@ -64,8 +64,7 @@ function ReportActions() {
     // branches below) — matching the previous behavior, where this skeleton lived inside the
     // chat-only ReportActionsView.
     //
-    // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
-    // before content appeared.
+    // Concierge is excluded so its welcome screen shows while the app loads.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
