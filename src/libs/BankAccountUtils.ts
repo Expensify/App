@@ -152,24 +152,31 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
-    const eligibleAccounts = Object.values(bankAccountList ?? {})
+    const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
         // Accounts deleted offline stay in the list until the request syncs, so they should not be offered
-        .filter((bankAccount) => bankAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map((bankAccount) => bankAccount.accountData)
-        .filter((accountData): accountData is AccountData => isBankAccountEligibleForGlobalReimbursements(accountData) && !!accountData?.bankAccountID);
+        if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return latest;
+        }
 
-    return eligibleAccounts
-        .sort((a, b) => {
-            // `created` is a DB timestamp, so plain string comparison orders it chronologically
-            const aCreated = a.created ?? '';
-            const bCreated = b.created ?? '';
-            if (aCreated !== bCreated) {
-                return bCreated > aCreated ? 1 : -1;
-            }
-            // Accounts created in the same second fall back to the ID, which grows with each new account
-            return (b.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) - (a.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
-        })
-        .at(0)?.bankAccountID;
+        const accountData = bankAccount.accountData;
+        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData)) {
+            return latest;
+        }
+
+        if (!latest) {
+            return accountData;
+        }
+
+        // `created` is a DB timestamp, so plain string comparison orders it chronologically.
+        // Accounts created in the same second fall back to the ID, which grows with each new account
+        const created = accountData.created ?? '';
+        const latestCreated = latest.created ?? '';
+        const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
+
+        return isNewer ? accountData : latest;
+    }, undefined);
+
+    return newest?.bankAccountID;
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
