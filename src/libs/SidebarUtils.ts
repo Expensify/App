@@ -114,7 +114,7 @@ const loggedChatReportIDs = new Set<string>();
  * Lowercases and folds accents in the name, then zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
  *
- * Results are cached at module level so each unique name pays the cost only once.
+ * Results are cached for the current LHN categorization so each unique name pays the cost only once per categorization.
  */
 function buildSortKey(displayName: string): string {
     const cached = sortKeyCache.get(displayName);
