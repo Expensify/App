@@ -58,7 +58,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
-    // The new agent functionality will be added after CreateCompanyAgent is exposed
     const newAgentButton =
         canWriteAgents && hasAgents ? (
             <Button
