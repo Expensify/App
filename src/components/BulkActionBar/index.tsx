@@ -14,13 +14,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
-import {setDisableDismissOnEscape} from '@userActions/Modal';
+import {areAllModalsHidden, setDisableDismissOnEscape} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,25 +88,47 @@ function BulkActionBarContent<TValueType>({
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
     // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
-    // reports itself visible too, and is told apart by the screen still being focused.
+    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
+    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isFocused = useIsFocused();
-    const isCoveredByModal = !!modal?.isVisible && !(isFocused && modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
-    const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
+    const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: shouldClearSelectionOnEscape});
+    const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
-    // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
-    // a selection Esc was meant to clear.
+    // The Side Panel is not a `BaseModal`, so it is absent from both the modal state and the registry of open modals.
+    // Below extra large it is laid over the page and takes Esc for itself, so the bar has to stand down for it.
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
+    const shouldClearSelectionOnEscape = canOwnEscape && isSidePanelHiddenOrLargeScreen;
+
+    // `willAlertModalBecomeVisible` is a single flag that every modal writes, so closing the topmost of a stack reads
+    // as though nothing is open any more. The registry of open modals is the only answer that survives stacking, and
+    // it has to be read when the key arrives rather than at subscribe time.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!areAllModalsHidden()) {
+                return;
+            }
+
+            onClearSelection();
+        },
+        {isActive: shouldClearSelectionOnEscape},
+    );
+
+    // Escape must not dismiss the screen the selection sits on while the bar is the one answering it. The Side Panel
+    // is deliberately left out of the condition, because each write to this flag resubscribes the app's own Escape
+    // handler to the top of the stack, over the Side Panel's, and that one Escape would then both dismiss the screen
+    // and close the panel.
     useEffect(() => {
-        if (!shouldClearSelectionOnEscape) {
+        if (!canOwnEscape) {
             return;
         }
 
         setDisableDismissOnEscape(true);
 
         return () => setDisableDismissOnEscape(false);
-    }, [shouldClearSelectionOnEscape]);
+    }, [canOwnEscape]);
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
@@ -167,6 +190,7 @@ function BulkActionBarContent<TValueType>({
                                 anchorRef={moreAnchorRef}
                                 anchorPosition={moreMenuAnchorPosition}
                                 anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
+                                headerStyles={styles.lineHeightNormal}
                                 onClose={() => setIsMoreMenuVisible(false)}
                                 onItemSelected={(selectedItem, index, event) => {
                                     onSubItemSelected?.(selectedItem, index, event);

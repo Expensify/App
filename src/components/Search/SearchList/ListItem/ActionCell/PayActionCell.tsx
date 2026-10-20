@@ -13,11 +13,10 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {canIOUBePaid, getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,6 +140,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
+                invoiceReportTransactions: transactions,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -179,6 +179,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             chatReport: chatReportForPayment,
             isFallbackChatReport,
             iouReport,
+            iouReportTransactions: transactions,
             introSelected,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',

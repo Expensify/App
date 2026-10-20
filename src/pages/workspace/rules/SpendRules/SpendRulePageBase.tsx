@@ -29,10 +29,11 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {getEligibleSpendRuleCards, getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -43,6 +44,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -103,6 +106,14 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     });
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    const applyGeneratedRule = ({isAllCards, ...values}: GeneratedRuleValues) => {
+        const generatedCategories = values.categories?.filter(isSpendRuleCategory);
+        const generatedCardIDs =
+            isAllCards && expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : spendRuleForm?.cardIDs;
+        setDraftSpendRule({...values, cardIDs: generatedCardIDs, categories: generatedCategories});
+        setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
+    };
 
     useEffect(() => {
         if (!isEditingRule || !existingFormValues) {
@@ -462,7 +473,19 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        buttonStyles={styles.flex1}
+                        buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
                         shouldRenderFooterAboveSubmit
+                        footerContent={
+                            isNewRule && (
+                                <DescribeRuleButton
+                                    policyID={policyID}
+                                    ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DESCRIBE}
+                                    onRuleGenerated={applyGeneratedRule}
+                                />
+                            )
+                        }
                     />
                 )}
             </ScreenWrapper>

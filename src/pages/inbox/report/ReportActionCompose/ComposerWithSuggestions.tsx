@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -39,6 +40,7 @@ import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportAction
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 import useDebouncedSaveReportActionDraft from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
@@ -53,7 +55,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {Ref, RefObject} from 'react';
-import type {BlurEvent, HostInstance, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
@@ -80,14 +82,14 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsRef = ComposerRef & {
+type ComposerWithSuggestionsRef = Pick<ComposerRef, 'blur' | 'isFocused'> & {
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
     replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
 
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     * Once the composer has cleared, onClear will be called with the value that was cleared.
      */
     clearWorklet: () => void;
 
@@ -214,6 +216,7 @@ function ComposerWithSuggestions({
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const composerRef = useRef<ComposerRef | null>(null);
 
@@ -284,6 +287,8 @@ function ComposerWithSuggestions({
     });
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const reportIDToName = useReportIDToNameMap();
 
     const commentRef = useRef(initialText);
 
@@ -379,7 +384,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<HostInstance>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
     /**
      * Set the TextInput Ref
      */
@@ -530,7 +535,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldEditInComposer) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
@@ -561,7 +566,7 @@ function ComposerWithSuggestions({
             setText,
             onValueChange,
             editingState,
-            shouldUseNarrowLayout,
+            shouldEditInComposer,
             suggestionsRef,
             setCurrentEditMessageSelection,
             setEditingMessage,
@@ -611,7 +616,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''), isOffline);
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName}), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -661,6 +666,7 @@ function ComposerWithSuggestions({
             lastReportAction,
             reportID,
             reportActions,
+            reportIDToName,
             updateComment,
             setCurrentEditMessageSelection,
             isOffline,
@@ -949,31 +955,15 @@ function ComposerWithSuggestions({
 
     useImperativeHandle(
         ref,
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: (_target, prop) => {
-                        if (prop === 'focus') {
-                            return focus;
-                        }
-                        if (prop === 'replaceSelectionWithText') {
-                            return replaceSelectionWithText;
-                        }
-                        if (prop === 'getCurrentText') {
-                            return getCurrentText;
-                        }
-                        if (prop === 'clearWorklet') {
-                            return clearWorklet;
-                        }
-                        if (prop === 'resetHeight') {
-                            return resetHeight;
-                        }
-
-                        return composerRef.current?.[prop as keyof ComposerRef];
-                    },
-                },
-            ) as ComposerWithSuggestionsRef,
+        (): ComposerWithSuggestionsRef => ({
+            focus,
+            replaceSelectionWithText,
+            getCurrentText,
+            clearWorklet,
+            resetHeight,
+            blur: () => composerRef.current?.blur(),
+            isFocused: () => composerRef.current?.isFocused() ?? false,
+        }),
     );
 
     const onClear = useCallback(

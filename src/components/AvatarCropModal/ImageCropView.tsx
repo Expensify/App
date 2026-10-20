@@ -14,7 +14,7 @@ import type {SharedValue} from 'react-native-reanimated';
 
 import React from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 
 type ImageCropViewProps = {
@@ -39,14 +39,14 @@ type ImageCropViewProps = {
     /** The scale factor of the image */
     scale: SharedValue<number>;
 
-    /** Configuration object for pan gesture for handling image panning */
-    panGesture?: PanGesture;
+    /** Pan gesture for handling image panning */
+    panGesture: PanGesture;
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
 };
 
-function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage, ...props}: ImageCropViewProps) {
+function ImageCropView({imageUri = '', containerSize = 0, panGesture, maskImage, ...props}: ImageCropViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ImageCropCircleMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

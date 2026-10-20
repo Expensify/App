@@ -1,8 +1,16 @@
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
+import type {EventData} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
+import * as RequestModule from '@libs/Request';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
@@ -11,10 +19,13 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import * as App from '../../src/libs/actions/App';
+import * as OnyxUpdatesReliably from '../../src/libs/actions/applyOnyxUpdatesReliably';
 import * as DeviceActions from '../../src/libs/actions/Device';
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
+import PusherHelper from '../utils/PusherHelper';
 import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -33,6 +44,52 @@ describe('actions/User', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('joinExactOnlineWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('queues the signup timestamp with a rollback to the absent value', () => {
+            // Given the account has not joined the waitlist
+            const signupTimestamp = '2026-10-14 10:00:00.000';
+            const errorTimestamp = 1;
+            const getDBTime = jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(signupTimestamp);
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
+
+            // When the account joins the waitlist
+            UserActions.joinExactOnlineWaitlist();
+
+            // Then the queued request and confirmed signup share one timestamp, with the previous value restored on failure
+            expect(getDBTime).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
+                {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}},
+                        },
+                    ],
+                    successData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {exactOnlineWaitlist: null}}},
+                    ],
+                    failureData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                        },
+                    ],
+                },
+            );
+        });
     });
 
     describe('clearContactMethod', () => {
@@ -406,6 +463,54 @@ describe('actions/User', () => {
         });
     });
 
+    describe('requestEmailUnblock', () => {
+        it('should call API.write with USER_UNBLOCK_EMAIL and no params', async () => {
+            // Given the user is on the email issue page
+
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then API.write targets USER_UNBLOCK_EMAIL with null params, since the backend derives the email from the session
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.USER_UNBLOCK_EMAIL,
+                null,
+                expect.objectContaining({
+                    optimisticData: anyArray,
+                    successData: anyArray,
+                    failureData: anyArray,
+                }),
+            );
+        });
+
+        it('should set isUnblockingEmail optimistically', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then the optimistic update flags the account as unblocking
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(optimisticUpdate?.value).toEqual({isUnblockingEmail: true});
+        });
+
+        it('should clear isUnblockingEmail on both success and failure without writing to account.errors', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then both branches clear the loading flag, and neither writes account.errors: the ConfirmModal on
+            // EmailIssuePage is the only failure surface (deliberate deviation from the generic-error spec).
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const successUpdate = onyxData?.successData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+            const failureUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(successUpdate?.value).toEqual({isUnblockingEmail: false});
+            expect(failureUpdate?.value).toEqual({isUnblockingEmail: false});
+        });
+    });
+
     describe('validateSecondaryLogin', () => {
         beforeEach(() => {
             jest.spyOn(DeviceActions, 'getDeviceInfoWithID').mockResolvedValue('{"deviceID":"test-device"}');
@@ -619,6 +724,55 @@ describe('actions/User', () => {
                     actionVerified: false,
                 },
             });
+        });
+
+        it('should show the server error over the generic fallback even when the device clock is ahead of the server', async () => {
+            // Given a server error stamped by the server clock and a device clock 3 seconds ahead of it
+            const contactMethod = 'test@example.com';
+            const serverErrorKey = Date.now() * 1000;
+            const serverErrorMessage = 'Cannot add an existing Expensify account as a new contact method.';
+            const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 3000);
+
+            // And a failing request whose server response writes its error before failureData is applied
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                Onyx.merge(ONYXKEYS.LOGINS, {[`1_${contactMethod}`]: {errorFields: {addedLogin: {[serverErrorKey]: serverErrorMessage}}}});
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+            dateNowSpy.mockRestore();
+
+            // Then the fallback is keyed with 0, so the server error sorts as the latest error and is shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const login = logins?.[`1_${contactMethod}`];
+            expect(Object.keys(login?.errorFields?.addedLogin ?? {})).toContain('0');
+            expect(getLatestErrorField(login, 'addedLogin')).toEqual({[serverErrorKey]: serverErrorMessage});
+        });
+
+        it('should show the generic fallback when the server does not send an error', async () => {
+            // Given a contact method and a failing request with no server error
+            const contactMethod = 'test@example.com';
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+
+            // Then the fallback is the only error, so it is still shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const latestError = getLatestErrorField(logins?.[`1_${contactMethod}`], 'addedLogin');
+            expect(Object.keys(latestError)).toEqual(['0']);
+            expect(Object.values(latestError).at(0)).toBeTruthy();
         });
 
         it('should apply optimisticData to Onyx when API.write applies it', async () => {
@@ -1054,6 +1208,168 @@ describe('actions/User', () => {
         });
     });
 
+    describe('subscribeToUserEvents AGENT_ZERO_PROCESSING_STATUS', () => {
+        const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
+        const ACTOR_ACCOUNT_ID = 123;
+        const REPORT_NVP_KEY = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1001` as const;
+        const PARENT_REPORT_NVP_KEY = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1002` as const;
+        const processingStatusEvent: EventData<typeof Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS> = {
+            updates: [REPORT_NVP_KEY, PARENT_REPORT_NVP_KEY].map((key) => ({
+                onyxMethod: 'merge',
+                key,
+                value: {agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}},
+            })),
+        };
+
+        beforeEach(async () => {
+            jest.spyOn(ActiveClientManager, 'isClientTheLeader').mockReturnValue(true);
+            jest.spyOn(OnyxUpdatesReliably, 'default').mockResolvedValue(undefined);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+            await waitForBatchedUpdates();
+            PusherHelper.setup();
+            UserActions.subscribeToUserEvents(1, 'test@example.com', () => undefined, formatPhoneNumber, undefined);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            PusherHelper.teardown();
+            jest.restoreAllMocks();
+        });
+
+        it('sets and clears processing labels without advancing or recovering the reliable update stream', async () => {
+            // Given a subscribed client with a synchronization watermark
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(42);
+
+            // When temporary status updates arrive for a report and its parent
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            await waitForBatchedUpdates();
+
+            // Then both reports show the processing label
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}});
+            expect(await getOnyxValue(PARENT_REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}});
+
+            // When the agent finishes and clears its processing labels
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: processingStatusEvent.updates.map((update) => ({...update, value: {agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: null}}})),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the labels clear without affecting the synchronization watermark or fetching catch-up updates
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {}});
+            expect(await getOnyxValue(PARENT_REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {}});
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(42);
+            expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
+            expect(API.makeRequestWithSideEffects).not.toHaveBeenCalled();
+        });
+
+        it('applies new processing status after an older OpenApp response clears the indicator', async () => {
+            // Given an earlier OpenApp request is still applying its response
+            let finishRequest = () => {};
+            const currentRequest = new Promise<void>((resolve) => {
+                finishRequest = resolve;
+            });
+            jest.spyOn(SequentialQueue, 'getCurrentRequest').mockReturnValue(currentRequest);
+
+            // When a new processing status arrives before that response completes
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            await waitForBatchedUpdates();
+
+            // Then the status waits for the earlier request
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toBeUndefined();
+
+            // When the older snapshot clears the indicator and finishes
+            await Onyx.merge(REPORT_NVP_KEY, {agentZeroProcessingRequestIndicator: null});
+            finishRequest();
+            await waitForBatchedUpdates();
+
+            // Then the new label survives the older response
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}});
+        });
+
+        it('keeps a newer clear after status events arrive during different queued requests', async () => {
+            // Given two requests waiting in the real sequential queue
+            SequentialQueue.resetQueue();
+            let finishFirstRequest = () => {};
+            let finishSecondRequest = () => {};
+            const firstRequest = new Promise<void>((resolve) => {
+                finishFirstRequest = resolve;
+            });
+            const secondRequest = new Promise<void>((resolve) => {
+                finishSecondRequest = resolve;
+            });
+            const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockReturnValueOnce(firstRequest).mockReturnValueOnce(secondRequest);
+            await SequentialQueue.push({command: 'OpenApp'});
+            await waitForBatchedUpdates();
+            await SequentialQueue.push({command: 'ReadNewestAction'});
+            expect(processSpy).toHaveBeenCalledTimes(1);
+
+            // When a thinking label arrives during the first request and that request finishes
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            finishFirstRequest();
+            await waitForBatchedUpdates();
+
+            // Then the next request starts while the label is still waiting
+            expect(processSpy).toHaveBeenCalledTimes(2);
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toBeUndefined();
+
+            // When the clear arrives during the second request and the queue drains
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: processingStatusEvent.updates.map((update) => ({...update, value: {agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: null}}})),
+            });
+            finishSecondRequest();
+            await waitForBatchedUpdates();
+
+            // Then the newer clear wins over the earlier thinking label
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {}});
+        });
+
+        it('ignores processing status events on a non-leader client', async () => {
+            // Given another client is responsible for updating shared Onyx data
+            jest.mocked(ActiveClientManager.isClientTheLeader).mockReturnValue(false);
+
+            // When a temporary processing status arrives
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            await waitForBatchedUpdates();
+
+            // Then this client leaves the report unchanged
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toBeUndefined();
+        });
+
+        it.each([undefined, 2])('ignores processing status from an earlier session after the account changes to %s', async (accountID) => {
+            // Given a status listener is waiting for the current account's API request
+            let finishRequest = () => {};
+            const currentRequest = new Promise<void>((resolve) => {
+                finishRequest = resolve;
+            });
+            jest.spyOn(SequentialQueue, 'getCurrentRequest').mockReturnValue(currentRequest);
+
+            // When a status arrives and the account signs out or changes before the request finishes
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            await Onyx.set(ONYXKEYS.SESSION, accountID ? {accountID} : null);
+            await waitForBatchedUpdates();
+            finishRequest();
+            await waitForBatchedUpdates();
+
+            // Then it cannot populate the new session's report data
+            expect(await getOnyxValue(REPORT_NVP_KEY)).toBeUndefined();
+        });
+
+        it('reports a failed local status update', async () => {
+            // Given Onyx cannot apply the temporary status update
+            jest.spyOn(Onyx, 'update').mockRejectedValueOnce(new Error('apply failed'));
+            const alertSpy = jest.spyOn(Log, 'alert');
+
+            // When a processing status arrives
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            await waitForBatchedUpdates();
+
+            // Then the failure is logged without an unhandled rejection or a synchronization recovery
+            expect(alertSpy).toHaveBeenCalledWith('[subscribeToUserEvents] Applying Agent Zero processing status failed', expect.objectContaining({error: 'apply failed'}));
+            expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
+        });
+    });
+
     describe('subscribeToUserEvents RECONNECT_APP', () => {
         const reconnectAppMock = jest.fn();
 
@@ -1081,18 +1397,39 @@ describe('actions/User', () => {
             expect(reconnectAppMock).toHaveBeenCalledWith(lastUpdateID);
         });
 
-        it('calls reconnectApp without updateIDFrom for authenticated users', async () => {
+        it('passes lastUpdateIDAppliedToClient when reconnecting as an authenticated user', async () => {
+            // Given a signed-in device that has already applied updates up to a known ID
+            const lastUpdateID = 42;
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: undefined, accountID: 1, authToken: 'token'});
-            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
             await waitForBatchedUpdates();
 
             UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
 
+            // When the account-wide RECONNECT_APP event arrives (for example, because another device signed in)
             await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
             await waitForBatchedUpdates();
 
-            expect(reconnectAppMock).toHaveBeenCalledWith();
+            // Then the reconnect is incremental, so a full ReconnectApp doesn't wipe report actions this device already has
+            expect(reconnectAppMock).toHaveBeenCalledWith(lastUpdateID);
+        });
+
+        it('falls back to a full reconnect when the client has no lastUpdateIDAppliedToClient', async () => {
+            // Given a signed-in device that has not applied any updates yet
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: undefined, accountID: 1, authToken: 'token'});
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, null);
+            await waitForBatchedUpdates();
+
+            UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
+            await waitForBatchedUpdates();
+
+            // When the RECONNECT_APP event arrives
+            await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
+            await waitForBatchedUpdates();
+
+            // Then no updateIDFrom is passed, so reconnectApp still does a full reconnect to recover
+            expect(reconnectAppMock).toHaveBeenCalledWith(undefined);
         });
     });
 });

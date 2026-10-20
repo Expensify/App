@@ -76,7 +76,9 @@ function renderContainer(
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             shouldUseDynamicColumns={shouldUseDynamicColumns}
             scrollWidth={undefined}
+            measureWidthRef={undefined}
             onLayout={onLayout}
+            onScopeElement={undefined}
         >
             {children}
         </TableSemanticContainer>,
@@ -178,7 +180,9 @@ describe('TableSemanticContainer', () => {
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns={false}
                 scrollWidth={undefined}
+                measureWidthRef={undefined}
                 onLayout={undefined}
+                onScopeElement={undefined}
             >
                 <TrackedFilterBar />
                 <TableHeader />
@@ -217,7 +221,9 @@ describe('TableSemanticContainer', () => {
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns
                 scrollWidth={undefined}
+                measureWidthRef={undefined}
                 onLayout={isWideLayout ? onLayout : undefined}
+                onScopeElement={undefined}
             >
                 <TrackedFilterBar />
                 <TableHeader />
@@ -234,5 +240,33 @@ describe('TableSemanticContainer', () => {
 
         expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
         expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('hands the measured node to the measure ref, so the table is measured before its first paint', () => {
+        // Given a resizable table with a measure ref
+        const measureWidthRef = jest.fn();
+
+        // When it mounts
+        render(
+            <TableSemanticContainer
+                isEnabled={false}
+                title="Members"
+                rowCount={3}
+                columnCount={4}
+                hasHeaderRow
+                rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns
+                scrollWidth={undefined}
+                measureWidthRef={measureWidthRef}
+                onLayout={jest.fn()}
+                onScopeElement={undefined}
+            >
+                <TableHeader />
+                <TableBody />
+            </TableSemanticContainer>,
+        );
+
+        // Then the ref receives the mounted node that `onLayout` measures
+        expect(measureWidthRef).toHaveBeenCalledWith(expect.anything());
     });
 });
