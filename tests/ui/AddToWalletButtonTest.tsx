@@ -3,15 +3,24 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import AddToWalletButton from '@components/AddToWalletButton';
 import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
 
-import {isCardInWallet as isCardInGoogleWallet} from '@libs/Wallet/index.android';
+import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
+import {handleAddCardToWallet as handleAddCardToGoogleWallet, isCardInWallet as isCardInGoogleWallet} from '@libs/Wallet/index.android';
 
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import type {CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {AndroidCardData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
 import type {AppStateStatus, View as ViewType} from 'react-native';
 
-import {addCardToAppleWallet, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
+import {
+    addCardToAppleWallet,
+    addCardToGoogleWallet,
+    getCardStatusByIdentifier,
+    getCardStatusBySuffix,
+    getSecureWalletInfo,
+    listTokens,
+    resumeAddCardToGoogleWallet,
+} from '@expensify/react-native-wallet';
 import React from 'react';
 import {AppState} from 'react-native';
 
@@ -32,6 +41,10 @@ jest.mock('@expensify/react-native-wallet', () => {
         getCardStatusByIdentifier: jest.fn(),
         getCardStatusBySuffix: jest.fn(),
         addCardToAppleWallet: jest.fn(),
+        addCardToGoogleWallet: jest.fn(),
+        getSecureWalletInfo: jest.fn(),
+        listTokens: jest.fn(),
+        resumeAddCardToGoogleWallet: jest.fn(),
     };
 });
 
@@ -40,7 +53,7 @@ jest.mock('@components/ActivityIndicator', () => {
     return () => <View testID="add-to-wallet-spinner" />;
 });
 
-jest.mock('@libs/actions/Wallet', () => ({issuerEncryptPayloadCallback: jest.fn()}));
+jest.mock('@libs/actions/Wallet', () => ({issuerEncryptPayloadCallback: jest.fn(), createDigitalGoogleWallet: jest.fn()}));
 jest.mock('@libs/actions/PaymentMethods', () => ({getPaymentMethods: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
@@ -195,20 +208,60 @@ describe('AddToWalletButton', () => {
     });
 });
 
-describe('isCardInWallet on Android', () => {
+describe('Google Wallet on Android', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it.each<[CardStatus, boolean]>([
         ['active', true],
-        ['requireActivation', true],
         ['pending', true],
+        ['suspended', true],
+        ['requireActivation', false],
         ['not found', false],
-    ])('returns %s -> %s', async (status, expected) => {
-        // Given a Google Wallet token in the given state, e.g. "requireActivation" after backing out of the yellow path
+    ])('isCardInWallet returns %s -> %s', async (status, expected) => {
+        // Given a Google Wallet token in the given state
         mockGetCardStatusBySuffix.mockResolvedValue(status);
 
         // When checking whether the card is in the wallet
         const result = await isCardInGoogleWallet(card);
 
-        // Then tokens waiting for verification count as added, so the Add button does not come back for them
+        // Then a token awaiting identity verification ("requireActivation") keeps the Add button so the user can resume verification
         expect(result).toBe(expected);
+    });
+
+    it('resumes verification of the existing token instead of adding the card again', async () => {
+        // Given a card whose token is waiting for identity verification after the user backed out of the yellow path
+        mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
+        jest.mocked(listTokens).mockResolvedValue([
+            {identifier: 'otherToken', lastDigits: '1111', tokenState: 5},
+            {identifier: 'pendingToken', lastDigits: '3845', tokenState: 3},
+        ]);
+        jest.mocked(resumeAddCardToGoogleWallet).mockResolvedValue('success');
+
+        // When the user taps the Add button
+        const status = await handleAddCardToGoogleWallet(card, 'Card Holder');
+
+        // Then the existing token is resumed, so no second token gets provisioned for the same card
+        expect(status).toBe('success');
+        expect(resumeAddCardToGoogleWallet).toHaveBeenCalledWith(expect.objectContaining({tokenReferenceID: 'pendingToken', lastDigits: '3845'}));
+        expect(createDigitalGoogleWallet).not.toHaveBeenCalled();
+        expect(addCardToGoogleWallet).not.toHaveBeenCalled();
+    });
+
+    it('provisions the card when it has no token awaiting verification', async () => {
+        // Given a card that is not in Google Wallet
+        mockGetCardStatusBySuffix.mockResolvedValue('not found');
+        jest.mocked(getSecureWalletInfo).mockResolvedValue({deviceID: 'device', walletAccountID: 'account'});
+        jest.mocked(createDigitalGoogleWallet).mockResolvedValue(createMock<AndroidCardData>({}));
+        jest.mocked(addCardToGoogleWallet).mockResolvedValue('success');
+
+        // When the user taps the Add button
+        const status = await handleAddCardToGoogleWallet(card, 'Card Holder');
+
+        // Then the regular provisioning flow runs
+        expect(status).toBe('success');
+        expect(addCardToGoogleWallet).toHaveBeenCalled();
+        expect(resumeAddCardToGoogleWallet).not.toHaveBeenCalled();
     });
 });
