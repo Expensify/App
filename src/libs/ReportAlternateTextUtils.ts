@@ -598,13 +598,18 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
-            reportOrID: report,
-            iouReportAction: lastReportAction,
-            shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy,
-            isForListPreview: true,
-        });
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(
+            translate,
+            convertToDisplayString,
+            {
+                reportOrID: report,
+                iouReportAction: lastReportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: true,
+                policy,
+                isForListPreview: true,
+            },
+            formatPhoneNumber,
+        );
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -621,18 +626,23 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
-                reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
-                iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: true,
-                isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
-                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
-                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
-                policy,
-                isForListPreview: true,
-                originalReportAction: lastReportAction,
-            });
+            const reportPreviewMessage = getReportPreviewMessage(
+                translate,
+                convertToDisplayString,
+                {
+                    reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
+                    iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
+                    // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                    // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                    // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
+                    policy,
+                    isForListPreview: true,
+                    originalReportAction: lastReportAction,
+                },
+                formatPhoneNumber,
+            );
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
@@ -985,13 +995,18 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage(translate, convertToDisplayString, {
-                                reportOrID: report,
-                                iouReportAction: lastReportAction,
-                                shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy,
-                                isForListPreview: true,
-                            }),
+                            getReportPreviewMessage(
+                                translate,
+                                convertToDisplayString,
+                                {
+                                    reportOrID: report,
+                                    iouReportAction: lastReportAction,
+                                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                                    policy,
+                                    isForListPreview: true,
+                                },
+                                formatPhoneNumber,
+                            ),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;
             }

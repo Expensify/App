@@ -21354,13 +21354,18 @@ describe('ReportUtils', () => {
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: payReportAction,
-                        originalReportAction: payReportAction,
-                        policy: settledPolicy,
-                        isPreviewMessageForParentChatReport: true,
-                    });
+                    const paymentWithoutConversion = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: payReportAction,
+                            originalReportAction: payReportAction,
+                            policy: settledPolicy,
+                            isPreviewMessageForParentChatReport: true,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
                     expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(paymentWithoutConversion);
