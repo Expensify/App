@@ -216,6 +216,9 @@ type TransactionGroupListItemType = ListItem & {
 
     transactionsQueryJSON?: SearchQueryJSON;
 
+    /** Expenses the group's own search returned that the list no longer shows, because they stopped matching it after it ran */
+    hiddenTransactionIDs?: string[];
+
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
 

@@ -3240,6 +3240,32 @@ describe('Lazily loaded group selection', () => {
             expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
         });
 
+        it('drops a checked expense that left a group with rows still to load, rather than keeping it as off the page', async () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [keptRow, otherRow, submittedRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [keptRow, otherRow, submittedRow]), count: 60};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of sixty with its first rows loaded, two of them checked on their own
+            await act(async () => {
+                result.current.toggle(keptRow);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                result.current.toggle(submittedRow);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When one of them stops matching the search, as an expense whose report is submitted under a drafts filter does, so its group's own search still holds it while the list hides it
+            pagingGroup = {...pagingGroup, transactions: [keptRow, otherRow], hiddenTransactionIDs: [submittedRow.transactionID]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then that expense leaves the selection, so no bulk action can reach an expense the list no longer shows, while the other stays checked
+            expect(result.current.selectedTransactions[submittedRow.keyForList]).toBeUndefined();
+            expect(result.current.selectedTransactions[keptRow.keyForList]?.isSelected).toBe(true);
+        });
+
         it('reads a group whose every row was checked one by one as checked after a refresh brings back only its first page', async () => {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
             const firstPage = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];

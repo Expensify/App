@@ -350,11 +350,11 @@ function useReconcileSelectionWithData({
                     }
                 }
 
-                // A refresh can bring back only a group's first page, so the selected rows it left out stay selected while the group has rows still to load, and a group checked whole still reads as whole.
+                // A refresh can bring back only a group's first page, so the selected rows it left out stay selected while the group has rows still to load, unless the list now hides them because they left the group.
                 if (reportKey && !isExpenseReportType && hasUnloadedRows) {
                     for (const key of selectedRowKeysByGroupKey.get(reportKey) ?? []) {
                         const selection = selectedTransactions[key];
-                        if (selection && !loadedRowKeys.has(key)) {
+                        if (selection && !loadedRowKeys.has(key) && !transactionGroup.hiddenTransactionIDs?.includes(key)) {
                             newTransactionList[key] = {...selection, isKeptOffPage: true, ...(isClaimEnding ? {isSelectedViaGroup: false} : {})};
                         }
                     }
