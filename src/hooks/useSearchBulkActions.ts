@@ -35,8 +35,10 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkApproveReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
+    queueBulkSubmitReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     resolveSearchPayPaymentMethod,
@@ -735,6 +737,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // The backend runs a Select all bulk action only on an expense or report search.
+    const isExpenseOrReportSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Download',
         'Export',
@@ -1373,6 +1377,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
+        // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
+        if (areAllMatchingItemsSelected) {
+            const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+            if (!allMatchingQuery) {
+                Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
+                return;
+            }
+            queueBulkApproveReports(serializeQueryJSONForBackend(allMatchingQuery));
+            clearSelectedTransactions();
+            return;
+        }
+
         const reportIDList = !selectedReports.length
             ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
             : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
@@ -1437,6 +1453,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReports,
         selectedTransactions,
         hash,
+        areAllMatchingItemsSelected,
+        queryJSON,
+        excludedTransactions,
         clearSelectedTransactions,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
@@ -2611,6 +2630,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
+        const approveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsUp,
+            text: translate('search.bulkActions.approve'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                handleApproveWithDEWCheck();
+            },
+        };
+
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
@@ -2660,11 +2690,57 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
+            // The backend only approves the matching reports the user can approve, so one approvable loaded item is enough to offer it.
+            const hasLoadedApprovableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canApprove)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && isExpenseOrReportSearch && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
+            // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
+            const hasLoadedSubmittableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canSubmit)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const shouldShowSubmitOptionForAllMatchingItems =
+                !isOffline && isExpenseOrReportSearch && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+            const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
+                icon: expensifyIcons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        showOfflineModal();
+                        return;
+                    }
+
+                    const itemList = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                    if (!allMatchingQuery) {
+                        Log.info('[BulkSubmit] Dropping bulk submit: report exclusion has no reportID');
+                        return;
+                    }
+                    queueBulkSubmitReports(serializeQueryJSONForBackend(allMatchingQuery));
+                    clearSelectedTransactions();
+                },
+            };
+
             // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
             // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+            if (shouldShowApproveOptionForAllMatchingItems) {
+                allMatchingOptions.push(approveButtonOption);
+            }
+            if (shouldShowSubmitOptionForAllMatchingItems) {
+                allMatchingOptions.push(submitAllMatchingItemsOption);
+            }
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
             }
@@ -2741,7 +2817,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
-        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -2752,15 +2827,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsUp,
-                text: translate('search.bulkActions.approve'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    handleApproveWithDEWCheck();
-                },
-            });
+            options.push(approveButtonOption);
         }
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every(
@@ -3389,6 +3456,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateReportOptionVisible,
         invokeDuplicateReportHandler,
         isExpenseReportType,
+        isExpenseOrReportSearch,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
         theme.icon,
