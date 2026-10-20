@@ -47,9 +47,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
-import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Platform, View} from 'react-native';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
@@ -88,7 +87,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
-    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN);
+    const defaultRole = availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN;
     const roleOptions = availableRoleItems.map((roleItem) => ({
         label: roleItem.text,
         value: roleItem.value,
@@ -155,6 +154,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         hasSubmittedRef.current = true;
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
+        const role = values[INPUT_IDS.ROLE];
 
         // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
         // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
@@ -282,8 +282,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 inputID={INPUT_IDS.ROLE}
                                 label={translate('common.role')}
                                 items={roleOptions}
-                                onValueChange={(value) => setRole(value as typeof role)}
-                                value={role}
+                                defaultValue={defaultRole}
                                 shouldShowTooltips={false}
                             />
                         </View>
