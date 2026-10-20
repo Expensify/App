@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import type * as ReactNative from 'react-native';
+import type {PressableProps, TextProps} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -40,8 +40,8 @@ jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({suppressDiscardP
 jest.mock('@components/AttachmentPicker', () => () => null);
 jest.mock('@components/Avatar/UserAvatar', () => () => null);
 jest.mock('@components/Icon', () => () => null);
-jest.mock('@components/Text', () => jest.requireActual<typeof ReactNative>('react-native').Text);
-jest.mock('@components/Pressable', () => ({PressableWithFeedback: jest.requireActual<typeof ReactNative>('react-native').Pressable}));
+jest.mock('@components/Text', () => jest.requireActual<{Text: React.ComponentType<TextProps>}>('react-native').Text);
+jest.mock('@components/Pressable', () => ({PressableWithFeedback: jest.requireActual<{Pressable: React.ComponentType<PressableProps>}>('react-native').Pressable}));
 jest.mock(
     '@components/ScreenWrapper',
     () =>
