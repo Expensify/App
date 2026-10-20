@@ -84,11 +84,13 @@ describe('ShareTabParticipantsSelector', () => {
             login: 'test@example.com',
             displayName: 'Tester',
         });
-        jest.mocked(usePreferredPolicy).mockReturnValue({
+        const preferredPolicy = {
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: false,
-        });
+            isLoadingPreferredPolicy: false,
+        };
+        jest.mocked(usePreferredPolicy).mockReturnValue(preferredPolicy);
         jest.mocked(useUserSecurityGroup).mockReturnValue({
             securityGroup: undefined,
             isLoadingSecurityGroup: false,
