@@ -13,6 +13,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -1475,6 +1476,67 @@ describe('actions/IOU/TrackExpense', () => {
             const threadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`);
             expect(threadReportActions?.[failedThreadCreatedActionID]?.pendingAction).toBeFalsy();
             expect(threadReportActions?.[failedThreadCreatedActionID]?.errors).toBeFalsy();
+        });
+
+        it('keeps one whisper after a receipt retry, because the retry reuses the whisper ID the failure saved', async () => {
+            // Given a scan tracked in the self-DM whose request fails, which deletes the whisper locally
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-whisper',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            const scanParams = {
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 0, merchant: '', receipt: {source: 'file:///receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}),
+                existingTransaction: createMock<Transaction>({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN}),
+                optimisticTransactionID: '8888888888888888',
+            };
+            mockFetch?.fail?.();
+            trackExpense(scanParams);
+            await waitForBatchedUpdates();
+
+            const failedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}8888888888888888`);
+            const receiptError = Object.values(failedTransaction?.errors ?? {}).find((error) => isReceiptError(error));
+            const storedRetryParams: unknown = isReceiptError(receiptError) && typeof receiptError.retryParams === 'string' ? JSON.parse(receiptError.retryParams) : undefined;
+            const failedWhisperID =
+                !!storedRetryParams &&
+                typeof storedRetryParams === 'object' &&
+                'actionableWhisperReportActionID' in storedRetryParams &&
+                typeof storedRetryParams.actionableWhisperReportActionID === 'string'
+                    ? storedRetryParams.actionableWhisperReportActionID
+                    : undefined;
+            const selfDMActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const failedIOUAction = Object.values(selfDMActionsAfterFailure ?? {}).find((action) => isMoneyRequestAction(action));
+            expect(failedWhisperID).toBeTruthy();
+            if (!failedWhisperID) {
+                throw new Error('The failure did not save the whisper ID with the receipt error');
+            }
+
+            // And the server, which already handled the first request, sends its copy of that whisper back
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                [failedWhisperID]: createMock<ReportAction>({
+                    reportActionID: failedWhisperID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    created: '2026-10-01 00:00:00.000',
+                    originalMessage: {transactionID: '8888888888888888'},
+                }),
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            mockFetch?.succeed?.();
+            trackExpense({
+                ...scanParams,
+                currentReportActionID: failedIOUAction?.reportActionID,
+                existingTransactionThreadReportID: failedIOUAction?.childReportID,
+                existingActionableWhisperReportActionID: failedWhisperID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM shows one whisper, under the original ID, instead of a second set next to the server's copy
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const whispers = Object.values(selfDMActions ?? {}).filter((action) => isActionableTrackExpense(action));
+            expect(whispers).toHaveLength(1);
+            expect(whispers.at(0)?.reportActionID).toBe(failedWhisperID);
         });
 
         it('should set correct tax fields when tax parameters are provided', async () => {
