@@ -224,8 +224,8 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
 }
 
 /**
- * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores, and what the
- * legacy `codingRuleValue` is derived from until writes move to `SetRule`.
+ * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores and what is sent
+ * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
@@ -458,7 +458,7 @@ function getMerchantRuleDraftFromGeneratedValues(values: GeneratedRuleValues): P
     return {...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT};
 }
 
-export type {BuiltMerchantRule, MerchantRuleFormValues};
+export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
