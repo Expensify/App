@@ -516,6 +516,7 @@ describe('getExportMenuItem - NetSuite', () => {
     });
 
     it('resolves a credit card charge export against credit card accounts only', () => {
+        // Given a NetSuite policy exporting company card expenses as credit card charges, with payable accounts that include credit card accounts and a card exporting to a credit card account
         const policy = createBasePolicy({
             netsuite: {
                 options: {
@@ -536,8 +537,10 @@ describe('getExportMenuItem - NetSuite', () => {
         });
         const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT, 'ns-cc-2');
 
+        // When the company card export menu item is resolved
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
+        // Then the card resolves against credit card accounts only, so the menu shows the matching credit card account and offers every credit card account instead of the full payable list
         expect(result?.shouldShowMenuItem).toBe(true);
         expect(result?.title).toBe('Team Card');
         expect(result?.data).toHaveLength(3);
