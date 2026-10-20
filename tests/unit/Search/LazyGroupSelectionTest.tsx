@@ -2757,6 +2757,54 @@ describe('Lazily loaded group selection', () => {
                 expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(true);
             });
 
+            it('keeps a fully loaded group checked from its header whole once a deleted expense leaves its rows while its count still includes it', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await act(async () => {
+                    result.current.toggle(pagingGroup, [...firstPage, laterRow]);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // When one of its expenses is deleted from its details, so its row is first marked for deletion and then leaves the group, while the group's count reads three until the search runs again
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: true});
+                    await waitForBatchedUpdatesWithAct();
+                });
+                await loadRows(rerender, [{...firstRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, secondRow, laterRow]);
+                await loadRows(rerender, [secondRow, laterRow]);
+
+                // Then the group still reads as whole and its header claim stays, so its checkbox keeps its full check rather than turning partly checked
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(true);
+            });
+
+            it('ends the header claim when a new expense arrives off the page while another of the group is being deleted', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await act(async () => {
+                    result.current.toggle(pagingGroup, [...firstPage, laterRow]);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // When one of its expenses is being deleted from its details while a new expense lands in it on a page that has not loaded, raising its count to four
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: true});
+                    await waitForBatchedUpdatesWithAct();
+                });
+                pagingGroup = {...pagingGroup, count: 4};
+                await loadRows(rerender, [{...firstRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, secondRow, laterRow]);
+
+                // Then the claim ends and the group stops reading as whole, so an export no longer sends a group filter that would take the new expense nobody checked
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
             it('keeps a group checked while collapsed when the first page that arrives holds only rows being deleted', async () => {
                 pagingGroup = {...buildCategoryGroup(groupKey), count: 5};
                 const {result, rerender} = renderSelection(PagingWrapper);

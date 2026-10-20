@@ -79,6 +79,7 @@ type StampGroupCoverageFlagsParams = {
 /**
  * The count a group is wholly selected at, or undefined. Kept rows can be stale, so only a fully loaded group with every row checked earns it, and a partly loaded one
  * keeps it only while every loaded row stays checked and its count has not risen. With no rows loaded, the selected rows are counted instead.
+ * The count is the server's, rows being deleted included, since it only drops once the search runs again.
  */
 function getWholeGroupCoverage({selectedTransactions, groupKey, groupCount, loadedRows, priorCoveredGroupCount}: StampGroupCoverageFlagsParams): number | undefined {
     if (loadedRows.length === 0) {
@@ -91,9 +92,9 @@ function getWholeGroupCoverage({selectedTransactions, groupKey, groupCount, load
     }
     const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedRows.length, loadedSelectableCount);
     if (remainingGroupCount === undefined || loadedSelectableCount >= remainingGroupCount) {
-        return loadedSelectableCount;
+        return loadedRows.length;
     }
-    return priorCoveredGroupCount !== undefined && remainingGroupCount <= priorCoveredGroupCount ? remainingGroupCount : undefined;
+    return priorCoveredGroupCount !== undefined && groupCount !== undefined && groupCount <= priorCoveredGroupCount ? groupCount : undefined;
 }
 
 /**

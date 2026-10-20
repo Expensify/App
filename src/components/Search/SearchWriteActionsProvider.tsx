@@ -279,7 +279,7 @@ function useReconcileSelectionWithData({
                 // Kept rows can be stale, so growth is measured from the count the group was covered at, not from its claimed rows.
                 const priorCoveredGroupCount = reportKey ? getCoveredGroupCount(selectedTransactions, selectedRowKeysByGroupKey.get(reportKey) ?? []) : undefined;
                 const hasGroupOutgrownClaim =
-                    remainingGroupCount > (priorCoveredGroupCount ?? groupClaim?.rowCount ?? 0) ||
+                    (priorCoveredGroupCount === undefined ? remainingGroupCount > (groupClaim?.rowCount ?? 0) : (groupCount ?? 0) > priorCoveredGroupCount) ||
                     transactionGroup.transactions.some((transaction) => !isTransactionPendingDelete(transaction) && !getRowSelection(transaction));
                 const isClaimEnding = hasClaimCoveredGroup && hasGroupOutgrownClaim;
                 // A group checked through its header stands for every row in it, loaded or not, so the rows it is written out into and the rows that load later keep that claim.

@@ -788,7 +788,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
         if (hasExcludedGroupUnderBreakdown) {
             return {
-                count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
+                count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
                 total: undefined,
                 currency: effectiveDefaultCurrency ?? metadataCurrency,
             };

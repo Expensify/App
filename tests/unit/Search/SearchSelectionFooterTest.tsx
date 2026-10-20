@@ -534,6 +534,23 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: undefined}));
         });
 
+        it('adds a row checked again inside the group back onto the count under a breakdown', async () => {
+            // Given a select-all with the collapsed group unchecked and one of its expenses checked again on its own, on the reimbursable breakdown
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {[GROUP_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -50000)};
+            mockSelectedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: GROUP_KEY}};
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the row comes back onto the count, as on the plain total and the selection button, while no figure is shown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 170, total: undefined}));
+        });
+
         it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {
             // When the footer describes the reimbursable breakdown, which leaves it no figure to show
             await renderWithExcludedGroup(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
