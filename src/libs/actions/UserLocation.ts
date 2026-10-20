@@ -19,12 +19,12 @@ function clearUserLocation() {
 }
 
 function snapshotUserLocation() {
+    clearUserLocation();
     hasLocationPermission().then((isGranted) => {
         if (!isGranted) {
             return;
         }
 
-        clearUserLocation();
         // Best effort: a submit that finds no cached position falls back to a capped read
         getCurrentPosition(
             (successData) => {
