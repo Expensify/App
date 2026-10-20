@@ -3126,6 +3126,7 @@ const translations = {
         dayOfTheMonth: 'Day of the month',
         firstSubmission: 'First submission',
         secondSubmission: 'Second submission',
+        submissionDatesOrderError: 'The first submission date must be before the second submission date',
         daysOfWeek: {
             monday: 'Monday',
             tuesday: 'Tuesday',

@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -26,7 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {AutoReportingFrequency} from '@libs/SubmissionScheduleUtils';
-import {getAutoReportingOffsetDisplayName, getFrequencyDisplayName, getSubmissionFrequencyHelperText, getWeekdayKey, sortSemiMonthlyOffsets} from '@libs/SubmissionScheduleUtils';
+import {getAutoReportingOffsetDisplayName, getFrequencyDisplayName, getSubmissionFrequencyHelperText, getWeekdayKey, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -41,7 +42,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceSubmissionFrequencyForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import useSubmissionFrequencyDraft from './useSubmissionFrequencyDraft';
@@ -90,6 +91,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM), []);
     const {selectedFrequency, isSavedFrequencySelected, offset, secondOffset, hasChanges} = useSubmissionFrequencyDraft(policy);
+    const [shouldShowOrderError, setShouldShowOrderError] = useState(false);
+    const isOffsetOrderValid = selectedFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY || isSemiMonthlyOffsetOrderValid({offset, secondOffset});
 
     const onSelectFrequency = (frequency: AutoReportingFrequency) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM, {[INPUT_IDS.FREQUENCY]: frequency, [INPUT_IDS.OFFSET]: '', [INPUT_IDS.SECOND_OFFSET]: ''});
@@ -99,18 +102,21 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (!policyID || !selectedFrequency) {
             return;
         }
+        if (!isOffsetOrderValid) {
+            setShouldShowOrderError(true);
+            return;
+        }
         const reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
         if (!isSavedFrequencySelected) {
             setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, reviewWorkspaceSettingsTaskData);
         }
         if (offset !== undefined && hasChanges) {
-            const offsetsToSave = selectedFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY ? sortSemiMonthlyOffsets({offset, secondOffset}) : {offset, secondOffset};
             setWorkspaceAutoReportingMonthlyOffset(
                 policyID,
-                offsetsToSave.offset ?? offset,
+                offset,
                 policy?.autoReportingOffset,
                 isSavedFrequencySelected ? reviewWorkspaceSettingsTaskData : {},
-                offsetsToSave.secondOffset,
+                secondOffset,
                 policy?.autoReportingOffsetSecondSemiMonthly,
             );
         }
@@ -235,6 +241,12 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                                     <RenderHTML html={`<muted-text-label>${getSubmissionFrequencyHelperText(selectedFrequency, timezoneLink, translate)}</muted-text-label>`} />
                                 </View>
                             </View>
+                        )}
+                        {shouldShowOrderError && !isOffsetOrderValid && (
+                            <FormHelpMessage
+                                message={translate('workflowsPage.submissionDatesOrderError')}
+                                style={styles.mb3}
+                            />
                         )}
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}

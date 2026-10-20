@@ -7,6 +7,7 @@ import {
     getWorkspaceTimezone,
     parseAutoReportingOffset,
     sortSemiMonthlyOffsets,
+    isSemiMonthlyOffsetOrderValid,
 } from '@libs/SubmissionScheduleUtils';
 
 import CONST from '@src/CONST';
@@ -101,13 +102,32 @@ describe('SubmissionScheduleUtils', () => {
     });
 
     describe('sortSemiMonthlyOffsets', () => {
-        it('puts the earlier date first because the backend does not reorder them', () => {
+        it('puts the earlier date first because saved schedules can hold either order', () => {
             // Given the later date picked as the first submission
             // When the dates are sorted
             // Then they swap, with the last day of the month ranked latest
             expect(sortSemiMonthlyOffsets({offset: 20, secondOffset: 5})).toEqual({offset: 5, secondOffset: 20});
             expect(sortSemiMonthlyOffsets({offset: AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH, secondOffset: 28})).toEqual({offset: 28, secondOffset: AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH});
             expect(sortSemiMonthlyOffsets({offset: 5, secondOffset: 20})).toEqual({offset: 5, secondOffset: 20});
+        });
+    });
+
+    describe('isSemiMonthlyOffsetOrderValid', () => {
+        it('accepts only a first date that comes before the second', () => {
+            // Given pairs of twice a month dates, since the Frequency page blocks saving them out of order
+            // When their order is checked
+            // Then only an earlier first date passes, with the 31st and the last day ranked as the same date
+            expect(isSemiMonthlyOffsetOrderValid({offset: 5, secondOffset: 20})).toBe(true);
+            expect(isSemiMonthlyOffsetOrderValid({offset: 28, secondOffset: AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH})).toBe(true);
+            expect(isSemiMonthlyOffsetOrderValid({offset: 20, secondOffset: 5})).toBe(false);
+            expect(isSemiMonthlyOffsetOrderValid({offset: 31, secondOffset: AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH})).toBe(false);
+        });
+
+        it('passes while either date is still unset', () => {
+            // Given a schedule where the admin hasn't picked both dates yet
+            // When its order is checked
+            // Then it passes, since there is nothing to compare
+            expect(isSemiMonthlyOffsetOrderValid({offset: 20, secondOffset: undefined})).toBe(true);
         });
     });
 

@@ -100,12 +100,19 @@ function areSemiMonthlyOffsetsEqual(firstOffset: AutoReportingOffset | undefined
     return getSemiMonthlyOffsetRank(firstOffset) === getSemiMonthlyOffsetRank(secondOffset);
 }
 
-/** The backend doesn't reorder the two dates, so the earlier one is always sent as the first submission. */
+/** Saved schedules can hold the two dates in either order, so the earlier one is shown first. */
 function sortSemiMonthlyOffsets(offsets: AutoReportingOffsets): AutoReportingOffsets {
     if (getSemiMonthlyOffsetRank(offsets.offset) <= getSemiMonthlyOffsetRank(offsets.secondOffset)) {
         return offsets;
     }
     return {offset: offsets.secondOffset, secondOffset: offsets.offset};
+}
+
+function isSemiMonthlyOffsetOrderValid({offset, secondOffset}: AutoReportingOffsets): boolean {
+    if (offset === undefined || secondOffset === undefined) {
+        return true;
+    }
+    return getSemiMonthlyOffsetRank(offset) < getSemiMonthlyOffsetRank(secondOffset);
 }
 
 function getWeekdayKey(weekday: number): TupleToUnion<typeof WEEKDAY_KEYS> {
@@ -231,5 +238,6 @@ export {
     isAutoReportingFrequency,
     parseAutoReportingOffset,
     sortSemiMonthlyOffsets,
+    isSemiMonthlyOffsetOrderValid,
 };
 export type {AutoReportingFrequency};
