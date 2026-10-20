@@ -660,9 +660,6 @@ const WRITE_COMMANDS = {
     QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
     QUEUE_EXPORT_SEARCH_WITH_TEMPLATE: 'QueueExportSearchWithTemplate',
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
-    QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
-    QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
-    QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
     QUEUE_BULK_DELETE_REPORTS: 'QueueBulkDeleteReports',
     QUEUE_BULK_DELETE_EXPENSES: 'QueueBulkDeleteExpenses',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
@@ -1509,9 +1506,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.QueueExportSearchItemsToCSVParams;
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE]: Parameters.QueueExportSearchWithTemplateParams;
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
-    [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
-    [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
-    [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_DELETE_REPORTS]: Parameters.QueueBulkDeleteReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_DELETE_EXPENSES]: Parameters.QueueBulkDeleteExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
