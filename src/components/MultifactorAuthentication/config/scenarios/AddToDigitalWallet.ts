@@ -5,7 +5,7 @@ import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet';
-import {walletDebugLog} from '@libs/Wallet/walletDebugLog';
+import {getWalletDebugStack, walletDebugLog, walletDebugState} from '@libs/Wallet/walletDebugLog';
 import WalletProvisioningError from '@libs/Wallet/WalletProvisioningError';
 
 import CONST from '@src/CONST';
@@ -27,13 +27,33 @@ export default {
             authenticationMethod,
             hasContext: !!context,
             isAborted: !!context?.signal.aborted,
+            isDispatchingAction: walletDebugState.isDispatchingAction,
         });
         try {
-            const status = await handleAddCardToWallet(card, cardHolderName, cardDescription, {
+            const walletPromise = handleAddCardToWallet(card, cardHolderName, cardDescription, {
                 authentication: {signedChallenge, authenticationMethod},
                 signal: context?.signal,
             });
-            walletDebugLog('scenario action got status', false, {cardID: card.cardID, status: String(status), statusType: typeof status, isAborted: !!context?.signal.aborted});
+            walletDebugLog('handleAddCardToWallet returned', false, {
+                cardID: card.cardID,
+                valueType: typeof walletPromise,
+                isPromise: walletPromise instanceof Promise,
+                hasThen: typeof (walletPromise as Partial<Promise<unknown>> | undefined)?.then === 'function',
+                isDispatchingAction: walletDebugState.isDispatchingAction,
+            });
+            walletPromise.then(
+                (value) => walletDebugLog('handleAddCardToWallet promise fulfilled', false, {cardID: card.cardID, valueType: typeof value, value: String(value)}),
+                (error: unknown) => walletDebugLog('handleAddCardToWallet promise rejected', false, {cardID: card.cardID, errorType: error instanceof Error ? error.name : typeof error}),
+            );
+            const status = await walletPromise;
+            walletDebugLog('scenario action got status', false, {
+                cardID: card.cardID,
+                status: String(status),
+                statusType: typeof status,
+                isAborted: !!context?.signal.aborted,
+                isDispatchingAction: walletDebugState.isDispatchingAction,
+                stack: getWalletDebugStack(),
+            });
             if (status === 'success' && !context?.signal.aborted) {
                 return {httpStatusCode: 200, reason: undefined, message: undefined};
             }

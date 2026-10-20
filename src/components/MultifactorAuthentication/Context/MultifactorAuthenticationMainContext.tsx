@@ -18,7 +18,7 @@ import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {walletDebugCapture, walletDebugLog} from '@libs/Wallet/walletDebugLog';
+import {getWalletDebugStack, walletDebugCapture, walletDebugLog, walletDebugState} from '@libs/Wallet/walletDebugLog';
 
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
@@ -403,7 +403,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     const controller = new AbortController();
                     walletDebugLog('MFA scenario action dispatch', false, {debugAuthorizeID, replacedActionController: !!actionControllerRef.current});
                     actionControllerRef.current = controller;
-                    const scenarioAPIResponse = await processScenarioAction(
+                    walletDebugState.isDispatchingAction = true;
+                    const scenarioActionPromise = processScenarioAction(
                         scenario.action,
                         {
                             signedChallenge: result.signedChallenge,
@@ -411,7 +412,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             ...payload,
                         },
                         {signal: controller.signal},
-                    ).catch((scenarioActionError: unknown) => {
+                    );
+                    walletDebugState.isDispatchingAction = false;
+                    walletDebugLog('MFA scenario action dispatch returned', false, {debugAuthorizeID, stack: getWalletDebugStack()});
+                    const scenarioAPIResponse = await scenarioActionPromise.catch((scenarioActionError: unknown) => {
                         walletDebugLog('MFA scenario action rejected', true, {
                             debugAuthorizeID,
                             isAborted: controller.signal.aborted,
