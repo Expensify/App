@@ -1,7 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
@@ -51,7 +50,6 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
     const styles = useThemeStyles();
     const [localValue, setLocalValue] = useState(defaultCheckedValue);
     const checkedValue = value !== undefined ? value : localValue;
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     return (
         <>
@@ -72,8 +70,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
                             return onSelect?.(item.value);
                         }}
                         label={item.label}
-                        // Native drops the group's name, since the group is not one element, so each option carries the question
-                        accessibilityLabel={accessibilityLabel && !isWeb ? `${item.label}, ${accessibilityLabel}` : undefined}
+                        groupAccessibilityLabel={accessibilityLabel}
                         forwardedFSClass={forwardedFSClass}
                     />
                 ))}

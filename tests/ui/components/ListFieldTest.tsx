@@ -7,11 +7,11 @@ import variables from '@src/styles/variables';
 
 import React, {createRef} from 'react';
 
-const mockFocusElement = jest.fn<void, [unknown]>();
+const mockMoveAccessibilityFocus = jest.fn<void, [unknown]>();
 
-jest.mock('@libs/Accessibility/focusElement', () => ({
+jest.mock('@libs/Accessibility/moveAccessibilityFocus', () => ({
     __esModule: true,
-    default: (element: unknown) => mockFocusElement(element),
+    default: (element: unknown) => mockMoveAccessibilityFocus(element),
 }));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string, params?: unknown) => (params === undefined ? key : `${key} ${JSON.stringify(params)}`)})));
 jest.mock('@components/Avatar/UserAvatar', () => jest.fn(() => null));
@@ -44,13 +44,13 @@ function renderListField(rows: ListFieldRow[], canAddMore = true, errorText = ''
 }
 
 function getLastFocusedLabel(): unknown {
-    const element = mockFocusElement.mock.lastCall?.[0];
+    const element = mockMoveAccessibilityFocus.mock.lastCall?.[0];
     return screen.UNSAFE_root.findAll((node) => node.instance === element && !!node.props.accessibilityLabel).at(0)?.props.accessibilityLabel;
 }
 
 describe('ListField', () => {
     beforeEach(() => {
-        mockFocusElement.mockClear();
+        mockMoveAccessibilityFocus.mockClear();
     });
 
     it('extends each row button to the 44x44 minimum touch target', () => {
@@ -61,10 +61,10 @@ describe('ListField', () => {
         const editButton = screen.getByLabelText('listField.editItem {"name":"Jane Doe"}');
         const removeButton = screen.getByLabelText('listField.removeItem {"name":"Jane Doe"}');
 
-        // Then the Edit button reaches 44 in height, without growing sideways into the remove button next to it, and the remove button grows by itself
+        // Then the Edit button reaches 44 in height, without growing sideways into the remove button next to it, and the remove button is 44x44 itself
         const verticalSlop = (44 - variables.componentSizeSmall) / 2;
         expect(editButton).toHaveProp('hitSlop', {top: verticalSlop, bottom: verticalSlop});
-        expect(removeButton).toHaveProp('hitSlop');
+        expect(removeButton).toHaveStyle({width: 44, height: 44});
     });
 
     it('focuses the Edit button of the asked row', () => {
@@ -75,7 +75,7 @@ describe('ListField', () => {
         act(() => list.focusRow(john.id));
 
         // Then that entry's Edit button gets it
-        expect(mockFocusElement).toHaveBeenCalledTimes(1);
+        expect(mockMoveAccessibilityFocus).toHaveBeenCalledTimes(1);
         expect(getLastFocusedLabel()).toBe(editJohnLabel);
     });
 
@@ -87,7 +87,7 @@ describe('ListField', () => {
         act(() => list.focusAddRow());
 
         // Then the last entry's Edit button gets it instead, so focus does not drop to the top of the page
-        expect(mockFocusElement.mock.lastCall?.[0]).toBeTruthy();
+        expect(mockMoveAccessibilityFocus.mock.lastCall?.[0]).toBeTruthy();
         expect(getLastFocusedLabel()).toBe(editJohnLabel);
     });
 
@@ -99,7 +99,7 @@ describe('ListField', () => {
         act(() => list.focus());
 
         // Then the add row gets focus, as the only thing the user can act on
-        expect(mockFocusElement.mock.lastCall?.[0]).toBeTruthy();
+        expect(mockMoveAccessibilityFocus.mock.lastCall?.[0]).toBeTruthy();
         expect(getLastFocusedLabel()).toBe('Add owner');
     });
 

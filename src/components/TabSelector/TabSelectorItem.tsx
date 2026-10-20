@@ -6,6 +6,8 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
+
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
@@ -50,6 +52,7 @@ function TabSelectorItem({
     badgeEducationalTooltipProps,
     tabButtonStyles,
     role = CONST.ROLE.TAB,
+    groupAccessibilityLabel,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -70,7 +73,7 @@ function TabSelectorItem({
     const children = (
         <AnimatedPressableWithSecondaryInteraction
             ref={tabRef}
-            accessibilityLabel={title}
+            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
             accessibilityState={accessibilityState}
             accessibilityRole={role}
             style={[

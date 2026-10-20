@@ -55,6 +55,7 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
                     equalWidth
                     shouldShowLabelWhenInactive
                     itemRole={CONST.ROLE.RADIO}
+                    itemGroupAccessibilityLabel={accessibilityLabel}
                 />
             </View>
             {!!errorText && <FormHelpMessage message={errorText} />}

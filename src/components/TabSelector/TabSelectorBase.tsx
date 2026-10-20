@@ -36,6 +36,7 @@ function TabSelectorBase<K extends string = string>({
     tabButtonStyles,
     shouldShowScrollFade = false,
     itemRole,
+    itemGroupAccessibilityLabel,
 }: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -162,6 +163,7 @@ function TabSelectorBase<K extends string = string>({
                             equalWidth={equalWidth}
                             tabButtonStyles={tabButtonStyles}
                             role={itemRole}
+                            groupAccessibilityLabel={itemGroupAccessibilityLabel}
                             badgeText={tab.badgeText}
                             isBadgeCondensed={tab.isBadgeCondensed}
                             badgeStyles={tab.badgeStyles}

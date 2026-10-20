@@ -45,9 +45,9 @@ describe('TabsAdapter', () => {
             />,
         );
 
-        // Then the tabs sit in a radio group carrying the question, since they answer it instead of switching views, and each tab is a radio
+        // Then the tabs sit in a radio group carrying the question, since they answer it instead of switching views, and each tab is a radio that also carries the question for native screen readers
         expect(screen.getByLabelText(question)).toHaveProp('role', CONST.ROLE.RADIOGROUP);
-        expect(jest.mocked(TabSelectorBase).mock.lastCall?.[0]).toMatchObject({itemRole: CONST.ROLE.RADIO});
+        expect(jest.mocked(TabSelectorBase).mock.lastCall?.[0]).toMatchObject({itemRole: CONST.ROLE.RADIO, itemGroupAccessibilityLabel: question});
     });
 
     it('attaches the form ref to the view around the tabs, so the form can scroll to them to show their error', () => {

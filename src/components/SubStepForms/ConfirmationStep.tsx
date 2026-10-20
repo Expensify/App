@@ -152,10 +152,21 @@ function ConfirmationStep({
     const styles = useThemeStyles();
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
-    const [confirmCount, setConfirmCount] = useState(0);
+    const [wasLoading, setWasLoading] = useState(!!isLoading);
+    const [finishedSubmitCount, setFinishedSubmitCount] = useState(0);
+    if (shouldAnnounceSubmitState && wasLoading !== !!isLoading) {
+        setWasLoading(!!isLoading);
+        if (!isLoading) {
+            setFinishedSubmitCount((count) => count + 1);
+        }
+    }
 
-    // VoiceOver ignores the error's live region, and a repeated error leaves the page unchanged, so each Confirm press that ends in an error announces it
-    useAccessibilityAnnouncement(error, shouldAnnounceSubmitState && !!error, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: confirmCount > 1, announcementKey: confirmCount});
+    // VoiceOver ignores the error's live region, and a repeated error leaves the page unchanged, so each submission that ends in an error announces it
+    useAccessibilityAnnouncement(error, shouldAnnounceSubmitState && !!error, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: finishedSubmitCount > 1,
+        announcementKey: finishedSubmitCount,
+    });
 
     const renderRow = (row: SummaryGroupRow) => {
         if ('kind' in row && row.kind === 'label') {
@@ -257,10 +268,7 @@ function ConfirmationStep({
                     isLoading={isLoading}
                     accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
                     style={[styles.w100]}
-                    onPress={() => {
-                        setConfirmCount((count) => count + 1);
-                        onNext();
-                    }}
+                    onPress={onNext}
                 >
                     <Button.Text>{translate('common.confirm')}</Button.Text>
                 </ButtonDisabledWhenOffline>

@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import focusElement from '@libs/Accessibility/focusElement';
+import Accessibility from '@libs/Accessibility';
 import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -82,9 +82,14 @@ const EDIT_BUTTON_VERTICAL_SLOP = Math.max(MINIMUM_TOUCH_TARGET_SIZE - variables
 // Only taller, since the Edit and remove buttons sit too close together to widen without overlapping
 const EDIT_BUTTON_HIT_SLOP = {top: EDIT_BUTTON_VERTICAL_SLOP, bottom: EDIT_BUTTON_VERTICAL_SLOP};
 
+// 44px layout boxes, since native ignores the part of a hitSlop that reaches past the parent
+const EDIT_BUTTON_WRAPPER_STYLE = {minHeight: MINIMUM_TOUCH_TARGET_SIZE};
+const REMOVE_BUTTON_SIZE_STYLE = {width: MINIMUM_TOUCH_TARGET_SIZE, height: MINIMUM_TOUCH_TARGET_SIZE};
+
 /** Reads the list's error with the add row's name, since the error under the list is announced only when it appears */
 function AddRowErrorAnnouncement({errorText}: {errorText: string}) {
     useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.ERROR, errorText || undefined);
+
     return null;
 }
 
@@ -97,12 +102,12 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
     const editButtonRefs = useRef(new Map<string, ComponentRef<typeof View>>());
     const addRowRef = useRef<ComponentRef<typeof View>>(null);
 
-    const focusRow = (id: string | undefined) => focusElement(id ? editButtonRefs.current.get(id) : undefined);
+    const focusRow = (id: string | undefined) => Accessibility.moveAccessibilityFocus(id ? editButtonRefs.current.get(id) : undefined);
 
     useImperativeHandle(ref, () => ({
-        focus: () => (rows.length > 0 ? focusRow(rows.at(0)?.id) : focusElement(addRowRef.current)),
+        focus: () => (rows.length > 0 ? focusRow(rows.at(0)?.id) : Accessibility.moveAccessibilityFocus(addRowRef.current)),
         focusRow,
-        focusAddRow: () => (addRowRef.current ? focusElement(addRowRef.current) : focusRow(rows.at(-1)?.id)),
+        focusAddRow: () => (addRowRef.current ? Accessibility.moveAccessibilityFocus(addRowRef.current) : focusRow(rows.at(-1)?.id)),
     }));
 
     return (
@@ -132,8 +137,9 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                             {!!row.description && <MenuItem.Description>{row.description}</MenuItem.Description>}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button
+                                    style={[EDIT_BUTTON_WRAPPER_STYLE, styles.justifyContentCenter]}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     accessibilityLabel={translate('listField.editItem', {name: row.title})}
                                     hitSlop={EDIT_BUTTON_HIT_SLOP}
@@ -154,8 +160,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                                     sentryLabel={CONST.SENTRY_LABEL.LIST_FIELD.REMOVE_BUTTON}
                                     accessibilityLabel={translate('listField.removeItem', {name: row.title})}
                                     role={CONST.ROLE.BUTTON}
-                                    style={styles.touchableButtonImage}
-                                    shouldUseAutoHitSlop
+                                    style={[styles.touchableButtonImage, REMOVE_BUTTON_SIZE_STYLE]}
                                     onPress={() => onRemove(row.id)}
                                 >
                                     <Icon

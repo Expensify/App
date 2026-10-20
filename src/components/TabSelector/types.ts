@@ -103,6 +103,9 @@ type TabSelectorBaseProps<K extends string = string> = {
 
     /** Role of each tab. `radio` suits tabs that answer a form question instead of switching views. Defaults to `tab`. */
     itemRole?: TabSelectorItemRole;
+
+    /** The question the tabs answer, added to each tab's label on native, which does not read the name of the group around the tabs */
+    itemGroupAccessibilityLabel?: string;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -141,6 +144,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Role of the tab, `tab` unless it answers a form question */
     role?: TabSelectorItemRole;
+
+    /** The question the tab answers, read after its title on native */
+    groupAccessibilityLabel?: string;
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;
