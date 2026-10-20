@@ -219,6 +219,7 @@ function ParticipantSearchResults({
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        activePolicyID,
     };
 
     /**
