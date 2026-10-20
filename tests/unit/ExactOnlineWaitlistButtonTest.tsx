@@ -55,7 +55,7 @@ describe('Exact Online waitlist signup', () => {
         await waitForBatchedUpdates();
     });
 
-    it('joins while offline, shows the acknowledgement once, and shares signup status across workspaces', async () => {
+    it('queues signup offline, confirms success once, and shares signup status across workspaces', async () => {
         // Given an account that has not joined the waitlist and is currently offline
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         const {rerender} = render(<ExactOnlineWaitlistButton policy={policy} />, {wrapper: TestWrapper});
@@ -66,37 +66,62 @@ describe('Exact Online waitlist signup', () => {
         fireEvent.press(button);
         fireEvent.press(button);
 
-        // Then signup and its acknowledgement happen once, even offline
+        // Then signup is queued once without claiming success while offline
         expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('title')).toBe('You’re on the waitlist');
-        expect(getShowConfirmModalOption('prompt')).toBe('Concierge will send you a message to let you know when this integration is ready and how to connect.');
-        expect(getShowConfirmModalOption('shouldShowCancelButton')).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-        // When the optimistic signup arrives and the user switches workspaces
-        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-14 12:00:00'));
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}));
         rerender(<ExactOnlineWaitlistButton policy={otherPolicy} />);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole('button', {name: 'Join waitlist', disabled: true})).toBeOnTheScreen();
+
+        // When the request fails and its optimistic account value is rolled back
+        await act(() =>
+            Onyx.update([
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[Date.now()]: 'Signup failed'}}},
+                },
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then signup is offered again
+        expect(screen.getByRole('button', {name: 'Join waitlist', disabled: false})).toBeOnTheScreen();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // When the retried signup succeeds and the user switches workspaces
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}}));
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-14 12:00:00'));
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        await act(() => Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false}));
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: null}}));
+        rerender(<ExactOnlineWaitlistButton policy={policy} />);
         await waitForBatchedUpdatesWithAct();
 
         // Then the same account signup is shown without another action in the new workspace
         expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
-        expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(1);
-
-        // When the request fails and its optimistic account value is rolled back
-        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then signup is offered again
-        expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeTruthy();
+        expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(2);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(getShowConfirmModalOption('title')).toBe('You’re on the waitlist');
+        expect(getShowConfirmModalOption('prompt')).toBe('Concierge will send you a message to let you know when this integration is ready and how to connect.');
+        expect(getShowConfirmModalOption('shouldShowCancelButton')).toBe(false);
     });
 
     it('loads an existing account signup without offering another signup', async () => {
         // Given an account that joined the waitlist in an earlier session
         await Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-13 12:00:00');
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}});
 
         // When the user opens accounting in another workspace
         render(<ExactOnlineWaitlistButton policy={otherPolicy} />, {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole('button', {name: 'Join waitlist', disabled: true})).toBeOnTheScreen();
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: null}}));
         await waitForBatchedUpdatesWithAct();
 
         // Then their stored signup replaces the action without opening an acknowledgement

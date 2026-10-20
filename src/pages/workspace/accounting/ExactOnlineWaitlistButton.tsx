@@ -16,7 +16,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 type ExactOnlineWaitlistButtonProps = {
     policy: OnyxEntry<Policy>;
@@ -28,37 +28,54 @@ function ExactOnlineWaitlistButton({policy}: ExactOnlineWaitlistButtonProps) {
     const {showConfirmModal} = useConfirmModal();
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [signupTimestamp, signupTimestampMetadata] = useOnyx(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST);
+    const [pendingAction, pendingActionMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.pendingFields?.exactOnlineWaitlist});
+    const [errors] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.errorFields?.exactOnlineWaitlist});
     const isJoiningWaitlist = useRef(false);
 
-    if (signupTimestamp) {
+    // Queued writes finish through Onyx, including retries after the press handler has returned.
+    useEffect(() => {
+        if (!isJoiningWaitlist.current || pendingAction || pendingActionMetadata.status === 'loading') {
+            return;
+        }
+        if (errors) {
+            isJoiningWaitlist.current = false;
+            return;
+        }
+        if (!signupTimestamp) {
+            return;
+        }
+
+        isJoiningWaitlist.current = false;
+        showConfirmModal({
+            title: translate('workspace.accounting.exactOnline.onWaitlist'),
+            prompt: translate('workspace.accounting.exactOnline.waitlistDescription'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [errors, pendingAction, pendingActionMetadata.status, showConfirmModal, signupTimestamp, translate]);
+
+    if (signupTimestamp && !pendingAction) {
         return <Text style={styles.textSupporting}>{translate('workspace.accounting.exactOnline.onWaitlist')}</Text>;
     }
 
     const joinWaitlist = () => {
-        if (isJoiningWaitlist.current) {
+        if (isJoiningWaitlist.current || pendingAction) {
             return;
         }
         if (!canWrite) {
             showReadOnlyModal();
             return;
         }
-        // Prevent repeated presses before the optimistic account value reaches this component.
+        // Prevent repeated presses before the pending account state reaches this component.
         isJoiningWaitlist.current = true;
         joinExactOnlineWaitlist();
-        showConfirmModal({
-            title: translate('workspace.accounting.exactOnline.onWaitlist'),
-            prompt: translate('workspace.accounting.exactOnline.waitlistDescription'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        }).then(() => {
-            isJoiningWaitlist.current = false;
-        });
     };
 
     return (
         <Button
             onPress={joinWaitlist}
-            isDisabled={signupTimestampMetadata.status === 'loading'}
+            isDisabled={signupTimestampMetadata.status === 'loading' || pendingActionMetadata.status === 'loading' || !!pendingAction}
+            isLoading={!!pendingAction}
             style={styles.justifyContentCenter}
             innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
             hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}

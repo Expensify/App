@@ -38,13 +38,15 @@ function ExactOnlineWaitlistRow({policy, style, titleWrapperStyle, isBadgeConden
     const icons = useMemoizedLazyExpensifyIcons(['ExactOnlineSquare']);
     const [signupTimestamp] = useOnyx(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST);
     const [errors] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.errorFields?.exactOnlineWaitlist});
+    const [pendingAction] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.pendingFields?.exactOnlineWaitlist});
     const title = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline;
     const comingSoon = translate('workspace.accounting.exactOnline.comingSoon');
-    const accessibilityLabel = [title, comingSoon, signupTimestamp && translate('workspace.accounting.exactOnline.onWaitlist')].filter(Boolean).join(', ');
+    const accessibilityLabel = [title, comingSoon, signupTimestamp && !pendingAction && translate('workspace.accounting.exactOnline.onWaitlist')].filter(Boolean).join(', ');
 
     return (
         <OfflineWithFeedback
             errors={errors}
+            pendingAction={pendingAction}
             onClose={clearExactOnlineWaitlistError}
             errorRowStyles={[style, styles.pb3]}
         >

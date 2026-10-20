@@ -1333,7 +1333,18 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
 
 function joinExactOnlineWaitlist() {
     const signupTimestamp = DateUtils.getDBTime();
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {exactOnlineWaitlist: null},
+            },
+        },
+    ];
+    // The confirmation modal must not treat a queued signup as confirmed membership.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
@@ -1342,7 +1353,7 @@ function joinExactOnlineWaitlist() {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {errorFields: {exactOnlineWaitlist: null}},
+            value: {pendingFields: {exactOnlineWaitlist: null}},
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
@@ -1354,12 +1365,15 @@ function joinExactOnlineWaitlist() {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+            value: {
+                pendingFields: {exactOnlineWaitlist: null},
+                errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
         },
     ];
 
     // The queued request keeps this timestamp when it retries, preserving the original signup time.
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, successData, failureData});
 }
 
 function clearExactOnlineWaitlistError() {

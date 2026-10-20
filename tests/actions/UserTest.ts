@@ -61,7 +61,7 @@ describe('actions/User', () => {
             // When the account joins the waitlist
             UserActions.joinExactOnlineWaitlist();
 
-            // Then the queued request and optimistic update share one timestamp, with the previous value restored on failure
+            // Then the queued request and confirmed signup share one timestamp, with the previous value restored on failure
             expect(getDBTime).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledWith(
@@ -69,15 +69,22 @@ describe('actions/User', () => {
                 {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
                 {
                     optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}},
+                        },
+                    ],
+                    successData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {errorFields: {exactOnlineWaitlist: null}}},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {exactOnlineWaitlist: null}}},
                     ],
                     failureData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.ACCOUNT,
-                            value: {errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                            value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
                         },
                     ],
                 },
