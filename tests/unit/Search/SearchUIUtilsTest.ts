@@ -13496,6 +13496,22 @@ describe('SearchUIUtils', () => {
             expect(transaction).toBeTruthy();
         });
 
+        it('Should not save Search row display fields on the optimistic transaction', async () => {
+            // Given a Search row whose transaction isn't in Onyx yet
+            const transactionListItem = getTransactionListItem(0);
+
+            // When the transaction thread preview data is set optimistically
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
+            await waitForBatchedUpdates();
+
+            // Then only the real transaction fields are saved, so display values can't shadow later edits
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+            expect(transaction?.transactionID).toBe(transactionListItem.transactionID);
+            for (const fieldName of SearchUIUtils.SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+        });
+
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
             setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
@@ -13505,6 +13521,25 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getTransactionFromSearchItem', () => {
+        it('removes the display-only fields of a Search row and keeps the transaction fields', () => {
+            // Given a Search row, which carries display-only fields on top of the transaction
+            const transactionListItem = getTransactionListItem(0);
+
+            // When it is turned back into a transaction
+            const transaction = SearchUIUtils.getTransactionFromSearchItem(transactionListItem);
+
+            // Then the row-only fields are gone and the real transaction fields are untouched
+            for (const fieldName of SearchUIUtils.SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+            expect(transaction.transactionID).toBe(transactionListItem.transactionID);
+            expect(transaction.reportID).toBe(transactionListItem.reportID);
+            expect(transaction.amount).toBe(transactionListItem.amount);
+            expect(transaction.merchant).toBe(transactionListItem.merchant);
         });
     });
 

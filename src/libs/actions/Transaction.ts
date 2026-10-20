@@ -41,6 +41,7 @@ import {
     isReportTotalPending,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import {getTransactionFromSearchItem} from '@libs/SearchUIUtils';
 import {
     getDistanceInMeters,
     hasSubmissionBlockingViolationInList,
@@ -1180,7 +1181,8 @@ function getChangeTransactionsReportOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                ...transaction,
+                // Callers can pass Search row items, whose display-only fields must not be saved on the real transaction
+                ...getTransactionFromSearchItem(transaction),
                 reportID,
                 comment,
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,

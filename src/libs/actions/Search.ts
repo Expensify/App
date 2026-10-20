@@ -69,7 +69,7 @@ import {
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {getExpenseReportIDs, getTransactionFromSearchItem, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -2683,11 +2683,10 @@ function setOptimisticDataForTransactionThreadPreview(
 
     // Set optimistic transaction
     if (!hasTransaction) {
-        const {formattedFrom, formattedMerchant, formattedTo, formattedTotal, date, ...restItem} = item;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: restItem,
+            value: getTransactionFromSearchItem(item),
         });
     }
 
