@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {CardLimitType, IssueNewCard, IssueNewCardData, UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, IssueNewCard, IssueNewCardData, IssueNewCardStep, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -1409,6 +1409,33 @@ function shouldShowPhoneNumberStep(issueNewCard: OnyxEntry<IssueNewCard>): boole
     return shouldShowShippingAddressStep(issueNewCard?.data) && !!issueNewCard?.data?.shippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true;
 }
 
+/** How many steps the shipping address and phone number add to the issue card flow */
+function getIssueNewCardShippingStepCount(issueNewCard: OnyxEntry<IssueNewCard>): number {
+    return Number(shouldShowShippingAddressStep(issueNewCard?.data)) + Number(shouldShowPhoneNumberStep(issueNewCard));
+}
+
+/** Where the issue card flow's progress indicator starts for the current step */
+function getIssueNewCardStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
+    if (!issueNewCard) {
+        return 0;
+    }
+
+    const STEP_INDEXES: Record<IssueNewCardStep, number> = {
+        [CONST.EXPENSIFY_CARD.STEP.ASSIGNEE]: 0,
+        [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
+        [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
+        [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
+        [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
+        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
+        [CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER]: 6,
+        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5 + getIssueNewCardShippingStepCount(issueNewCard),
+    };
+
+    const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
+    return issueNewCard.isChangeAssigneeDisabled ? stepIndex - 1 : stepIndex;
+}
+
 /** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
 type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
@@ -2631,6 +2658,8 @@ export {
     getDefaultCardName,
     shouldShowShippingAddressStep,
     shouldShowPhoneNumberStep,
+    getIssueNewCardShippingStepCount,
+    getIssueNewCardStartStepIndex,
     getCardNameError,
     getCardNameErrorMessage,
     getExpensifyCardLimitError,
