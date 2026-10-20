@@ -131,8 +131,22 @@ describe('HeaderView', () => {
     it('should go back to the Concierge chat when New chat is pressed in a Concierge thread', async () => {
         // Given the header of a thread that Concierge opened for a question
         const conciergeReportID = '10';
-        const threadReport = {...createRandomReport(11, undefined), parentReportID: conciergeReportID};
+        const questionAction: ReportAction = {
+            reportActionID: '100',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2024-06-01 10:00:00.000',
+            actorAccountID: currentUserAccountID,
+            childReportID: '11',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'How do I submit an expense?', text: 'How do I submit an expense?'}],
+        };
+        const threadReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: conciergeReportID,
+            parentReportActionID: questionAction.reportActionID,
+        };
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {[questionAction.reportActionID]: questionAction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
         await waitForBatchedUpdates();
         navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
