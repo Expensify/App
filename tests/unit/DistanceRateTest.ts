@@ -1,6 +1,12 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import {
+    deletePolicyDistanceRates,
+    enablePolicyDistanceRates,
+    setEmployeeWorkArrangement,
+    setPolicyDistanceRatesUnit,
+    setWorkspaceDistanceAutoUpdate,
+} from '@libs/actions/Policy/DistanceRate';
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
@@ -481,6 +487,183 @@ describe('DistanceRate', () => {
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+        });
+    });
+
+    describe('setPolicyDistanceRatesUnit', () => {
+        const customUnitID = '5A55C2B68DDCB';
+
+        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
+            return new Promise<Policy>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                    callback: (value) => {
+                        if (!value) {
+                            return;
+                        }
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+        }
+
+        afterEach(() => {
+            resetQueue();
+            return Onyx.clear();
+        });
+
+        it('optimistically updates the commuter exclusion unit without converting its distance', async () => {
+            // Given a fixed-distance commuter exclusion saved in miles
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(5),
+                customUnits: {[customUnitID]: customUnit},
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 5,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the workspace unit changes while the request is queued offline
+            pause();
+            setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}, policy.commuterExclusions);
+            await waitForBatchedUpdates();
+
+            // Then both displayed units update immediately while the configured distance stays unchanged
+            const optimisticPolicy = await getPolicyFromOnyx(policy.id);
+            expect(optimisticPolicy.customUnits?.[customUnitID].attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(optimisticPolicy.commuterExclusions).toMatchObject({
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 5,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
+            expect(optimisticPolicy.pendingFields?.commuterExclusions).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        });
+
+        it('clears the commuter exclusion pending state when changing the unit succeeds', async () => {
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const commuterExclusions = {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 5,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            };
+            const policy: Policy = {...createRandomPolicy(5), customUnits: {[customUnitID]: customUnit}, commuterExclusions};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            try {
+                setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}, commuterExclusions);
+                await waitForBatchedUpdates();
+            } finally {
+                global.fetch = originalFetch;
+            }
+
+            const updatedPolicy = await getPolicyFromOnyx(policy.id);
+            expect(updatedPolicy.commuterExclusions).toMatchObject({fixedDistance: 5, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS});
+            expect(updatedPolicy.pendingFields?.commuterExclusions).toBeUndefined();
+            expect(updatedPolicy.errorFields?.commuterExclusions).toBeUndefined();
+        });
+
+        it('restores the commuter exclusion unit and sets an error when changing the unit fails', async () => {
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const commuterExclusions = {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 5,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            };
+            const policy: Policy = {...createRandomPolicy(5), customUnits: {[customUnitID]: customUnit}, commuterExclusions};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            mockFetch.fail();
+            try {
+                setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}, commuterExclusions);
+                await waitForBatchedUpdates();
+            } finally {
+                global.fetch = originalFetch;
+            }
+
+            const revertedPolicy = await getPolicyFromOnyx(policy.id);
+            expect(revertedPolicy.commuterExclusions).toMatchObject({fixedDistance: 5, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            expect(revertedPolicy.pendingFields?.commuterExclusions).toBeUndefined();
+            expect(revertedPolicy.errorFields?.commuterExclusions).toBeDefined();
+        });
+
+        it('removes the optimistic commuter exclusion unit when the original unit was unset', async () => {
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const commuterExclusions = {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 5,
+            };
+            const policy: Policy = {...createRandomPolicy(5), customUnits: {[customUnitID]: customUnit}, commuterExclusions};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            mockFetch.fail();
+            try {
+                setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}, commuterExclusions);
+                await waitForBatchedUpdates();
+            } finally {
+                global.fetch = originalFetch;
+            }
+
+            const revertedPolicy = await getPolicyFromOnyx(policy.id);
+            expect(revertedPolicy.commuterExclusions).toMatchObject({fixedDistance: 5});
+            expect(revertedPolicy.commuterExclusions?.fixedDistanceUnit).toBeUndefined();
+            expect(revertedPolicy.errorFields?.commuterExclusions).toBeDefined();
+        });
+
+        it('does not update commuter exclusions when none are configured', async () => {
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const policy: Policy = {...createRandomPolicy(5), customUnits: {[customUnitID]: customUnit}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            pause();
+            setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getPolicyFromOnyx(policy.id);
+            expect(updatedPolicy.commuterExclusions).toBeUndefined();
+            expect(updatedPolicy.pendingFields?.commuterExclusions).toBeUndefined();
         });
     });
 

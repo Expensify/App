@@ -46,6 +46,7 @@ import {
     isChatThread,
     isDefaultRoom,
     isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isThreadMemberProtectedByParentReport,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -225,7 +226,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                isThreadMemberProtectedByParentReport(parentReport, accountID);
 
             result.push({
                 keyForList: String(accountID),
@@ -252,6 +254,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         isPolicyExpenseChat,
         localeCompare,
         openRoomMemberDetails,
+        parentReport,
         participants,
         personalDetails,
         policy,

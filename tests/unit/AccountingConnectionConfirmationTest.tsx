@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {getShowConfirmModalOption, MockModalActions, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -86,6 +87,17 @@ jest.mock('@hooks/useHasReusablePoliciesConnectedTo', () => ({
     default: () => false,
 }));
 
+let mockEnabledBetas: string[] = [];
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}));
+
+const mockEnablePolicyFeatureForConnection = jest.fn<void, [string | undefined, string]>();
+jest.mock('@userActions/Policy/Policy', () => ({
+    __esModule: true,
+    enablePolicyFeatureForConnection: (policyToEnable: Policy | undefined, featureName: string) => {
+        mockEnablePolicyFeatureForConnection(policyToEnable?.id, featureName);
+    },
+}));
+
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace'), id: POLICY_ID};
 
 const TestHarness = React.forwardRef<StartFlowHandle>((_props, ref) => {
@@ -96,10 +108,10 @@ const TestHarness = React.forwardRef<StartFlowHandle>((_props, ref) => {
     return null;
 });
 
-function renderProvider() {
+function renderProvider(providerPolicy: Policy = policy) {
     const ref = React.createRef<StartFlowHandle>();
     render(
-        <AccountingContextProvider policy={policy}>
+        <AccountingContextProvider policy={providerPolicy}>
             <TestHarness ref={ref} />
         </AccountingContextProvider>,
     );
@@ -308,5 +320,65 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         // workspace holding two accounting integrations at once
         expect(mockRemovePolicyConnection).not.toHaveBeenCalled();
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    describe('with the unified Connections beta', () => {
+        beforeEach(() => {
+            mockEnabledBetas = [CONST.BETAS.UNIFIED_CONNECTIONS];
+        });
+
+        afterEach(() => {
+            mockEnabledBetas = [];
+        });
+
+        it('should ask to replace the connected integration, naming the one that would be removed', async () => {
+            // Given a workspace with an accounting integration connected
+            const ref = renderProvider();
+
+            // When a flow that has to disconnect it first is started
+            await startFlowNeedingDisconnect(ref);
+
+            // Then the prompt is about replacing that connection, because Connections lists every integration side by side
+            expect(getShowConfirmModalOption('title')).toBe('workspace.connections.replaceConnectionTitle');
+            expect(getShowConfirmModalOption('prompt')).toBe(`workspace.connections.replaceConnectionPrompt:${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`);
+            expect(getShowConfirmModalOption('confirmText')).toBe('common.replace');
+            expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
+            expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('should name the connected Intuit Enterprise Suite when that is the connection being replaced', async () => {
+            // Given a workspace whose QuickBooks Online connection is the Intuit Enterprise Suite variant
+            const ref = renderProvider({
+                ...policy,
+                connections: createMock<Policy['connections']>({quickbooksOnline: {config: {credentials: {scope: CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE}}}}),
+            });
+
+            // When a different integration is started, which means replacing that connection
+            await act(async () => {
+                ref.current?.startIntegrationFlow({
+                    name: CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    shouldDisconnectIntegrationBeforeConnecting: true,
+                    integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            // Then the prompt names the suite rather than QuickBooks Online, so the user recognizes what they would lose
+            expect(getShowConfirmModalOption('prompt')).toBe('workspace.connections.replaceConnectionPrompt:workspace.accounting.intuitEnterpriseSuite');
+        });
+
+        it('should turn the Accounting feature on when a flow starts, since Connections has no toggle for it', async () => {
+            // Given a workspace with the Accounting feature off, which Connections has no toggle for
+            const ref = renderProvider({...policy, areConnectionsEnabled: false});
+
+            // When a connect flow is started
+            await act(async () => {
+                ref.current?.startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the feature is turned on without navigating away, so the integration can be used once it connects
+            expect(mockEnablePolicyFeatureForConnection).toHaveBeenCalledWith(POLICY_ID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        });
     });
 });
