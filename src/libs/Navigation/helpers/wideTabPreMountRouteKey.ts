@@ -67,6 +67,13 @@ function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {
     }
 }
 
+/** Clears every live pre-mount key, for each path that ends the live pre-mount. */
+function clearLiveWideTabPreMountKeys() {
+    setLiveWideTabPreMountRouteKey(undefined);
+    setLiveWideTabPreMountPreloadedRouteKey(undefined);
+    setLiveWideTabPreMountTabRouteKey(undefined);
+}
+
 /** True for a tab preload that an earlier pre-mount added and the live one does not own. */
 function isStaleWideTabPreMountPreloadedRouteKey(key: string): boolean {
     return preloadedRouteKeysAddedByPreMount.has(key) && key !== livePreloadedRouteKey;
@@ -81,4 +88,5 @@ export {
     isStaleWideTabPreMountRouteKey,
     setLiveWideTabPreMountPreloadedRouteKey,
     isStaleWideTabPreMountPreloadedRouteKey,
+    clearLiveWideTabPreMountKeys,
 };

@@ -10,7 +10,7 @@ import {CommonActions} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 
 import {isFullScreenName} from './isNavigatorName';
-import {markWideTabPreMountRouteKeyRevealed, setLiveWideTabPreMountPreloadedRouteKey, setLiveWideTabPreMountRouteKey, setLiveWideTabPreMountTabRouteKey} from './wideTabPreMountRouteKey';
+import {clearLiveWideTabPreMountKeys, markWideTabPreMountRouteKeyRevealed} from './wideTabPreMountRouteKey';
 
 type TabRoute = NavigationState['routes'][number];
 
@@ -173,9 +173,7 @@ function finishWideTabPreMountReveal(routeKey: string, modalRouteKey?: string) {
     }
     markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey, modalRouteKey);
     livePreMount = undefined;
-    setLiveWideTabPreMountRouteKey(undefined);
-    setLiveWideTabPreMountPreloadedRouteKey(undefined);
-    setLiveWideTabPreMountTabRouteKey(undefined);
+    clearLiveWideTabPreMountKeys();
 }
 
 /** Takes a pre-mount out again when the submit did not happen, restoring the destination tab. */
@@ -192,9 +190,7 @@ function cancelWideTabPreMount() {
     }
 
     // Cleared after the dispatch, so the screen stays unfrozen until the commit that removes it.
-    setLiveWideTabPreMountRouteKey(undefined);
-    setLiveWideTabPreMountPreloadedRouteKey(undefined);
-    setLiveWideTabPreMountTabRouteKey(undefined);
+    clearLiveWideTabPreMountKeys();
 }
 
 /** Forgets a pre-mount the reveal did not show. The replace has already removed its screen from the stack. */
@@ -203,9 +199,7 @@ function discardWideTabPreMount() {
         return;
     }
     livePreMount = undefined;
-    setLiveWideTabPreMountRouteKey(undefined);
-    setLiveWideTabPreMountPreloadedRouteKey(undefined);
-    setLiveWideTabPreMountTabRouteKey(undefined);
+    clearLiveWideTabPreMountKeys();
 }
 
 export {buildWideTabPreMount, buildCancelledWideTabPreMount, finishWideTabPreMountReveal, cancelWideTabPreMount, discardWideTabPreMount, isWideTabPreMountInTopFullscreen};
