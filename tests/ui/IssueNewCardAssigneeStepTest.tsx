@@ -4,6 +4,8 @@ import SelectionList from '@components/SelectionList';
 
 import AssigneeStep from '@pages/workspace/expensifyCard/issueNew/AssigneeStep';
 
+import {clearIssueNewCardAssigneePhoneNumber, setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -110,6 +112,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 jest.mock('@libs/actions/Report', () => ({searchUserInServer: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({goBack: jest.fn(), navigate: jest.fn()}));
 jest.mock('@userActions/Card', () => ({
+    clearIssueNewCardAssigneePhoneNumber: jest.fn(),
     clearIssueNewCardFlow: jest.fn(),
     getCardDefaultName: jest.fn(() => ''),
     setDraftInviteAccountID: jest.fn(),
@@ -118,6 +121,7 @@ jest.mock('@userActions/Card', () => ({
 
 type MockSelectionListProps = {
     data: Array<{value?: string; keyForList?: string; isSelected?: boolean; text?: string}>;
+    onSelectRow: (item: {login?: string; accountID?: number}) => void;
     initiallyFocusedItemKey?: string;
     shouldUpdateFocusedIndex?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
@@ -178,5 +182,43 @@ describe('IssueNewCard AssigneeStep', () => {
         const props = getSelectionListProps();
         // Below the threshold moveInitialSelectionToTop is a no-op, so the natural alphabetical order is preserved.
         expect(props?.data.at(0)?.value).toBe('user00@example.com');
+    });
+
+    it('forgets the shipping address and phone number check when the cardholder changes', () => {
+        // Given a flow where the admin already entered an address for user07
+        mockIssueNewCard = {
+            data: {
+                assigneeEmail: 'user07@example.com',
+                shippingAddress: {
+                    legalFirstName: 'User',
+                    legalLastName: 'Seven',
+                    addressStreet: '224 Main Street',
+                    addressCity: 'San Francisco',
+                    addressState: 'CA',
+                    addressZip: '94123',
+                    addressCountry: CONST.COUNTRY.US,
+                },
+            },
+            isEditing: false,
+        };
+        renderStep();
+
+        // When the admin picks the same cardholder again
+        act(() => {
+            getSelectionListProps()?.onSelectRow({login: 'user07@example.com', accountID: 7});
+        });
+
+        // Then the address and phone number check are kept
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).not.toHaveProperty('shippingAddress');
+        expect(clearIssueNewCardAssigneePhoneNumber).not.toHaveBeenCalled();
+
+        // When the admin picks a different cardholder
+        act(() => {
+            getSelectionListProps()?.onSelectRow({login: 'user03@example.com', accountID: 3});
+        });
+
+        // Then the address and phone number check, which were for user07, are cleared
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).toEqual(expect.objectContaining({assigneeEmail: 'user03@example.com', shippingAddress: null}));
+        expect(clearIssueNewCardAssigneePhoneNumber).toHaveBeenCalledWith(POLICY_ID);
     });
 });
