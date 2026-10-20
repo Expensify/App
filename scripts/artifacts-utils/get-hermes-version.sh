@@ -1,16 +1,9 @@
 #!/bin/bash
 
 # Prints the Hermes version our prebuilt artifacts are compiled against (e.g. `250829098.0.14`), read from
-# `sdks/hermes-engine/version.properties` exactly as upstream's own prebuild workflow does (see
-# `.github/workflows/prebuild-ios-core.yml` in facebook/react-native). It is the version `ios-prebuild.js` receives
-# through HERMES_VERSION, and the one the consuming app links through hermes-engine.podspec and the Gradle plugin.
-#
-# The published POM records this value so that the artifacts resolver can compare it with the Hermes the consuming
-# app links. The artifacts do not bundle a Hermes engine, but their React code is compiled against the ABI of one, so
-# an artifact built against a different Hermes is unusable. We cannot predict how upcoming upstream versions will
-# pick the Hermes version (which file, whether V1 stays opt-in), so this tag is the safeguard against silently
-# consuming artifacts built against the wrong ABI: on a mismatch the consumer falls back to a source build and
-# names both versions in its log, instead of failing at link time or at runtime.
+# `sdks/hermes-engine/version.properties` the way upstream's own prebuild workflow does (prebuild-ios-core.yml in
+# facebook/react-native). The publish workflows record it in the POM, and the artifacts resolver refuses an artifact
+# whose Hermes differs from the one the app links, so an artifact built against the wrong ABI is never used silently.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 readonly SCRIPT_DIR
