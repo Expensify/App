@@ -9713,6 +9713,7 @@ ${reportName}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `προστέθηκε συντελεστής «${rateName}» αξίας ${rateValue}, σε ισχύ έως ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `προστέθηκε συντελεστής «${rateName}» αξίας ${rateValue}, σε ισχύ από ${startDate} έως ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, με ${taxReclaimableAmount} ανακτήσιμο φόρο στο «${taxRateName}»`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `αφαίρεσε τον συντελεστή «${customUnitName}» «${rateName}»`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `άλλαξε την τιμή της μονάδας «${customUnitName}», της υποτιμής «${customUnitRateName}» του υποποσού «${customUnitSubRateName}», ${updatedField}, σε «${newValue}» (προηγουμένως «${oldValue}»)`,
