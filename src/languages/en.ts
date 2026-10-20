@@ -1333,6 +1333,11 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
@@ -2357,6 +2362,19 @@ const translations = {
                 }
 
                 return `Waiting for payment to complete${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
+                }
+
+                return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7887,6 +7905,12 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
+            exactOnline: {
+                comingSoon: 'Coming soon',
+                joinWaitlist: 'Join waitlist',
+                onWaitlist: 'You’re on the waitlist',
+                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
+            },
             setup: 'Connect',
             connectToSandbox: 'Connect to sandbox',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
@@ -10772,6 +10796,7 @@ const translations = {
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `set ${fieldName} to "${newValue}"`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `removed ${fieldName} (previously "${oldValue}")`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;

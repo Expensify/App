@@ -1159,6 +1159,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '比较',
             previousPeriod: '上一期',
             average: '平均',
+            dayLabel: (day?: number) => (day === undefined ? '天' : `第 ${day} 天`),
+            weekLabel: (week?: number) => (week === undefined ? '周' : `第 ${week} 周`),
+            monthLabel: (month?: number) => (month === undefined ? '月' : `第 ${month} 个月`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? '季度' : `第 ${quarter} 季度`),
+            yearLabel: (year?: number) => (year === undefined ? '年份' : `第 ${year} 年`),
             increase: (percentage: string) => `上升 ${percentage}`,
             decrease: (percentage: string) => `下降 ${percentage}`,
         },
@@ -2132,6 +2137,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
+                }
+                return `正在等待已取消的付款完成处理${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7173,6 +7190,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
+            exactOnline: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入候补名单',
+                onWaitlist: '您在候补名单中',
+                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
@@ -10058,6 +10081,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `将${fieldName}更改为“${newValue}”（先前为“${oldValue}”）`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `将 ${fieldName} 设置为“${newValue}”`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `已移除${fieldName}（先前为“${oldValue}”）`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（原为 ${fromPolicyName}）` : ''}`;

@@ -1227,6 +1227,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Porównaj',
             previousPeriod: 'Poprzedni okres',
             average: 'Średnia',
+            dayLabel: (day?: number) => (day === undefined ? 'Dzień' : `Dzień ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Tydzień' : `Tydzień ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Miesiąc' : `Miesiąc ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartał' : `Kwartał ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Rok' : `Rok ${year}`),
             increase: (percentage: string) => `Wzrost o ${percentage}`,
             decrease: (percentage: string) => `Spadek o ${percentage}`,
         },
@@ -2244,6 +2249,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `do ${eta}` : ` ${eta}`;
                 }
                 return `Oczekiwanie na zakończenie płatności${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` do ${eta}` : ` ${eta}`;
+                }
+                return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7459,6 +7476,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
+            exactOnline: {
+                comingSoon: 'Wkrótce dostępne',
+                joinWaitlist: 'Dołącz do listy oczekujących',
+                onWaitlist: 'Jesteś na liście oczekujących',
+                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
+            },
             setup: 'Połącz',
             connectToSandbox: 'Połącz z sandboxem',
             lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,
@@ -10474,6 +10497,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `zmieniono ${fieldName} na „${newValue}” (wcześniej „${oldValue}”)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `ustaw ${fieldName} na „${newValue}”`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `usunięto ${fieldName} (wcześniej „${oldValue}”)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `zmieniono przestrzeń roboczą${fromPolicyName ? `(wcześniej ${fromPolicyName})` : ''}`;

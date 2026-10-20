@@ -1198,6 +1198,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Comparar',
             previousPeriod: 'Periodo anterior',
             average: 'Promedio',
+            dayLabel: (day?: number) => (day === undefined ? 'Día' : `Día ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semana' : `Semana ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mes' : `Mes ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Año' : `Año ${year}`),
             increase: (percentage: string) => `Sube ${percentage}`,
             decrease: (percentage: string) => `Baja ${percentage}`,
         },
@@ -2135,6 +2140,13 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` para el ${eta}` : ` ${eta}`;
                 }
                 return `Esperando a que se complete el pago${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (_actor, _actorType, eta, etaType) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` para el ${eta}` : ` ${eta}`;
+                }
+                return `Esperando a que termine de procesarse el pago cancelado${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_actor, _actorType, _eta, _etaType) =>
                 `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
@@ -7288,6 +7300,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             errorODIntegration: (oldDotPolicyConnectionsURL) =>
                 `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
+            exactOnline: {
+                comingSoon: 'Próximamente',
+                joinWaitlist: 'Unirse a la lista de espera',
+                onWaitlist: 'Estás en la lista de espera',
+                waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
+            },
             setup: 'Configurar',
             connectToSandbox: 'Conectar con Sandbox',
             lastSync: (relativeDate) => `Recién sincronizado ${relativeDate}`,
@@ -10348,6 +10366,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue, newValue, fieldName) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: (newValue, fieldName) => `estableció ${fieldName} a ${newValue}`,
+                changeFieldRemoved: (oldValue, fieldName) => `eliminó ${fieldName} (previamente "${oldValue}")`,
                 changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;

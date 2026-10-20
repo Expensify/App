@@ -1194,6 +1194,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '比較',
             previousPeriod: '前の期間',
             average: '平均',
+            dayLabel: (day?: number) => (day === undefined ? '日' : `${day}日目`),
+            weekLabel: (week?: number) => (week === undefined ? '週' : `${week}週目`),
+            monthLabel: (month?: number) => (month === undefined ? '月' : `${month}か月目`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? '四半期' : `第${quarter}四半期`),
+            yearLabel: (year?: number) => (year === undefined ? '年' : `${year}年目`),
             increase: (percentage: string) => `${percentage} 増加`,
             decrease: (percentage: string) => `${percentage} 減少`,
         },
@@ -2192,6 +2197,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}までに` : ` ${eta}`;
                 }
                 return `支払いの完了を待機しています${formattedETA}。`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}までに` : ` ${eta}`;
+                }
+                return `キャンセルされた支払いの処理完了を待機しています${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7359,6 +7376,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
+            exactOnline: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -10338,6 +10361,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `${fieldName} を「${newValue}」（以前は「${oldValue}」）に変更しました`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `${fieldName} を「${newValue}」に設定`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `${fieldName} を削除しました（以前は「${oldValue}」）`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ワークスペース${fromPolicyName ? `（以前は${fromPolicyName}）` : ''}を変更しました`;

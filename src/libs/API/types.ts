@@ -786,6 +786,7 @@ const WRITE_COMMANDS = {
     SET_DEFAULT_DOMAIN_SECURITY_GROUP: 'SetDefaultDomainSecurityGroup',
     DELETE_DOMAIN_SECURITY_GROUP: 'DeleteDomainSecurityGroup',
     CREATE_AGENT: 'CreateAgent',
+    CREATE_COMPANY_AGENT: 'CreateCompanyAgent',
     CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
@@ -1610,6 +1611,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP]: Parameters.SetDefaultDomainSecurityGroupParams;
     [WRITE_COMMANDS.DELETE_DOMAIN_SECURITY_GROUP]: Parameters.DeleteDomainSecurityGroupParams;
     [WRITE_COMMANDS.CREATE_AGENT]: Parameters.CreateAgentParams;
+    [WRITE_COMMANDS.CREATE_COMPANY_AGENT]: Parameters.CreateCompanyAgentParams;
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
