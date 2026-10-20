@@ -138,6 +138,25 @@ describe('BulkActionStatusManager', () => {
         expect(screen.getByText('bulkAction.heldTitle')).toBeTruthy();
     });
 
+    it('waits for the menu that started the bulk action to close before showing it', async () => {
+        // Given a bulk pay that just started while the Pay menu is still closing
+        await Onyx.set(ONYXKEYS.MODAL, {isVisible: true, isPopover: true});
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY});
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing opens yet, since iOS can't open a modal on top of one that is closing
+        expect(screen.queryByText('bulkAction.payingTitle')).toBeNull();
+
+        // When the menu has closed
+        await Onyx.set(ONYXKEYS.MODAL, {isVisible: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bulk pay shows
+        expect(screen.getByText('bulkAction.payingTitle')).toBeTruthy();
+    });
+
     it('says so when no report matched', async () => {
         // Given a bulk pay that found no report to mark as paid
         await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, total: 0});
