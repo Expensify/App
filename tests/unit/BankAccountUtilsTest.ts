@@ -5,6 +5,7 @@ import {
     getDefaultCompanyWebsite,
     getLastFourDigits,
     getRequiredKYBDocuments,
+    getWiseGlobalReimbursementsBannerBankAccountID,
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
@@ -812,6 +813,66 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('getWiseGlobalReimbursementsBannerBankAccountID', () => {
+        const buildBankAccount = (bankAccountID: number, created: string, overrides: Partial<AccountData> = {}) => ({
+            accountData: {
+                bankAccountID,
+                created,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {currency: CONST.CURRENCY.USD},
+                ...overrides,
+            },
+        });
+
+        it('returns the most recently added eligible account', () => {
+            // Given two eligible accounts where the lower ID was added later
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-03-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the newest one by creation date wins, since the spec defaults the banner to the most recently added account
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('skips accounts that are not eligible', () => {
+            // Given a newer personal account and an older eligible business account
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-05-01 10:00:00', {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then only the eligible account is considered, so the banner never opens an intro page that would show not-found
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('falls back to the higher ID when creation dates match', () => {
+            // Given two eligible accounts created at the same time
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-05-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the higher ID wins, since IDs grow with each newly added account
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(2);
+        });
+
+        it('returns undefined when no account is eligible', () => {
+            // Given only an account already set up for global reimbursements
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00', {additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}}),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then nothing is returned, so the banner stays hidden
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
         });
     });
 });

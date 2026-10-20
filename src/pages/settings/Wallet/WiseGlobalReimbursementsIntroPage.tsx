@@ -11,6 +11,7 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isEligibleForWiseGlobalReimbursements} from '@libs/BankAccountUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -80,7 +81,10 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     onSecondaryButtonPress={goBackToWallet}
                     shouldShowButton
                     buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                    onButtonPress={() => {}}
+                    onButtonPress={() => {
+                        // Starting onboarding for any account retires the Wallet banner for good
+                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                    }}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

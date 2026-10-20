@@ -148,6 +148,31 @@ function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefi
     );
 }
 
+/**
+ * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
+ */
+function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    const eligibleAccounts = Object.values(bankAccountList ?? {})
+        .map((bankAccount) => bankAccount.accountData)
+        .filter((accountData): accountData is AccountData => isEligibleForWiseGlobalReimbursements(accountData) && !!accountData?.bankAccountID);
+
+    const newestAccount = eligibleAccounts.reduce<AccountData | undefined>((newest, accountData) => {
+        if (!newest) {
+            return accountData;
+        }
+        // `created` is a DB timestamp, so plain string comparison orders it chronologically
+        const created = accountData.created ?? '';
+        const newestCreated = newest.created ?? '';
+        if (created !== newestCreated) {
+            return created > newestCreated ? accountData : newest;
+        }
+        // Accounts created in the same second fall back to the ID, which grows with each new account
+        return (accountData.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > (newest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) ? accountData : newest;
+    }, undefined);
+
+    return newestAccount?.bankAccountID;
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -313,6 +338,7 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isEligibleForWiseGlobalReimbursements,
+    getWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
