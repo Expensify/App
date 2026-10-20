@@ -452,6 +452,7 @@ function setNewRulePromptError(state: GeneratedRuleState) {
     setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
 }
 
+/** Shows an error on the prompt form */
 function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         isLoading: false,

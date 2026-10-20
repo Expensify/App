@@ -2,8 +2,6 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
-import type * as SpendRulesUtils from '@libs/SpendRulesUtils';
-
 import SpendRuleCardPage from '@pages/workspace/rules/SpendRules/SpendRuleCardPage';
 
 import CONST from '@src/CONST';
@@ -105,10 +103,6 @@ jest.mock('@libs/CardUtils', () => ({
 }));
 jest.mock('@libs/OptionsListUtils', () => ({getHeaderMessage: () => ''}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({temporaryGetDisplayNameOrDefault: () => ''}));
-jest.mock('@libs/SpendRulesUtils', () => ({
-    ...jest.requireActual<typeof SpendRulesUtils>('@libs/SpendRulesUtils'),
-    getSpendRuleFormValuesFromCardRule: () => ({cardIDs: []}),
-}));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/User', () => ({updateDraftSpendRule: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({openPolicyExpensifyCardsPage: jest.fn()}));
