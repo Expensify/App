@@ -129,14 +129,12 @@ function IOURequestEditReportCommon({
 
     const outstandingReportsPolicyID = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport) ? undefined : selectedPolicyID;
     const outstandingReportsOffset = useRef(0);
-    const isLoadingMoreOutstandingReports = useRef(false);
     const loadOutstandingReports = useCallback(() => {
         // The list is empty when the expenses have several submitters, so there is nothing to load for it
         if (hasMultipleSubmitters) {
             return;
         }
         outstandingReportsOffset.current = 0;
-        isLoadingMoreOutstandingReports.current = false;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, 0);
     }, [hasMultipleSubmitters, resolvedReportOwnerAccountID, outstandingReportsPolicyID]);
 
@@ -144,22 +142,13 @@ function IOURequestEditReportCommon({
         loadOutstandingReports();
     }, [loadOutstandingReports]);
 
-    useEffect(() => {
-        if (isLoadingOutstandingReports) {
-            return;
-        }
-        isLoadingMoreOutstandingReports.current = false;
-    }, [isLoadingOutstandingReports]);
-
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
 
     const loadMoreOutstandingReports = () => {
-        // The loading flag only updates after a render, so the ref also blocks a second end-reached event fired before that
-        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isLoadingMoreOutstandingReports.current || isOffline) {
+        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
             return;
         }
-        isLoadingMoreOutstandingReports.current = true;
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
