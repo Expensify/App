@@ -1,7 +1,7 @@
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {activatePhysicalExpensifyCard, issueExpensifyCard, openIssueNewCardShippingAddressStep} from '@src/libs/actions/Card';
+import {activatePhysicalExpensifyCard, clearIssueNewCardAssigneePhoneNumber, issueExpensifyCard, openIssueNewCardShippingAddressStep} from '@src/libs/actions/Card';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {openPolicyExpensifyCardsPage} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +41,18 @@ function getCardSettingsForFund(key: typeof unresolvedFundSettingsKey | typeof w
     return new Promise<OnyxEntry<ExpensifyCardSettings>>((resolve) => {
         const connection = Onyx.connect({
             key,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
+}
+
+function getIssueNewCard() {
+    return new Promise<OnyxEntry<IssueNewCard>>((resolve) => {
+        const connection = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             callback: (value) => {
                 Onyx.disconnect(connection);
                 resolve(value);
@@ -203,17 +215,24 @@ describe('actions/PolicyExpensifyCard', () => {
             await waitForBatchedUpdates();
 
             // Then the phone number step isn't added to the steps while the check is still loading
-            const issueNewCard = await new Promise<OnyxEntry<IssueNewCard>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const issueNewCard = await getIssueNewCard();
             expect(issueNewCard?.hasAssigneePhoneNumber).toBe(true);
             await mockFetch.resume();
+        });
+    });
+
+    describe('clearIssueNewCardAssigneePhoneNumber', () => {
+        it('forgets whether the previous cardholder had a phone number', async () => {
+            // Given the flow already knows the previous cardholder has a phone number
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {hasAssigneePhoneNumber: true});
+
+            // When the admin picks a different cardholder
+            clearIssueNewCardAssigneePhoneNumber(policyID);
+            await waitForBatchedUpdates();
+
+            // Then the answer is cleared, so the new cardholder is checked again instead of skipping the phone number step
+            const issueNewCard = await getIssueNewCard();
+            expect(issueNewCard?.hasAssigneePhoneNumber).toBeUndefined();
         });
     });
 
