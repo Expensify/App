@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* eslint max-lines: off */
 
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
