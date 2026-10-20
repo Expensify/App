@@ -6,6 +6,7 @@ import {useTableContext} from '@components/Table/TableContext';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {formatMaskedCardName} from '@libs/CardUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 
 import CONST from '@src/CONST';
@@ -41,16 +43,6 @@ type WorkspaceCompanyCardsTableControlsProps = {
     isSelectionModeEnabled: boolean;
 };
 
-const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
-
-function escapeCsvField(value: string): string {
-    const safeValue = CSV_FORMULA_PREFIX_REGEXP.test(value) ? `'${value}` : value;
-    if (safeValue.includes('"') || safeValue.includes(',') || safeValue.includes('\n') || safeValue.includes('\r')) {
-        return `"${safeValue.replaceAll('"', '""')}"`;
-    }
-    return safeValue;
-}
-
 function WorkspaceCompanyCardsTableControls({
     policyID,
     domainOrWorkspaceAccountID,
@@ -60,6 +52,7 @@ function WorkspaceCompanyCardsTableControls({
     isSelectionModeEnabled,
 }: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
@@ -184,7 +177,7 @@ function WorkspaceCompanyCardsTableControls({
     return (
         <>
             {shouldShowBulkActions && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
+                <View style={[styles.w100, pageGutter, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}

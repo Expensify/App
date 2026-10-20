@@ -2,6 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -12,9 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserPill from '@components/UserPill';
 
-import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -34,21 +34,22 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
-    areApprovalsEnabled,
+    arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
-    getReimburserEmail,
+    hasActiveExpensifyCard,
     isControlPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -56,9 +57,8 @@ import {
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {generateAccountID} from '@libs/UserUtils';
-import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
-import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,7 +76,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -98,23 +98,6 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/**
- * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
- * personal details once the invite request finishes and the backend supplies the real accountID. A member details page opened
- * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
- * so the page keeps resolving the member across that swap.
- */
-function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
-    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
-    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
-    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
-    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
-    if (primaryLoginOfInvitedSecondary) {
-        return primaryLoginOfInvitedSecondary;
-    }
-    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
-}
-
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -124,13 +107,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
-    const {formatPhoneNumber, translate, toLocaleOrdinalWithWords} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -140,7 +124,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const routeAccountID = Number(route.params.accountID);
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
@@ -157,14 +141,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
-    const reimburserEmail = getReimburserEmail(policy);
-    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const isReimburser = isPolicyReimburser(policy, memberLogin);
+    const isExpensifyCardholder = hasActiveExpensifyCard(policy, memberLogin);
     // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
@@ -172,49 +156,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
-
-    // The label follows this member's own workflow depth, not the workspace's.
-    const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
-    const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
-    const isApprovalsEnabled = areApprovalsEnabled(policy);
-    // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
-    // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
-    const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
-    // A member at the top of their own chain approves themselves, the workspace owner being the common case.
-    const isSelfApprovingMember = !!memberFirstApprover && memberFirstApprover.email === memberLogin;
-    const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
-
-    const openMemberApprovalWorkflow = () => {
-        // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-        clearApprovalWorkflow();
-
-        // The editor opens the whole workflow, so a self-approving member has to start their own rather than edit the
-        // one they approve, which would let an admin reassign everyone else on it.
-        if (memberFirstApprover?.email && !isSelfApprovingMember) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
-            return;
-        }
-
-        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is.
-        const backTo = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
-        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, backTo)) {
-            return;
-        }
-
-        if (!isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
-            return;
-        }
-
-        setApprovalWorkflow({
-            ...INITIAL_APPROVAL_WORKFLOW,
-            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
-            availableMembers,
-            usedApproverEmails,
-        });
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    };
+    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+        currentUserLogin,
+    });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
@@ -225,6 +172,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberCards = workspaceCards
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
+
+    const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
+    const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
+    const memberBankNameKey = Object.values(CONST.BANK_NAMES).find((bankName) => bankName === memberBankAccount?.bankName?.toLowerCase());
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- the bank name can be an empty string
+    const memberBankName = memberBankNameKey ? CONST.BANK_NAMES_USER_FRIENDLY[memberBankNameKey] : memberBankAccount?.bankName || translate('common.bankAccount');
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -239,7 +192,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (isReimburser) {
+    if (isExpensifyCardholder) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
+            memberName: displayName,
+        });
+    } else if (isReimburser) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
             memberName: displayName,
         });
@@ -278,11 +235,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
+        // Fall back to the policy owner, so submitters are still reassigned when personal details aren't loaded.
+        const ownerEmail = ownerDetails?.login ?? policy?.owner;
 
         // If the user is not an approver, proceed with member removal
-        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!memberLogin || !isPolicyApprover(policy, memberLogin) || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -290,7 +247,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
-            removedApprover,
+            removedApproverEmail: memberLogin,
+            ownerEmail,
             ownerDetails,
         });
 
@@ -328,7 +286,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             showRuleBotGuardModal('remove', policyID);
             return;
         }
-        if (isReimburser) {
+        if (isExpensifyCardholder || isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
@@ -343,7 +301,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const navigateToProfile = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, undefined, policyID)));
     };
 
     const navigateToDetails = (card: MemberCard) => {
@@ -458,29 +416,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
-                            {isApprovalsEnabled && (
-                                <OfflineWithFeedback pendingAction={member?.pendingFields?.submitsTo}>
-                                    <MenuItemWithTopDescription
-                                        description={approverLabel}
-                                        titleComponent={
-                                            memberFirstApprover ? (
-                                                <View style={styles.pr3}>
-                                                    <UserPill
-                                                        avatar={memberFirstApprover.avatar}
-                                                        displayName={memberFirstApprover.displayName}
-                                                        email={memberFirstApprover.email}
-                                                        style={styles.userPillStandalone}
-                                                    />
-                                                </View>
-                                            ) : undefined
-                                        }
-                                        shouldShowRightIcon={shouldAllowApproverEdit}
-                                        interactive={shouldAllowApproverEdit}
-                                        onPress={openMemberApprovalWorkflow}
-                                        pressableTestID="member-approver-menu-item"
-                                    />
-                                </OfflineWithFeedback>
-                            )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
                                     disabled={!canWriteMembers}
@@ -569,6 +504,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
+                                </>
+                            )}
+                            {!!memberBankAccount?.bankAccountLastFour && (
+                                <>
+                                    <View style={[styles.ph5, styles.pt3, styles.pb1]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('common.bankAccount')}
+                                        </Text>
+                                    </View>
+                                    <MenuItem.Root>
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <Icon
+                                                    src={memberBankIcon.icon}
+                                                    width={memberBankIcon.iconSize}
+                                                    height={memberBankIcon.iconSize}
+                                                    additionalStyles={memberBankIcon.iconStyles}
+                                                />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{memberBankName}</MenuItem.Title>
+                                                <MenuItem.Description>{memberBankAccount.bankAccountLastFour}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </>
                             )}
                         </View>

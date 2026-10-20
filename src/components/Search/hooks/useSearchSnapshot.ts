@@ -5,7 +5,6 @@ import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
@@ -14,13 +13,11 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -30,6 +27,7 @@ import {useMemo} from 'react';
 
 import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
+import useSearchColumnsToShow from './useSearchColumnsToShow';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
@@ -91,7 +89,6 @@ type UseSearchSnapshotParams = {
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
-const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
 
@@ -149,8 +146,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
@@ -189,7 +184,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     // There's a race condition in Onyx which makes it return data from the previous Search, so in
     // addition to checking that the data is loaded we also check that the snapshot matches the query.
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
 
     // Mirror the legacy `<Search>` gate: skip the heavy projection while deferring, before data is
     // loaded, or for the invalid group-by-on-chat/task combo. Drives every stage below.
@@ -373,23 +367,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     // Not memoized: unlike the data chain above, `columns` is not part of the render loop, and its
     // reference is already stabilized downstream by `columnsToShow` in <Search> (which preserves the
     // previous array when contents are equal). The compiler leaves this fresh per render, which is fine.
-    const columns = ((): SearchColumnType[] => {
-        if (!searchResults?.data) {
-            return EMPTY_COLUMNS;
-        }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults.data,
-            visibleColumns,
-            type: searchDataType,
-            groupBy: validGroupBy,
-            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            fallbackPolicyID: policyForMovingExpensesID,
-            sortBy: queryJSON.sortBy,
-            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
-            isVendorColumnAvailable,
-        });
-    })();
+    const columns = useSearchColumnsToShow(queryJSON, searchResults);
 
     // Non-grouped views are always fully loaded; grouped views require every group's sub-snapshot to
     // report no further results.

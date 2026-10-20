@@ -1,25 +1,24 @@
-import type {SelectionListProps} from '@components/SelectionList/types';
-
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 
 import {isMobileChrome} from '@libs/Browser';
-import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
 import React from 'react';
 
-import type {ExtendedTargetedEvent, ListItem, ListItemProps} from './types';
+import type {ExtendedTargetedEvent, ListItem, ListItemComponent, ListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<ListItemProps<TItem>, 'onSelectRow'> &
-    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
-        index: number;
-        normalizedIndex?: number;
-        selectRow: (item: TItem, indexToFocus?: number) => void;
-        setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
-        singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
-    };
+type ListItemRendererProps<TItem extends ListItem> = Omit<ListItemProps<TItem>, 'onSelectRow'> & {
+    ListItem: ListItemComponent<TItem>;
+    index: number;
+    normalizedIndex?: number;
+    shouldIgnoreFocus?: boolean;
+    shouldSingleExecuteRowSelect?: boolean;
+    selectRow: (item: TItem, indexToFocus?: number) => void;
+    setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
+    singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
+};
 
 function ListItemRenderer<TItem extends ListItem>({
     ListItem,
@@ -30,48 +29,31 @@ function ListItemRenderer<TItem extends ListItem>({
     isDisabled,
     showTooltip,
     canSelectMultiple,
-    onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
     onSelectionButtonPress,
     onDismissError,
-    isMultilineSupported,
-    isAlternateTextMultilineSupported,
+    titleNumberOfLines,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
     shouldSyncFocus,
-    titleNumberOfLines,
-    wrapperStyle,
-    titleStyles,
     singleExecution,
-    titleContainerStyles,
-    shouldHighlightSelectedItem,
     isFocusVisible,
     shouldDisableHoverStyle,
     selectionButtonPosition,
-    errorRowStyles,
     isFirstItem,
     isLastItem,
     shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
-    const handleOnSelectionButtonPress = () => {
-        if (isTransactionGroupListItemType(item)) {
-            return onSelectionButtonPress;
-        }
-        return onSelectionButtonPress ? () => onSelectionButtonPress(item) : undefined;
-    };
-
     return (
         <>
             <ListItem
                 item={item}
-                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onLongPressRow={onLongPressRow}
                 onSelectRow={() => {
                     if (shouldSingleExecuteRowSelect) {
                         singleExecution(() => selectRow(item, index))();
@@ -79,13 +61,11 @@ function ListItemRenderer<TItem extends ListItem>({
                         selectRow(item, index);
                     }
                 }}
-                onSelectionButtonPress={handleOnSelectionButtonPress()}
+                onSelectionButtonPress={onSelectionButtonPress ? () => onSelectionButtonPress(item) : undefined}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-                isMultilineSupported={isMultilineSupported}
-                isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
-                alternateTextNumberOfLines={alternateTextNumberOfLines}
                 titleNumberOfLines={titleNumberOfLines}
+                alternateTextNumberOfLines={alternateTextNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
@@ -97,11 +77,6 @@ function ListItemRenderer<TItem extends ListItem>({
                     setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
-                wrapperStyle={wrapperStyle}
-                titleStyles={titleStyles}
-                titleContainerStyles={titleContainerStyles}
-                errorRowStyles={errorRowStyles}
-                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 isFocusVisible={isFocusVisible}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 selectionButtonPosition={selectionButtonPosition}

@@ -104,14 +104,16 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -132,6 +134,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       allPolicies,
                       {
                           currentUserAccountID,
+                          currentUserLogin,
+                          transactionThreadIDs,
+                          lastActions,
                           dateFnsLocale,
                           convertToDisplayString,
                           conciergeReportID,
@@ -141,6 +146,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           deferContactsUntilSearch,
                           locale: preferredLocale,
                           pendingDeleteMemberAccountIDsByReportID,
+                          formatPhoneNumber,
                       },
                       rules,
                       undefined,
@@ -164,11 +170,15 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             deferContactsUntilSearch,
             preferredLocale,
             isTrackIntentUser,
+            currentUserLogin,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
             currentUserAccountID,
             pendingDeleteMemberAccountIDsByReportID,
             dateFnsLocale,
             convertToDisplayString,
+            formatPhoneNumber,
         ],
     );
 
