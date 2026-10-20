@@ -30,7 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -77,13 +77,17 @@ type MergeSetupFlow = {
     key: number;
 };
 
-/** HR and recruiting providers are Control-only, so their data is only requested for Control workspaces */
+/**
+ * HR and recruiting providers are Control-only, so their data is only requested for Control workspaces. Other workspaces
+ * fetch the accounting data here instead, so connecting an integration doesn't replace the page with a loader.
+ */
 function fetchConnectionsData(policyID: string | undefined, canUseMergeConnections: boolean, isRecruitingBetaEnabled: boolean) {
     if (!policyID) {
         return;
     }
     openPolicyReceiptPartnersPage(policyID);
     if (!canUseMergeConnections) {
+        openPolicyAccountingPage(policyID);
         return;
     }
     openPolicyHRPage(policyID);
