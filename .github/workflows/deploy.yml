@@ -879,7 +879,7 @@ jobs:
           aws s3 cp dist s3://new-expensify-web-assets-staging/ --recursive \
             --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
             --no-progress \
-            --exclude '*.br' --exclude '*.map'
+            --exclude '*.map'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY }}
