@@ -13,6 +13,8 @@ import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 import ValuePicker from '@components/ValuePicker';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {DynamicFieldInput, DynamicFieldInputProps, DynamicFieldRenderer, DynamicFieldRendererMap} from './types';
@@ -22,18 +24,21 @@ type InlineChoiceOptions = {
     isSearchable: boolean;
 };
 
-/** Above this many options a choice opens a searchable list instead of showing every option at once */
-const LONG_CHOICE_LIST_THRESHOLD = 8;
-
 function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
     return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
 }
 
-/** A lone choice field is the page itself: its options are listed inline, and the page title asks the question */
-function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, {canSelectMultiple, isSearchable}: InlineChoiceOptions): DynamicFieldInput {
+/** A lone choice field is the page itself: its options are listed inline under its question, which a page without its own title shows as its title instead */
+function renderInlineChoice(
+    label: string,
+    choices: Choice[],
+    inputProps: DynamicFieldInputProps<string | string[]>,
+    {canSelectMultiple, isSearchable}: InlineChoiceOptions,
+): DynamicFieldInput {
     const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
+        labelAbove: 'heading',
         input: (
             <InputWrapper
                 InputComponent={InlineSelectionListAdapter}
@@ -46,10 +51,10 @@ function renderInlineChoice(label: string, choices: Choice[], inputProps: Dynami
     };
 }
 
-function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, isLoneField: boolean): DynamicFieldInput {
+function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps<string>, isLoneField: boolean): DynamicFieldInput {
     return {
         isMenuRow: false,
-        labelAbove: isLoneField ? undefined : 'prompt',
+        labelAbove: isLoneField ? 'heading' : 'prompt',
         input: (
             <InputWrapper
                 InputComponent={TabsAdapter}
@@ -65,7 +70,7 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
     const label = getFieldLabel(field, translate);
     const choices = getFieldChoices(field, values, translate);
     if (isLoneField) {
-        return renderInlineChoice(label, choices, inputProps, {canSelectMultiple: true, isSearchable: choices.length > LONG_CHOICE_LIST_THRESHOLD});
+        return renderInlineChoice(label, choices, inputProps, {canSelectMultiple: true, isSearchable: choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS});
     }
     return {
         isMenuRow: true,
@@ -89,7 +94,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
     select: (field, {values, translate, isLoneField}, inputProps) => {
         const label = getFieldLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
-        const isLong = choices.length > LONG_CHOICE_LIST_THRESHOLD;
+        const isLong = choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS;
         if (field.presentation === 'tabs') {
             return renderTabs(label, choices, inputProps, isLoneField);
         }
@@ -131,7 +136,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         }
         return {
             isMenuRow: true,
-            labelAbove: isLoneField ? undefined : 'prompt',
+            labelAbove: isLoneField ? 'heading' : 'prompt',
             input: (
                 <InputWrapper
                     InputComponent={RadioButtons}
@@ -164,6 +169,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         if (isLoneField) {
             return {
                 isMenuRow: true,
+                labelAbove: 'heading',
                 input: (
                     <InputWrapper
                         InputComponent={CurrencyInlineListAdapter}
@@ -184,9 +190,10 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         };
     },
     boolean: (field, {translate, isLoneField}, inputProps) => {
-        if (isLoneField) {
+        if (field.presentation !== 'checkbox') {
             return {
                 isMenuRow: true,
+                labelAbove: isLoneField ? 'heading' : 'prompt',
                 input: (
                     <InputWrapper
                         InputComponent={YesNoAdapter}

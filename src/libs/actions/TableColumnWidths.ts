@@ -1,15 +1,18 @@
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import Onyx from 'react-native-onyx';
 
-/** Persists a dragged column's width once the drag ends. The drag itself only touches CSS. */
-function setTableColumnWidth(columnResizingID: string, columnKey: string, width: number) {
-    Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: {[columnKey]: width}});
+/** Saves the layout once a drag ends, since mid-drag widths only live in CSS. */
+function setTableColumnWidths(columnResizingID: string, storedTableColumnWidths: StoredTableColumnWidths) {
+    // Clearing first makes Onyx replace the layout rather than deep merge it, so columns missing from it don't linger.
+    Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: null});
+    Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: storedTableColumnWidths});
 }
 
-/** Hands a column back to being sized from its content. */
-function clearTableColumnWidth(columnResizingID: string, columnKey: string) {
-    Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: {[columnKey]: null}});
+/** Drops the saved layout, so the columns are sized from their content again. */
+function clearTableColumnWidths(columnResizingID: string) {
+    Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: null});
 }
 
-export {clearTableColumnWidth, setTableColumnWidth};
+export {clearTableColumnWidths, setTableColumnWidths};

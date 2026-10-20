@@ -1,4 +1,4 @@
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type React from 'react';
 
@@ -9,23 +9,29 @@ type UseColumnResizeParams = {
     /** Keys of the columns whose right edge the user can drag. */
     resizableColumnKeys: string[];
 
+    /** The dragged column's width and its absorbers' widths, painted mid-drag. */
+    getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
+
     /** Each column's resolved width, which a drag starts from. A new object means React rendered new widths. */
     resolvedColumnWidths: Record<string, number>;
 
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
+    /** Layout to save when dragging `columnKey` ends, from the painted widths. `undefined` when no column is resizable. */
+    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths;
+
+    /** Layout to save once resetting `columnKey` hands it back to content sizing, or `null` when no dragged column is left. */
+    getResetTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths | null;
+
     /** Width that fits each column's content, which a click on its edge sizes it to. */
     fitColumnWidths?: Record<string, number>;
 
-    /** Widths the user already gave this table's columns. */
-    columnWidthOverrides?: ColumnWidthOverrides;
-
-    /** Gap between columns, so handles can be centred in it. */
+    /** Gap between columns, which handles span. */
     columnGap: number;
 };
 
-type ColumnResizeHandleDOMProps = React.HTMLAttributes<HTMLDivElement>;
+type ColumnResizeHandleDOMProps = React.ComponentPropsWithRef<'div'>;
 
 type ColumnResizeController = {
     /** Element holding the width custom properties. The header and rows inherit them, so one write repaints all. */
