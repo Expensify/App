@@ -1,6 +1,10 @@
 import {render, screen} from '@testing-library/react-native';
 
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
+import type {WorkspaceCompanyCardTableItemData} from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow';
+
+import {formatMaskedCardName} from '@libs/CardUtils';
+import localFileDownload from '@libs/localFileDownload';
 
 import React from 'react';
 
@@ -16,7 +20,7 @@ type MockButtonProps = {
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
-let mockProcessedData: Array<{selected?: boolean; disabled?: boolean; isAssigned?: boolean; assignedCard?: {cardID: number}}> = [];
+let mockProcessedData: Array<Partial<WorkspaceCompanyCardTableItemData> & {selected?: boolean}> = [];
 let mockShouldUseNarrowLayout = true;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -136,5 +140,18 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsBulkActions')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsFilterBar')).toBeTruthy();
+    });
+
+    it('exports formula-like card names as quoted text', async () => {
+        // Given a selected company card with a formula-like custom name
+        mockProcessedData = [{selected: true, isAssigned: true, cardName: 'card123', customCardName: '=SUM(1,2)', cardholder: {accountID: 1, login: 'alex@example.com'}}];
+        jest.mocked(formatMaskedCardName).mockReturnValue('1234');
+        renderControls(true);
+
+        // When the CSV export action is selected
+        mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
+
+        // Then the existing export still uses one safe text cell for the card name
+        expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));
     });
 });

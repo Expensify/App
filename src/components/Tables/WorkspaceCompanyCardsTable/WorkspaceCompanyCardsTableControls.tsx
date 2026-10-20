@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {formatMaskedCardName} from '@libs/CardUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -44,16 +45,6 @@ type WorkspaceCompanyCardsTableControlsProps = {
     /** Whether the narrow-layout selection mode is active */
     isSelectionModeEnabled: boolean;
 };
-
-const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
-
-function escapeCsvField(value: string): string {
-    const safeValue = CSV_FORMULA_PREFIX_REGEXP.test(value) ? `'${value}` : value;
-    if (safeValue.includes('"') || safeValue.includes(',') || safeValue.includes('\n') || safeValue.includes('\r')) {
-        return `"${safeValue.replaceAll('"', '""')}"`;
-    }
-    return safeValue;
-}
 
 function WorkspaceCompanyCardsTableControls({
     policyID,

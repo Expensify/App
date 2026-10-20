@@ -506,7 +506,6 @@
 "../../src/hooks/useCardFeedsForActivePolicies.ts"	"no-restricted-imports"	1
 "../../src/hooks/useCardFeedsForDisplay.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useCardFeedsForDisplay.ts"	"no-restricted-imports"	1
-"../../src/hooks/useCreateReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounce.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
