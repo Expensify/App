@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ConnectionsGrid from '@pages/workspace/connections/ConnectionsGrid';
 import useAccountingConnectionListings from '@pages/workspace/connections/useAccountingConnectionListings';
 
-import {joinExactOnlineWaitlist} from '@userActions/User';
+import {clearExactOnlineWaitlistError, joinExactOnlineWaitlist} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -26,7 +26,7 @@ let mockEnabledBetas: string[] = [];
 const mockStartIntegrationFlow = jest.fn();
 const mockConnect = jest.fn();
 
-jest.mock('@userActions/User', () => ({joinExactOnlineWaitlist: jest.fn()}));
+jest.mock('@userActions/User', () => ({clearExactOnlineWaitlistError: jest.fn(), joinExactOnlineWaitlist: jest.fn()}));
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
@@ -98,5 +98,10 @@ describe('Exact Online in unified Connections', () => {
 
         await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
+
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: {[Date.now()]: 'Signup failed. Please try again.'}}}));
+        expect(screen.getByText('Signup failed. Please try again.')).toBeOnTheScreen();
+        fireEvent.press(screen.getByRole('button', {name: 'Dismiss'}));
+        expect(clearExactOnlineWaitlistError).toHaveBeenCalledTimes(1);
     });
 });

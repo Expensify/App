@@ -1301,7 +1301,7 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'] | null, shouldRevertValue = true) {
+function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
@@ -1331,13 +1331,39 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
     });
 }
 
-function joinExactOnlineWaitlist(previousSignupTimestamp: OnyxEntry<string>) {
-    if (previousSignupTimestamp) {
-        return;
-    }
+function joinExactOnlineWaitlist() {
+    const signupTimestamp = DateUtils.getDBTime();
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: signupTimestamp,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {errorFields: {exactOnlineWaitlist: null}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: '',
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+        },
+    ];
 
     // The queued request keeps this timestamp when it retries, preserving the original signup time.
-    setNameValuePair(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, DateUtils.getDBTime(), previousSignupTimestamp ?? null);
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, failureData});
+}
+
+function clearExactOnlineWaitlistError() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: null}});
 }
 
 function dismissMarketingWindow(updateKey: string) {
@@ -2049,6 +2075,7 @@ export {
     requestRefund,
     setNameValuePair,
     joinExactOnlineWaitlist,
+    clearExactOnlineWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,

@@ -631,6 +631,7 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             RESTRICT_CARD_SPEND: 'restrictCardSpend',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            CATEGORY_TAX_RATE: 'categoryTaxRate',
         },
     },
 
@@ -2389,6 +2390,10 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        /** A load that started but has sent no progress event for this long is stalled (see useImageLoadStall) */
+        IMAGE_LOAD_STALL_TIMEOUT: 15000,
+        /** Budget for a load with no progress events at all (web <img>, no Content-Length): a ceiling, not a failure claim */
+        IMAGE_LOAD_CEILING_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
@@ -4630,6 +4635,10 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
     },
 
     LOCALES,
@@ -9373,6 +9382,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9615,6 +9625,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWalletBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWalletBanner-Dismiss',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -9672,6 +9686,9 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        IMAGE_LOAD: {
+            RETRY_BUTTON: 'ImageLoadTimeoutNotice-RetryButton',
         },
         MODAL: {
             DISMISS_DIALOG: 'Modal-DismissDialog',

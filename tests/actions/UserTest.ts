@@ -51,26 +51,15 @@ describe('actions/User', () => {
             jest.restoreAllMocks();
         });
 
-        it('keeps an existing signup timestamp without sending another request', () => {
-            // Given this account already joined the waitlist from another workspace
-            const signupTimestamp = '2026-10-14 10:00:00.000';
-            const getDBTime = jest.spyOn(DateUtils, 'getDBTime');
-
-            // When the account tries to join again
-            UserActions.joinExactOnlineWaitlist(signupTimestamp);
-
-            // Then the original signup is preserved without generating a new timestamp or request
-            expect(getDBTime).not.toHaveBeenCalled();
-            expect(mockAPI.write).not.toHaveBeenCalled();
-        });
-
         it('queues the signup timestamp with a rollback to the absent value', () => {
             // Given the account has not joined the waitlist
             const signupTimestamp = '2026-10-14 10:00:00.000';
+            const errorTimestamp = 1;
             const getDBTime = jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(signupTimestamp);
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
 
             // When the account joins the waitlist
-            UserActions.joinExactOnlineWaitlist(undefined);
+            UserActions.joinExactOnlineWaitlist();
 
             // Then the queued request and optimistic update share one timestamp, with the previous value restored on failure
             expect(getDBTime).toHaveBeenCalledTimes(1);
@@ -79,8 +68,18 @@ describe('actions/User', () => {
                 WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
                 {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
                 {
-                    optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}],
-                    failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: null}],
+                    optimisticData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {errorFields: {exactOnlineWaitlist: null}}},
+                    ],
+                    failureData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                        },
+                    ],
                 },
             );
         });

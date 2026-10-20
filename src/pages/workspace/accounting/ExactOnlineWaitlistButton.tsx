@@ -44,7 +44,7 @@ function ExactOnlineWaitlistButton({policy}: ExactOnlineWaitlistButtonProps) {
         }
         // Prevent repeated presses before the optimistic account value reaches this component.
         isJoiningWaitlist.current = true;
-        joinExactOnlineWaitlist(signupTimestamp);
+        joinExactOnlineWaitlist();
         showConfirmModal({
             title: translate('workspace.accounting.exactOnline.onWaitlist'),
             prompt: translate('workspace.accounting.exactOnline.waitlistDescription'),
