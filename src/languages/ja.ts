@@ -9163,11 +9163,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: '次の未締め期間にエクスポート',
                 exportToNextOpenPeriodDescription: 'レポートの日付が Dynamics 365 Business Central の締め済み期間にある場合、次の未締め期間にエクスポートします。',
                 syncReimbursedReports: '精算済みレポートを同期',
-                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この口座に支払伝票が作成されます。',
-                reimbursementBankAccount: {
-                    label: '請求支払用口座',
-                    description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。',
-                },
+                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この勘定科目に総勘定元帳の仕訳行が作成されます。',
+                reimbursementBankAccount: {label: '支払用銀行口座', description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。'},
                 syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
                 settlementsBankAccount: {
                     label: 'Expensify カードの決済口座',

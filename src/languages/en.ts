@@ -6724,9 +6724,9 @@ const translations = {
                 exportToNextOpenPeriod: 'Export to next open period',
                 exportToNextOpenPeriodDescription: 'When a report is dated in a closed Dynamics 365 Business Central period, export it to the next open period.',
                 syncReimbursedReports: 'Sync reimbursed reports',
-                syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+                syncReimbursedReportsDescription: 'When a report is paid via ACH, a general journal line will be generated in this account.',
                 reimbursementBankAccount: {
-                    label: 'Bill payment account',
+                    label: 'Payment bank account',
                     description: "Choose where to pay bills from and we'll create the payment in Dynamics 365 Business Central.",
                 },
                 syncExpensifyCardSettlements: 'Sync Expensify Card settlements',

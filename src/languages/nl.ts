@@ -9263,9 +9263,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 exportToNextOpenPeriodDescription:
                     'Als een rapport is gedateerd in een afgesloten periode in Dynamics 365 Business Central, wordt het geëxporteerd naar de volgende open periode.',
                 syncReimbursedReports: 'Vergoede rapporten synchroniseren',
-                syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een rekeningbetaling aangemaakt.',
+                syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een journaalpostregel aangemaakt.',
                 reimbursementBankAccount: {
-                    label: 'Rekening voor het betalen van rekeningen',
+                    label: 'Betaalbankrekening',
                     description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Dynamics 365 Business Central.',
                 },
                 syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',

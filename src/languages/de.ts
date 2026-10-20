@@ -9346,9 +9346,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 exportToNextOpenPeriodDescription:
                     'Wenn ein Bericht auf eine geschlossene Periode in Dynamics 365 Business Central datiert ist, wird er in die nächste offene Periode exportiert.',
                 syncReimbursedReports: 'Erstattete Berichte synchronisieren',
-                syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erstellt.',
+                syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine allgemeine Journalzeile erzeugt.',
                 reimbursementBankAccount: {
-                    label: 'Rechnungskonto',
+                    label: 'Zahlungskonto',
                     description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Dynamics 365 Business Central.',
                 },
                 syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
