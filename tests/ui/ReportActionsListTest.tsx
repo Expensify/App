@@ -27,6 +27,7 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -50,7 +51,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@pages/inbox/report/AskConciergeWelcome', () => {
-    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
     return () => <View testID="AskConciergeWelcome" />;
 });
 jest.mock('@hooks/useInFlightRequests', () => ({

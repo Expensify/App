@@ -9,8 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-import type {RefObject} from 'react';
-
+import {Animated} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -38,8 +37,8 @@ const sidePanelState: ReturnType<typeof useSidePanelState> = {
     shouldHideSidePanelBackdrop: true,
     shouldHideHelpButton: false,
     shouldHideToolTip: false,
-    sidePanelOffset: {current: null} as RefObject<never>,
-    sidePanelTranslateX: {current: null} as RefObject<never>,
+    sidePanelOffset: {current: new Animated.Value(0)},
+    sidePanelTranslateX: {current: new Animated.Value(0)},
 };
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
