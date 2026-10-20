@@ -86,7 +86,6 @@ type ReportNextStepMessageParams = {
     eta?: string;
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
     requiredDepositCurrency?: string;
-    messageKeyModifier?: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER>;
 };
 
 export type {
