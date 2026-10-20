@@ -159,28 +159,14 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const role = values[INPUT_IDS.ROLE];
 
-        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
-        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
-        // so we can navigate to the DM immediately, online or offline, without waiting.
-        let optimisticReportID: string | undefined;
-        let optimisticPersonalDetailPromise: Promise<void> | undefined;
-        let backToAgentsListRoute: Route | undefined;
+        const avatarArgs = uploadedAvatar?.uri
+            ? {file: buildFileFromAvatarCropResult(uploadedAvatar), optimisticAvatarURI: uploadedAvatar.uri}
+            : {customExpensifyAvatarID: selectedPresetID ?? AGENT_AVATARS.getRandomID()};
 
-        if (policy) {
-            const result = uploadedAvatar?.uri
-                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
-                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID());
-            optimisticReportID = result.optimisticReportID;
-            optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
-            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policy.id);
-        } else {
-            const result = uploadedAvatar?.uri
-                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
-                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined);
-            optimisticReportID = result.optimisticReportID;
-            optimisticPersonalDetailPromise = result.optimisticPersonalDetailPromise;
-            backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
-        }
+        const {optimisticReportID, optimisticPersonalDetailPromise} = policy
+            ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policy, role, firstName, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI)
+            : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI);
+        const backToAgentsListRoute = policy ? ROUTES.WORKSPACE_AGENTS.getRoute(policy.id) : ROUTES.SETTINGS_AGENTS;
 
         clearNewAgentTemplate();
 
@@ -189,6 +175,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
         const isNarrowLayout = getIsNarrowLayout();
 
+        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
+        // so we can navigate to the DM immediately, online or offline, without waiting.
         optimisticPersonalDetailPromise.then(() => {
             // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
             if (hasLeftPageRef.current) {
