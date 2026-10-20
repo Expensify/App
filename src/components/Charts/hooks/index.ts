@@ -10,4 +10,5 @@ export {default as useTooltipData} from './useTooltipData';
 export {default as useLabelHitTesting} from './useLabelHitTesting';
 export {default as useReadyCartesianCanvas} from './useReadyCartesianCanvas';
 export type {CartesianCanvasInputs} from './useReadyCartesianCanvas';
+export {default as useSyncPointPositions} from './useSyncPointPositions';
 export {default as useTouchPinnedTooltip} from './useTouchPinnedTooltip';
