@@ -2890,7 +2890,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;', subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.', getStarted: 'Ξεκινήστε'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
+            subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
+            getStarted: 'Ξεκινήστε',
+            headerTitle: 'Παγκόσμιες αποζημιώσεις',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -8944,6 +8950,7 @@ ${reportName}`,
                     unsupported: 'Αυτός ο κανόνας δεν υποστηρίζεται ακόμη — το δουλεύουμε. Δοκιμάστε προς το παρόν έναν διαφορετικό κανόνα.',
                     unintelligible: 'Δοκιμάστε να διατυπώσετε τον κανόνα σας έτσι: αν οι δαπάνες ξεπερνούν τα 100 $, να απαιτείται απόδειξη.',
                     multipleRules: 'Έναν κανόνα τη φορά — δοκιμάστε να περιγράψετε έναν μόνο κανόνα, π.χ.: αποκλεισμός αγορών λιανικής σε όλες τις κάρτες.',
+                    categoryHasRule: 'Αυτή η κατηγορία έχει ήδη κανόνα. Επεξεργαστείτε τον υπάρχοντα κανόνα ή περιγράψτε έναν κανόνα για άλλη κατηγορία.',
                 },
             },
             expenseDefaultsTable: {

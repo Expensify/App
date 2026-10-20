@@ -2861,7 +2861,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Skonfigurować globalne zwroty kosztów?', subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.', getStarted: 'Zacznij'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Skonfigurować globalne zwroty kosztów?',
+            subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
+            getStarted: 'Zacznij',
+            headerTitle: 'Globalne zwroty kosztów',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Dodaj kartę do ${walletName}`,
@@ -8800,6 +8806,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     unsupported: 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
+                    categoryHasRule: 'Ta kategoria ma już regułę. Edytuj istniejącą regułę lub opisz regułę dla innej kategorii.',
                 },
             },
             expenseDefaultsTable: {
