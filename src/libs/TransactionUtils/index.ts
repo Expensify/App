@@ -60,6 +60,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
+import parseDistanceMerchant from './parseDistanceMerchant';
 // eslint-disable-next-line import/no-cycle
 import {
     calculateTaxAmount,
@@ -189,7 +190,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
     // A rate edit can leave the preferred merchant describing the full route. Keep its saved rate
     // and amount, and only clear the stale commuter fields.
-    if (storedUnit && storedMerchant?.startsWith(`${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `)) {
+    if (parseDistanceMerchant({merchant: storedMerchant, distance: fullDistance, unit: storedUnit})) {
         return {
             ...transaction,
             amount: storedAmount,
@@ -209,10 +210,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         reducedDistance < fullDistance &&
         (!transaction.modifiedCurrency || transaction.modifiedCurrency === transaction.currency)
     ) {
-        const fullMerchantPrefix = `${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
-        const reducedMerchantPrefix = `${reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
-        const fullRateText = transaction.merchant?.startsWith(fullMerchantPrefix) ? transaction.merchant.slice(fullMerchantPrefix.length) : undefined;
-        const reducedRateText = transaction.modifiedMerchant?.startsWith(reducedMerchantPrefix) ? transaction.modifiedMerchant.slice(reducedMerchantPrefix.length) : undefined;
+        const fullRateText = parseDistanceMerchant({merchant: transaction.merchant, distance: fullDistance, unit: storedUnit})?.rateText;
+        const reducedRateText = parseDistanceMerchant({merchant: transaction.modifiedMerchant, distance: reducedDistance, unit: storedUnit})?.rateText;
         if (fullRateText && fullRateText === reducedRateText && Number.isFinite(transaction.amount) && (modifiedAmount === undefined || Number.isFinite(modifiedAmount))) {
             const roundedFullDistance = Number(fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
             const roundedReducedDistance = Number(reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
@@ -276,6 +275,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
     const storedReducedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
     const storedReducedAmount = modifiedAmount ?? transaction.amount;
+    const savedCurrencyForRate = getCurrency(transaction);
+    const parsedReducedMerchant = parseDistanceMerchant({
+        merchant: storedReducedMerchant,
+        distance: reducedDistance,
+        unit: storedUnit,
+        currency: savedCurrencyForRate,
+        currencySymbol: getCurrencySymbol(savedCurrencyForRate),
+    });
     // Only allow proportional restoration when both modified fields are available and the merchant
     // identifies the saved reduced distance; otherwise the full route cannot be reconstructed safely.
     const canRestoreSavedReducedValues =
@@ -286,30 +293,19 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         reducedDistance > 0 &&
         reducedDistance < fullDistance &&
         Number.isFinite(storedReducedAmount) &&
-        !!storedReducedMerchant?.startsWith(`${reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `);
+        !!parsedReducedMerchant;
     const restoreSavedReducedValues = () => {
-        if (!canRestoreSavedReducedValues || !storedReducedMerchant || typeof reducedDistance !== 'number') {
+        if (!canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
             return transaction;
         }
 
-        const rateText = storedReducedMerchant.slice(storedReducedMerchant.indexOf(CONST.DISTANCE_MERCHANT_SEPARATOR) + CONST.DISTANCE_MERCHANT_SEPARATOR.length).trim();
+        const rateText = parsedReducedMerchant.rateText.trim();
         let fullAmount = Math.round((Math.abs(storedReducedAmount ?? 0) * fullDistance) / reducedDistance);
-        const savedCurrency = getCurrency(transaction);
-        const currencyPrefix = [getCurrencySymbol(savedCurrency), `${savedCurrency} `].find((prefix) => !!prefix && rateText.startsWith(prefix));
-        const unitSuffix = ` / ${storedUnit}`;
-        if (currencyPrefix && rateText.endsWith(unitSuffix)) {
-            const numericRateText = rateText.slice(currencyPrefix.length, -unitSuffix.length);
-            // Distance rate labels have no grouping separators. Verify the entire saved value before using it.
-            if (/^\d+(?:[.,]\d{1,4})?$/.test(numericRateText)) {
-                const savedRate = Number(numericRateText.replace(',', '.')) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET;
-                const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
-                if (
-                    Number.isFinite(savedRate) &&
-                    savedRate > 0 &&
-                    DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, savedRate) === Math.abs(storedReducedAmount)
-                ) {
-                    fullAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, savedRate);
-                }
+        const savedRate = parsedReducedMerchant.rate;
+        if (savedRate !== undefined) {
+            const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
+            if (DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, savedRate) === Math.abs(storedReducedAmount)) {
+                fullAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, savedRate);
             }
         }
         return {
