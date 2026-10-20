@@ -380,6 +380,31 @@ describe('CategoryPickerModal', () => {
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(closedHeight - keyboardHeight);
         });
 
+        it('keeps the same keyboard handling when the phone turns, so the sheet is not remounted', async () => {
+            // Given a phone in portrait with the searchable list open and the keyboard up for its search input
+            mockKeyboardHeight = 200;
+            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+            expect(mockPopoverProps?.avoidKeyboard).toBe(false);
+
+            // When the phone turns to landscape
+            mockIsInLandscapeMode = true;
+            rerender(
+                <CategoryPickerModal
+                    isVisible
+                    onClose={jest.fn()}
+                    policyID={POLICY_ID}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
+                    shouldFitContentHeight
+                />,
+            );
+
+            // Then `avoidKeyboard` stays off, as flipping it swaps the modal's wrapper, which replays the sheet's entry animation and
+            // drops the input's focus. The sheet fills the window and still makes the room for the keyboard inside itself
+            expect(mockPopoverProps?.avoidKeyboard).toBe(false);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
+        });
+
         it('keeps the wide pop-over at its own height', async () => {
             // Given a wide layout, where the list opens as a pop-over and no keyboard pushes it around
             mockIsSmallScreenWidth = false;

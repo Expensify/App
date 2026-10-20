@@ -126,11 +126,13 @@ function CategoryPickerModal({
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
     // A phone in landscape is too short for a sheet over the form, so there the sheet fills the screen.
     const shouldFillWindow = isInLandscapeMode;
-    // On a phone in portrait, a list with a search input opens as tall as a sheet may be and stays put when that input brings
-    // up the keyboard. Natively the room for it is made inside the sheet, frame by frame with the keyboard. On mobile web the
-    // keyboard shrinks the window instead, so the gap above the sheet is sized off the screen, which the keyboard leaves alone:
-    // the sheet then loses only the keyboard's height and its top edge doesn't move.
-    const shouldKeepTopEdge = isSmallScreenWidth && !isInLandscapeMode && isSearchable;
+    // A list with a search input makes room for the keyboard inside the sheet, frame by frame with it, in both orientations:
+    // flipping `avoidKeyboard` on rotation would swap the modal's wrapper and remount the sheet, replaying its entry animation
+    // and dropping the input's focus. On mobile web the keyboard shrinks the window instead, which the sheet's height follows.
+    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable;
+    // In portrait that list opens as tall as a sheet may be and its top edge stays put when the keyboard comes up, so the gap
+    // above it is sized off the screen, which the keyboard leaves alone.
+    const shouldKeepTopEdge = shouldPadForKeyboard && !isInLandscapeMode;
     const minSheetHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable});
     const keptTopEdgeSheetHeight = windowHeight - Dimensions.get('screen').height * (1 - CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING;
     const bottomSheetHeight = shouldKeepTopEdge
@@ -138,7 +140,7 @@ function CategoryPickerModal({
         : getBottomSheetHeight({
               preferredHeight: popoverHeight,
               windowHeight,
-              keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
+              keyboardHeight: isKeyboardActive && !shouldPadForKeyboard ? keyboardActiveHeight : 0,
               topSafeAreaInset: safeAreaTop,
               minHeight: minSheetHeight,
               shouldFillWindow,
@@ -183,7 +185,7 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            avoidKeyboard={isSmallScreenWidth && !shouldKeepTopEdge}
+            avoidKeyboard={isSmallScreenWidth && !shouldPadForKeyboard}
             outerStyle={outerStyle}
             // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
             shouldLimitHeightIfBottomDockedInLandscapeMode={false}
@@ -194,7 +196,7 @@ function CategoryPickerModal({
                     StyleUtils.getHeight(popoverDimensions.height),
                     styles.flexColumn,
                     !shouldSkipListTopPadding && styles.pt4,
-                    shouldKeepTopEdge ? keyboardRoomStyle : StyleUtils.getPaddingBottom(bottomSafeAreaPadding),
+                    shouldPadForKeyboard ? keyboardRoomStyle : StyleUtils.getPaddingBottom(bottomSafeAreaPadding),
                 ]}
             >
                 {!!onAddCategory && (
