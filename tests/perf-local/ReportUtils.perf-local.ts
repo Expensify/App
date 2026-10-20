@@ -160,7 +160,6 @@ describe('ReportUtils', () => {
                     policy,
                 },
                 getCurrencyDecimalsLocal,
-                formatPhoneNumber,
             ),
         );
     });

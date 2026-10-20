@@ -6061,7 +6061,6 @@ describe('ReportUtils', () => {
                 chatReport,
                 expenseReport,
                 getCurrencyDecimalsLocal,
-                formatPhoneNumber,
                 undefined,
                 '',
                 expenseTransaction,
@@ -16489,7 +16488,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -16511,12 +16510,11 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
                 getCurrencyDecimalsLocal,
-                formatPhoneNumber,
                 false,
                 '',
                 createMock<Transaction>({
@@ -21156,11 +21154,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage(
-                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction},
-                getCurrencyDecimalsLocal,
-                formatPhoneNumber,
-            );
+            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -21180,11 +21174,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage(
-                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction},
-                getCurrencyDecimalsLocal,
-                formatPhoneNumber,
-            );
+            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -21307,7 +21297,6 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage(
                     {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
                     getCurrencyDecimalsLocal,
-                    formatPhoneNumber,
                 );
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
@@ -21318,7 +21307,6 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage(
                     {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
                     getCurrencyDecimalsLocal,
-                    formatPhoneNumber,
                 );
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
@@ -21329,7 +21317,7 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
 
                 // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal, formatPhoneNumber)).toBe(
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
                     getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
                 );
             });
@@ -21358,7 +21346,7 @@ describe('ReportUtils', () => {
 
                 it('stores the same wording on the report action as the localized preview shows', () => {
                     // The hardcoded English copy must not drift from the localized function
-                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal, formatPhoneNumber)).toBe(
+                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
                         getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber),
                     );
                 });
@@ -21411,7 +21399,7 @@ describe('ReportUtils', () => {
                     getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
                 );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal, formatPhoneNumber)).toBe(
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
                     getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
                 );
             });
@@ -21442,6 +21430,30 @@ describe('ReportUtils', () => {
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
             });
+
+            it('uses the passed phone formatter for a participant in the localized preview', async () => {
+                // Given an IOU report whose payer has a phone login and no display name
+                const managerID = 66327031;
+                const login = '+15556632731';
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-phone-formatter-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[managerID]: {accountID: managerID, login, displayName: ''}});
+
+                // When the preview is built with the caller's formatter
+                const formatPhoneForLocale: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => (phoneNumber === login ? 'Locale formatted phone' : phoneNumber);
+                const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneForLocale);
+
+                // Then the payer name uses that formatter
+                expect(result).toContain('Locale formatted phone');
+            });
         });
 
         describe('getReportPreviewReportActionMessage (hardcoded English)', () => {
@@ -21457,7 +21469,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
@@ -21481,7 +21493,7 @@ describe('ReportUtils', () => {
 
                 // When the message is built while Spanish is the loaded locale, which the cached module-level translation used to follow
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // Then the message stored on the report action names the participant in English, like the rest of its copy
                 expect(result).toContain(translate(CONST.LOCALES.EN, 'common.hidden'));
@@ -21507,7 +21519,7 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
@@ -26491,7 +26503,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, undefined, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});

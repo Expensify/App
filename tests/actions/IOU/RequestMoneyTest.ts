@@ -1270,7 +1270,6 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
-                formatPhoneNumber,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1333,7 +1332,6 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
-                formatPhoneNumber,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2000,7 +1998,6 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
-                formatPhoneNumber,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2861,7 +2858,6 @@ describe('actions/IOU', () => {
 
                 // When it is moved with a stale local receipt file
                 trackExpense({
-                    formatPhoneNumber,
                     isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -2933,7 +2929,6 @@ describe('actions/IOU', () => {
 
                 // When it is moved before its upload response is processed
                 trackExpense({
-                    formatPhoneNumber,
                     isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -3186,7 +3181,6 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
-                formatPhoneNumber,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,

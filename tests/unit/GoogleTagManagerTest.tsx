@@ -18,7 +18,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -272,7 +272,6 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
-            formatPhoneNumber,
             isDraftChatReport: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,

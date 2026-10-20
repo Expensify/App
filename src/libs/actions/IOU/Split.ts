@@ -930,7 +930,6 @@ function completeSplitBill({
     sessionEmail,
     getCurrencyDecimals,
     rules,
-    formatPhoneNumber,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1152,17 +1151,9 @@ function completeSplitBill({
 
         let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals, formatPhoneNumber);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
-                oneOnOneChatReport,
-                oneOnOneIOUReport,
-                getCurrencyDecimals,
-                formatPhoneNumber,
-                delegateAccountID,
-                '',
-                oneOnOneTransaction,
-            );
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, getCurrencyDecimals, delegateAccountID, '', oneOnOneTransaction);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1942,17 +1933,9 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals, formatPhoneNumber);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
-                oneOnOneChatReport,
-                oneOnOneIOUReport,
-                getCurrencyDecimals,
-                formatPhoneNumber,
-                delegateAccountID,
-                '',
-                oneOnOneTransaction,
-            );
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, getCurrencyDecimals, delegateAccountID, '', oneOnOneTransaction);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];

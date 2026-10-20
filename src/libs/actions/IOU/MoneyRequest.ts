@@ -181,7 +181,6 @@ function createTransaction({
         });
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
-                formatPhoneNumber,
                 report,
                 isDraftPolicy: false,
                 isDraftChatReport,

@@ -256,7 +256,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(iouReport.reportID);
                     payMoneyRequest({
-                        formatPhoneNumber,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -484,7 +483,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
-                        formatPhoneNumber,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -668,7 +666,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
-                        formatPhoneNumber,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: 'ACH',
@@ -728,7 +725,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When paying the IOU report
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -831,7 +827,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // expense the requestor deleted in the meantime
             mockFetch?.fail?.();
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -878,7 +873,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
 
                 payMoneyRequest({
-                    formatPhoneNumber,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -993,7 +987,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         policyID: CONST.POLICY.ID_FAKE,
                     };
                     payMoneyRequest({
-                        formatPhoneNumber,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1095,7 +1088,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             const newExpenseReportID = payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1206,7 +1198,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const pay = (expenseReport: Report, iouReportTransactions: Transaction[]) =>
                 payMoneyRequest({
-                    formatPhoneNumber,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
@@ -1296,7 +1287,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1353,7 +1343,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1472,18 +1461,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                currentUserAccountID,
-                currentUserEmail,
-                mockChatReportActions,
-                false,
-                undefined,
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1541,7 +1519,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1617,7 +1594,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1683,7 +1659,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1728,7 +1703,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1899,25 +1873,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 {},
                 getCurrencyDecimalsLocal,
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('does nothing when the IOU report is missing', () => {
-            markReportPaymentReceived(
-                createRandomReport(1, undefined),
-                undefined,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal, undefined);
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
@@ -1927,18 +1889,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
             const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -1961,18 +1912,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then a PAY action is added to the expense report, reported to the API and pending
             const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2005,18 +1945,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the payment is marked as received with no violations
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2041,7 +1970,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 },
                 getCurrencyDecimalsLocal,
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
@@ -2057,18 +1985,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payment is marked as received while an empty violations collection is passed in
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2083,18 +2000,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller has no violations loaded yet and passes undefined
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                undefined,
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
 
             // Then it behaves like an empty collection rather than falling back to Onyx
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2107,18 +2013,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(
-                chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                chatReportActions,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-                formatPhoneNumber,
-            );
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then a server confirmation clears the pending fields
             const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
@@ -2249,7 +2144,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
-                        formatPhoneNumber,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2763,7 +2657,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
                 const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 payMoneyRequest({
-                    formatPhoneNumber,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

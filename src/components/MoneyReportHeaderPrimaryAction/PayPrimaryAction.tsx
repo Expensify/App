@@ -51,7 +51,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const {isBetaEnabled} = usePermissions();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {accountID, email, displayName, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -141,7 +141,6 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -168,7 +167,6 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else {
             startAnimation();
             payMoneyRequest({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,

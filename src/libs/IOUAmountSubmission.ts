@@ -309,11 +309,10 @@ function buildReportParticipants(args: SubmitAmountArgs) {
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals, formatPhoneNumber} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
-        formatPhoneNumber,
         report,
         quickAction,
         amount: backendAmount,
@@ -394,7 +393,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
-                formatPhoneNumber,
                 report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,

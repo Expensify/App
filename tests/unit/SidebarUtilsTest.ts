@@ -979,7 +979,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
@@ -4012,7 +4012,6 @@ describe('SidebarUtils', () => {
                         originalReportAction: lastReportPreviewAction,
                     },
                     getCurrencyDecimalsLocal,
-                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
@@ -4131,7 +4130,6 @@ describe('SidebarUtils', () => {
                         originalReportAction: lastReportPreviewAction,
                     },
                     getCurrencyDecimalsLocal,
-                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });

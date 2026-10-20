@@ -37,7 +37,7 @@ type RejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {transactionID, reportID, backTo} = route.params;
@@ -59,7 +59,6 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         }
 
         const urlToNavigateBack = rejectMoneyRequest({
-            formatPhoneNumber,
             transactionID,
             reportID,
             comment: values.comment,

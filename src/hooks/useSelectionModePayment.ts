@@ -80,7 +80,7 @@ function useSelectionModePayment({
     onPaid,
     confirmApproval,
 }: UseSelectionModePaymentParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -188,7 +188,6 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
-                formatPhoneNumber,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -214,7 +213,6 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
-                formatPhoneNumber,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
                 paymentType: type,

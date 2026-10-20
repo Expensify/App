@@ -132,7 +132,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {isOffline} = useNetwork();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -398,7 +398,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                                 allTransactionViolationsRef.current,
                                 getCurrencyDecimals,
                                 rules,
-                                formatPhoneNumber,
                             );
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -417,7 +416,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     allTransactionViolationsRef.current,
                     getCurrencyDecimals,
                     rules,
-                    formatPhoneNumber,
                 );
             },
         },

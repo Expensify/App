@@ -571,7 +571,6 @@ describe('ReportAlternateTextUtils', () => {
                         originalReportAction: reportPreviewAction,
                     },
                     getCurrencyDecimalsLocal,
-                    formatPhoneNumber,
                 );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');

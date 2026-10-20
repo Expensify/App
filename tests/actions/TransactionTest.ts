@@ -246,7 +246,6 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
-                formatPhoneNumber,
                 isDraftChatReport: false,
                 conciergeChat: undefined,
                 report: selfDMReport,

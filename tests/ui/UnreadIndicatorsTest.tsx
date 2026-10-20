@@ -876,7 +876,6 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
-            formatPhoneNumber: TestHelper.formatPhoneNumber,
             isDraftChatReport: false,
             conciergeChat: undefined,
             getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,

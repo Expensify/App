@@ -87,7 +87,6 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -120,7 +119,6 @@ type SubmitReportFunctionParams = {
 
     /** Set when the user confirmed "Submit anyway" on a report with violations. */
     shouldResolveAcknowledgedViolations?: boolean;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -158,7 +156,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
-        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -439,7 +436,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
-            formatPhoneNumber,
             chatReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
@@ -1017,7 +1013,6 @@ function submitReport({
     shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
-    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1294,7 +1289,6 @@ function submitReport({
     // least one unheld expense remains.
     if (shouldSplitHeldExpenses) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
-            formatPhoneNumber,
             chatReport: parentReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
