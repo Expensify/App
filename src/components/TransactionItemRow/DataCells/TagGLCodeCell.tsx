@@ -43,7 +43,7 @@ function TagGLCodeCell({canEdit: canEditTag, onSave, shouldShowTooltip, transact
 
     const policyHasDependentTags = hasDependentTags(policy, policyTags);
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: transactionItem?.tag ?? '',
         onSave,
@@ -65,7 +65,10 @@ function TagGLCodeCell({canEdit: canEditTag, onSave, shouldShowTooltip, transact
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleSave}
                 />
             }

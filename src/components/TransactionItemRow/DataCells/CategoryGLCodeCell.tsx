@@ -42,7 +42,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
 
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: categoryForComparison,
         onSave,
@@ -67,7 +67,10 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                 />
             }
