@@ -10,7 +10,7 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
         super.clearTemporaryFiles(context)
         when(intent.action) {
              Intent.ACTION_SEND -> {
-                 handleSingleFileIntent(intent, context, shouldLaunchActivity)
+                 saveSharedFile(intent, context, shouldLaunchActivity)
                  // Open the Share screen even if persisting the attachment fails so it can display an error instead of silently discarding the share.
                  if (shouldLaunchActivity) {
                      onCompleted()
@@ -21,7 +21,7 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
          return false
     }
 
-    private fun handleSingleFileIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+    private fun saveSharedFile(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
         val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return
         val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return
         val mimeType = intent.type ?: try {

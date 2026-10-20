@@ -11,7 +11,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         super.clearTemporaryFiles(context)
         when(intent.action) {
             Intent.ACTION_SEND -> {
-                handleTextIntent(intent, context, shouldLaunchActivity)
+                saveSharedText(intent, context, shouldLaunchActivity)
                 // Open the Share screen even if persisting the attachment fails so it can display an error instead of silently discarding the share.
                 if (shouldLaunchActivity) {
                     onCompleted()
@@ -22,17 +22,17 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         return false
     }
 
-    private fun handleTextIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
+    private fun saveSharedText(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
         when {
             intent.type == "text/plain" -> {
                 val extras = intent.extras
                 if (extras != null) {
                     return when {
                         extras.containsKey(Intent.EXTRA_STREAM) -> {
-                            handleTextFileIntent(intent, context, shouldLaunchActivity)
+                            saveSharedTextFile(intent, context, shouldLaunchActivity)
                         }
                         extras.containsKey(Intent.EXTRA_TEXT) -> {
-                            handleTextPlainIntent(intent, context, shouldLaunchActivity)
+                            saveSharedTextContent(intent, context, shouldLaunchActivity)
                         }
                         else -> {
                             throw UnsupportedOperationException("Unknown text/plain content")
@@ -41,7 +41,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
                 }
                 return false
             }
-            Regex("text/.*").matches(intent.type ?: "") -> return handleTextFileIntent(intent, context, shouldLaunchActivity)
+            Regex("text/.*").matches(intent.type ?: "") -> return saveSharedTextFile(intent, context, shouldLaunchActivity)
             else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
         }
     }
@@ -58,7 +58,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         return editor.commit()
     }
 
-    private fun handleTextFileIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
+    private fun saveSharedTextFile(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
         val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return false
         val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return false
         val mimeType = intent.type ?: try {
@@ -70,7 +70,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         return saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
     }
 
-    private fun handleTextPlainIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
+    private fun saveSharedTextContent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
         val intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return false
         val shareFileObject = ShareFileObject(intentTextContent, intent.type)
         return saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
