@@ -1,3 +1,4 @@
+import type ModifiedExpenseMessage = require('@libs/ModifiedExpenseMessage');
 import type ReportNameUtils = require('@libs/ReportNameUtils');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
@@ -303,6 +304,23 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         expect(result?.reports).toHaveProperty('r1');
         expect(result?.reports).toHaveProperty('r2');
+    });
+
+    it('passes the modified expense message builder to computeReportName', () => {
+        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        computeReportNameMock.mockClear();
+        const {getForReportAction} = jest.requireActual<typeof ModifiedExpenseMessage>('@libs/ModifiedExpenseMessage');
+
+        // Given reports whose names have not been computed yet
+        // When the derived value computes them on a cold start
+        config.compute(buildArgs(), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // Then each name is built with the real builder, because ReportNameUtils can't import ModifiedExpenseMessage itself and names expense-change threads with it
+        expect(computeReportNameMock).toHaveBeenCalledWith(expect.objectContaining({getModifiedExpenseMessage: getForReportAction}));
     });
 
     it('scopes the first policy load to reports referencing the loaded policies when currentValue is already populated', () => {

@@ -3,8 +3,8 @@ import {act} from '@testing-library/react-native';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
-import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {clearFilteredOptionListCache, createFilteredOptionList, getSearchOptions} from '@libs/OptionsListUtils';
+import {getMovedReportID} from '@libs/ReportActionMessageUtils';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {getExpensifyCardFromReportAction} from '@libs/ReportAlternateTextUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';

@@ -9,7 +9,7 @@ import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Entries, ValueOf} from 'type-fest';
+import type {Entries} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
 
@@ -21,10 +21,6 @@ import Log from './Log';
 import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isModifiedExpenseAction} from './ReportActionTypeGuards';
-// This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
-// The functions imported here are pure utility functions that don't create initialization-time dependencies.
-// ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
-// eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
@@ -169,15 +165,6 @@ function getForExpenseMovedFromSelfDM(
         return translate('iou.changedTheExpense');
     }
     return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
-}
-
-function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
-    if (!isModifiedExpenseAction(reportAction)) {
-        return undefined;
-    }
-    const reportActionOriginalMessage = getOriginalMessage(reportAction);
-
-    return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
 function getMovedFromOrToReportMessage(
@@ -579,4 +566,4 @@ function getForReportAction({
     return `${message.substring(1, message.length)}`;
 }
 
-export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage};
+export {getForReportAction, getMovedFromOrToReportMessage};

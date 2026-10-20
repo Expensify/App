@@ -6,6 +6,7 @@ import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilde
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -748,6 +749,7 @@ export default createOnyxDerivedValueConfig({
                               pendingDeleteMemberAccountIDs,
                               formatPhoneNumber,
                               rules,
+                              getModifiedExpenseMessage: getForReportAction,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,

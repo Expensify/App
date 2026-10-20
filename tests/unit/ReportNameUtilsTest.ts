@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {translate} from '@libs/Localize';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {
     getAddedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
@@ -74,6 +75,7 @@ describe('ReportNameUtils', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             rules: undefined,
+            getModifiedExpenseMessage: getForReportAction,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -377,6 +379,7 @@ describe('ReportNameUtils', () => {
                 reportTransactions: {},
                 formatPhoneNumber,
                 rules: undefined,
+                getModifiedExpenseMessage: getForReportAction,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -506,6 +509,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
+                getModifiedExpenseMessage: getForReportAction,
             });
         };
 
@@ -889,6 +893,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
+                getModifiedExpenseMessage: getForReportAction,
             });
 
             expect(name).toContain('Cost Center');
@@ -2636,6 +2641,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
+                getModifiedExpenseMessage: getForReportAction,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
@@ -2655,6 +2661,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
+                getModifiedExpenseMessage: getForReportAction,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

@@ -1,8 +1,10 @@
-import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getMovedReportID, getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from '@libs/ReportActionMessageUtils';
 
 import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import createRandomReportAction from '../utils/collections/reportActions';
 
 type LegacyFields = {
     message?: unknown;
@@ -150,5 +152,94 @@ describe('getTextFromHtml', () => {
     it('returns an empty string for empty or missing html', () => {
         expect(getTextFromHtml('')).toBe('');
         expect(getTextFromHtml()).toBe('');
+    });
+});
+
+describe('getMovedReportID', () => {
+    const MOVED_TO_REPORT_ID = '1';
+    const MOVED_FROM_REPORT_ID = '2';
+
+    describe('when the report action is a modified expense action', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {
+                movedToReportID: MOVED_TO_REPORT_ID,
+                movedFromReport: MOVED_FROM_REPORT_ID,
+            },
+        };
+
+        it('returns the movedToReportID when type is REPORT_MOVE_TYPE.TO and movedToReportID exists in reportAction', () => {
+            // Given a modified expense action that records both the destination and the source report
+            // When the destination report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+
+            // Then it is the report the expense was moved to
+            expect(result).toEqual(MOVED_TO_REPORT_ID);
+        });
+
+        it('returns the movedFromReport when type is REPORT_MOVE_TYPE.FROM and movedFromReport exists in reportAction', () => {
+            // Given a modified expense action that records both the destination and the source report
+            // When the source report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+
+            // Then it is the report the expense was moved from
+            expect(result).toEqual(MOVED_FROM_REPORT_ID);
+        });
+    });
+
+    describe('when the report action is not a modified expense action', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                movedToReportID: MOVED_TO_REPORT_ID,
+                movedFromReport: MOVED_FROM_REPORT_ID,
+            },
+        };
+
+        it('returns undefined for REPORT_MOVE_TYPE.TO type', () => {
+            // Given a comment action whose original message happens to carry move fields
+            // When the destination report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+
+            // Then nothing is returned, because only modified expense actions describe a move
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined for REPORT_MOVE_TYPE.FROM type', () => {
+            // Given a comment action whose original message happens to carry move fields
+            // When the source report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+
+            // Then nothing is returned, because only modified expense actions describe a move
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('when the original message is missing movedToReportID or movedFromReport', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {},
+        };
+
+        it('returns undefined for REPORT_MOVE_TYPE.TO type when movedToReportID is missing', () => {
+            // Given a modified expense action that was not a move
+            // When the destination report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+
+            // Then nothing is returned, because the action records no destination
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined for REPORT_MOVE_TYPE.FROM type when movedFromReport is missing', () => {
+            // Given a modified expense action that was not a move
+            // When the source report ID is read
+            const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+
+            // Then nothing is returned, because the action records no source
+            expect(result).toBeUndefined();
+        });
     });
 });

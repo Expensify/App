@@ -29,7 +29,7 @@ import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTr
 import SidebarUtils from '@libs/SidebarUtils';
 
 import CONST from '@src/CONST';
-import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
+import {getMovedReportID} from '@src/libs/ReportActionMessageUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';

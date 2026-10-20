@@ -1,5 +1,5 @@
 import {getEnvironmentURL} from '@libs/Environment/Environment';
-import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction, getMovedFromOrToReportMessage} from '@libs/ModifiedExpenseMessage';
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
@@ -29,8 +29,6 @@ jest.mock('@libs/ReportNameUtils', () => ({
     buildReportNameFromParticipantNames: jest.fn(),
 }));
 
-const MOVED_TO_REPORT_ID = '1';
-const MOVED_FROM_REPORT_ID = '2';
 const CURRENT_USER_LOGIN = 'test@example.com';
 const CURRENT_USER_ACCOUNT_ID = 12345;
 describe('ModifiedExpenseMessage', () => {
@@ -46,66 +44,6 @@ describe('ModifiedExpenseMessage', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-    });
-
-    describe('getMovedReportID', () => {
-        describe('when the report action is a modified expense action', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                originalMessage: {
-                    movedToReportID: MOVED_TO_REPORT_ID,
-                    movedFromReport: MOVED_FROM_REPORT_ID,
-                },
-            };
-
-            it('returns the movedToReportID when type is REPORT_MOVE_TYPE.TO and movedToReportID exists in reportAction', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
-                expect(result).toEqual(MOVED_TO_REPORT_ID);
-            });
-
-            it('returns the movedFromReport when type is REPORT_MOVE_TYPE.FROM and movedFromReport exists in reportAction', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
-                expect(result).toEqual(MOVED_FROM_REPORT_ID);
-            });
-        });
-        describe('when the report action is not a modified expense action', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    movedToReportID: MOVED_TO_REPORT_ID,
-                    movedFromReport: MOVED_FROM_REPORT_ID,
-                },
-            };
-
-            it('returns undefined for REPORT_MOVE_TYPE.TO  type', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
-                expect(result).toBeUndefined();
-            });
-
-            it('returns undefined for REPORT_MOVE_TYPE.FROM type', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
-                expect(result).toBeUndefined();
-            });
-        });
-        describe('when the original message is missing movedToReportID or movedFromReport', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                originalMessage: {},
-            };
-
-            it('returns undefined for REPORT_MOVE_TYPE.TO type when movedToReportID is missing', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
-                expect(result).toBeUndefined();
-            });
-
-            it('returns undefined for REPORT_MOVE_TYPE.FROM type when movedFromReport is missing', () => {
-                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
-                expect(result).toBeUndefined();
-            });
-        });
     });
 
     describe('getMovedFromOrToReportMessage', () => {

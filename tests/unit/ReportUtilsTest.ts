@@ -17,6 +17,7 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -429,6 +430,7 @@ const computeReportName = (
         isTrackIntentUser: false,
         formatPhoneNumber,
         rules: undefined,
+        getModifiedExpenseMessage: getForReportAction,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {

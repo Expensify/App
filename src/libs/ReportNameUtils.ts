@@ -29,16 +29,17 @@ import {format} from 'date-fns';
  */
 import {Str} from 'expensify-common';
 
+import type {getForReportAction} from './ModifiedExpenseMessage';
+
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import getCollator from './CollatorUtils';
-// eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getPolicyReimburserAccountID, wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
+import {getMovedReportID} from './ReportActionMessageUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
@@ -226,6 +227,9 @@ type ComputeReportName = {
     pendingDeleteMemberAccountIDs?: string[];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+
+    /** ModifiedExpenseMessage's getForReportAction, passed in because ModifiedExpenseMessage imports this module */
+    getModifiedExpenseMessage: typeof getForReportAction;
 };
 
 function getLocalizedSupportTicketReportName(
@@ -1116,6 +1120,7 @@ function computeChatThreadReportName({
     parentReportAction,
     policyTags,
     policy,
+    getModifiedExpenseMessage,
 }: {
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -1132,6 +1137,7 @@ function computeChatThreadReportName({
     parentReportAction?: ReportAction;
     policyTags?: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
+    getModifiedExpenseMessage: ComputeReportName['getModifiedExpenseMessage'];
 }): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -1202,7 +1208,7 @@ function computeChatThreadReportName({
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessageWithHTML = getForReportAction({
+        const modifiedMessageWithHTML = getModifiedExpenseMessage({
             translate,
             formatPhoneNumber,
             convertToDisplayString,
@@ -1252,6 +1258,7 @@ function computeReportName({
     pendingDeleteMemberAccountIDs,
     formatPhoneNumber,
     rules,
+    getModifiedExpenseMessage,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -1312,6 +1319,7 @@ function computeReportName({
             pendingDeleteMemberAccountIDs: undefined,
             formatPhoneNumber,
             rules,
+            getModifiedExpenseMessage,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
     }
@@ -1345,6 +1353,7 @@ function computeReportName({
         policyTags,
         policy: reportPolicy,
         formatPhoneNumber,
+        getModifiedExpenseMessage,
     });
     if (chatThreadReportName) {
         return chatThreadReportName;
