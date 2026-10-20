@@ -49,6 +49,8 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
+    let navigateSpy: jest.SpyInstance | undefined;
+
     beforeEach(() => {
         // Set up default mock return value
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -57,6 +59,7 @@ describe('HeaderView', () => {
     });
 
     afterEach(async () => {
+        navigateSpy?.mockRestore();
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -132,7 +135,7 @@ describe('HeaderView', () => {
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
         await waitForBatchedUpdates();
-        const navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
+        navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
 
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -149,7 +152,6 @@ describe('HeaderView', () => {
 
         // Then the user is taken back to the Concierge chat to ask another question
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
-        navigateSpy.mockRestore();
     });
 
     it('should display join button', async () => {

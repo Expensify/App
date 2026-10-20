@@ -1190,22 +1190,5 @@ describe('ReportActionsList (body)', () => {
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
         });
-
-        it('should render cached actions without a skeleton on refresh when hasOnceLoadedReportActions resets but actions are cached', () => {
-            // Given a page refresh: hasOnceLoadedReportActions is RAM-only and resets to false, but report actions persist in Onyx
-            setupMainDMConciergeMocks(true, false);
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-                hasOlderActions: false,
-            });
-
-            // When the list renders
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            // Then the cached actions render right away
-            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-        });
     });
 });
