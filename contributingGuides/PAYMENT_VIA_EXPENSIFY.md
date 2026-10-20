@@ -18,6 +18,7 @@ Include in the Description field a link to the payment confirmation posted by th
 
 **Important!:** If you’re new to NewDot payments, please double check your eligibility date against the date you were assigned to a GH issue.  If you were assigned to a GH issue before your eligibility date, you must be paid via Upwork.
 
+Once reports are submitted for payments, they often take a couple days to be approved, please wait at least 3 business days before commenting on the report.
 
 ## For issues with deposits
 If you're having an issue with the deposit, ie. a report gets _stuck_ in a state like Approved, start a chat with Concierge to ask for help. Provide as many details below as possible
