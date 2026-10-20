@@ -2982,6 +2982,7 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
+        collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

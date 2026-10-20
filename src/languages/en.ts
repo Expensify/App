@@ -3134,6 +3134,7 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        collectEmployeeBankDetails: 'Collect employee bank details',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

@@ -26,7 +26,13 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
+import {
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
+    setWorkspaceReimbursement,
+    toggleCollectDepositAccounts,
+} from '@libs/actions/Policy/Policy';
 import {getBankAccountConnectionStatus, isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +41,8 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -418,6 +426,19 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             </View>
                         </OfflineWithFeedback>
                     )}
+                    <ToggleSettingOptionRow
+                        title={translate('workflowsPage.collectEmployeeBankDetails')}
+                        switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
+                        wrapperStyle={[styles.mt3, styles.pv3, styles.mbn3]}
+                        isActive={!!policy?.isCollectDepositAccountsEnabled}
+                        onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
+                        pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        disabled={!canWritePayments}
+                        disabledAction={withPaymentsReadOnlyFallback()}
+                        showLockIcon={!canWritePayments}
+                    />
                 </>
             }
             isActive={getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}
