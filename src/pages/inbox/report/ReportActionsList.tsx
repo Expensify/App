@@ -5,7 +5,6 @@ import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkele
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeAskState from '@hooks/useConciergeAskState';
-import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +17,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -147,7 +147,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const sessionStartTime = useConciergeSessionStartTime();
+    const {sessionStartTime} = useSidePanelState();
     const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded} = useConciergeAskState(reportID);
 
     const didLayout = useRef(false);
@@ -506,12 +506,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const listHeaderComponent = (
         <>
-            <ConciergeChatHistoryToggle
-                reportID={reportID}
-                hasPreviousMessages={!!hasPreviousMessages}
-                shouldShowFullHistory={isHistoryExpanded}
-                onShowPreviousMessages={onShowPreviousMessages}
-            />
+            {isHistoryExpanded && (
+                <ConciergeChatHistoryToggle
+                    reportID={reportID}
+                    hasPreviousMessages={!!hasPreviousMessages}
+                    shouldShowFullHistory
+                    onShowPreviousMessages={onShowPreviousMessages}
+                />
+            )}
             <ReportActionsListHeader
                 reportID={reportID}
                 isDraftPendingCompletion={isDraftPendingCompletion}
