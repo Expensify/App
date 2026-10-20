@@ -3,13 +3,14 @@ import {renderHook} from '@testing-library/react-native';
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 
 import {isMobileChrome} from '@libs/Browser';
+import type * as Browser from '@libs/Browser';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import SelectionScraper from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 
 jest.mock('@libs/Browser', () => ({
-    ...jest.requireActual('@libs/Browser'),
+    ...jest.requireActual<typeof Browser>('@libs/Browser'),
     isMobileChrome: jest.fn(),
 }));
 
