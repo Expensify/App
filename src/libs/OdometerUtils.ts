@@ -151,6 +151,14 @@ function getOdometerTotalDistance(start: number, end: number, comment: Comment |
     return roundToTwoDecimalPlaces(distance * (savedQuantity / (savedEnd - savedStart)));
 }
 
-export {getOdometerImageUri, getOdometerImageName, getOdometerImageType, getOdometerImageIdentity, getOdometerTotalDistance, isExternalOdometerResync, shouldInitializeOdometerFromTransaction};
+export {
+    getOdometerImageUri,
+    getOdometerImageName,
+    getOdometerImageType,
+    getOdometerImageIdentity,
+    getOdometerTotalDistance,
+    isExternalOdometerResync,
+    shouldInitializeOdometerFromTransaction,
+};
 export type {OdometerResyncState};
 export default revokeOdometerImageUri;
