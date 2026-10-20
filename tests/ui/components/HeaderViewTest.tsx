@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
+import NavigationActions from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 
 import HeaderView from '@pages/inbox/HeaderView';
@@ -122,6 +123,33 @@ describe('HeaderView', () => {
 
         // Then the header title should be updated using the new display name
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
+    });
+
+    it('should go back to the Concierge chat when New chat is pressed in a Concierge thread', async () => {
+        // Given the header of a thread that Concierge opened for a question
+        const conciergeReportID = '10';
+        const threadReport = {...createRandomReport(11, undefined), parentReportID: conciergeReportID};
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+        await waitForBatchedUpdates();
+        const navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <HeaderView
+                    onNavigationMenuButtonClicked={() => {}}
+                    reportID={threadReport.reportID}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses New chat
+        fireEvent.press(screen.getByText(translateLocal('common.concierge.newChat')));
+
+        // Then the user is taken back to the Concierge chat to ask another question
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
+        navigateSpy.mockRestore();
     });
 
     it('should display join button', async () => {
