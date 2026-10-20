@@ -327,8 +327,9 @@ function getActivePaymentType(
     // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
-    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid" or "Pay via ABA", don't require payment method selection since payment happens outside of Expensify
+    const isPaidOutsideExpensify = paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA;
+    const shouldSelectPaymentMethod = !isPaidOutsideExpensify && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,

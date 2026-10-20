@@ -95,6 +95,18 @@ describe('PaymentUtils', () => {
             expect(result.shouldSelectPaymentMethod).toBe(false);
         });
 
+        it('should set shouldSelectPaymentMethod to false when paymentMethod is ABA', () => {
+            // Given the user has a bank account they could pay with
+            const businessBankAccountOptions = [bankItem];
+
+            // When they choose to pay via ABA
+            const result = getActivePaymentType(CONST.PAYMENT_METHODS.ABA, [], businessBankAccountOptions);
+
+            // Then it's paid as Elsewhere without asking for a payment method, since the ABA file pays from outside of Expensify
+            expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+            expect(result.shouldSelectPaymentMethod).toBe(false);
+        });
+
         it('should find policyFromContext by policyID', () => {
             const result = getActivePaymentType(undefined, [randomPolicyA, randomPolicyB], undefined, randomPolicyA.id);
 
