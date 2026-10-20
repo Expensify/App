@@ -1,17 +1,11 @@
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isCreatedAction, isDeletedParentAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction} from '@libs/ReportActionsUtils';
 
 import {useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import type {ReportAction, ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -35,21 +29,9 @@ type ConciergeAskState = {
     shouldLabelComposerAsNewQuestion: boolean;
 };
 
-/** An OPEN task assigned to the current user. Canceled tasks stay OPEN optimistically, so deleted parents are excluded. */
-function isOpenChildTaskAction(action: ReportAction, currentUserAccountID: number): boolean {
-    return (
-        action.childType === CONST.REPORT.TYPE.TASK &&
-        action.childManagerAccountID === currentUserAccountID &&
-        action.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
-        action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-        !isDeletedParentAction(action)
-    );
-}
-
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {showFullHistory} = useConciergeChatHistoryState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -62,11 +44,6 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
             return false;
         }
         const allActions = Object.values(actions);
-
-        // A task the user still has to finish stays on screen.
-        if (allActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID))) {
-            return true;
-        }
 
         // Until the chat's first action is loaded, the user's earlier messages may be on an older page.
         if (!allActions.some((action) => isCreatedAction(action))) {
@@ -81,14 +58,11 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: shouldKeepMessagesOnScreenSelector,
     });
 
-    // A linked action opens the report at that message, so the earlier conversation is on screen either way.
-    const isHistoryExpanded = showFullHistory || !!route.params?.reportActionID;
-
-    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && !shouldKeepMessagesOnScreen;
+    const shouldShowWelcome = isAskConciergeChat && !showFullHistory && !shouldKeepMessagesOnScreen;
 
     return {
         isAskConciergeChat,
-        isHistoryExpanded,
+        isHistoryExpanded: showFullHistory,
         shouldShowWelcome,
         shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
         shouldLabelComposerAsNewQuestion: isAskConciergeChat && showFullHistory,

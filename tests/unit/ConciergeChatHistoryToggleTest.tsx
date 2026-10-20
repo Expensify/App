@@ -5,15 +5,11 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -29,12 +25,6 @@ const mockSetShowFullHistory = jest.fn();
 jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
     useConciergeChatHistoryState: () => ({showFullHistory: false}),
     useConciergeChatHistoryActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
-    useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
-    useNavigation: () => ({getState: () => ({key: 'ReportsSplitNavigator-test'})}),
 }));
 
 const CONCIERGE_REPORT_ID = '1';
@@ -60,7 +50,6 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullH
 
 describe('ConciergeChatHistoryToggle', () => {
     beforeAll(async () => {
-        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await IntlStore.load(CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
         await waitForBatchedUpdates();
@@ -90,9 +79,8 @@ describe('ConciergeChatHistoryToggle', () => {
         // When the user presses the toggle
         fireEvent.press(screen.getByRole('button'));
 
-        // Then the history collapses and the linked message is cleared, so the chat goes back to its welcome state
+        // Then the history collapses, so the chat goes back to its welcome state
         expect(mockSetShowFullHistory).toHaveBeenCalledWith(false);
-        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: undefined}, 'Report-test', 'ReportsSplitNavigator-test');
         expect(onShowPreviousMessages).not.toHaveBeenCalled();
     });
 

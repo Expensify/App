@@ -138,8 +138,13 @@ describe('useConciergeAskState', () => {
         await waitForBatchedUpdates();
     });
 
-    it('keeps an open task assigned to the user on screen', async () => {
-        // Given an open task assigned to the current user in the Concierge chat
+    it('keeps the empty state when the chat has an open task assigned to the user', async () => {
+        // Given the whole chat is loaded and has an open task assigned to the current user
+        const createdAction = {
+            reportActionID: '7',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2024-06-01 10:00:00.000',
+        };
         const task = {
             reportActionID: '3',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -151,29 +156,32 @@ describe('useConciergeAskState', () => {
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[task.reportActionID]: task});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
+            [createdAction.reportActionID]: createdAction,
+            [task.reportActionID]: task,
+        });
         await waitForBatchedUpdates();
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        // Then the welcome stands down, so the task the user still has to finish stays visible
-        expect(result.current.shouldShowWelcome).toBe(false);
+        // Then the welcome shows, and the task stays behind `View chat history`
+        expect(result.current.shouldShowWelcome).toBe(true);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
         await waitForBatchedUpdates();
     });
 
-    it('shows the earlier conversation when the report opens at a linked action', () => {
+    it('keeps the empty state when the report opens at a linked action', () => {
         // Given a route that opens the Concierge chat at a linked message
         mockRouteParams = {reportActionID: '2'};
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        // Then the earlier conversation shows, because the linked message sits inside it
-        expect(result.current.isHistoryExpanded).toBe(true);
-        expect(result.current.shouldShowWelcome).toBe(false);
+        // Then the welcome shows, because only `View chat history` expands the earlier conversation
+        expect(result.current.isHistoryExpanded).toBe(false);
+        expect(result.current.shouldShowWelcome).toBe(true);
     });
 
     it('stays off outside the Concierge report', () => {

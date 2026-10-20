@@ -5,15 +5,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {useNavigation, useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,14 +37,8 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
     const {setShowFullHistory} = useConciergeChatHistoryActions();
-    const route = useRoute();
-    const navigation = useNavigation();
 
-    const hideChatHistory = () => {
-        setShowFullHistory(false);
-        // Arriving from a thread opens the report at the parent message, which keeps the earlier conversation on screen.
-        Navigation.setParams({reportActionID: undefined}, route.key, navigation.getState()?.key);
-    };
+    const hideChatHistory = () => setShowFullHistory(false);
 
     if (!isAskConciergeChat || !hasPreviousMessages) {
         return null;

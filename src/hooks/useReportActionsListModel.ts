@@ -91,7 +91,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
             canPerformWriteAction,
             hasOlderActions,
             loadOlderChats,
-            conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute,
+            conciergeShowFullHistory,
             setConciergeShowFullHistory,
         });
 
