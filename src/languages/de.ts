@@ -1206,6 +1206,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Vergleichen',
             previousPeriod: 'Vorheriger Zeitraum',
             average: 'Durchschnitt',
+            dayLabel: (day?: number) => (day === undefined ? 'Tag' : `Tag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Woche' : `Woche ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Monat' : `Monat ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quartal' : `Quartal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jahr' : `Jahr ${year}`),
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
@@ -2217,6 +2222,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
                 }
                 return `Warten, bis die Zahlung abgeschlossen ist${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` bis ${eta}` : ` ${eta}`;
+                }
+                return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7493,6 +7510,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
+            exactOnline: {
+                comingSoon: 'Demnächst verfügbar',
+                joinWaitlist: 'Warteliste beitreten',
+                onWaitlist: 'Sie stehen auf der Warteliste',
+                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Mit Sandbox verbinden',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
@@ -10541,6 +10564,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `${fieldName} auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `setze ${fieldName} auf „${newValue}“`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `${fieldName} entfernt (zuvor „${oldValue}“)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `hat den Arbeitsbereich${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''} geändert`;
