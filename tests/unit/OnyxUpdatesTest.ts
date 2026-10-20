@@ -611,6 +611,59 @@ describe('OnyxUpdatesTest', () => {
         expect(await getOnyxValue(reportKey)).toStrictEqual(expectedSummary);
     });
 
+    it('keeps catch-up responses in arrival order when the second one lands while the staged WRITE flush is still writing', async () => {
+        // Given a WRITE response up to update 20 is staged for the deferred flush
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}` as const;
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: WRITE_COMMANDS.CREATE_WORKSPACE, data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'staged write'}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // And the storage write behind the flush is held open, so the flush stays in flight
+        const realUpdate = Onyx.update.bind(Onyx);
+        let releaseFlush: (() => void) | undefined;
+        const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(
+            (updates) =>
+                new Promise<void>((resolve) => {
+                    releaseFlush = () => {
+                        realUpdate(updates).then(resolve);
+                    };
+                }),
+        );
+
+        // When an older catch-up starts the flush and a newer one arrives before the flush settles
+        const olderCatchUp = OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 30,
+            request: {command: SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, data: {updateIDFrom: 20, updateIDTo: 30}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'older catch-up'}}]},
+        });
+        const newerCatchUp = OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 40,
+            request: {command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, data: {updateIDFrom: 20}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'newer catch-up'}}]},
+        });
+        await waitForBatchedUpdates();
+        releaseFlush?.();
+        await Promise.all([olderCatchUp, newerCatchUp]);
+        await waitForBatchedUpdates();
+        updateSpy.mockRestore();
+
+        // Then the newer catch-up is applied last, so the older one cannot overwrite it behind an already advanced watermark
+        expect(await getOnyxValue(reportKey)).toStrictEqual({lastMessageText: 'newer catch-up'});
+        expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(40);
+    });
+
     describe('Pusher apply chain recovery', () => {
         const pusherUpdate = <TKey extends OnyxKey>(lastUpdateID: number, eventType: string, data: Array<OnyxServerUpdate<TKey>> = []): OnyxUpdatesFromServer<TKey> => ({
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
