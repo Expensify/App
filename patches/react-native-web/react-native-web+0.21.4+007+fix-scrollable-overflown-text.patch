@@ -1,26 +1,26 @@
 diff --git a/node_modules/react-native-web/dist/exports/Text/index.js b/node_modules/react-native-web/dist/exports/Text/index.js
-index 4130386..1076f55 100644
+index 7532d9e..4b3b4c3 100644
 --- a/node_modules/react-native-web/dist/exports/Text/index.js
 +++ b/node_modules/react-native-web/dist/exports/Text/index.js
-@@ -176,7 +176,7 @@ var styles = StyleSheet.create({
-   textMultiLine: {
-     display: '-webkit-box',
+@@ -155,7 +155,7 @@ var styles = StyleSheet.create({
+   }),
+   textOneLine: {
      maxWidth: '100%',
 -    overflow: 'hidden',
 +    overflow: 'clip',
      textOverflow: 'ellipsis',
-     WebkitBoxOrient: 'vertical'
-   },
+     whiteSpace: 'nowrap',
+     wordWrap: 'normal'
 diff --git a/node_modules/react-native-web/src/exports/Text/index.js b/node_modules/react-native-web/src/exports/Text/index.js
-index f79e82c..f27ccec 100644
+index c00da5c..5eb0115 100644
 --- a/node_modules/react-native-web/src/exports/Text/index.js
 +++ b/node_modules/react-native-web/src/exports/Text/index.js
-@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
-   textMultiLine: {
-     display: '-webkit-box',
+@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
+   },
+   textOneLine: {
      maxWidth: '100%',
 -    overflow: 'hidden',
 +    overflow: 'clip',
      textOverflow: 'ellipsis',
-     WebkitBoxOrient: 'vertical'
-   },
+     whiteSpace: 'nowrap',
+     wordWrap: 'normal'

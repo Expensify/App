@@ -222,7 +222,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-view-shot": "5.1.0",
     "react-native-vision-camera": "^4.7.2",
-    "react-native-web": "0.21.2",
+    "react-native-web": "0.21.4",
     "react-native-webview": "16.0.0",
     "react-native-worklets": "0.13.0",
     "react-plaid-link": "3.3.2",
