@@ -16,7 +16,7 @@ import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUti
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import variables from '@styles/variables';
 
@@ -28,10 +28,14 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
-type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
+type WiseGlobalReimbursementsIntroPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO>
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
 
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
+    // Opened from Workspace > Workflows > Payments when the route carries a workspace, from Wallet otherwise
+    const policyID = 'policyID' in route.params ? route.params.policyID : undefined;
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -43,15 +47,15 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithCoins']);
 
-    const goBackToWallet = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    const goBackToEntryPoint = () => Navigation.goBack(policyID ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.PAYMENTS) : ROUTES.SETTINGS_WALLET);
 
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToWallet();
-    }, [isWiseReimbursementsBetaEnabled, goBackToWallet]);
+        goBackToEntryPoint();
+    }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging eligibility
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
@@ -64,10 +68,10 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
                 shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)}
-                onBackButtonPress={goBackToWallet}
+                onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
-                    <Header.BackButton onPress={goBackToWallet} />
+                    <Header.BackButton onPress={goBackToEntryPoint} />
                     <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
                 <ConfirmationPage
@@ -78,12 +82,13 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     descriptionStyle={styles.textSupporting}
                     shouldShowSecondaryButton
                     secondaryButtonText={translate('common.notNow')}
-                    onSecondaryButtonPress={goBackToWallet}
+                    onSecondaryButtonPress={goBackToEntryPoint}
                     shouldShowButton
                     buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                     onButtonPress={() => {
-                        // Starting onboarding for any account retires the Wallet banner for good
+                        // Starting onboarding for any account retires both banners for good
                         dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
                     }}
                 />
             </FullPageNotFoundView>

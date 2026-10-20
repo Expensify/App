@@ -3470,6 +3470,15 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
+        route: 'workspaces/:policyID/workflows/global-reimbursements/:bankAccountID',
+        getRoute: (policyID: string | undefined, bankAccountID: number | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO route');
+            }
+            return `workspaces/${policyID}/workflows/global-reimbursements/${bankAccountID}` as const;
+        },
+    },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string | undefined) => {

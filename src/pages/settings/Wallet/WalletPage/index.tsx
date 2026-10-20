@@ -49,7 +49,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import WiseGlobalReimbursementsBanner from '@pages/settings/Wallet/WiseGlobalReimbursementsBanner';
+import WalletWiseGlobalReimbursementsBanner from '@pages/settings/Wallet/WalletWiseGlobalReimbursementsBanner';
 
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
@@ -770,7 +770,7 @@ function WalletPage() {
                         errors={userWallet?.errors}
                         errorRowStyles={styles.ph6}
                     >
-                        <WiseGlobalReimbursementsBanner />
+                        <WalletWiseGlobalReimbursementsBanner />
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                             title={translate('common.bankAccounts')}

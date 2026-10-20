@@ -153,7 +153,7 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
     const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
-        // Accounts deleted offline stay in the list until the request syncs, so they should not be offered
+        // Accounts deleted offline stay in the list until the request syncs
         if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return latest;
         }
@@ -167,8 +167,7 @@ function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEnt
             return accountData;
         }
 
-        // `created` is a DB timestamp, so plain string comparison orders it chronologically.
-        // Accounts created in the same second fall back to the ID, which grows with each new account
+        // `created` is a DB timestamp, so string compare works. Same second → higher ID wins
         const created = accountData.created ?? '';
         const latestCreated = latest.created ?? '';
         const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
@@ -177,6 +176,29 @@ function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEnt
     }, undefined);
 
     return newest?.bankAccountID;
+}
+
+/**
+ * Picks the bank account the Workspace Workflows global reimbursements banner points to: the workspace's connected account, when it is eligible.
+ */
+function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEntry<OnyxTypes.Policy>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    // Only "Reimburse via Expensify" pays out of the connected account, so the other choices have nothing to enable
+    if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return undefined;
+    }
+
+    const bankAccountID = policy.achAccount?.bankAccountID;
+    if (!bankAccountID) {
+        return undefined;
+    }
+
+    // Admins without a copy of the account can't see its currency, type or verifications, so the banner stays hidden for them
+    const bankAccount = bankAccountList?.[bankAccountID];
+    if (bankAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)) {
+        return undefined;
+    }
+
+    return bankAccountID;
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -345,6 +367,7 @@ export {
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
     getWiseGlobalReimbursementsBannerBankAccountID,
+    getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

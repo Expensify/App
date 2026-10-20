@@ -1149,6 +1149,10 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
+        policyID: string;
+        bankAccountID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };

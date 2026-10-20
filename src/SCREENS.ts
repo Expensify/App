@@ -927,6 +927,7 @@ const SCREENS = {
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         WORKFLOWS_CURRENCY_CONVERSION_FEES: 'Workspace_Workflows_Currency_Conversion_Fees',
+        WORKFLOWS_WISE_GLOBAL_REIMBURSEMENTS_INTRO: 'Workspace_Workflows_Wise_Global_Reimbursements_Intro',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
