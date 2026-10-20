@@ -210,5 +210,25 @@ describe('Issue card shipping steps', () => {
             expect(screen.getByText(TestHelper.translateLocal('common.error.characterLimitExceedCounter', tooLongName.length, CONST.LEGAL_NAME.MAX_LENGTH))).toBeOnTheScreen();
             expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS);
         });
+
+        it('clears the state, city and zip when the country changes', async () => {
+            // Given an admin who entered a full US address
+            await setFlow(physicalCardFlow);
+            renderStep(ShippingAddressStep);
+            await waitForBatchedUpdatesWithAct();
+            await enterUSAddress();
+
+            // When they change the country to Canada
+            fireEvent.press(screen.getByRole('button', {name: `${TestHelper.translateLocal('common.country')}, United States`}), PRESS_EVENT);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.search')), 'Canada');
+            fireEvent.press(await screen.findByText('Canada'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the US state, city and zip are cleared, since they don't belong to the new country
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.stateOrProvince')).props.value).toBe('');
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.city')).props.value).toBe('');
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.zipPostCode')).props.value).toBe('');
+        });
     });
 });
