@@ -201,6 +201,7 @@ function useTrackExpenseSubmission({
             const email = currentUserPersonalDetails.email ?? '';
 
             trackExpenseIOUActions({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 writeBarrier,
                 report: trackReport,

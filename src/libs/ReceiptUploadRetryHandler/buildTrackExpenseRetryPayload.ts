@@ -45,6 +45,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         introSelected,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
         currentUserPersonalDetails: currentUser,
     } = context;
     const participant = resolveParticipant(iouReport, currentUser.accountID);
@@ -58,6 +59,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
     }
 
     return {
+        formatPhoneNumber,
         report: iouReport,
         isDraftPolicy: false,
         isDraftChatReport: false,

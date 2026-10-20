@@ -35,7 +35,7 @@ import useReportPreviewActionButtonData from './useReportPreviewActionButtonData
 function PayActionButton() {
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -86,6 +86,7 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    formatPhoneNumber,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentMethodType: type,
@@ -111,6 +112,7 @@ function PayActionButton() {
                 });
             } else {
                 payMoneyRequest({
+                    formatPhoneNumber,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: type,

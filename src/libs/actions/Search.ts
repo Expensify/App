@@ -34,6 +34,7 @@ import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -700,6 +701,7 @@ function getPayActionCallback({
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
 
     payMoneyRequest({
+        formatPhoneNumber,
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
@@ -1907,6 +1909,7 @@ function rejectMoneyRequestInBulk(
     > = {};
     for (const transactionID of transactionIDs) {
         const data = prepareRejectMoneyRequestData({
+            formatPhoneNumber,
             transactionID,
             reportID,
             comment,
@@ -2032,6 +2035,7 @@ function rejectMoneyRequestsOnSearch({
             };
             for (const transactionID of selectedTransactionIDs) {
                 rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID,
                     reportID,
                     comment,

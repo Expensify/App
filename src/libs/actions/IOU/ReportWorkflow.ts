@@ -15,6 +15,7 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -436,6 +437,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            formatPhoneNumber,
             chatReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
@@ -1289,6 +1291,7 @@ function submitReport({
     // least one unheld expense remains.
     if (shouldSplitHeldExpenses) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            formatPhoneNumber,
             chatReport: parentReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},

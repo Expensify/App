@@ -1,4 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -47,6 +48,7 @@ function useSendMoneySubmission({
     onExpenseWriteWillStart,
 }: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {formatPhoneNumber} = useLocalize();
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
         const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true} = options ?? {};
@@ -66,6 +68,7 @@ function useSendMoneySubmission({
         const sendMoneyReport = optimisticChatReportID ? undefined : report;
         const sendMoneyParams = {
             getCurrencyDecimals,
+            formatPhoneNumber,
             report: sendMoneyReport,
             quickAction,
             amount: transaction.amount,
