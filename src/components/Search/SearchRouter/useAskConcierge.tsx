@@ -28,7 +28,6 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
     const [sidePanelReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sidePanelReportID)}`);
 
-    // Each new question gets its own Concierge thread, so a side panel showing an earlier thread still targets Concierge.
     const isSidePanelOnConciergeThread = !!conciergeReportID && sidePanelReport?.parentReportID === conciergeReportID;
     const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID && !isSidePanelOnConciergeThread ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);

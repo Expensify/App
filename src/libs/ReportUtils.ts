@@ -7571,11 +7571,7 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-/**
- * Saving a draft captured mid-upload would persist local URIs only the author's device can resolve, so swap each one
- * for the synced attachment in the same position, or drop them while the upload is pending because the queued Add
- * re-attaches the files.
- */
+/** Swaps each local attachment URI in a draft for its synced attachment, or drops them while the upload is pending. */
 function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
     const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
     if (!localAttachmentReferenceRegex.test(draftMarkdown)) {

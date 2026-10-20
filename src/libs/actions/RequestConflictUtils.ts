@@ -276,7 +276,6 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
-/** Reads the local URI of a queued file. Request data is untyped, so the shape is checked rather than cast. */
 function getQueuedFileURI(file: unknown): string {
     return typeof file === 'object' && file !== null && 'uri' in file && typeof file.uri === 'string' ? file.uri : '';
 }

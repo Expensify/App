@@ -11,12 +11,8 @@ import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 /**
- * Returns true when thinking/typing indicators should be hidden. Three cases:
- *   1. The main Concierge chat — Concierge answers each question in its own thread.
- *   2. The Concierge side panel welcome state — before any real message activity
- *      occurs in the side panel session.
- *   3. The followup-list pending window — between trickle completion and the
- *      server reply with `<followup-list>`.
+ * Returns true when thinking/typing indicators should be hidden: in the main Concierge chat, in the Concierge
+ * side panel before the session has any messages, and while a followup list is pending.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();

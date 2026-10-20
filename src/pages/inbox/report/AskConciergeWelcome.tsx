@@ -31,13 +31,11 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-    // A message sent from the welcome screen never renders in this chat, so its span is canceled.
     useCancelSendMessageSpanOnSkeleton(reportID, CONST.TELEMETRY.CANCELED_BY_SKELETON.CONCIERGE_WELCOME);
 
     return (
         <ScrollView
             style={[shouldCenterWelcomeWithComposer && styles.flexGrow0, styles.conciergeAskColumn]}
-            // Without previous messages the toggle is hidden, so its padding no longer keeps the description off the composer.
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, !hasPreviousMessages && styles.pb5]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}

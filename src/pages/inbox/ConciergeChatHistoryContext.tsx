@@ -25,14 +25,10 @@ const ConciergeChatHistoryActionsContext = createContext<ConciergeChatHistoryAct
 
 const accountIDSelector = (session: {accountID?: number} | undefined) => session?.accountID;
 
-/**
- * Remembers whether the main Concierge chat history is expanded, so it stays expanded across the composer, the
- * header and the list. Mounted at app level (App.tsx) so it never remounts.
- */
 function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     const [showFullHistory, setShowFullHistory] = useState(false);
 
-    // The provider never remounts, so collapse the history when the user switches accounts.
+    // Collapse the history when the user switches accounts.
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [prevAccountID, setPrevAccountID] = useState(accountID);
     if (prevAccountID !== accountID) {

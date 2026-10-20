@@ -1326,7 +1326,6 @@ function addAttachmentWithComment({
         playSound(SOUNDS.DONE);
     };
 
-    // Single attachment, or several in one message so Concierge answers them in one thread
     if (!Array.isArray(attachments) || conciergeThreadReportID) {
         const [file, ...additionalFiles] = Array.isArray(attachments) ? attachments : [attachments];
         addActions({

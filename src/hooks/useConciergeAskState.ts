@@ -38,19 +38,17 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
 
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel;
 
-    // Other reports skip the scan.
     const shouldKeepMessagesOnScreenSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!isAskConciergeChat || !actions) {
             return false;
         }
         const allActions = Object.values(actions);
 
-        // Until the chat's first action is loaded, the user's earlier messages may be on an older page.
+        // The user's earlier messages may be on an older page.
         if (!allActions.some((action) => isCreatedAction(action))) {
             return false;
         }
 
-        // `View chat history` only appears once the user has messaged Concierge, so earlier messages without one stay on screen.
         const messages = allActions.filter((action) => !isCreatedAction(action));
         return messages.length > 0 && !messages.some((action) => action.actorAccountID === currentUserAccountID);
     };
