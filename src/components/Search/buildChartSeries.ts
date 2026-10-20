@@ -115,59 +115,56 @@ function buildChartSeries({
     const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const periods = bucketUnit && getBucketRange ? comparison?.periods : undefined;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
-    // A search returns only the buckets holding expenses, so another period's bucket is looked up by its start date.
-    const comparedByKey = new Map(comparison?.data.map((item) => [periods && getBucketRange ? getBucketRange(item).start : item.keyForList, item]));
+    // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
+    const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getBucketRange?.(item)?.start) ?? item.keyForList, item]));
+
+    /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period */
+    const getCompared = (item: GroupedItem) => {
+        const bucketRange = periods && getBucketRange?.(item);
+        if (periods && bucketUnit && bucketRange) {
+            const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
+            const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
+            return {
+                // A bucket with no counterpart plots nothing for the comparison, unlike one with no expenses, which plots 0.
+                value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
+                percentOfTotal: comparedItem?.percentOfTotal,
+                bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, bucketUnit, translate, dateFnsLocale),
+            };
+        }
+
+        const comparedItem = comparedByKey.get(item.keyForList);
+        // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
+        const missingValue = getBucketRange ? undefined : 0;
+        return {value: comparedItem ? getAmount(comparedItem) : missingValue, percentOfTotal: comparedItem?.percentOfTotal};
+    };
 
     const rows = data.map((item) => {
         const label = StringUtils.normalize(getLabel(item));
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
+        const isInProgress = inProgressLabel !== undefined;
+        const compared = comparison ? getCompared(item) : undefined;
+        const bucketLabels = compared?.bucketLabels;
+        const primaryDates = bucketLabels?.seriesLabels.primary;
+
         const point: ChartDataPoint = {
-            label,
-            shortLabel,
-            values: {[CHART_SERIES_KEY.PRIMARY]: getAmount(item)},
+            label: bucketLabels?.label ?? inProgressLabel ?? label,
+            shortLabel: bucketLabels?.shortLabel ?? (isInProgress ? (shortLabel ?? label) : shortLabel),
+            values: {
+                [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
+                ...(compared?.value !== undefined && {[CHART_SERIES_KEY.COMPARISON]: compared.value}),
+            },
             percentOfTotal: item.percentOfTotal,
             count: item.count,
+            ...(bucketLabels && {
+                seriesLabels: {
+                    [CHART_SERIES_KEY.PRIMARY]: isInProgress && primaryDates ? translate('search.periodSoFar', {period: primaryDates}) : primaryDates,
+                    [CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabels.comparison,
+                },
+            }),
+            ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
+            ...(isInProgress && {isInProgress}),
         };
-
-        if (periods && bucketUnit && getBucketRange) {
-            const bucketRange = getBucketRange(item);
-            const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
-            const bucketLabels = getComparedBucketLabels(bucketRange, counterpartRange, periods, bucketUnit, translate, dateFnsLocale);
-            point.label = bucketLabels.label;
-            point.shortLabel = bucketLabels.shortLabel;
-            point.seriesLabels = {[CHART_SERIES_KEY.PRIMARY]: bucketLabels.seriesLabels.primary};
-            point.seriesPercentOfTotal = {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal};
-
-            // A bucket with no counterpart plots nothing for the comparison, unlike one with no expenses, which plots 0.
-            if (counterpartRange) {
-                const comparedItem = comparedByKey.get(counterpartRange.start);
-                point.values[CHART_SERIES_KEY.COMPARISON] = comparedItem ? getAmount(comparedItem) : 0;
-                point.seriesLabels[CHART_SERIES_KEY.COMPARISON] = bucketLabels.seriesLabels.comparison;
-                point.seriesPercentOfTotal[CHART_SERIES_KEY.COMPARISON] = comparedItem?.percentOfTotal;
-            }
-        } else if (comparison) {
-            const comparedItem = comparedByKey.get(item.keyForList);
-            point.seriesPercentOfTotal = {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal};
-            if (comparedItem) {
-                point.values[CHART_SERIES_KEY.COMPARISON] = getAmount(comparedItem);
-                point.seriesPercentOfTotal[CHART_SERIES_KEY.COMPARISON] = comparedItem.percentOfTotal;
-            } else if (!getBucketRange) {
-                // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
-                point.values[CHART_SERIES_KEY.COMPARISON] = 0;
-            }
-        }
-
-        if (inProgressLabel !== undefined) {
-            point.isInProgress = true;
-            const primaryDates = point.seriesLabels?.[CHART_SERIES_KEY.PRIMARY];
-            if (point.seriesLabels && primaryDates) {
-                point.seriesLabels[CHART_SERIES_KEY.PRIMARY] = translate('search.periodSoFar', {period: primaryDates});
-            } else {
-                point.label = inProgressLabel;
-                point.shortLabel = shortLabel ?? label;
-            }
-        }
 
         return {point, item};
     });

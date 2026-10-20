@@ -14,7 +14,7 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
-    /** Names the series, like "Average", or the dates its amount covers */
+    /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
 
     amount: string;

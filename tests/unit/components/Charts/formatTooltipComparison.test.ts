@@ -48,7 +48,7 @@ describe('formatTooltipComparison', () => {
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, series, formatAmount, 'en');
 
-        // Then each year gets a row named by its year, since a previous period has no single name, and each carries its own year's share
+        // Then each row is named by the point's own label for that series, its year, and carries that year's share
         expect(comparison?.rows).toEqual([
             {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: '2026', amount: '$300', percentage: '34.2%'},
             {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: '2025', amount: '$100', percentage: '16.1%'},
