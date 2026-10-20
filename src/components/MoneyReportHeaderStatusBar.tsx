@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {buildNextStepMessage} from '@libs/NextStepUtils';
-import type {ReportNextStepWithContext} from '@libs/NextStepUtils';
+import type {ReportNextStepWithOverride} from '@libs/NextStepUtils';
 
 import variables from '@styles/variables';
 
@@ -21,32 +21,32 @@ import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    nextStepWithContext: ReportNextStepWithContext;
+    nextStep: ReportNextStepWithOverride;
 };
 
-type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS & typeof CONST.NEXT_STEP.ICONS_OVERRIDE>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStepWithContext}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box', 'DotIndicator']);
     const iconMap: IconMap = useMemo(
         () => ({
             [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
             [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
             [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
             [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
+            [CONST.NEXT_STEP.ICONS_OVERRIDE.DOT_INDICATOR]: icons.DotIndicator,
         }),
         [icons],
     );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const {nextStep, nextStepContext} = nextStepWithContext;
     const messageContent = useMemo(
-        () => buildNextStepMessage(nextStep, nextStepContext, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber),
-        [nextStep, nextStepContext, translate, dateFnsLocale, formatPhoneNumber],
+        () => buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber),
+        [nextStep, translate, dateFnsLocale, formatPhoneNumber],
     );
 
     return (
@@ -56,7 +56,7 @@ function MoneyReportHeaderStatusBar({nextStepWithContext}: MoneyReportHeaderStat
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
-                    fill={theme.icon}
+                    fill={nextStep.iconFill ?? theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>

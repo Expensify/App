@@ -7,7 +7,7 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {MergeExclusive, ValueOf} from 'type-fest';
 
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
@@ -34,13 +34,21 @@ import {
 import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
 /**
- * Report next step context is a FE-only derived values for ReportNextStep
+ * Report next step override is a FE-only override values for ReportNextStep
+ * This is not stored in Onyx
  */
-type ReportNextStepContext = {
-    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE> | undefined;
-    etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    messageKeyModifier: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_MODIFIER> | undefined;
+type ReportNextStepOverride = {
+    /** Message key */
+    messageKey?: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE>;
+
+    /** Icon */
+    icon?: ValueOf<typeof CONST.NEXT_STEP.ICONS_OVERRIDE>;
+
+    /** The fill color of the icon */
+    iconFill?: string;
 };
+
+type ReportNextStepWithOverride = MergeExclusive<ReportNextStep, ReportNextStepOverride>;
 
 type BuildOptimisticNextStepParams = {
     report: OnyxEntry<Report>;
@@ -65,8 +73,7 @@ type BuildOptimisticNextStepParams = {
 };
 
 function buildNextStepMessage(
-    nextStep: ReportNextStep,
-    nextStepContext: ReportNextStepContext,
+    nextStep: K,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
@@ -82,6 +89,8 @@ function buildNextStepMessage(
     } else {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
+
+    nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE;
 
     let eta: string | undefined;
     let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
@@ -380,11 +389,6 @@ type GetReportNextStepParams = {
     isReportArchived: boolean;
 };
 
-type ReportNextStepWithContext = {
-    nextStep: ReportNextStep;
-    nextStepContext: ReportNextStepContext;
-};
-
 function getReportNextStep({
     currentUserLogin,
     currentUserEmail,
@@ -398,7 +402,7 @@ function getReportNextStep({
     rules,
     areStrictPolicyRulesEnabled,
     isReportArchived,
-}: GetReportNextStepParams): ReportNextStepWithContext | undefined {
+}: GetReportNextStepParams): ReportNextStepWithOverride | undefined {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         const nextStep = buildChangeWorkspaceNextStep();
@@ -557,5 +561,5 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
     return !automaticAction;
 }
 
-export type {ReportNextStepWithContext};
+export type {ReportNextStepWithOverride};
 export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, shouldShowDynamicExternalWorkflowApproveErrorNextStep};

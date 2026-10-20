@@ -23,7 +23,7 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const showNextStepSkeleton = !nextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
-        return <MoneyReportHeaderStatusBar nextStepWithContext={nextStep} />;
+        return <MoneyReportHeaderStatusBar nextStep={nextStep} />;
     }
 
     if (showNextStepSkeleton) {

@@ -2252,11 +2252,26 @@ const CONST = {
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
         },
+        /**
+         * Extra message keys that are FE-only. These can be found only in `ReportNextStepOverride`
+         */
+        MESSAGE_KEY_OVERRIDE: {
+            STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
+            DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
+            DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
+            DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE: 'dynamicExternalWorkflowWOffline',
+        },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
             BOX: 'box',
+        },
+        /**
+         * Extra icons that are FE-only. These can be found only in `ReportNextStepOverride`
+         */
+        ICONS_OVERRIDE: {
+            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -2267,22 +2282,10 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
             END_OF_TRIP: 'endOfTrip',
         },
-        /**
-         * The message key modifier is a FE-only derived value from the report context
-         * This modifier is used to display different nextStep messages for a given nextStep meesage key
-         */
-        MESSAGE_KEY_MODIFIER: {
-            STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
-            DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
-            DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
-            DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE: 'dynamicExternalWorkflowWOffline',
-        },
-        /** ETA type is a FE-only derived value from nextStep.eta */
         ETA_TYPE: {
             KEY: 'key',
             DATE_TIME: 'dateTime',
         },
-        /** Actor type is a FE-only derived value from nextStep.actorAccountID */
         ACTOR_TYPE: {
             CURRENT_USER: 'currentUser',
             OTHER_USER: 'otherUser',
