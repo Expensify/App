@@ -1224,7 +1224,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Προβολή στο Spend',
         emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
         noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
-        compare: {label: 'Σύγκριση', previousPeriod: 'Προηγούμενη περίοδος', average: 'Μέσος όρος'},
+        compare: {
+            label: 'Σύγκριση',
+            previousPeriod: 'Προηγούμενη περίοδος',
+            average: 'Μέσος όρος',
+            increase: (percentage: string) => `Αύξηση ${percentage}`,
+            decrease: (percentage: string) => `Μείωση ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2884,6 +2890,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;', subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.', getStarted: 'Ξεκινήστε'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -5205,6 +5212,7 @@ ${amount} για ${merchant} - ${date}`,
                         : 'Αυτός ο χώρος εργασίας δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.',
                 adminSubtitle: 'Προσθέστε ημερήσια επιδόματα για να οργανώσετε τις δαπάνες σας.',
             },
+            missingPerDiemUnit: 'Το ημερήσιο επίδομα δεν έχει ρυθμιστεί σωστά σε αυτόν τον χώρο εργασίας. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο QuickBooks Desktop.',

@@ -1177,7 +1177,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Visualizza in Spese',
         emptyState: {title: 'Niente da mostrare', subtitle: 'Prova a modificare i criteri qui sopra'},
         noExpensesState: {title: 'Scopri dove va il tuo denaro', subtitle: 'Una volta che avrai delle spese, troverai tendenze di spesa, principali esercenti e altro ancora.'},
-        compare: {label: 'Confronta', previousPeriod: 'Periodo precedente', average: 'Media'},
+        compare: {
+            label: 'Confronta',
+            previousPeriod: 'Periodo precedente',
+            average: 'Media',
+            increase: (percentage: string) => `In aumento del ${percentage}`,
+            decrease: (percentage: string) => `In calo del ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2817,6 +2823,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Configurare i rimborsi globali?', subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.', getStarted: 'Inizia'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
@@ -5100,6 +5107,7 @@ ${amount} per ${merchant} - ${date}`,
             editPerDiemRates: 'Modifica le tariffe di diaria',
             editDestinationSubtitle: (destination: string) => `L’aggiornamento di questa destinazione la modificherà per tutte le sottotariffe di diaria ${destination}.`,
             editCurrencySubtitle: (destination: string) => `L’aggiornamento di questa valuta la modificherà per tutte le sottotariffe di diaria ${destination}.`,
+            missingPerDiemUnit: 'Il per diem non è configurato correttamente in questo workspace. Contatta Concierge per ricevere aiuto.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Imposta come esportare le spese anticipate in QuickBooks Desktop.',
