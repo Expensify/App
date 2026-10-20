@@ -266,7 +266,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
                     const seriesPoints = args.points[seriesItem.key] ?? [];
 
-                    // A compared period has already ended, so its whole line is solid
+                    // Only the primary series is dashed
                     const lineRuns: LineRun[] = seriesItem.key === primarySeriesKey ? primaryLineRuns : [{start: 0, end: seriesPoints.length - 1, isDashed: false}];
                     return (
                         <React.Fragment key={seriesItem.key}>
