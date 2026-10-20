@@ -28,14 +28,14 @@ jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
     useConciergeChatHistoryState: () => ({showFullHistory: mockShowFullHistory}),
 }));
 
-const createdAction = {reportActionID: '1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-06-01 10:00:00.000'} as ReportAction;
-const conciergeMessage = {
+const createdAction: ReportAction = {reportActionID: '1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-06-01 10:00:00.000'};
+const conciergeMessage: ReportAction = {
     reportActionID: '2',
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
     created: '2024-06-01 11:00:00.000',
-} as ReportAction;
-const userMessage = {reportActionID: '3', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: CURRENT_USER_ACCOUNT_ID, created: '2024-06-01 11:05:00.000'} as ReportAction;
+};
+const userMessage: ReportAction = {reportActionID: '3', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: CURRENT_USER_ACCOUNT_ID, created: '2024-06-01 11:05:00.000'};
 
 async function setReportActions(actions: ReportAction[]) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, Object.fromEntries(actions.map((action) => [action.reportActionID, action])));
