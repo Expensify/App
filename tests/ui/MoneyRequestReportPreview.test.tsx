@@ -1329,7 +1329,9 @@ describe('MoneyRequestReportPreview', () => {
             setReportPreviewData({transactions: [mockTransaction]});
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
             await act(async () => {
-                await TransactionThreadNavigation.setActiveTransactionIDs([mockTransaction.transactionID, 'selfDMTransactionID'], {source: TransactionThreadNavigation.CAROUSEL_SOURCE.search(1)});
+                await TransactionThreadNavigation.setActiveTransactionIDs([mockTransaction.transactionID, 'selfDMTransactionID'], {
+                    source: TransactionThreadNavigation.CAROUSEL_SOURCE.search(1),
+                });
             });
             const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
 
