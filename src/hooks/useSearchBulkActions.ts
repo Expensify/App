@@ -1643,12 +1643,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
-                if (!allMatchingQuery) {
+                const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+                if (isExpenseReportType && !allMatchingQuery) {
                     Log.info('[BulkPay] Dropping bulk pay: report exclusion has no reportID');
                     return;
                 }
-                queueBulkPayReports(serializeQueryJSONForBackend(allMatchingQuery));
+                const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
+                queueBulkPayReports(serializedQuery);
                 clearSelectedTransactions();
                 return;
             }
@@ -1905,6 +1906,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             areAllMatchingItemsSelected,
             queryJSON,
             excludedTransactions,
+            isExpenseReportType,
             isOffline,
             isBetaEnabled,
             isDelegateAccessRestricted,
