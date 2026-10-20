@@ -7,7 +7,7 @@ import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColu
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearTableColumnWidths, setTableColumnWidths} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -64,9 +64,7 @@ function useColumnResize({
     resolvedColumnWidths,
     dragMinWidths,
     getStoredTableColumnWidths,
-    getResetTableColumnWidths,
-    getFitColumnWidth,
-    getResetColumnWidth,
+    getTargetColumnWidth,
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
@@ -90,6 +88,25 @@ function useColumnResize({
         document.body.style.cursor = '';
     };
 
+    /** Paints the column at `width`, its absorbers taking the change, and saves the layout with it marked resized or handed back. */
+    const settleColumn = (columnKey: string, width: number, isResized: boolean) => {
+        // Nothing gets stored, so no render follows to clear the live widths.
+        if (!columnResizingID || !getStoredTableColumnWidths) {
+            clearLiveWidths();
+            return;
+        }
+
+        const resizedColumnWidths = getResizedColumnWidths(columnKey, width);
+        const storedTableColumnWidths = getStoredTableColumnWidths({...readPaintedColumnWidths(), ...resizedColumnWidths}, columnKey, isResized);
+
+        // A cleared layout reflows every column, and clearing one that was never saved renders nothing that would undo the paint.
+        if (storedTableColumnWidths) {
+            writeColumnWidths(resizedColumnWidths);
+        }
+
+        setTableColumnWidths(columnResizingID, storedTableColumnWidths);
+    };
+
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         resetDrag();
@@ -97,13 +114,13 @@ function useColumnResize({
 
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
-        // Nothing gets stored, so no render follows to clear the live widths.
-        if (!columnResizingID || !getStoredTableColumnWidths || width === drag.startWidth) {
+        // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
+        if (width === drag.startWidth) {
             clearLiveWidths();
             return;
         }
 
-        setTableColumnWidths(columnResizingID, getStoredTableColumnWidths(readPaintedColumnWidths(), drag.columnKey));
+        settleColumn(drag.columnKey, width, true);
     };
 
     // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
@@ -114,35 +131,24 @@ function useColumnResize({
     };
 
     const fitColumnToContent = (columnKey: string) => {
-        const width = getFitColumnWidth?.(columnKey);
+        const width = getTargetColumnWidth?.(columnKey, 'fit');
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
-        if (!columnResizingID || !getStoredTableColumnWidths || width === undefined || readColumnWidth(columnKey) === width) {
+        if (width === undefined || readColumnWidth(columnKey) === width) {
             return;
         }
 
-        writeColumnWidths(getResizedColumnWidths(columnKey, width));
-        setTableColumnWidths(columnResizingID, getStoredTableColumnWidths(readPaintedColumnWidths(), columnKey));
+        settleColumn(columnKey, width, true);
     };
 
     const resetColumnWidth = (columnKey: string) => {
-        const width = getResetColumnWidth?.(columnKey);
+        const width = getTargetColumnWidth?.(columnKey, 'reset');
 
-        if (!columnResizingID || !getResetTableColumnWidths || width === undefined) {
+        if (width === undefined) {
             return;
         }
 
-        // Resolved before painting, since clearing reflows every column anyway.
-        const resizedColumnWidths = getResizedColumnWidths(columnKey, width);
-        const storedTableColumnWidths = getResetTableColumnWidths({...readPaintedColumnWidths(), ...resizedColumnWidths}, columnKey);
-
-        if (!storedTableColumnWidths) {
-            clearTableColumnWidths(columnResizingID);
-            return;
-        }
-
-        writeColumnWidths(resizedColumnWidths);
-        setTableColumnWidths(columnResizingID, storedTableColumnWidths);
+        settleColumn(columnKey, width, false);
     };
 
     const scheduleFit = (columnKey: string) => {

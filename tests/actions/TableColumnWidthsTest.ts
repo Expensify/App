@@ -1,4 +1,4 @@
-import {clearTableColumnWidths, setTableColumnWidths} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type TableColumnWidths from '@src/types/onyx/TableColumnWidths';
@@ -66,7 +66,7 @@ describe('TableColumnWidths actions', () => {
         await waitForBatchedUpdates();
 
         // When the last dragged column of one table is reset
-        clearTableColumnWidths(TABLE_ID);
+        setTableColumnWidths(TABLE_ID, null);
         await waitForBatchedUpdates();
 
         // Then only that table loses its layout, so it is sized from its content again while the other keeps its widths

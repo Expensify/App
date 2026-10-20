@@ -7,6 +7,9 @@ import {getColumnWidthValue, getColumnsWidthExpression, getGrowableColumnTrack} 
 import getColumnsWidthSum from './getColumnsWidthSum';
 import resolveDraggedColumnWidths, {isColumnResizable} from './resolveDraggedColumnWidths';
 
+/** What a click (`fit`) or a double-click (`reset`) on a column's edge sizes it to. */
+type ColumnWidthTarget = 'fit' | 'reset';
+
 /** Row space that isn't column width, so it can be added back around the column sum. */
 type RowChromeWidths = {
     /** Leading checkbox column, `0` when selection is off. */
@@ -60,11 +63,11 @@ type ResizableColumnLayout = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
 
-    /** Width a click on the column's edge fits it to: its content, within the drag bounds. `undefined` when its edge doesn't drag. */
-    getFitColumnWidth: (columnKey: string) => number | undefined;
-
-    /** Width a double-click hands the column back at: its content within its cap and the drag bounds. `undefined` when the user never resized it. */
-    getResetColumnWidth: (columnKey: string) => number | undefined;
+    /**
+     * `fit`: the column's content within the drag bounds, `undefined` when its edge doesn't drag.
+     * `reset`: its content within its cap and the drag bounds, `undefined` when the user never resized it.
+     */
+    getTargetColumnWidth: (columnKey: string, target: ColumnWidthTarget) => number | undefined;
 };
 
 /** Table width minus selection column, gaps, margin and padding. Floored because tracks are whole px. */
@@ -113,16 +116,18 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     // Held to the same bounds as a drag, so a fit never leaves the room a drag couldn't, which the growable column would take back on the next render.
     const getDragBoundedWidth = (columnKey: string, width: number) => Math.max(Math.round(width), dragMinWidths[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
 
-    const getFitColumnWidth = (columnKey: string) => {
+    const getTargetColumnWidth = (columnKey: string, target: ColumnWidthTarget) => {
         const column = columns.find((candidate) => candidate.key === columnKey);
 
-        return column && isColumnResizable(column) ? getDragBoundedWidth(columnKey, column.contentWidth) : undefined;
-    };
+        if (!column) {
+            return undefined;
+        }
 
-    const getResetColumnWidth = (columnKey: string) => {
-        const column = columns.find((candidate) => candidate.key === columnKey);
+        if (target === 'fit') {
+            return isColumnResizable(column) ? getDragBoundedWidth(columnKey, column.contentWidth) : undefined;
+        }
 
-        return column && resizedColumnKeys.includes(columnKey) ? getDragBoundedWidth(columnKey, Math.min(column.contentWidth, column.maxWidth)) : undefined;
+        return resizedColumnKeys.includes(columnKey) ? getDragBoundedWidth(columnKey, Math.min(column.contentWidth, column.maxWidth)) : undefined;
     };
 
     const getResizedColumnWidths = (columnKey: string, width: number) =>
@@ -138,10 +143,10 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
         getResizedColumnWidths,
         resolvedColumnWidths: columnWidths,
         dragMinWidths,
-        getFitColumnWidth,
-        getResetColumnWidth,
+        getTargetColumnWidth,
     };
 }
 
 export default getResizableColumnLayout;
 export {getAvailableColumnsWidth};
+export type {ColumnWidthTarget};

@@ -4,7 +4,7 @@ import {RESIZE_GRIP_HOVER_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, getColumn
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
-import {clearTableColumnWidths, setTableColumnWidths} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -18,7 +18,6 @@ jest.mock('@styles/utils/cursor', () => jest.requireActual<Record<string, unknow
 
 jest.mock('@libs/actions/TableColumnWidths', () => ({
     setTableColumnWidths: jest.fn(),
-    clearTableColumnWidths: jest.fn(),
 }));
 
 const COLUMN_RESIZING_ID = 'testTable';
@@ -30,7 +29,8 @@ const resolvedColumnWidths = {name: 200, email: 200, role: 200};
 /** Stands in for the layout: the width each column's content fits in, bounds already applied. */
 const FIT_COLUMN_WIDTHS: Record<string, number> = {name: 120, email: 300, role: 80};
 
-function getFitColumnWidth(columnKey: string): number | undefined {
+/** Every column counts as resized and resets to the width its content fits in. */
+function getTargetColumnWidth(columnKey: string): number | undefined {
     return FIT_COLUMN_WIDTHS[columnKey];
 }
 
@@ -39,14 +39,9 @@ function getResizedColumnWidths(columnKey: string, width: number): Record<string
     return {email: 400 - width, [columnKey]: width};
 }
 
-/** Stands in for the resolver's layout, wrapping the painted widths in what the layout was sized for. */
-function getStoredTableColumnWidths(columnWidths: Record<string, number>, columnKey: string) {
-    return {availableColumnsWidth: 600, columnWidths, resizedColumnKeys: [columnKey]};
-}
-
-/** Stands in for the resolver's layout once a reset hands the column back, with no dragged column left. */
-function getResetTableColumnWidths(): null {
-    return null;
+/** Stands in for the resolver's layout, wrapping the painted widths in what the layout was sized for. A column handed back leaves no layout. */
+function getStoredTableColumnWidths(columnWidths: Record<string, number>, columnKey: string, isResized: boolean) {
+    return isResized ? {availableColumnsWidth: 600, columnWidths, resizedColumnKeys: [columnKey]} : null;
 }
 
 type PointerEventInit = {clientX: number; clientY?: number; button?: number};
@@ -88,10 +83,7 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
         getResizedColumnWidths,
         resolvedColumnWidths,
         getStoredTableColumnWidths,
-        getResetTableColumnWidths,
-        getFitColumnWidth,
-        // Every column counts as resized and resets to the width its content fits in.
-        getResetColumnWidth: getFitColumnWidth,
+        getTargetColumnWidth,
         columnGap: 12,
         ...params,
     };
@@ -219,7 +211,7 @@ describe('useColumnResize', () => {
 
         // Then every painted width is saved once, with the dragged column marked as resized, so a reload moves nothing
         expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, 'name'));
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, 'name', true));
         expect(document.body.style.cursor).toBe('');
     });
 
@@ -556,7 +548,7 @@ describe('useColumnResize', () => {
         expect(readWidth(NAME_COLUMN_KEY)).toBe('120px');
         expect(readWidth('email')).toBe('280px');
         expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY));
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY, true));
     });
 
     it('clears the layout on double-click when no other column was dragged, without fitting it first', () => {
@@ -571,16 +563,15 @@ describe('useColumnResize', () => {
         // Then the saved layout is cleared, so the table sizes every column from its content again, and nothing is
         // painted since the cleared layout reflows the columns. The first click never fits the column, so the edge
         // doesn't move out from under the second click
-        expect(clearTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(clearTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID);
-        expect(setTableColumnWidths).not.toHaveBeenCalled();
+        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, null);
         expect(readWidth(NAME_COLUMN_KEY)).toBe('');
     });
 
     it('hands the column back to content sizing on double-click while other dragged columns keep the layout', () => {
         // Given a resizable column, and another column the user dragged too
         const {click, readWidth} = renderColumnResize({
-            getResetTableColumnWidths: (columnWidths) => ({availableColumnsWidth: 600, columnWidths, resizedColumnKeys: ['role']}),
+            getStoredTableColumnWidths: (columnWidths) => ({availableColumnsWidth: 600, columnWidths, resizedColumnKeys: ['role']}),
         });
 
         // When its edge is double-clicked
@@ -597,7 +588,6 @@ describe('useColumnResize', () => {
             columnWidths: {name: 120, email: 280, role: 200},
             resizedColumnKeys: ['role'],
         });
-        expect(clearTableColumnWidths).not.toHaveBeenCalled();
     });
 
     it('drags without fitting when the edge is pressed again right after a click', () => {
@@ -617,8 +607,7 @@ describe('useColumnResize', () => {
         // Then only the drag counts, so the column isn't fitted once the user has moved on to dragging it
         expect(readWidth(NAME_COLUMN_KEY)).toBe('260px');
         expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, NAME_COLUMN_KEY));
-        expect(clearTableColumnWidths).not.toHaveBeenCalled();
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, NAME_COLUMN_KEY, true));
     });
 
     it('fits a clicked column right away when another edge is clicked', () => {
@@ -632,14 +621,13 @@ describe('useColumnResize', () => {
 
         // Then the first column is fitted, since clicks on two edges aren't a double-click, and the second still waits
         expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY));
-        expect(clearTableColumnWidths).not.toHaveBeenCalled();
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY, true));
 
         // When no second click comes
         waitOutDoubleClick();
 
         // Then the second column is fitted too
-        expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 300, role: 200}, 'email'));
+        expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 300, role: 200}, 'email', true));
     });
 
     it('drops a waiting click when the table unmounts', () => {
@@ -670,7 +658,7 @@ describe('useColumnResize', () => {
 
     it('does nothing on click when the column has no fitted width', () => {
         // Given a column the layout can't fit, e.g. because its content couldn't be measured
-        const {click, readWidth} = renderColumnResize({getFitColumnWidth: () => undefined});
+        const {click, readWidth} = renderColumnResize({getTargetColumnWidth: (columnKey, target) => (target === 'fit' ? undefined : getTargetColumnWidth(columnKey))});
 
         // When its edge is clicked
         click();
@@ -683,16 +671,15 @@ describe('useColumnResize', () => {
 
     it('does nothing on double-click when the column was never resized', () => {
         // Given a column the user never sized, so the layout has nothing to reset for it
-        const {click, readWidth} = renderColumnResize({getResetColumnWidth: () => undefined});
+        const {click, readWidth} = renderColumnResize({getTargetColumnWidth: (columnKey, target) => (target === 'reset' ? undefined : getTargetColumnWidth(columnKey))});
 
         // When its edge is double-clicked
         click();
         click();
         waitOutDoubleClick();
 
-        // Then nothing is painted, saved or cleared, so the columns the user did size keep their widths
+        // Then nothing is painted or saved, so the columns the user did size keep their widths
         expect(readWidth(NAME_COLUMN_KEY)).toBe('');
         expect(setTableColumnWidths).not.toHaveBeenCalled();
-        expect(clearTableColumnWidths).not.toHaveBeenCalled();
     });
 });

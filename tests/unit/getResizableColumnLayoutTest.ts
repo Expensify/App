@@ -219,7 +219,7 @@ describe('getResizableColumnLayout', () => {
         const columns = [column('name', {contentWidth: 120}), column('email', {contentWidth: 10}), column('role')];
 
         // When the layout is built
-        const {getFitColumnWidth} = getResizableColumnLayout({
+        const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 300, email: 300, role: 300},
             resizedColumnKeys: [],
@@ -228,8 +228,8 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then a click fits the name column to its content, and the email column only down to the drag bound, so its edge stays reachable
-        expect(getFitColumnWidth('name')).toBe(120);
-        expect(getFitColumnWidth('email')).toBe(MIN_WIDTH);
+        expect(getTargetColumnWidth('name', 'fit')).toBe(120);
+        expect(getTargetColumnWidth('email', 'fit')).toBe(MIN_WIDTH);
     });
 
     it('fits the last column no narrower than a drag could take it', () => {
@@ -237,7 +237,7 @@ describe('getResizableColumnLayout', () => {
         const columns = [column('name'), column('email'), column('role', {contentWidth: 80})];
 
         // When the layout is built
-        const {getFitColumnWidth} = getResizableColumnLayout({
+        const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 200},
             resizedColumnKeys: [],
@@ -246,7 +246,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then it stays at 200px, since a narrower width would leave room the last column takes back on the next render
-        expect(getFitColumnWidth('role')).toBe(200);
+        expect(getTargetColumnWidth('role', 'fit')).toBe(200);
     });
 
     it('fits no column whose edge does not drag', () => {
@@ -254,7 +254,7 @@ describe('getResizableColumnLayout', () => {
         const columns = [column('name'), column('arrow', {label: '', contentWidth: 20})];
 
         // When the layout is built
-        const {getFitColumnWidth} = getResizableColumnLayout({
+        const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 400, arrow: 20},
             resizedColumnKeys: [],
@@ -263,7 +263,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then it has no fitted width, since it holds fixed-size content
-        expect(getFitColumnWidth('arrow')).toBeUndefined();
+        expect(getTargetColumnWidth('arrow', 'fit')).toBeUndefined();
     });
 
     it('resets only a resized column, to its content within its cap', () => {
@@ -271,7 +271,7 @@ describe('getResizableColumnLayout', () => {
         const columns = [column('name', {contentWidth: 400, maxWidth: 150}), column('email', {contentWidth: 120}), column('role')];
 
         // When the layout is built
-        const {getResetColumnWidth} = getResizableColumnLayout({
+        const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 300, email: 300, role: 300},
             resizedColumnKeys: ['name'],
@@ -281,7 +281,7 @@ describe('getResizableColumnLayout', () => {
 
         // Then the name column goes back to the width content sizing gives it, cap included, and the email column has
         // nothing to reset, since the user never sized it
-        expect(getResetColumnWidth('name')).toBe(150);
-        expect(getResetColumnWidth('email')).toBeUndefined();
+        expect(getTargetColumnWidth('name', 'reset')).toBe(150);
+        expect(getTargetColumnWidth('email', 'reset')).toBeUndefined();
     });
 });
