@@ -19,12 +19,14 @@ function clearUserLocation() {
 }
 
 function snapshotUserLocation() {
+    // Clear before the permission check so a denied check also drops a position cached earlier, which can come from
+    // another session or from AddressSearch. A submit that gets permission later would otherwise tag the expense with it.
+    clearUserLocation();
     hasLocationPermission().then((isGranted) => {
         if (!isGranted) {
             return;
         }
 
-        clearUserLocation();
         // Best effort: a submit that finds no cached position falls back to a capped read
         getCurrentPosition(
             (successData) => {
