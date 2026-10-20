@@ -11,7 +11,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 
@@ -30,6 +29,7 @@ import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 type ReportActionItemMessageWithExplainProps = {
     message: string;
     action: OnyxEntry<ReportAction>;
+    childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
@@ -39,7 +39,7 @@ type ReportActionItemMessageWithExplainProps = {
  * Wrapper component that renders a message and automatically appends the "Explain" link
  * if the action has reasoning.
  */
-function ReportActionItemMessageWithExplain({message, action, originalReport}: ReportActionItemMessageWithExplainProps) {
+function ReportActionItemMessageWithExplain({message, action, childReport, originalReport}: ReportActionItemMessageWithExplainProps) {
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
@@ -48,9 +48,6 @@ function ReportActionItemMessageWithExplain({message, action, originalReport}: R
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    // Scoped here (rather than in the parent ReimbursedContent) so changes to the child report only re-render this
-    // small wrapper, not the whole reimbursed message, since explain() needs the full report synchronously on click.
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 

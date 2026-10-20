@@ -1,13 +1,16 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReimbursedMessage, hasReasoning} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -29,6 +32,7 @@ function ReimbursedContent({action, reportOwnerAccountID, originalReport}: Reimb
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [submitterLogin] = usePersonalDetail(reportOwnerAccountID, loginSelector);
     const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
     // getReimbursedMessage can fall back to '' when there's no paymentMethod/creditBankAccountLast4 to build a
@@ -38,6 +42,7 @@ function ReimbursedContent({action, reportOwnerAccountID, originalReport}: Reimb
             <ReportActionItemMessageWithExplain
                 message={message.replace(/\.\s*$/, '')}
                 action={action}
+                childReport={childReport}
                 originalReport={originalReport}
             />
         );
