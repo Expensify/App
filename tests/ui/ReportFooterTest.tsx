@@ -110,11 +110,9 @@ describe('ReportFooter', () => {
         // Given the main Concierge chat with its history expanded
         mockLayout({isSmallScreenWidth: false, isInNarrowPaneModal: false});
         jest.mocked(useConciergeAskState).mockReturnValue({
-            isAskConciergeChat: true,
             isHistoryExpanded: true,
             shouldShowWelcome: false,
             shouldCenterWelcomeWithComposer: false,
-            shouldLabelComposerAsNewQuestion: true,
         });
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});

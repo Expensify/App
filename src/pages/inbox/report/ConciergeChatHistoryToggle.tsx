@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,9 +14,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ConciergeChatHistoryToggleProps = {
-    /** The ID of the report being displayed */
-    reportID: string;
-
     /** Whether the chat has earlier messages to show */
     hasPreviousMessages: boolean;
 
@@ -31,16 +27,15 @@ type ConciergeChatHistoryToggleProps = {
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
+function ConciergeChatHistoryToggle({hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
-    const {isAskConciergeChat} = useConciergeAskState(reportID);
     const {setShowFullHistory} = useConciergeChatHistoryActions();
 
     const hideChatHistory = () => setShowFullHistory(false);
 
-    if (!isAskConciergeChat || !hasPreviousMessages) {
+    if (!hasPreviousMessages) {
         return null;
     }
 

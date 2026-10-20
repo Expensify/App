@@ -508,7 +508,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         <>
             {isHistoryExpanded && (
                 <ConciergeChatHistoryToggle
-                    reportID={reportID}
                     hasPreviousMessages={!!hasPreviousMessages}
                     shouldShowFullHistory
                     onShowPreviousMessages={onShowPreviousMessages}

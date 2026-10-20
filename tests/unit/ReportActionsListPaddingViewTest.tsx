@@ -26,7 +26,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@hooks/useConciergeAskState', () => () => ({
-    shouldLabelComposerAsNewQuestion: false,
+    isHistoryExpanded: false,
 }));
 
 jest.mock('@hooks/useThemeStyles', () => () => ({

@@ -8,15 +8,12 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useIsInSidePanel from './useIsInSidePanel';
+import useIsAskConciergeChat from './useIsAskConciergeChat';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
 type ConciergeAskState = {
-    /** Whether this is the Concierge chat in the Inbox */
-    isAskConciergeChat: boolean;
-
-    /** Whether the earlier conversation is shown */
+    /** Whether the earlier conversation of the Concierge chat in the Inbox is shown */
     isHistoryExpanded: boolean;
 
     /** Whether to show the `Ask me anything!` welcome screen in place of the messages */
@@ -24,19 +21,13 @@ type ConciergeAskState = {
 
     /** Whether the welcome screen and the composer are centered together on the screen */
     shouldCenterWelcomeWithComposer: boolean;
-
-    /** Whether to show `Ask a new question` above the composer */
-    shouldLabelComposerAsNewQuestion: boolean;
 };
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
-    const isInSidePanel = useIsInSidePanel();
+    const isAskConciergeChat = useIsAskConciergeChat(reportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory} = useConciergeChatHistoryState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
-    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel;
 
     const shouldKeepMessagesOnScreenSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!isAskConciergeChat || !actions) {
@@ -59,11 +50,9 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const shouldShowWelcome = isAskConciergeChat && !showFullHistory && !shouldKeepMessagesOnScreen;
 
     return {
-        isAskConciergeChat,
-        isHistoryExpanded: showFullHistory,
+        isHistoryExpanded: isAskConciergeChat && showFullHistory,
         shouldShowWelcome,
         shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
-        shouldLabelComposerAsNewQuestion: isAskConciergeChat && showFullHistory,
     };
 }
 

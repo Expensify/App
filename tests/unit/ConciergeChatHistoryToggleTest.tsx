@@ -1,20 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
-import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
@@ -27,23 +20,16 @@ jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
     useConciergeChatHistoryActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
 }));
 
-const CONCIERGE_REPORT_ID = '1';
-
 const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullHistory?: boolean} = {}) => {
     const onShowPreviousMessages = jest.fn();
     render(
-        <OnyxListItemProvider>
-            <LocaleContextProvider>
-                <IsInSidePanelContext.Provider value={false}>
-                    <ConciergeChatHistoryToggle
-                        reportID={CONCIERGE_REPORT_ID}
-                        hasPreviousMessages={overrides.hasPreviousMessages ?? true}
-                        shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
-                        onShowPreviousMessages={onShowPreviousMessages}
-                    />
-                </IsInSidePanelContext.Provider>
-            </LocaleContextProvider>
-        </OnyxListItemProvider>,
+        <LocaleContextProvider>
+            <ConciergeChatHistoryToggle
+                hasPreviousMessages={overrides.hasPreviousMessages ?? true}
+                shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+        </LocaleContextProvider>,
     );
     return {onShowPreviousMessages};
 };
@@ -51,8 +37,6 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullH
 describe('ConciergeChatHistoryToggle', () => {
     beforeAll(async () => {
         await IntlStore.load(CONST.LOCALES.EN);
-        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
-        await waitForBatchedUpdates();
     });
 
     beforeEach(() => {

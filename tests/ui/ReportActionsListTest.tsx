@@ -1151,11 +1151,9 @@ describe('ReportActionsList (body)', () => {
             // Given the main Concierge chat with its history collapsed
             setupMainDMConciergeMocks();
             jest.mocked(useConciergeAskState).mockReturnValue({
-                isAskConciergeChat: true,
                 isHistoryExpanded: false,
                 shouldShowWelcome: true,
                 shouldCenterWelcomeWithComposer: true,
-                shouldLabelComposerAsNewQuestion: false,
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,

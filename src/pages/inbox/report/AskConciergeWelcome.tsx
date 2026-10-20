@@ -1,7 +1,7 @@
 import ScrollView from '@components/ScrollView';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -26,19 +26,18 @@ type AskConciergeWelcomeProps = {
 
 function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessages}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
-    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportID);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     return (
         <ScrollView
-            style={[shouldCenterWelcomeWithComposer && styles.flexGrow0, styles.conciergeAskColumn]}
+            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, !hasPreviousMessages && styles.pb5]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
             <ConciergeChatHistoryToggle
-                reportID={reportID}
                 hasPreviousMessages={hasPreviousMessages}
                 shouldShowFullHistory={false}
                 onShowPreviousMessages={onShowPreviousMessages}

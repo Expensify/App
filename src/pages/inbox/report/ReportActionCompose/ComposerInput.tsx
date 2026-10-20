@@ -1,6 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
+import useIsAskConciergeChat from '@hooks/useIsAskConciergeChat';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -85,7 +85,7 @@ function ComposerInput() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {isAskConciergeChat} = useConciergeAskState(reportID);
+    const isAskConciergeChat = useIsAskConciergeChat(reportID);
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});

@@ -34,7 +34,6 @@ describe('useConciergeAskState', () => {
     it('shows the empty state once the user has messaged Concierge', async () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        expect(result.current.isAskConciergeChat).toBe(true);
         expect(result.current.isHistoryExpanded).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(true);
 
@@ -126,7 +125,6 @@ describe('useConciergeAskState', () => {
         const {result} = renderHook(() => useConciergeAskState(reportID), {wrapper});
 
         // Then none of the Ask Concierge screen applies to it
-        expect(result.current.isAskConciergeChat).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(false);
     });
 });
