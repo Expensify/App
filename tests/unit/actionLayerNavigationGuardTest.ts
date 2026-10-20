@@ -194,4 +194,4 @@ describe('action-layer navigation guard (#84631)', () => {
     });
 });
 
-export {PAYLOAD_RETURNING_ACTIONS, RETURNING_EXPORTS_BY_MODULE};
+export default PAYLOAD_RETURNING_ACTIONS;

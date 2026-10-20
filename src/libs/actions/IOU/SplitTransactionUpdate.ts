@@ -2267,4 +2267,4 @@ function updateSplitTransactions({
 }
 
 export {getExpenseReportIDsEmptiedBySplitUpdate, hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport};
-export type {UpdateSplitTransactionsData, UpdateSplitTransactionsParams};
+export type {UpdateSplitTransactionsData};
