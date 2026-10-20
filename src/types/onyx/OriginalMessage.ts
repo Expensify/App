@@ -7,7 +7,7 @@ import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, CompanyAddress} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -582,6 +582,9 @@ type OriginalMessagePolicyChangeLog = {
      */
     unit?: string;
 
+    /** Previous distance unit when a commuter-exclusion distance changes units */
+    oldUnit?: string;
+
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     startDate?: string;
 
@@ -860,6 +863,36 @@ type OriginalMessageAgentRuleChangeLog = {
 
     /** Natural-language prompt of the agent rule (present for add/update, omitted for delete) */
     prompt?: string;
+};
+
+/** Model of a workspace office location change log action (add, update, or delete) */
+type OriginalMessageOfficeLocationChangeLog = {
+    /** ID of the office that changed */
+    officeID?: string;
+
+    /** Nickname of the office */
+    name?: string;
+
+    /** Address of the added office */
+    address?: CompanyAddress;
+
+    /** Whether the added office is the workspace default */
+    isDefault?: boolean;
+
+    /** Field of the office that was updated */
+    updatedField?: ValueOf<typeof CONST.POLICY.OFFICE_LOCATION_FIELD>;
+
+    /** Name or default flag of the office after the change */
+    newValue?: string | boolean;
+
+    /** Name or default flag of the office before the change */
+    oldValue?: string | boolean;
+
+    /** Address of the office after an address change */
+    newAddress?: CompanyAddress;
+
+    /** Address of the office before an address change */
+    oldAddress?: CompanyAddress;
 };
 
 /** Model of a policy copy change log action */
@@ -1590,18 +1623,6 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for Expensify Card issue/replacement actions
- */
-type IssueNewCardOriginalMessage = OriginalMessage<
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
->;
-
-/**
  * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
  */
 type OriginalMessageHomeAddressRequired = {
@@ -1697,6 +1718,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
@@ -1782,6 +1804,9 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
@@ -1801,7 +1826,6 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
-    IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
