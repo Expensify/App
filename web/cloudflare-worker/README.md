@@ -14,11 +14,13 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |
+| `js`, `css`, `svg`, `wasm` and `ttf` files | The build's Brotli 11 twin (`foo.js.br`) with `Content-Encoding: br`, about 20% smaller than Cloudflare's edge compression. See [Brotli twins](#brotli-twins) |
+| A request with a matching `If-None-Match` | `304`, answered by the Worker for every non-HTML file |
 | A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
-[`.assetsignore`](.assetsignore) keeps the Brotli twins (`*.br`) and source maps (`*.map`) out of the upload. Wrangler's `build` command (`scripts/prepareDist.sh`) copies it into `dist/` before every `wrangler dev` and `wrangler deploy`, so always run wrangler from this directory.
+[`.assetsignore`](.assetsignore) keeps source maps (`*.map`) out of the upload. Wrangler's `build` command (`scripts/prepareDist.sh`) copies it into `dist/` before every `wrangler dev` and `wrangler deploy`, so always run wrangler from this directory.
 
 The CSP lives in [`src/csp.ts`](src/csp.ts). The `ENVIRONMENT` variable in [`wrangler.jsonc`](wrangler.jsonc) selects the staging or production policy.
 
@@ -125,9 +127,17 @@ npx wrangler deploy --env test-staging
 
 CI also adds Storybook to `dist/docs` before deploying, so it is served at `/docs/index.html`.
 
+### Brotli twins
+
+The web build writes a Brotli 11 twin next to every `js`, `css`, `svg`, `wasm` and `ttf` file. The Worker serves the twin with `Content-Encoding: br` and `encodeBody: "manual"`, so Cloudflare sends its bytes as they are to clients that accept Brotli, instead of compressing the original itself. Cloudflare presents every request to the Worker with `Accept-Encoding: br, gzip`, and decodes and re-encodes the twin for clients that don't accept Brotli. Twins are never served at their own URLs (`/foo.js.br` is a `404`), and responses for these files carry `Vary: Accept-Encoding`.
+
+The asset store gives a twin the same ETag as its original, so the twin gets its own (`"<etag>-br"`), and the Worker answers `If-None-Match` itself, ignoring the `W/` prefix Cloudflare adds to ETags of responses it re-encodes. Static Assets doesn't support `Range` requests, so those get the whole file.
+
+The test harness decodes responses before the tests read them, so the tests identify the twin by its ETag. Check what clients actually receive against a deployed Worker, for example with `curl -H 'Accept-Encoding: gzip'`.
+
 ### Files from previous builds
 
-Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build (without `*.br`, `*.map` and Storybook) to the R2 bucket `new-expensify-web-assets-staging`. Every file is re-uploaded each time, so a file still used by recent builds never reaches the bucket's 60-day expiry. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
+Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build, including Brotli twins but without `*.map` and Storybook, to the R2 bucket `new-expensify-web-assets-staging`. Every file is re-uploaded each time, so a file still used by recent builds never reaches the bucket's 60-day expiry. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) (its twin first) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
 
 The bucket and its 60-day lifecycle rule are managed in Terraform. The upload uses `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY`, an R2 token that can only read and write that bucket. `wrangler dev` uses an empty local bucket.
 
