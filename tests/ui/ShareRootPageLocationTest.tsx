@@ -161,6 +161,20 @@ describe('ShareRootPage location snapshot', () => {
         expect(await getUserLocationFromOnyx()).toBeUndefined();
     });
 
+    it('clears stale cached location when the permission is not granted', async () => {
+        // Given a stale cached location and a location permission the user has not granted
+        await Onyx.set(ONYXKEYS.USER_LOCATION, DEVICE_POSITION);
+        mockSharedFiles = [createSharedFile('file:///shared/receipt.jpg', CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG)];
+        jest.mocked(check).mockResolvedValueOnce('denied');
+
+        // When the share root processes the file
+        await renderShareRootPage();
+
+        // Then the device location is never read and the stale position is cleared from cache
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+    });
+
     it('caches nothing and raises nothing when the permission check fails', async () => {
         // Given a shared receipt image and a device whose location permission check fails outright
         mockSharedFiles = [createSharedFile('file:///shared/receipt.jpg', CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG)];
