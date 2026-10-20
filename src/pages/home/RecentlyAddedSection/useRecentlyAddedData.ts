@@ -18,6 +18,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo, useState} from 'react';
+import {createOnyxSelector} from 'react-native-onyx';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -52,7 +53,7 @@ type RecentlyAddedExpense = {
 };
 
 /** Selecting inside the subscription scans the (very large) collection once per update rather than once per render. */
-const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>): {added: string[]; deleted: string[]} => {
+const pendingTransactionIDsSelector = createOnyxSelector((transactions: OnyxCollection<Transaction>): {added: string[]; deleted: string[]} => {
     const added: string[] = [];
     const deleted: string[] = [];
     for (const transaction of Object.values(transactions ?? {})) {
@@ -63,7 +64,7 @@ const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>
         }
     }
     return {added, deleted};
-};
+});
 
 const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
