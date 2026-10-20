@@ -40,7 +40,7 @@ const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_G
 function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnboardingPersonalTrackGoalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const shouldFooterBeInsideScrollView = useShouldFooterBeInsideList();
     const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
     const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
@@ -103,7 +103,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const continueButton = (
-        <View style={[styles.w100, styles.mb5, styles.mh0, !isInLandscapeMode ? paddingHorizontal : undefined]}>
+        <View style={[styles.w100, styles.mb5, styles.mh0, !shouldFooterBeInsideScrollView ? paddingHorizontal : undefined]}>
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
