@@ -63,7 +63,7 @@ import {
 } from './helpers/preMountBuffer';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {linkingConfig} from './linkingConfig';
+import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import TransitionTracker from './TransitionTracker';
@@ -515,7 +515,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
     const stateFromPath = getStateFromPath(backToRoute);
 
-    const action = getActionFromState(stateFromPath, linkingConfig.config);
+    const action = getActionFromState(stateFromPath, linkingConfig);
 
     if (!action) {
         Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
@@ -1131,14 +1131,6 @@ function isValidateLoginFlow(state: NavigationState | undefined) {
     return !!state && findFocusedRoute(state)?.name === SCREENS.VALIDATE_LOGIN;
 }
 
-/**
- * Keeps onboarding from opening over the validate login screen. Once the onboarding navigator is in the root stack it stays
- * registered, because unregistering it drops its route and the user's onboarding progress.
- */
-function shouldHideOnboardingNavigator(state: NavigationState | undefined) {
-    return isValidateLoginFlow(state) && !state?.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
-}
-
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -1339,7 +1331,6 @@ export default {
     isOnboardingFlow,
     clearPreloadedRoutes,
     isValidateLoginFlow,
-    shouldHideOnboardingNavigator,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,

@@ -136,6 +136,18 @@ function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>):
     return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
 }
 
+/**
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ */
+function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefined): boolean {
+    return (
+        accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
+        accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData.verifications?.corpay &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -300,6 +312,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
+    isEligibleForWiseGlobalReimbursements,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

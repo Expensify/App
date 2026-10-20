@@ -13,6 +13,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -88,6 +89,10 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -955,10 +960,6 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
-                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
-            });
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -1054,6 +1055,10 @@ describe('actions/IOU/TrackExpense', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 rules: undefined,
+                personalDetailsByLogins: {
+                    [existingMemberA]: {accountID: existingMemberAID, login: existingMemberA},
+                    [existingMemberB]: {accountID: existingMemberBID, login: existingMemberB},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -1383,6 +1388,153 @@ describe('actions/IOU/TrackExpense', () => {
 
             const actionableWhisper = Object.values(reportActions ?? {}).find((action) => isActionableTrackExpense(action));
             expect(actionableWhisper).toBeTruthy();
+        });
+
+        it('reuses the failed IOU action and thread on a receipt retry, and clears the thread creation error', async () => {
+            // Given a self-DM and the thread a failed track left behind, still carrying its creation error
+            mockFetch?.pause?.();
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry',
+            };
+            const failedIOUActionID = '1111111111111111';
+            const failedThreadReportID = '2222222222222222';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+                errorFields: {createChat: {error: 'report.genericCreateReportFailureMessage'}},
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '3333333333333333',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM holds one IOU action under the failed ID, linked to the same thread, so no second expense or thread appears
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const iouActions = Object.values(reportActions ?? {}).filter((action) => isMoneyRequestAction(action));
+            expect(iouActions).toHaveLength(1);
+            expect(iouActions.at(0)?.reportActionID).toBe(failedIOUActionID);
+            expect(iouActions.at(0)?.childReportID).toBe(failedThreadReportID);
+
+            // And the thread no longer shows the creation error from the failed attempt
+            const threadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`);
+            expect(threadReport?.errorFields?.createChat).toBeFalsy();
+        });
+
+        it('rebuilds the failed thread CREATED action on a receipt retry, so the success clears its pending state and errors', async () => {
+            // Given a self-DM, and the thread and CREATED action a failed track left behind, still pending and carrying an error
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-created',
+            };
+            const failedIOUActionID = '4444444444444444';
+            const failedThreadReportID = '5555555555555555';
+            const failedThreadCreatedActionID = '6666666666666666';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`, {
+                [failedThreadCreatedActionID]: {
+                    reportActionID: failedThreadCreatedActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2026-10-01 00:00:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    errors: {genericCreateFailure: 'iou.error.genericCreateFailureMessage'},
+                } as ReportAction,
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '7777777777777777',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                existingTransactionThreadCreatedReportActionID: failedThreadCreatedActionID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the backend gets the same CREATED action ID, so it doesn't add a second one to the thread
+            const requestBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.TRACK_EXPENSE).at(0)?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+            expect(requestParams).toEqual(expect.objectContaining({createdReportActionIDForThread: failedThreadCreatedActionID}));
+
+            // And the failed CREATED action loses its pending state and error, so the expense no longer looks unsaved
+            const threadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`);
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.pendingAction).toBeFalsy();
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.errors).toBeFalsy();
+        });
+
+        it('keeps one whisper after a receipt retry, because the retry reuses the whisper ID the failure saved', async () => {
+            // Given a scan tracked in the self-DM whose request fails, which deletes the whisper locally
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-whisper',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            const scanParams = {
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 0, merchant: '', receipt: {source: 'file:///receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}),
+                existingTransaction: createMock<Transaction>({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN}),
+                optimisticTransactionID: '8888888888888888',
+            };
+            mockFetch?.fail?.();
+            trackExpense(scanParams);
+            await waitForBatchedUpdates();
+
+            const failedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}8888888888888888`);
+            const receiptError = Object.values(failedTransaction?.errors ?? {}).find((error) => isReceiptError(error));
+            const storedRetryParams: unknown = isReceiptError(receiptError) && typeof receiptError.retryParams === 'string' ? JSON.parse(receiptError.retryParams) : undefined;
+            const failedWhisperID =
+                !!storedRetryParams &&
+                typeof storedRetryParams === 'object' &&
+                'actionableWhisperReportActionID' in storedRetryParams &&
+                typeof storedRetryParams.actionableWhisperReportActionID === 'string'
+                    ? storedRetryParams.actionableWhisperReportActionID
+                    : undefined;
+            const selfDMActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const failedIOUAction = Object.values(selfDMActionsAfterFailure ?? {}).find((action) => isMoneyRequestAction(action));
+            expect(failedWhisperID).toBeTruthy();
+            if (!failedWhisperID) {
+                throw new Error('The failure did not save the whisper ID with the receipt error');
+            }
+
+            // And the server, which already handled the first request, sends its copy of that whisper back
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                [failedWhisperID]: createMock<ReportAction>({
+                    reportActionID: failedWhisperID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    created: '2026-10-01 00:00:00.000',
+                    originalMessage: {transactionID: '8888888888888888'},
+                }),
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            mockFetch?.succeed?.();
+            trackExpense({
+                ...scanParams,
+                currentReportActionID: failedIOUAction?.reportActionID,
+                existingTransactionThreadReportID: failedIOUAction?.childReportID,
+                existingActionableWhisperReportActionID: failedWhisperID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM shows one whisper, under the original ID, instead of a second set next to the server's copy
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const whispers = Object.values(selfDMActions ?? {}).filter((action) => isActionableTrackExpense(action));
+            expect(whispers).toHaveLength(1);
+            expect(whispers.at(0)?.reportActionID).toBe(failedWhisperID);
         });
 
         it('should set correct tax fields when tax parameters are provided', async () => {

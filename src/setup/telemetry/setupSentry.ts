@@ -4,6 +4,7 @@ import {
     browserProfilingIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
     navigationIntegration,
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
@@ -27,12 +28,12 @@ import makeDebugTransport from './debugTransport';
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
- * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
- * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
- * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
- * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
+ * noise filters read the `third_party_code` tag `thirdPartyErrorFilterIntegration` writes. Moved ahead of it, a
+ * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
+ * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
