@@ -1,7 +1,8 @@
 /**
  * Builders for the Onyx updates of requests that change a policy's approval workflow rules
- * (`ONYXKEYS.COLLECTION.RULE`). Pure functions over the data passed in, kept out of `Workflow.ts` so that
- * connection actions (Merge, Gusto, Zenefits) can use them without importing the whole workflow action module.
+ * (`ONYXKEYS.COLLECTION.RULE`). They neither read Onyx nor send requests, only build updates from their arguments.
+ * Kept out of `Workflow.ts` so that connection actions (Merge, Gusto, Zenefits) can use them without importing the
+ * whole workflow action module.
  */
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/RuleUtils';
