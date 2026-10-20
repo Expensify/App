@@ -447,7 +447,8 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  */
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(
-        (policy) => policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy): policy is Policy =>
+            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
@@ -589,6 +590,14 @@ const createAdminPoliciesSelector =
         }, {});
     };
 
+const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).reduce((m, policy) => {
+        if (policy?.policyAccountID) {
+            m.set(policy.policyAccountID, policy);
+        }
+        return m;
+    }, new Map<number, Policy>());
+
 export type {PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
@@ -626,5 +635,6 @@ export {
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
+    groupByPolicyAccountIDPoliciesSelector,
 };
 export type {ReusablePolicyConnectionName};
