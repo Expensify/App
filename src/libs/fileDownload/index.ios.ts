@@ -11,7 +11,7 @@ import Share from 'react-native-share';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {appendTimeToFileName, getFileName, getFileType, isErrorResponseForFileDownload, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
 const isUserCancelled = (err: unknown) => {
@@ -55,7 +55,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
                 throw new Error('Failed to download file');
             }
             const contentType = response.headers.get('content-type');
-            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+            if (isErrorResponseForFileDownload(contentType, fileName)) {
                 throw new Error();
             }
             return response.text();

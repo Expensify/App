@@ -12,6 +12,7 @@ import {
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isErrorResponseForFileDownload,
     isHighResolutionImage,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
@@ -147,6 +148,41 @@ describe('FileUtils', () => {
 
         it('honors a custom extension', () => {
             expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
+        });
+    });
+
+    describe('isErrorResponseForFileDownload', () => {
+        it.each(['report.csv', 'ABA_Report_123.aba'])('treats a JSON response to a %s download as an error', (fileName) => {
+            // Given the API responded to a CSV or ABA file download with JSON
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, fileName);
+
+            // Then it is, since the commands that return these files only respond with JSON when they fail
+            expect(isError).toBe(true);
+        });
+
+        it('treats the file content type as the file', () => {
+            // Given the API responded to an ABA file download with the file's own content type
+            const contentType = 'text/plain; charset=utf-8';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'ABA_Report_123.aba');
+
+            // Then it isn't, so the file gets saved
+            expect(isError).toBe(false);
+        });
+
+        it('does not treat JSON as an error for other files', () => {
+            // Given a JSON response to the download of a JSON file
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'attachment.json');
+
+            // Then it isn't, since JSON is what that file contains
+            expect(isError).toBe(false);
         });
     });
 
