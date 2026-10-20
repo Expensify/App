@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
@@ -116,11 +116,29 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
 
     const trimmedSearchTerm = debouncedSearchTerm.trim();
 
+    // Reset pagination synchronously (without an effect) whenever the search key changes, so a new
+    // search never reuses the previous query's cursor. See https://react.dev/reference/react/useState#storing-information-from-previous-renders
     const [prevSearchKey, setPrevSearchKey] = useState({trimmedSearchTerm, policyIDs, isOffline});
     if (prevSearchKey.trimmedSearchTerm !== trimmedSearchTerm || prevSearchKey.policyIDs !== policyIDs || prevSearchKey.isOffline !== isOffline) {
         setPrevSearchKey({trimmedSearchTerm, policyIDs, isOffline});
         setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
     }
+
+    const applyUserFiltersResponse = useCallback(
+        (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
+            if (requestSeq !== requestSeqRef.current) {
+                return;
+            }
+            if (policyIDs && logins.length > 0) {
+                setServerScopedLoginsByPolicy((prev) => ({
+                    policyIDs,
+                    logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
+                }));
+            }
+            setPagination({hasMore, nextCursor, isLoadingMore: false});
+        },
+        [policyIDs],
+    );
 
     useEffect(() => {
         if (!ready || isOffline) {
@@ -130,25 +148,14 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         const requestSeq = ++requestSeqRef.current;
 
         openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: '', policyIDs: policyIDs || undefined}, true)
-            .then(({hasMore, nextCursor, logins}) => {
-                if (requestSeq !== requestSeqRef.current) {
-                    return;
-                }
-                if (policyIDs && logins.length > 0) {
-                    setServerScopedLoginsByPolicy((prev) => ({
-                        policyIDs,
-                        logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
-                    }));
-                }
-                setPagination({hasMore, nextCursor, isLoadingMore: false});
-            })
+            .then((result) => applyUserFiltersResponse(requestSeq, result))
             .catch(() => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
                 }
                 setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
             });
-    }, [ready, isOffline, trimmedSearchTerm, policyIDs]);
+    }, [ready, isOffline, trimmedSearchTerm, policyIDs, applyUserFiltersResponse]);
 
     const loadMoreUsers = () => {
         if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearchingForUsers) {
@@ -159,18 +166,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         setPagination((prev) => ({...prev, isLoadingMore: true}));
 
         openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: pagination.nextCursor, policyIDs: policyIDs || undefined}, false)
-            .then(({hasMore, nextCursor, logins}) => {
-                if (requestSeq !== requestSeqRef.current) {
-                    return;
-                }
-                if (policyIDs && logins.length > 0) {
-                    setServerScopedLoginsByPolicy((prev) => ({
-                        policyIDs,
-                        logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
-                    }));
-                }
-                setPagination({hasMore, nextCursor, isLoadingMore: false});
-            })
+            .then((result) => applyUserFiltersResponse(requestSeq, result))
             .catch(() => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
