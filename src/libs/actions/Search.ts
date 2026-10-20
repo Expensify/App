@@ -2261,6 +2261,24 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+/** Queues a hold, with the given reason, for every expense matching the search query that the user can hold. */
+function queueBulkHoldExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+    write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
+/** Queues an unhold for every held expense matching the search query that the user can unhold. */
+function queueBulkUnholdExpenses(jsonQuery: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+    write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
+/** Queues a rejection, with the given reason, for every expense matching the search query on reports the user can reject. */
+function queueBulkRejectExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+    write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
 /**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
@@ -2712,6 +2730,9 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkHoldExpenses,
+    queueBulkUnholdExpenses,
+    queueBulkRejectExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
