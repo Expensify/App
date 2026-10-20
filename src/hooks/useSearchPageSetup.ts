@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -39,6 +40,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const isInPreloadedTab = useIsInPreloadedTab();
+    const wasInPreloadedTab = usePrevious(isInPreloadedTab);
 
     const hash = queryJSON?.hash;
     // Without this, a plain page-level fetch during active select-all clears totals on arrival
@@ -81,7 +84,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     useEffect(() => {
-        if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline) {
+        // A preloaded tab builds from cached results only. The request, saved params and recent search wait until it is opened.
+        if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline || isInPreloadedTab) {
             return;
         }
 
@@ -94,7 +98,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
         // Pagination must not restart page one.
-        if (isSnapshotDataLoaded && !isInitialSearchPending) {
+        // First open of a preloaded tab refreshes its cached results and saves the recent search, with no loading state over them.
+        if (isSnapshotDataLoaded && !isInitialSearchPending && !wasInPreloadedTab) {
             return;
         }
 
@@ -105,8 +110,29 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (!isSnapshotDataLoaded) {
             markPageRequestedSearch(hash, shouldCalculateTotals);
         }
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
+        search({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: 0,
+            shouldCalculateTotals,
+            isLoading: false,
+            skipWaitForWrites: shouldSkipWaitForWrites,
+            shouldSaveRecentSearch: true,
+            shouldShowLoading: !(wasInPreloadedTab && isSnapshotDataLoaded),
+        });
+    }, [
+        hash,
+        isOffline,
+        shouldUseLiveData,
+        queryJSON,
+        isSnapshotDataLoaded,
+        isSnapshotSearchLoading,
+        isInitialSearchPending,
+        currentSearchKey,
+        shouldCalculateTotals,
+        isInPreloadedTab,
+        wasInPreloadedTab,
+    ]);
 
     useFocusEffect(dropPageRequestOnBlur);
 

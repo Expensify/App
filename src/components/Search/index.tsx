@@ -10,7 +10,9 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -556,6 +558,10 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    // Laid out while its tab was preloaded at idle, so the first open reveals it with no new layout.
+    const isInPreloadedTab = useIsInPreloadedTab();
+    const wasLaidOutInPreloadedTabRef = useRef(false);
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
     const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
 
@@ -1107,6 +1113,11 @@ function Search({
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // Not visible yet: the submit spans and the pending write wait for the first open, which the focus effect below handles.
+        if (isInPreloadedTab) {
+            wasLaidOutInPreloadedTabRef.current = true;
+            return;
+        }
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
@@ -1116,7 +1127,7 @@ function Search({
         TransitionTracker.runAfterTransitions({
             callback: () => flushPendingSearchWrite(),
         });
-    }, [onDestinationVisible]);
+    }, [onDestinationVisible, isInPreloadedTab]);
 
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
@@ -1164,12 +1175,18 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
+        markPreloadedTabContentReady();
+        if (isInPreloadedTab) {
+            wasLaidOutInPreloadedTabRef.current = true;
+            return;
+        }
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, []);
+    }, [isInPreloadedTab, markPreloadedTabContentReady]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the
@@ -1194,11 +1211,20 @@ function Search({
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
-            endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
-            });
-            endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
-            endNavigateToReportsContentLoad();
+            const endNavigateToReportsSpans = () => {
+                endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
+                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
+                });
+                endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
+                endNavigateToReportsContentLoad();
+            };
+            // First open of a preloaded tab: focus fires before the render that unfreezes it, so end a frame later to count it.
+            if (wasLaidOutInPreloadedTabRef.current) {
+                wasLaidOutInPreloadedTabRef.current = false;
+                requestAnimationFrame(endNavigateToReportsSpans);
+            } else {
+                endNavigateToReportsSpans();
+            }
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),

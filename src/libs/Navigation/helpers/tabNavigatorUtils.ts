@@ -40,23 +40,31 @@ function isTabRoutePreloaded(tabState: {routes: unknown[]; preloadedRouteKeys?: 
 }
 
 /** Read before dispatching a tab navigation: jumping to the tab drops its key from `preloadedRouteKeys`. */
-function isReportsTabPreloaded(rootState: RootNavigationState): boolean {
+function isTabPreloaded(rootState: RootNavigationState, tabRouteName: string): boolean {
     const tabState = getTabNavigatorState(rootState);
-    const reportsSplitRouteKey = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)?.key;
-    return !!reportsSplitRouteKey && !!tabState?.preloadedRouteKeys?.includes(reportsSplitRouteKey);
+    const tabRouteKey = tabState?.routes.findLast((route) => route.name === tabRouteName)?.key;
+    return !!tabRouteKey && !!tabState?.preloadedRouteKeys?.includes(tabRouteKey);
+}
+
+function isReportsTabPreloaded(rootState: RootNavigationState): boolean {
+    return isTabPreloaded(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 }
 
 /** Undefined when preloading would be pure cost: a preloaded key drops `shouldFreeze`, with nothing to warm in return. */
-function getReportsTabPreloadTarget(rootState: RootNavigationState): string | undefined {
+function getTabPreloadTarget(rootState: RootNavigationState, tabRouteName: string): string | undefined {
     const tabState = getTabNavigatorState(rootState);
-    const reportsSplitRoute = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    const tabRoute = tabState?.routes.findLast((route) => route.name === tabRouteName);
     const focusedRouteName = tabState?.index === undefined ? undefined : tabState.routes.at(tabState.index)?.name;
 
-    if (!tabState?.key || !reportsSplitRoute || reportsSplitRoute.state || focusedRouteName === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+    if (!tabState?.key || !tabRoute || tabRoute.state || focusedRouteName === tabRouteName) {
         return undefined;
     }
 
     return tabState.key;
+}
+
+function getReportsTabPreloadTarget(rootState: RootNavigationState): string | undefined {
+    return getTabPreloadTarget(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 }
 
 /**
@@ -70,4 +78,15 @@ function getTabScreenParam(route: NavigationPartialRoute | {name: string; params
     return undefined;
 }
 
-export {getTabState, getTabScreenParam, getTabNavigatorRoute, getTabNavigatorState, getTabNavigatorStateKey, getReportsTabPreloadTarget, isReportsTabPreloaded, isTabRoutePreloaded};
+export {
+    getTabState,
+    getTabScreenParam,
+    getTabNavigatorRoute,
+    getTabNavigatorState,
+    getTabNavigatorStateKey,
+    getReportsTabPreloadTarget,
+    getTabPreloadTarget,
+    isReportsTabPreloaded,
+    isTabPreloaded,
+    isTabRoutePreloaded,
+};
