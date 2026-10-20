@@ -38,11 +38,11 @@ function exportExpensesDestinationSettingName(isReimbursable: boolean) {
     return isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
 }
 
-function getNetSuiteConnectionAuthType(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+function getNetSuiteConnectionAuthType(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
     return config?.authType ?? connection?.config?.authType;
 }
 
-function isNetSuiteRestConnection(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+function isNetSuiteRestConnection(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
     return getNetSuiteConnectionAuthType(config, connection) === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
 }
 
@@ -111,7 +111,7 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
-function getNonReimbursableNetSuiteExportDestinations(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+function getNonReimbursableNetSuiteExportDestinations(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
     const destinations = Object.values(CONST.NETSUITE_EXPORT_DESTINATION);
     if (isNetSuiteRestConnection(config, connection)) {
         return destinations;

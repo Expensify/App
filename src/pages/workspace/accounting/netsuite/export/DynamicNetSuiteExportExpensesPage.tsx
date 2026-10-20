@@ -91,6 +91,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     </MenuItemField.Row>
                     {!!exportDestination && (
                         <MenuItem.HelpText
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- credit card charges are only selectable for non-reimbursable exports, so the credit card charge plus reimbursable combination is impossible
                             message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}` as TranslationPaths)}
                             shouldRenderMessageAsHTML
                         />
