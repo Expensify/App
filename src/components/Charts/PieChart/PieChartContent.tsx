@@ -30,6 +30,9 @@ type PieChartProps = ChartProps & {
 
     /** Whether to draw the slice legend below the donut */
     shouldShowLegend?: boolean;
+
+    /** Whether the legend sits beside the donut when the card is wide enough (one row per slice) and stacks beneath it when it isn't, instead of the default wrapping row below the donut. */
+    shouldUseResponsiveLegend?: boolean;
 };
 
 type PieChartContentProps = PieChartProps & {
@@ -41,7 +44,7 @@ type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
     chartWidth: number;
 };
 
-function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, chartWidth}: PieChartCanvasProps) {
+function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -58,9 +61,14 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const isTooltipActive = useDerivedValue(() => matchedIndex.get() >= 0);
 
     const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
-    const radius = Math.min(chartWidth, canvasHeight) / 2;
+
+    // Side by side when the legend keeps at least its minimum width next to a square donut. Otherwise stacked.
+    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && chartWidth - canvasHeight - VictoryTheme.pie.legendGap >= VictoryTheme.pie.legendMinWidth;
+    const donutWidth = isLegendSideBySide ? canvasHeight : chartWidth;
+
+    const radius = Math.min(donutWidth, canvasHeight) / 2;
     const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
-    const pieGeometry = {radius, innerRadius, centerX: chartWidth / 2, centerY: canvasHeight / 2};
+    const pieGeometry = {radius, innerRadius, centerX: donutWidth / 2, centerY: canvasHeight / 2};
 
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
@@ -182,88 +190,109 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
-    const renderLegendItem = (slice: PieSlice) => {
+    const onLegendItemMouseEnter = (slice: PieSlice) => {
+        tooltipPosition.set(slice.tooltipPosition);
+        matchedIndex.set(slice.originalIndex);
+    };
+    const onLegendItemMouseLeave = () => {
+        matchedIndex.set(-1);
+    };
+
+    // One legend entry: a color dot plus the slice name, wired to drive the tooltip on hover.
+    // The responsive variant gives each slice its own row with the dot aligned to the first line. The default variant is an inline item for the wrapping row below the donut.
+    const renderLegendEntry = (slice: PieSlice, isResponsiveRow: boolean) => {
+        const dot = <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />;
         return (
             <View
                 key={`legend-${slice.originalIndex}`}
-                style={[styles.flexRow, styles.alignItemsCenter]}
-                onMouseEnter={() => {
-                    tooltipPosition.set(slice.tooltipPosition);
-                    matchedIndex.set(slice.originalIndex);
-                }}
-                onMouseLeave={() => {
-                    matchedIndex.set(-1);
-                }}
+                style={isResponsiveRow ? styles.pieChartLegendRow : [styles.flexRow, styles.alignItemsCenter]}
+                onMouseEnter={() => onLegendItemMouseEnter(slice)}
+                onMouseLeave={onLegendItemMouseLeave}
             >
-                <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
-                <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
+                {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
+                <Text style={[styles.textNormal, isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
             </View>
         );
     };
 
+    const donut = (
+        <GestureDetector
+            gesture={combinedGesture}
+            touchAction="pan-y"
+        >
+            <Animated.View
+                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
+                onTouchStart={onChartTouchStart}
+            >
+                {processedSlices.length > 0 && (
+                    <PolarChart
+                        explicitSize={{width: donutWidth, height: canvasHeight}}
+                        data={processedSlices}
+                        labelKey="label"
+                        valueKey="value"
+                        colorKey="color"
+                    >
+                        <Pie.Chart
+                            startAngle={VictoryTheme.pie.startAngle}
+                            innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
+                        >
+                            {({slice}) => (
+                                <PaddedPieSlice
+                                    slice={slice}
+                                    padAngle={VictoryTheme.pie.padAngle}
+                                />
+                            )}
+                        </Pie.Chart>
+                    </PolarChart>
+                )}
+
+                {processedSlices.length > 0 && (
+                    <View
+                        pointerEvents="none"
+                        style={styles.pieChartCenterLabel}
+                    >
+                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
+                        <Text
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                        >
+                            {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
+                        </Text>
+                    </View>
+                )}
+
+                {/* Tooltip */}
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    series={series}
+                    formatValue={formatValue}
+                    chartWidth={donutWidth}
+                    initialTooltipPosition={tooltipPosition}
+                    onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
+                />
+            </Animated.View>
+        </GestureDetector>
+    );
+
+    if (shouldUseResponsiveLegend) {
+        return (
+            <View style={isLegendSideBySide ? styles.pieChartResponsiveRow : styles.pieChartResponsiveColumn}>
+                {donut}
+                {shouldShowLegend && (
+                    <View style={isLegendSideBySide ? styles.pieChartLegendSide : styles.pieChartLegendBelow}>{processedSlices.map((slice) => renderLegendEntry(slice, true))}</View>
+                )}
+            </View>
+        );
+    }
+
     return (
         <>
-            <GestureDetector
-                gesture={combinedGesture}
-                touchAction="pan-y"
-            >
-                <Animated.View
-                    style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
-                    onTouchStart={onChartTouchStart}
-                >
-                    {processedSlices.length > 0 && (
-                        <PolarChart
-                            explicitSize={{width: chartWidth, height: canvasHeight}}
-                            data={processedSlices}
-                            labelKey="label"
-                            valueKey="value"
-                            colorKey="color"
-                        >
-                            <Pie.Chart
-                                startAngle={VictoryTheme.pie.startAngle}
-                                innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
-                            >
-                                {({slice}) => (
-                                    <PaddedPieSlice
-                                        slice={slice}
-                                        padAngle={VictoryTheme.pie.padAngle}
-                                    />
-                                )}
-                            </Pie.Chart>
-                        </PolarChart>
-                    )}
-
-                    {processedSlices.length > 0 && (
-                        <View
-                            pointerEvents="none"
-                            style={styles.pieChartCenterLabel}
-                        >
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
-                            <Text
-                                numberOfLines={1}
-                                adjustsFontSizeToFit
-                                style={[styles.textHeadlineH1, styles.textAlignCenter]}
-                            >
-                                {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Tooltip */}
-                    <ChartTooltipLayer
-                        matchedIndex={matchedIndex}
-                        isTooltipActive={isTooltipActive}
-                        data={data}
-                        series={series}
-                        formatValue={formatValue}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={tooltipPosition}
-                        onChartMoved={onChartMoved}
-                        onDismiss={onTooltipDismiss}
-                    />
-                </Animated.View>
-            </GestureDetector>
-            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
+            {donut}
+            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendEntry(slice, false))}</View>}
         </>
     );
 }

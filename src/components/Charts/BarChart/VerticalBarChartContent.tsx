@@ -15,8 +15,9 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
+import type {WrappedLabelConfig} from '@components/Charts/types';
 import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_ROTATIONS, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -36,7 +37,17 @@ import type {BarChartContentProps} from './types';
 
 type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
+function VerticalBarChartCanvas({
+    data,
+    series,
+    yAxisUnit,
+    yAxisUnitPosition = 'left',
+    onBarPress,
+    shouldShowLabels = true,
+    shouldWrapLabels = false,
+    chartWidth,
+    fontManager,
+}: VerticalBarChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -87,6 +98,18 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         lastTickRightSpace: chartWidth - plotBounds.right + barLayout.edgeSpace,
     });
 
+    // Named bar labels wrap to two centered lines in the full column width, always horizontal and
+    // never skipped, so they bypass the rotation/skip/single-line treatment the axis labels use.
+    const labelColumnWidth = Math.min(barLayout.barWidth + barLayout.gap, plotBounds.width);
+    const wrapConfig: WrappedLabelConfig | undefined =
+        shouldWrapLabels && measurements.lineHeight > 0
+            ? {columnWidth: labelColumnWidth, maxLines: MAX_BAR_LABEL_LINES, lineHeight: measurements.lineHeight, labelWidths: measurements.labelWidths}
+            : undefined;
+    const wrapLabelHeight = wrapConfig ? wrapConfig.maxLines * wrapConfig.lineHeight : 0;
+    const effectiveRotation = shouldWrapLabels ? LABEL_ROTATIONS.HORIZONTAL : labelRotation;
+    const effectiveSkipInterval = shouldWrapLabels ? 1 : labelSkipInterval;
+    const resolvedLabelHeight = shouldWrapLabels ? wrapLabelHeight : (xAxisLabelHeight ?? 0);
+
     const barHitHalfWidth = useSharedValue(0);
     const plotTop = useSharedValue(0);
     const plotBottom = useSharedValue(0);
@@ -97,9 +120,10 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         truncatedLabelWidths,
-        labelRotation,
-        labelSkipInterval,
+        labelRotation: effectiveRotation,
+        labelSkipInterval: effectiveSkipInterval,
         chartBottom,
+        wrapConfig,
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
@@ -178,13 +202,14 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                         firstLabelMaxWidth={firstLabelMaxWidth}
                         lastLabelMaxWidth={lastLabelMaxWidth}
                         ellipsisWidth={ellipsisWidth}
-                        labelRotation={labelRotation}
-                        labelSkipInterval={labelSkipInterval}
+                        labelRotation={effectiveRotation}
+                        labelSkipInterval={effectiveSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
+                        wrapConfig={wrapConfig}
                     />
                 )}
                 <ChartYAxisLabels
@@ -200,7 +225,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         );
     };
 
-    const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0) : 0;
+    const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + resolvedLabelHeight : 0;
     const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
 

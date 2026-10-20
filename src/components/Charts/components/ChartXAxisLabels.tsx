@@ -1,5 +1,5 @@
 import {useChartParagraphs} from '@components/Charts/hooks';
-import type {LabelRotation} from '@components/Charts/types';
+import type {LabelRotation, WrappedLabelConfig} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import VictoryTheme, {GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
@@ -47,6 +47,9 @@ type ChartXAxisLabelsProps = {
 
     /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
+
+    /** When set, labels wrap at word breaks across the full column, centered on the bar, never rotated or skipped. Used for bar-name labels. */
+    wrapConfig?: WrappedLabelConfig;
 };
 
 function ChartXAxisLabels({
@@ -63,6 +66,7 @@ function ChartXAxisLabels({
     labelColor,
     xScale,
     chartBoundsBottom,
+    wrapConfig,
 }: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
     const truncatedLabels = (() => {
@@ -78,10 +82,37 @@ function ChartXAxisLabels({
         });
     })();
 
-    const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
+    // Wrapped bar labels render from the full label text and let Skia wrap or ellipsize. Single-line axis labels render from the pre-truncated text.
+    const paragraphLabels = wrapConfig ? labels : truncatedLabels;
+    const paragraphLayoutWidth = wrapConfig ? wrapConfig.columnWidth : MAX_X_AXIS_LABEL_WIDTH;
+    const paragraphs = useChartParagraphs(paragraphLabels, fontManager, fontSize, labelColor, paragraphLayoutWidth, wrapConfig?.maxLines);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
+
+    if (wrapConfig) {
+        const {columnWidth} = wrapConfig;
+        const wrapTop = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap;
+        return paragraphLabels.map((label, i) => {
+            if (label.length === 0) {
+                return null;
+            }
+            const paraData = paragraphs?.at(i) ?? null;
+            if (!paraData) {
+                return null;
+            }
+            const tickX = xScale(i);
+            return (
+                <Paragraph
+                    key={`x-label-${label}-${tickX}`}
+                    paragraph={paraData.para}
+                    x={tickX - columnWidth / 2}
+                    y={wrapTop}
+                    width={columnWidth}
+                />
+            );
+        });
+    }
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
     const labelY = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap + rotatedLabelYOffset(ascent, descent, angleRad);
