@@ -63,7 +63,7 @@ describe('useMergeConnectionListings', () => {
         const {listings, onStartSetup} = renderListings();
 
         // When the admin connects an HR provider
-        listings.at(0)?.onConnect();
+        listings.at(0)?.onConnect?.();
 
         // Then the upgrade page opens instead of the provider's setup
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
@@ -75,7 +75,7 @@ describe('useMergeConnectionListings', () => {
         const {listings, onStartSetup} = renderListings();
 
         // When the admin connects Gusto
-        listings.find((listing) => listing.title === CONST.POLICY.CONNECTIONS.NAME.GUSTO)?.onConnect();
+        listings.find((listing) => listing.title === CONST.POLICY.CONNECTIONS.NAME.GUSTO)?.onConnect?.();
 
         // Then HR is turned on and Gusto's setup starts, with nothing to replace
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED);
@@ -91,7 +91,7 @@ describe('useMergeConnectionListings', () => {
 
         // When the admin connects another provider and cancels the Replace prompt
         await act(async () => {
-            listings.find((listing) => listing.title === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS)?.onConnect();
+            listings.find((listing) => listing.title === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS)?.onConnect?.();
             await waitForBatchedUpdates();
         });
 

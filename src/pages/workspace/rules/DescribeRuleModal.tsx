@@ -85,7 +85,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 inputContainerStyle={isSmallScreenWidth ? styles.describeRulePromptInputNarrow : styles.describeRulePromptInput}
                 style={[styles.mt5, styles.mh5]}
                 addBottomSafeAreaPadding={isSmallScreenWidth}
-                shouldUseScrollView={isSmallScreenWidth}
                 onRuleGenerated={onRuleGenerated}
                 isCategoryEligible={isCategoryEligible}
                 onFinish={onClose}
