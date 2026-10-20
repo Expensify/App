@@ -95,7 +95,9 @@ function VerticalBarChartCanvas({
         fontSize: variables.iconSizeExtraSmall,
         measurements,
         tickSpacing: shouldShowLabels && plotBounds.width > 0 ? barLayout.barWidth + barLayout.gap : 0,
-        labelAreaWidth: plotBounds.width,
+        // Wrapped labels are always horizontal, never skipped, and sized from wrapConfig, so the rotation/skip/truncation
+        // pass is discarded. Pass 0 to short-circuit the hook, matching how the line chart skips it via labelAreaWidth.
+        labelAreaWidth: shouldWrapLabels ? 0 : plotBounds.width,
         firstTickLeftSpace: plotBounds.left + barLayout.edgeSpace,
         lastTickRightSpace: chartWidth - plotBounds.right + barLayout.edgeSpace,
     });
