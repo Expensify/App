@@ -41,7 +41,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses,
     hasOutstandingChildRequest,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -1043,7 +1042,7 @@ function submitReport({
     const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (hasOnlyHeldExpenses(expenseReportTransactions)) {
+    if (hasHeldExpenses && heldTransactions.length === expenseReportTransactions.length) {
         return;
     }
 
