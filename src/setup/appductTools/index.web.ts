@@ -32,9 +32,12 @@ function registerAppductTools() {
     let account: Account | undefined;
     let credentials: Credentials | undefined;
 
-    Onyx.connect({key: ONYXKEYS.SESSION, callback: (value) => (session = value)});
-    Onyx.connect({key: ONYXKEYS.ACCOUNT, callback: (value) => (account = value)});
-    Onyx.connect({key: ONYXKEYS.CREDENTIALS, callback: (value) => (credentials = value)});
+    // connectWithoutView: registration is not tied to any mounted component
+    // (same reasoning as setup/addUtilsToWindow.ts) and the lint rule
+    // rulesdir/no-onyx-connect enforces the non-view form outside React.
+    Onyx.connectWithoutView({key: ONYXKEYS.SESSION, callback: (value) => (session = value)});
+    Onyx.connectWithoutView({key: ONYXKEYS.ACCOUNT, callback: (value) => (account = value)});
+    Onyx.connectWithoutView({key: ONYXKEYS.CREDENTIALS, callback: (value) => (credentials = value)});
 
     const isSignedIn = () => Boolean(session?.authToken) && !isAnonymousUser(session);
 

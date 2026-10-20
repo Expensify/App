@@ -18,19 +18,28 @@ jest.mock('@appduct/web', () => ({
     },
 }));
 
-jest.mock('@userActions/Session', () => ({
-    beginSignIn: jest.fn(),
-    signUpUser: jest.fn(),
-    isAnonymousUser: (session: {authTokenType?: string} | undefined) => session?.authTokenType === 'anonymous',
-}));
+jest.mock('@userActions/Session', () => {
+    // The mock mirrors the real predicate against the real constant: the
+    // anonymous token type is 'anonymousAccount', and a test-local string
+    // would drift from it.
+    const CONST = require('@src/CONST').default;
+    return {
+        beginSignIn: jest.fn(),
+        signUpUser: jest.fn(),
+        isAnonymousUser: (session: {authTokenType?: string} | undefined) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+    };
+});
 
 import {beginSignIn, signUpUser} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 // eslint-disable-next-line no-restricted-syntax -- importing the web entry directly: the tools only exist on web
 import registerAppductTools from '@src/setup/appductTools/index.web';
 
 import Onyx from 'react-native-onyx';
+
+const ANONYMOUS = CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
 type ToolHandler = (input: Record<string, unknown>) => Promise<Record<string, unknown>>;
 const call = (name: string, input: Record<string, unknown> = {}) => (mockRegistrations.get(name)?.handler as unknown as ToolHandler)(input);
@@ -63,11 +72,11 @@ describe('appduct sign_in tool', () => {
             void Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, accountExists: false});
         });
         jest.mocked(signUpUser).mockImplementation(() => {
-            void Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', authTokenType: null, email: 'x+1@gmail.com', accountID: 42, autoAuthState: 'signedIn'});
+            void Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', authTokenType: null, email: 'x+1@gmail.com', accountID: 42, autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
             void Onyx.merge(ONYXKEYS.CREDENTIALS, {accountID: 42, login: 'x+1@gmail.com'});
         });
 
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: 'anonymous'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: ANONYMOUS});
 
         const result = await call('sign_in', {email: 'x+1@gmail.com', timeoutMs: 2000});
         expect(result).toMatchObject({signedIn: true, source: 'sign-up-user', accountID: 42, login: 'x+1@gmail.com'});
@@ -76,7 +85,7 @@ describe('appduct sign_in tool', () => {
     });
 
     it('returns already-signed-in without touching the sign-in actions', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', email: 'in@gmail.com', autoAuthState: 'signedIn'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', email: 'in@gmail.com', autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
 
         const result = await call('sign_in', {email: 'in@gmail.com', timeoutMs: 2000});
         expect(result).toMatchObject({signedIn: true, source: 'already-signed-in', login: 'in@gmail.com'});
@@ -85,7 +94,7 @@ describe('appduct sign_in tool', () => {
     });
 
     it('reports the magic-code wall instead of pretending success', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: 'anonymous'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: ANONYMOUS});
         jest.mocked(beginSignIn).mockImplementation(() => {
             void Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, accountExists: true});
         });
@@ -97,9 +106,9 @@ describe('appduct sign_in tool', () => {
     });
 
     it('surfaces beginSignIn errors with the Onyx error payload', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: 'anonymous'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: ANONYMOUS});
         jest.mocked(beginSignIn).mockImplementation(() => {
-            void Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, errors: {'1': {message: 'Blocked'}}});
+            void Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, errors: {'1': 'Blocked'}});
         });
 
         const result = await call('sign_in', {email: 'bad@gmail.com', timeoutMs: 2000});
@@ -108,7 +117,7 @@ describe('appduct sign_in tool', () => {
     });
 
     it('gives up with the account snapshot when no session token arrives', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: 'anonymous'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: ANONYMOUS});
         jest.mocked(beginSignIn).mockImplementation(() => {
             void Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, accountExists: false});
         });
@@ -120,7 +129,7 @@ describe('appduct sign_in tool', () => {
     });
 
     it('prestart_status reports the state without acting', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', email: 's@gmail.com', autoAuthState: 'signedIn'});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'tok', email: 's@gmail.com', autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
 
         const result = await call('prestart_status');
         expect(result).toMatchObject({booted: true, signedIn: true, anonymous: false, login: 's@gmail.com'});
