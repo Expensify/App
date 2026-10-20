@@ -26,7 +26,7 @@ import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, Sele
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
-import {getRowsCheckedInExcludedGroups, mergeRowsForCountAndTotal} from './selectionBuilders';
+import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -160,7 +160,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProps) {
     const {selectedTransactions: loadedSelection, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults, currentSearchTransactionsByReportID, shouldUseLiveData} = useSearchResultsContext();
-    const selectedTransactions = mergeRowsForCountAndTotal(loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected);
+    const selectedTransactions = mergeRowsIntoPartlyLoadedGroups(loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected);
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();

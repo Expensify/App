@@ -9,13 +9,15 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
-import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -3336,6 +3338,84 @@ describe('Lazily loaded group selection', () => {
                 groupCount: 3,
             });
             expect(header).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+        });
+
+        it('stops reading a group checked one by one as whole once an expense off the page is rejected from its details', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [firstRow, rejectedRow, laterRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [firstRow, rejectedRow, laterRow]), count: 3};
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of three with each row checked on its own, then refreshed from its first page so two of its rows are kept off the page
+            for (const row of [firstRow, rejectedRow, laterRow]) {
+                await act(async () => {
+                    result.current.toggle(row);
+                    await waitForBatchedUpdatesWithAct();
+                });
+            }
+            pagingGroup = {...pagingGroup, transactions: [firstRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // When one of the expenses off the page is rejected from its details, so it stays in the group unchecked, and the group refreshes again
+            await act(async () => {
+                result.current.removeTransaction(rejectedRow.transactionID, {isDeleted: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then the rest no longer stand for the whole group, so its header reads partly checked and the count is the two still checked rather than the group's three
+            for (const row of [firstRow, laterRow]) {
+                expect(result.current.selectedTransactions[row.keyForList]?.isEntireGroupSelected).toBe(false);
+            }
+            const header = getGroupCheckboxState({
+                groupKey,
+                children: [firstRow],
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+                groupCount: 3,
+            });
+            expect(header).toEqual({isSelectAllChecked: false, isIndeterminate: true});
+            expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([firstRow.keyForList, laterRow.keyForList].sort());
+        });
+
+        it('counts the rows left of a wholly selected group after a loaded expense is deleted, rather than the server figures that still include it', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [deletedRow, keptRow, laterRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [deletedRow, keptRow, laterRow]), count: 3};
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of three with each row checked on its own, then refreshed from its first page so its last row is kept off the page
+            for (const row of [deletedRow, keptRow, laterRow]) {
+                await act(async () => {
+                    result.current.toggle(row);
+                    await waitForBatchedUpdatesWithAct();
+                });
+            }
+            pagingGroup = {...pagingGroup, transactions: [deletedRow, keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // When a loaded expense is deleted from its details, so its row is marked for deletion and then leaves, while the group's count and total still include it until the search runs again
+            await act(async () => {
+                result.current.removeTransaction(deletedRow.transactionID, {isDeleted: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            pagingGroup = {...pagingGroup, transactions: [{...deletedRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+            pagingGroup = {...pagingGroup, transactions: [keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then the count and total take the two rows still selected, not the group's three and 300
+            expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([keptRow.keyForList, laterRow.keyForList].sort());
         });
 
         describe('a partly loaded group taken out of Select all', () => {

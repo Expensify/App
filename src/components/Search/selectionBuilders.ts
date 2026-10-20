@@ -340,11 +340,14 @@ function getSelectedRowKeysByGroupKey(selectedTransactions: SelectedTransactions
     return rowKeysByGroupKey;
 }
 
-function mergeRowsIntoGroupEntries(
+/**
+ * A header check stands for every row of the group, as an export reads it, so until the stamp finds the group wholly selected, one entry for the whole group replaces its rows.
+ * So does a wholly selected group whose rows outnumber its count, since some left it unseen. Under Select all every action sends the query, so nothing is merged.
+ */
+function mergeRowsIntoPartlyLoadedGroups(
     selectedTransactions: SelectedTransactions,
     searchData: SearchResultDataType | undefined,
     areAllMatchingItemsSelected: boolean,
-    shouldFoldRowsKeptOffPage: boolean,
 ): SelectedTransactions {
     if (areAllMatchingItemsSelected) {
         return selectedTransactions;
@@ -365,8 +368,7 @@ function mergeRowsIntoGroupEntries(
         const isClaimStillLoading = claimedRowCount > 0 && !isWhollySelected && (isStamped || claimedRowCount < groupCount);
         const hasKeptRow = rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
         const hasRowsThatLeft = (claimedRowCount > 0 || isWhollySelected) && hasKeptRow && rowKeys.length > groupCount;
-        const hasRowsKeptOffPage = shouldFoldRowsKeptOffPage && isWhollySelected && hasKeptRow;
-        if (isClaimStillLoading || hasRowsThatLeft || hasRowsKeptOffPage) {
+        if (isClaimStillLoading || hasRowsThatLeft) {
             partlyLoadedGroups.set(groupKey, group);
         }
     }
@@ -393,23 +395,6 @@ function mergeRowsIntoGroupEntries(
         });
     }
     return merged;
-}
-
-/**
- * A header check stands for every row of the group, as an export reads it, so until the stamp finds the group wholly selected, one entry for the whole group replaces its rows.
- * So does a wholly selected group whose rows outnumber its count, since some left it unseen. Under Select all every action sends the query, so nothing is merged.
- */
-function mergeRowsIntoPartlyLoadedGroups(
-    selectedTransactions: SelectedTransactions,
-    searchData: SearchResultDataType | undefined,
-    areAllMatchingItemsSelected: boolean,
-): SelectedTransactions {
-    return mergeRowsIntoGroupEntries(selectedTransactions, searchData, areAllMatchingItemsSelected, false);
-}
-
-/** The same for a count or a total, which also take a wholly selected group from the server while it holds rows kept off the page, since their amounts date from when they last loaded. */
-function mergeRowsForCountAndTotal(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined, areAllMatchingItemsSelected: boolean): SelectedTransactions {
-    return mergeRowsIntoGroupEntries(selectedTransactions, searchData, areAllMatchingItemsSelected, true);
 }
 
 type PrepareTransactionsListParams = {
@@ -929,6 +914,5 @@ export {
     getRemainingSearchGroupCount,
     getRowsCheckedInExcludedGroups,
     mergeRowsIntoPartlyLoadedGroups,
-    mergeRowsForCountAndTotal,
     stampGroupCoverageFlags,
 };

@@ -9,7 +9,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, getClaimedGroupKey, isRowChecked} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -282,9 +282,9 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
             const newState = {...prevState};
             if (hasSelectedTransactions) {
-                // An expense that stays in a group checked through its header makes the group a partial selection, as unchecking its row does. A deleted one leaves the group, which stays whole.
-                const removedTransaction = prevState.selectedTransactions[transactionID];
-                const partialGroupKey = !isDeleted && removedTransaction ? getClaimedGroupKey(removedTransaction) : undefined;
+                // An expense that stays in its group makes the group a partial selection, as unchecking its row does, whether the group was checked through its header or one row at a time. A deleted one leaves the group, which stays whole.
+                const removedGroupKey = prevState.selectedTransactions[transactionID]?.groupKey;
+                const partialGroupKey = !isDeleted && removedGroupKey && isGroupEntry(removedGroupKey) ? removedGroupKey : undefined;
                 const newSelectedTransactions = Object.entries(prevState.selectedTransactions).reduce((acc, [key, value]) => {
                     if (key === transactionID) {
                         return acc;

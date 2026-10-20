@@ -1,5 +1,5 @@
 import type {TransactionGroupListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import {mapEmptyReportToSelectedEntry, mergeRowsForCountAndTotal, mergeRowsIntoPartlyLoadedGroups, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
+import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -231,23 +231,19 @@ describe('selectionBuilders', () => {
             expect(Object.keys(merged)).toEqual([groupKey]);
         });
 
-        it('counts a wholly selected group holding rows kept off the page by the server total, but leaves its rows for the actions', () => {
-            // Given a wholly selected three-expense group whose third row a refresh kept off the page at its old amount, while the server's total for the group has since moved to 500
-            const searchData = buildDayGroupData([[groupKey, {count: 3, total: 500}]]);
+        it('keeps the rows of a wholly selected group holding one kept off the page, since the server figures can still include an expense deleted since', () => {
+            // Given a wholly selected group whose rows a refresh left partly off the page, after one of its expenses was deleted while the server's figures still read three expenses and 300
+            const searchData = buildDayGroupData([[groupKey, {count: 3, total: 300}]]);
             const selection = buildSelection({
-                txn1: {groupKey, isEntireGroupSelected: true, displayAmount: 100},
                 txn2: {groupKey, isEntireGroupSelected: true, displayAmount: 100},
                 txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 100, isKeptOffPage: true},
             });
 
-            // When the rows are merged for the count and total, and for the bulk actions
-            const mergedForTotal = mergeRowsForCountAndTotal(selection, searchData, false);
-            const mergedForActions = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+            // When the rows are merged for the count, the total and the bulk actions
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the total is the server's 500 rather than the 300 the rows add up to, while the actions keep the rows, which still name every expense, so Delete or Hold stay on offer
-            expect(Object.keys(mergedForTotal)).toEqual([groupKey]);
-            expect(mergedForTotal[groupKey]).toEqual(expect.objectContaining({displayAmount: 500}));
-            expect(mergedForActions).toBe(selection);
+            // Then the two selected rows stay, so the count and total are two expenses and 200 rather than the server's three and 300, and Delete or Hold stay on offer
+            expect(merged).toBe(selection);
         });
 
         it('leaves loaded rows that outnumber the count alone, since the count is only behind an expense that moved in', () => {
