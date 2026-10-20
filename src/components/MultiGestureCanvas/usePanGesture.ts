@@ -2,7 +2,6 @@ import {isMobile} from '@libs/Browser';
 
 import type {LegacyPanGesture} from 'react-native-gesture-handler';
 
-import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
@@ -73,7 +72,7 @@ const usePanGesture = ({
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
-    const getBounds = useCallback(() => {
+    const getBounds = () => {
         'worklet';
 
         let horizontalBoundary = 0;
@@ -106,12 +105,12 @@ const usePanGesture = ({
             isInHorizontalBoundary,
             isInVerticalBoundary,
         };
-    }, [canvasSize.width, canvasSize.height, zoomedContentWidth, zoomedContentHeight, offsetX, offsetY]);
+    };
 
     // We want to smoothly decay/end the gesture by phasing out the pan animation
     // In case the content is outside of the boundaries of the canvas,
     // we need to move the content back into the boundaries
-    const finishPanGesture = useCallback(() => {
+    const finishPanGesture = () => {
         'worklet';
 
         // If the content is centered within the canvas, we don't need to run any animations
@@ -179,7 +178,7 @@ const usePanGesture = ({
         // Reset velocity variables after we finished the pan gesture
         panVelocityX.set(0);
         panVelocityY.set(0);
-    }, [getBounds, isSwipingDownToClose, offsetX, offsetY, onSwipeDown, panTranslateX, panTranslateY, panVelocityX, panVelocityY, shouldDisableSwipeDownToClose, zoomScale]);
+    };
 
     const panGesture = Gesture.Pan()
         .manualActivation(true)

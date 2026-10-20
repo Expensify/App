@@ -21,14 +21,14 @@ import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {MapMouseEvent, MapRef, ViewState} from 'react-map-gl/mapbox';
+import type {MapMouseEvent, MapProps, MapRef} from 'react-map-gl/mapbox';
 
 // Explanation: Different Mapbox libraries are required for web and native mobile platforms.
 // This is why we have separate components for web and native to handle the specific implementations.
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 
@@ -74,7 +74,7 @@ function MapViewImpl({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
-    const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
+    const initialLocation = {longitude: initialState.location[0], latitude: initialState.location[1]};
     const currentPosition = userLocation ?? initialLocation;
     const prevUserPosition = usePrevious(currentPosition);
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
@@ -85,27 +85,21 @@ function MapViewImpl({
     const [hasValidContainerSize, setHasValidContainerSize] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const resetBoundariesRef = useRef<() => void>(() => {});
-    const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
+    const setRef = (newRef: MapRef | null) => setMapRef(newRef);
     const shouldInitializeCurrentPosition = useRef(true);
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(
-        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
-        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
-    );
+    const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0);
 
-    const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
-        (error) => {
-            if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
-                return;
-            }
-            clearUserLocation();
-        },
-        [initialLocation],
-    );
+    const setCurrentPositionToInitialState: GeolocationErrorCallback = (error) => {
+        if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
+            return;
+        }
+        clearUserLocation();
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -150,7 +144,7 @@ function MapViewImpl({
         });
     }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
-    const resetBoundaries = useCallback(() => {
+    const resetBoundaries = () => {
         if (!waypoints || waypoints.length === 0) {
             return;
         }
@@ -182,7 +176,7 @@ function MapViewImpl({
             allDirectionCoordinates,
         );
         map.fitBounds([northEast, southWest], {padding: mapPadding});
-    }, [waypoints, mapRef, mapPadding, allDirectionCoordinates]);
+    };
 
     // The ResizeObserver outlives renders, so it reads the latest reset logic through a ref.
     useEffect(() => {
@@ -272,7 +266,7 @@ function MapViewImpl({
         [mapRef],
     );
 
-    const centerMap = useCallback(() => {
+    const centerMap = () => {
         if (!mapRef) {
             return;
         }
@@ -291,52 +285,52 @@ function MapViewImpl({
             animate: true,
             duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
         });
-    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
+    };
 
-    const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
-        if (!interactive) {
-            // With no markers and no route geometry, getBounds returns infinite bounds that crash the map on init.
-            // Fall back to a plain centered view state until route data arrives.
-            if (!waypoints?.length && !allDirectionCoordinates.length) {
-                return {
-                    longitude: currentPosition?.longitude,
-                    latitude: currentPosition?.latitude,
-                    zoom: initialState.zoom,
-                };
-            }
+    let initialViewState: MapProps['initialViewState'];
+    if (!interactive) {
+        // With no markers and no route geometry, getBounds returns infinite bounds that crash the map on init.
+        // Fall back to a plain centered view state until route data arrives.
+        if (!waypoints?.length && !allDirectionCoordinates.length) {
+            initialViewState = {
+                longitude: currentPosition?.longitude,
+                latitude: currentPosition?.latitude,
+                zoom: initialState.zoom,
+            };
+        } else {
             const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
-            return {
+            initialViewState = {
                 zoom: initialState.zoom,
                 bounds: [northEast, southWest],
-                fitBoundsOptions: {padding: mapPadding},
+                fitBoundsOptions: {
+                    padding: mapPadding,
+                },
             };
         }
-        return {
+    } else {
+        initialViewState = {
             longitude: currentPosition?.longitude,
             latitude: currentPosition?.latitude,
             zoom: initialState.zoom,
         };
-    }, [waypoints, allDirectionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom, mapPadding]);
+    }
 
     // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
-    const interactiveLayerIds = useMemo(() => (interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternateDirection]);
+    const interactiveLayerIds = interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined;
 
-    const onDrag = useCallback(() => {
+    const onDrag = () => {
         setUserInteractedWithMap(true);
         // Dragging must keep the grabbing cursor even when it starts on top of a route.
         setIsHoveringDirection(false);
-    }, []);
+    };
 
-    const selectClickedDirection = useCallback(
-        (event: MapMouseEvent) => {
-            const isAlternate: unknown = event.features?.at(0)?.properties?.isAlternate;
-            if (typeof isAlternate !== 'boolean') {
-                return;
-            }
-            setIsAlternateDirectionSelected?.(isAlternate);
-        },
-        [setIsAlternateDirectionSelected],
-    );
+    const selectClickedDirection = (event: MapMouseEvent) => {
+        const isAlternate: unknown = event.features?.at(0)?.properties?.isAlternate;
+        if (typeof isAlternate !== 'boolean') {
+            return;
+        }
+        setIsAlternateDirectionSelected?.(isAlternate);
+    };
 
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View

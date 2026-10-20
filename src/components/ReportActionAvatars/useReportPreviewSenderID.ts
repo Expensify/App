@@ -19,8 +19,6 @@ import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Tr
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
 
@@ -309,10 +307,10 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
-    const transactions = useMemo(() => {
-        if (!shouldFetchData) {
-            return undefined;
-        }
+    let transactions;
+    if (!shouldFetchData) {
+        transactions = undefined;
+    } else {
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
         const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
@@ -320,13 +318,12 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
             nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
                 ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? [])
                 : nonDeletedTransactionsIncludingOrphans;
-
         if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
-            return nonDeletedTransactionsIncludingOrphans;
+            transactions = nonDeletedTransactionsIncludingOrphans;
+        } else {
+            transactions = filteredTransactions;
         }
-
-        return filteredTransactions;
-    }, [reportTransactions, iouActions, shouldFetchData, iouReport?.transactionCount, action?.childMoneyRequestCount]);
+    }
 
     // Only pending scans read the chat's last actor, so other previews skip a subscription that changes on every message.
     const hasPendingScan = !!transactions?.some(hasPendingScanStateAndUnknownDirection);

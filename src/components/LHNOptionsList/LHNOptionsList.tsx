@@ -22,7 +22,7 @@ import type {ReactElement} from 'react';
 
 import {useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {LHNOptionsListProps, RenderItemProps} from './types';
@@ -52,13 +52,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
     const hasCalledOnLayout = React.useRef(false);
-    const onLayoutItem = useCallback(() => {
+    const onLayoutItem = () => {
         if (hasCalledOnLayout.current) {
             return;
         }
         hasCalledOnLayout.current = true;
         onFirstItemRendered();
-    }, [onFirstItemRendered]);
+    };
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -67,51 +67,45 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     /**
      * Function which renders a row in the list
      */
-    const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement | null => {
-            if (!item) {
-                return null;
-            }
-            const reportID = item.reportID;
-            const itemReportAttributes = reportAttributes?.[reportID];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
+    const renderItem = ({item, index}: RenderItemProps): ReactElement | null => {
+        if (!item) {
+            return null;
+        }
+        const reportID = item.reportID;
+        const itemReportAttributes = reportAttributes?.[reportID];
+        const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+        const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
-            let invoiceReceiverPolicyID = '-1';
-            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
-                invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
-            }
-            if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
-                invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
-            }
-            const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+        let invoiceReceiverPolicyID = '-1';
+        if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+            invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
+        }
+        if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
+            invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
+        }
+        const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
+        const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
 
-            return (
-                <OptionRowLHNData
-                    reportID={reportID}
-                    fullReport={item}
-                    reportAttributes={itemReportAttributes}
-                    reportAttributesDerived={reportAttributes}
-                    oneTransactionThreadReport={itemOneTransactionThreadReport}
-                    policy={itemPolicy}
-                    invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
-                    personalDetails={personalDetails ?? {}}
-                    viewMode={optionMode}
-                    isOptionFocused={!shouldDisableFocusOptions}
-                    onSelectRow={onSelectRow}
-                    onLayout={onLayoutItem}
-                    testID={index}
-                />
-            );
-        },
-        [reportAttributes, reports, policy, personalDetails, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
-    );
+        return (
+            <OptionRowLHNData
+                reportID={reportID}
+                fullReport={item}
+                reportAttributes={itemReportAttributes}
+                reportAttributesDerived={reportAttributes}
+                oneTransactionThreadReport={itemOneTransactionThreadReport}
+                policy={itemPolicy}
+                invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
+                personalDetails={personalDetails ?? {}}
+                viewMode={optionMode}
+                isOptionFocused={!shouldDisableFocusOptions}
+                onSelectRow={onSelectRow}
+                onLayout={onLayoutItem}
+                testID={index}
+            />
+        );
+    };
 
-    const extraData = useMemo(
-        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-    );
+    const extraData = [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline];
 
     const previousOptionMode = usePrevious(optionMode);
 
@@ -124,23 +118,20 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
-    const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            if (isWeb) {
-                saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
-            }
-            triggerScrollEvent();
-        },
-        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
-    );
+    const onScroll: NonNullable<FlashListProps<string>['onScroll']> = (e) => {
+        // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
+        // We should ignore this case.
+        if (e.nativeEvent.layoutMeasurement.height === 0) {
+            return;
+        }
+        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        if (isWeb) {
+            saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+        }
+        triggerScrollEvent();
+    };
 
-    const onLayout = useCallback(() => {
+    const onLayout = () => {
         const offset = getScrollOffset(route);
 
         if (!(offset && flashListRef.current) || isWeb) {
@@ -154,7 +145,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route]);
+    };
 
     const savedScrollIndex = getScrollIndex(route);
     const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
@@ -186,4 +177,4 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 }
 
-export default memo(LHNOptionsList);
+export default LHNOptionsList;

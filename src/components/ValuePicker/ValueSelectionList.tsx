@@ -5,7 +5,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {ValueSelectionListProps} from './types';
 
@@ -21,22 +21,22 @@ function ValueSelectionList({
 }: ValueSelectionListProps) {
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
 
-    const options = useMemo(() => {
-        const mappedOptions = items.map((item) => ({
-            value: item.value ?? '',
-            alternateText: item.description,
-            alternateTextComponent: item.alternateTextComponent,
-            text: item.label ?? '',
-            keyForList: item.value ?? '',
-            isDisabled: item.isDisabled,
-            rightElement: item.rightElement,
-            shouldHideSelectionButton: item.shouldHideSelectionButton,
-            titleStyles: item.titleStyles,
-        }));
-        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
-
-        return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
-    }, [initialSelectedValue, items, selectedItem?.value]);
+    const mappedOptions = items.map((item) => ({
+        value: item.value ?? '',
+        alternateText: item.description,
+        alternateTextComponent: item.alternateTextComponent,
+        text: item.label ?? '',
+        keyForList: item.value ?? '',
+        isDisabled: item.isDisabled,
+        rightElement: item.rightElement,
+        shouldHideSelectionButton: item.shouldHideSelectionButton,
+        titleStyles: item.titleStyles,
+    }));
+    const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
+    const options = orderedOptions.map((item) => ({
+        ...item,
+        isSelected: item.value === selectedItem?.value,
+    }));
 
     return (
         <SelectionList

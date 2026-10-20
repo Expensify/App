@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 
@@ -25,28 +25,25 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = useMemo(() => {
-        if (!backdropOpacity) {
-            return;
-        }
+    let Entering;
+    if (!backdropOpacity) {
+        Entering = undefined;
+    } else {
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity));
-        return FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
-    }, [animationInTiming, backdropOpacity]);
+        Entering = FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
+    }
 
-    const Exiting = useMemo(() => {
-        if (!backdropOpacity) {
-            return;
-        }
+    let Exiting;
+    if (!backdropOpacity) {
+        Exiting = undefined;
+    } else {
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity));
-        return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
-    }, [animationOutTiming, backdropOpacity]);
+        Exiting = FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
+    }
 
-    const backdropStyle = useMemo(
-        () => ({
-            opacity: backdropOpacity,
-        }),
-        [backdropOpacity],
-    );
+    const backdropStyle = {
+        opacity: backdropOpacity,
+    };
 
     if (!customBackdrop) {
         return (

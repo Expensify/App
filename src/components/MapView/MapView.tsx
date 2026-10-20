@@ -21,7 +21,7 @@ import type {MapState} from '@rnmapbox/maps';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {getForegroundPermissionsAsync} from 'expo-location';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -63,7 +63,7 @@ function MapView({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
-    const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
+    const initialLocation = initialState && {longitude: initialState.location[0], latitude: initialState.location[1]};
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
@@ -73,20 +73,14 @@ function MapView({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(
-        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
-        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
-    );
+    const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0);
 
-    const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
-        (error) => {
-            if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
-                return;
-            }
-            clearUserLocation();
-        },
-        [initialLocation],
-    );
+    const setCurrentPositionToInitialState: GeolocationErrorCallback = (error) => {
+        if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
+            return;
+        }
+        clearUserLocation();
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -212,7 +206,7 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
-    const centerMap = useCallback(() => {
+    const centerMap = () => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
             const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
@@ -225,47 +219,54 @@ function MapView({
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
+    };
 
-    const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
+    const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
 
-    const waypointsBounds = useMemo(() => {
-        if (!waypoints) {
-            return undefined;
-        }
+    let waypointsBounds;
+    if (!waypoints) {
+        waypointsBounds = undefined;
+    } else {
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        return {ne: northEast, sw: southWest};
-    }, [waypoints, allDirectionCoordinates]);
-
-    const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
-        if (interactive) {
-            if (!centerCoordinate) {
-                return undefined;
-            }
-            return {
-                zoomLevel: initialState?.zoom,
-                centerCoordinate,
-            };
-        }
-        if (!waypointsBounds) {
-            return undefined;
-        }
-        return {
-            bounds: waypointsBounds,
+        waypointsBounds = {
+            ne: northEast,
+            sw: southWest,
         };
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+    }
 
-    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
-    const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
+    let defaultSettings: Mapbox.CameraStop | undefined;
+    if (interactive) {
+        defaultSettings = !centerCoordinate
+            ? undefined
+            : {
+                  zoomLevel: initialState?.zoom,
+                  centerCoordinate,
+              };
+    } else {
+        defaultSettings = !waypointsBounds
+            ? undefined
+            : {
+                  bounds: waypointsBounds,
+              };
+    }
+
+    const initCenterCoordinate = interactive ? centerCoordinate : undefined;
+    const initBounds = interactive ? undefined : waypointsBounds;
 
     // Localize the map labels to the user's preferred app locale so they match the rest of the app.
-    const localizeLabels = useMemo<{locale: string} | undefined>(() => {
-        const language = utils.getNativeMapboxLanguage(preferredLocale);
-        return language ? {locale: language} : undefined;
-    }, [preferredLocale]);
+    const language = utils.getNativeMapboxLanguage(preferredLocale);
+    const localizeLabels:
+        | {
+              locale: string;
+          }
+        | undefined = language
+        ? {
+              locale: language,
+          }
+        : undefined;
 
     return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
@@ -366,4 +367,4 @@ function MapView({
     );
 }
 
-export default memo(MapView);
+export default MapView;

@@ -1,6 +1,5 @@
 import type {SharedValue} from 'react-native-reanimated';
 
-import {useCallback} from 'react';
 import {Gesture, PointerType} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
@@ -199,13 +198,10 @@ function useChartInteractions({
      * Called by chart content from handleScaleChange to populate canvas positions.
      * Must be called with the positions derived from the current d3 scale.
      */
-    const setPointPositions = useCallback(
-        (ox: number[], oy: number[]) => {
-            pointOX.set(ox);
-            pointOY.set(oy);
-        },
-        [pointOX, pointOY],
-    );
+    const setPointPositions = (ox: number[], oy: number[]) => {
+        pointOX.set(ox);
+        pointOY.set(oy);
+    };
 
     const getHitTestArgs = (targetIndex: number, cursorX: number, cursorY: number, targetX: number, targetY: number, currentChartBottom: number): HitTestArgs => {
         'worklet';

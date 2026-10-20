@@ -14,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 
-import React, {memo, useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
@@ -47,17 +47,14 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(expensifyIcons, volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
-    const onSliderLayout = useCallback((event: LayoutChangeEvent) => {
+    const onSliderLayout = (event: LayoutChangeEvent) => {
         setSliderHeight(event.nativeEvent.layout.height);
-    }, []);
+    };
 
-    const changeVolumeOnPan = useCallback(
-        (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-            const val = roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
-            volume.set(clamp(val, 0, 1));
-        },
-        [sliderHeight, volume],
-    );
+    const changeVolumeOnPan = (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+        const val = roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
+        volume.set(clamp(val, 0, 1));
+    };
 
     const pan = Gesture.Pan()
         .onBegin((event) => {
@@ -73,12 +70,9 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.get() * 100}%`}));
 
-    const updateIcon = useCallback(
-        (vol: number) => {
-            setVolumeIcon({icon: getVolumeIcon(expensifyIcons, vol)});
-        },
-        [expensifyIcons],
-    );
+    const updateIcon = (vol: number) => {
+        setVolumeIcon({icon: getVolumeIcon(expensifyIcons, vol)});
+    };
 
     useDerivedValue(() => {
         scheduleOnRN(updateVolume, volume.get());
@@ -119,4 +113,4 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     );
 }
 
-export default memo(VolumeButton);
+export default VolumeButton;

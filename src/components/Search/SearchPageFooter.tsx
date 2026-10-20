@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
@@ -109,7 +109,7 @@ function SearchPageFooter({
         setLoadedTotalHeight(height);
     };
 
-    const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+    const valueTextStyle = isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong];
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the footer button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the footer's display menu instead of also opening the expense.

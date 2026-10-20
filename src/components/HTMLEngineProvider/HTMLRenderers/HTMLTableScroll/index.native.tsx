@@ -1,6 +1,5 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useMemo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {cancelAnimation, useAnimatedStyle, useSharedValue, withDecay} from 'react-native-reanimated';
@@ -18,22 +17,18 @@ function HTMLTableScroll({viewportWidth, contentWidth, children}: HTMLTableScrol
     const maxScroll = Math.max(0, contentWidth - viewportWidth);
 
     const translateX = useSharedValue(0);
-    const panGesture = useMemo(
-        () =>
-            Gesture.Pan()
-                .activeOffsetX([-10, 10])
-                .failOffsetY([-10, 10])
-                .onBegin(() => {
-                    cancelAnimation(translateX);
-                })
-                .onChange((event) => {
-                    translateX.set(Math.min(0, Math.max(-maxScroll, translateX.get() + event.changeX)));
-                })
-                .onEnd((event) => {
-                    translateX.set(withDecay({velocity: event.velocityX, clamp: [-maxScroll, 0]}));
-                }),
-        [maxScroll, translateX],
-    );
+    const panGesture = Gesture.Pan()
+        .activeOffsetX([-10, 10])
+        .failOffsetY([-10, 10])
+        .onBegin(() => {
+            cancelAnimation(translateX);
+        })
+        .onChange((event) => {
+            translateX.set(Math.min(0, Math.max(-maxScroll, translateX.get() + event.changeX)));
+        })
+        .onEnd((event) => {
+            translateX.set(withDecay({velocity: event.velocityX, clamp: [-maxScroll, 0]}));
+        });
 
     const animatedStyle = useAnimatedStyle(() => ({transform: [{translateX: translateX.get()}]}));
 

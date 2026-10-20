@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {Alert} from 'react-native';
 
 import type AddToWalletButtonProps from './types';
@@ -28,7 +28,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const styles = useThemeStyles();
     const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
-    const handleOnPress = useCallback(() => {
+    const handleOnPress = () => {
         setIsLoading(true);
         handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false))
             .then((status: TokenizationStatus) => {
@@ -47,7 +47,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    };
 
     if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;
