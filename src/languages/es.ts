@@ -9133,11 +9133,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
                 exportToNextOpenPeriodDescription: 'Cuando la fecha de un informe cae en un período cerrado de Dynamics 365 Business Central, se exporta al siguiente período abierto.',
                 syncReimbursedReports: 'Sincronizar informes reembolsados',
-                syncReimbursedReportsDescription: 'Cuando un informe se paga mediante ACH, se generará un pago de factura en esta cuenta.',
-                reimbursementBankAccount: {
-                    label: 'Cuenta de pago de facturas',
-                    description: 'Elige desde dónde pagar las facturas y crearemos el pago en Dynamics 365 Business Central.',
-                },
+                syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un asiento de diario general en esta cuenta.',
+                reimbursementBankAccount: {label: 'Cuenta bancaria de pago', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Dynamics 365 Business Central.'},
                 syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
                 settlementsBankAccount: {
                     label: 'Cuenta de liquidación de la Tarjeta Expensify',

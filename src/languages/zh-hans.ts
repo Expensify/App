@@ -8892,11 +8892,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: '导出到下一个未结会计期间',
                 exportToNextOpenPeriodDescription: '当报告日期位于 Dynamics 365 Business Central 的已关闭期间时，将其导出到下一个未关闭期间。',
                 syncReimbursedReports: '同步已报销报表',
-                syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
-                reimbursementBankAccount: {
-                    label: '账单支付账户',
-                    description: '选择从哪里支付账单，我们会在 Dynamics 365 Business Central 中创建付款。',
-                },
+                syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此科目中生成一条普通日记账分录。',
+                reimbursementBankAccount: {label: '付款银行账户', description: '选择从哪里支付账单，我们会在 Dynamics 365 Business Central 中创建付款。'},
                 syncExpensifyCardSettlements: '同步 Expensify 卡结算',
                 settlementsBankAccount: {
                     label: 'Expensify 卡结算账户',
