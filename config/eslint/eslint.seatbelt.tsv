@@ -1701,7 +1701,6 @@
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
-"../../src/pages/workspace/members/WorkArrangementPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
