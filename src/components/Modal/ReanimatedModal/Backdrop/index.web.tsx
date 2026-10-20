@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -28,7 +28,9 @@ function Backdrop({
     const progress = useSharedValue(0);
     const wasBackdropVisible = useRef(false);
 
-    useEffect(() => {
+    // This must be a layout effect: a reinserted Animated.View renders with the old progress value, and a passive effect can run
+    // after paint, which shows one frame at the old opacity. A layout effect resets progress before the first frame.
+    useLayoutEffect(() => {
         // Only fade in when the backdrop goes from hidden to visible, so a timing change (for example, crossing the small-screen breakpoint) doesn't restart it
         const isOpening = isBackdropVisible && !wasBackdropVisible.current;
         wasBackdropVisible.current = isBackdropVisible;
