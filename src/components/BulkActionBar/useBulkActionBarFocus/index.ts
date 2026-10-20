@@ -28,19 +28,15 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen)
     const [isFocusInsideBar, setIsFocusInsideBar] = useState(false);
 
     useEffect(() => {
-        const handleFocusIn = (event: FocusEvent) => {
-            const target = event.target;
-            if (!isHTMLElement(target)) {
+        const remember = (target: EventTarget | null) => {
+            if (!isHTMLElement(target) || target === document.body) {
                 return;
             }
 
             const bar = barRef.current;
             if (isHTMLElement(bar) && bar.contains(target)) {
-                setIsFocusInsideBar(true);
                 return;
             }
-
-            setIsFocusInsideBar(false);
 
             // The role screen and the bar's own "More" menu both take focus to controls that leave with them, and the
             // menu renders in a popover outside the bar rather than within it. Remembering either would leave the bar
@@ -55,6 +51,28 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen)
             // button it was opened from, which the cleared selection has taken away by then. This is the survivor to
             // aim at instead, and it is offered here rather than on unmount because the capture happens first.
             nominateTriggerFallback(target);
+        };
+
+        // The bar appears because of a selection, so the control that made it already holds focus and fires no
+        // focusin for the listener below to see.
+        if (!lastFocusedOutsideRef.current) {
+            remember(document.activeElement);
+        }
+
+        const handleFocusIn = (event: FocusEvent) => {
+            const target = event.target;
+            if (!isHTMLElement(target)) {
+                return;
+            }
+
+            const bar = barRef.current;
+            if (isHTMLElement(bar) && bar.contains(target)) {
+                setIsFocusInsideBar(true);
+                return;
+            }
+
+            setIsFocusInsideBar(false);
+            remember(target);
         };
 
         // Focus can also leave for nothing at all, such as an element being removed, which fires no matching focusin.

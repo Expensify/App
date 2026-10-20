@@ -57,6 +57,29 @@ describe('useBulkActionBarFocus', () => {
         expect(document.activeElement).toBe(row);
     });
 
+    it('hands focus back to a checkbox that was already focused when the bar appeared', () => {
+        // Given the row checkbox that made the selection, which held focus before the bar existed and so fires no
+        // focusin the bar can see
+        const row = createButton('Row');
+        focus(row);
+
+        const bar = document.createElement('div');
+        const barButton = createButton('Clear selection');
+        bar.appendChild(barButton);
+        document.body.appendChild(bar);
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(barButton);
+
+        // When the action clears the selection and the bar goes away under the focused button
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the checkbox rather than lost to the document
+        expect(document.activeElement).toBe(row);
+    });
+
     it('hands focus back when an action run from another screen has already dropped it to the document', () => {
         // Given a row focused on the table, and a screen opened over it that takes focus to its own Save button
         const row = createButton('Row');
