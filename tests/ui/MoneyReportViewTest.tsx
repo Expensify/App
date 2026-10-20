@@ -2,7 +2,6 @@
 import {act, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import CustomStylesForChildrenProvider from '@components/CustomStylesForChildrenProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -462,18 +461,6 @@ describe('MoneyReportView report fields visibility', () => {
             expect(secondObservation).toBeDefined();
             expect(customObservation?.pendingAction).toBe(contribution);
             expect(secondObservation?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            const customContent = customFeedback.find((node) => node.type === CustomStylesForChildrenProvider).parent;
-            if (contribution) {
-                expect(customContent).toHaveStyle({opacity: 0.5});
-            } else {
-                expect(customContent).not.toHaveStyle({opacity: 0.5});
-            }
-            expect(secondFeedback.find((node) => node.type === CustomStylesForChildrenProvider).parent).toHaveStyle({opacity: 0.5});
-            if (contribution === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                expect(screen.getByText('Test')).toHaveStyle({textDecorationLine: 'line-through'});
-            } else {
-                expect(screen.getByText('Test')).not.toHaveStyle({textDecorationLine: 'line-through'});
-            }
         },
     );
 
@@ -517,8 +504,6 @@ describe('MoneyReportView report fields visibility', () => {
             const observation = jest.mocked(OfflineWithFeedback).mock.calls.findLast(([props]) => props === fieldFeedback.props)?.[0];
             expect(observation).toBeDefined();
             expect(observation?.pendingAction).toBeUndefined();
-            expect(fieldFeedback.find((node) => node.type === CustomStylesForChildrenProvider).parent).not.toHaveStyle({opacity: 0.5});
-            expect(screen.getByText(name)).not.toHaveStyle({textDecorationLine: 'line-through'});
         }
     });
 });

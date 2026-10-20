@@ -133,6 +133,12 @@ function MoneyReportView({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const breakdownRows: BreakdownRow[] = [
+        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+    ];
     const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -156,7 +162,7 @@ function MoneyReportView({
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
-    const pendingFieldEntries = Object.entries(report?.pendingFields ?? {});
+    const pendingFieldsByKey = new Map(Object.entries(report?.pendingFields ?? {}));
 
     const renderThreadDivider = useMemo(
         () =>
@@ -191,7 +197,7 @@ function MoneyReportView({
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
-                                const fieldPendingAction = pendingFieldEntries.find(([key]) => key === fieldKey)?.[1];
+                                const fieldPendingAction = pendingFieldsByKey.get(fieldKey);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
@@ -265,14 +271,7 @@ function MoneyReportView({
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {(
-                                    [
-                                        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
-                                    ] satisfies BreakdownRow[]
-                                )
+                                {breakdownRows
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
                                         <View

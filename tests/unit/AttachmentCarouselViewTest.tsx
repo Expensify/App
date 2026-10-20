@@ -62,6 +62,14 @@ jest.mock('react-native-reanimated', () => {
     };
 });
 
+function createOnNavigateMock() {
+    return jest.fn<ReturnType<NonNullable<AttachmentCarouselViewProps['onNavigate']>>, Parameters<NonNullable<AttachmentCarouselViewProps['onNavigate']>>>();
+}
+
+function createSvgAttachmentSourceMock() {
+    return jest.fn<ReturnType<Extract<AttachmentSource, React.FunctionComponent>>, Parameters<Extract<AttachmentSource, React.FunctionComponent>>>(() => null);
+}
+
 function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
     const props: AttachmentCarouselViewProps = {
         page: 0,
@@ -96,7 +104,7 @@ describe('AttachmentCarouselView web', () => {
         (attachment) => {
             // Given a typed attachment from the carousel producer, including supported source variants
             const other: Attachment = {source: attachment.source, attachmentID: 'different-id'};
-            const onNavigate = jest.fn<ReturnType<NonNullable<AttachmentCarouselViewProps['onNavigate']>>, Parameters<NonNullable<AttachmentCarouselViewProps['onNavigate']>>>();
+            const onNavigate = createOnNavigateMock();
             const {props} = renderCarousel({attachments: [other, attachment], source: other.source, attachmentID: other.attachmentID, onNavigate});
             const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
             expect(viewability).toBeDefined();
@@ -108,7 +116,6 @@ describe('AttachmentCarouselView web', () => {
             act(() => viewability({viewableItems: [{item: attachment, key: 'selected', index: 1, isViewable: true}], changed: []}));
 
             // Then navigation receives the exact item and focus follows attachmentID before source
-            expect(props.onNavigate).toHaveBeenCalledWith(attachment);
             expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(attachment);
             expect(props.setPage).toHaveBeenCalledWith(1);
             expect(
@@ -120,7 +127,7 @@ describe('AttachmentCarouselView web', () => {
 
     it('invokes a function source as the initial state value and renders it unfocused without an id', () => {
         // Given a supported SVG source without an attachment id
-        const source = jest.fn<ReturnType<Extract<AttachmentSource, React.FunctionComponent>>, Parameters<Extract<AttachmentSource, React.FunctionComponent>>>(() => null);
+        const source = createSvgAttachmentSourceMock();
         const attachment: Attachment = {source};
 
         // When the unchanged useState initializer receives that function
@@ -133,9 +140,9 @@ describe('AttachmentCarouselView web', () => {
 
     it('invokes a function source as a state updater while retaining exact navigation and page effects', () => {
         // Given a function source without an id and a carousel initialized from a string
-        const source = jest.fn<ReturnType<Extract<AttachmentSource, React.FunctionComponent>>, Parameters<Extract<AttachmentSource, React.FunctionComponent>>>(() => null);
+        const source = createSvgAttachmentSourceMock();
         const attachment: Attachment = {source};
-        const onNavigate = jest.fn<ReturnType<NonNullable<AttachmentCarouselViewProps['onNavigate']>>, Parameters<NonNullable<AttachmentCarouselViewProps['onNavigate']>>>();
+        const onNavigate = createOnNavigateMock();
         const {props} = renderCarousel({attachments: [{source: 'first.png'}, attachment], onNavigate});
         expect(source).not.toHaveBeenCalled();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
@@ -157,10 +164,10 @@ describe('AttachmentCarouselView web', () => {
 
     it('prefers attachment ids over function sources during initialization and viewability', () => {
         // Given two SVG sources whose ids supply their focus identities
-        const source = jest.fn<ReturnType<Extract<AttachmentSource, React.FunctionComponent>>, Parameters<Extract<AttachmentSource, React.FunctionComponent>>>(() => null);
+        const source = createSvgAttachmentSourceMock();
         const first: Attachment = {source, attachmentID: 'first-id'};
         const second: Attachment = {source, attachmentID: 'second-id'};
-        const onNavigate = jest.fn<ReturnType<NonNullable<AttachmentCarouselViewProps['onNavigate']>>, Parameters<NonNullable<AttachmentCarouselViewProps['onNavigate']>>>();
+        const onNavigate = createOnNavigateMock();
         const {props} = renderCarousel({attachments: [first, second], source, attachmentID: first.attachmentID, onNavigate});
         expect(source).not.toHaveBeenCalled();
         expect(screen.getByText('first-id:true')).toBeOnTheScreen();

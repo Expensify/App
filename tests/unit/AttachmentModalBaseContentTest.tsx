@@ -63,6 +63,10 @@ jest.mock('@libs/getPlatform', () => jest.fn());
 
 const FileSelection = jest.fn(({fileToDisplay}: AttachmentContentProps) => <Text>{fileToDisplay?.name ?? 'no file'}</Text>);
 
+function createOnConfirmMock(implementation?: NonNullable<AttachmentModalBaseContentProps['onConfirm']>) {
+    return jest.fn<ReturnType<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>, Parameters<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>>(implementation);
+}
+
 function renderAttachmentModal(props: AttachmentModalBaseContentProps = {}) {
     return render(<AttachmentModalBaseContent {...props} />);
 }
@@ -137,9 +141,7 @@ describe('AttachmentModalBaseContent files', () => {
         jest.mocked(getPlatform).mockReturnValue(platform);
         const files: FileObject[] = [{name: 'first.png'}, {name: 'second.png'}];
         const events: string[] = [];
-        const onConfirm = jest.fn<ReturnType<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>, Parameters<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>>(() =>
-            events.push('confirm'),
-        );
+        const onConfirm = createOnConfirmMock(() => events.push('confirm'));
         const onClose = jest.fn(() => events.push('close'));
         renderAttachmentModal({file: files, source: 'https://example.com/receipt.png', onConfirm, onClose, confirmLeavesScreen: true, AttachmentContent: FileSelection});
 
@@ -159,7 +161,7 @@ describe('AttachmentModalBaseContent files', () => {
     it('closes before deferred scalar confirmation and follows a real carousel navigation', () => {
         // Given the real carousel callback owned by the modal and a controlled animation frame
         const frame = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(() => 1);
-        const onConfirm = jest.fn<ReturnType<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>, Parameters<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>>();
+        const onConfirm = createOnConfirmMock();
         const onClose = jest.fn();
         const scalar: FileObject = {name: 'navigated.png'};
         renderAttachmentModal({report: createMock<Report>({reportID: '1'}), source: 'initial.png', file: {name: 'initial.png'}, onConfirm, onClose});
@@ -189,7 +191,7 @@ describe('AttachmentModalBaseContent files', () => {
 
     it('hides send while the attachment keyboard is active and disables explicitly blocked sending', () => {
         // Given the attachment view callback controlling send visibility
-        const onConfirm = jest.fn<ReturnType<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>, Parameters<NonNullable<AttachmentModalBaseContentProps['onConfirm']>>>();
+        const onConfirm = createOnConfirmMock();
         const view = renderAttachmentModal({source: 'receipt.png', onConfirm});
         const attachment = jest.mocked(AttachmentView).mock.calls.at(-1)?.[0];
         expect(attachment?.onToggleKeyboard).toBeDefined();

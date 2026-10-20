@@ -115,12 +115,8 @@ function AttachmentModalBaseContent({
     });
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
+    const [files, setFile] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
     const fileToDisplay = Array.isArray(files) ? files.at(fileToDisplayIndex) : files;
-
-    const setFile = useCallback((newFile: FileObject | FileObject[] | undefined) => {
-        setFilesInternal(newFile);
-    }, []);
 
     useEffect(() => {
         setFile(filesProp ?? fallbackFile);
