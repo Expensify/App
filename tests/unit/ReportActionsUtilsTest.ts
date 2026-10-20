@@ -1786,6 +1786,54 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getMessageOfOldDotReportAction', () => {
+        it('should return the removed field message when a field with a value is cleared', () => {
+            // Given a field change whose new value is empty while the old value was set, which is what clearing a text field sends
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
+            expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the set field message when a field without a value is filled in', () => {
+            // Given a field change whose old value is empty
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: 'Apollo'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was set, because there is no previous value to show
+            expect(message).toBe('set Project to "Apollo"');
+        });
+
+        it('should return the changed field message when a field value is replaced', () => {
+            // Given a field change where both the old and the new value are set
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: 'Gemini'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows both the new and the previous value
+            expect(message).toBe('changed Project to "Gemini" (previously "Apollo")');
+        });
+
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
@@ -8026,6 +8074,60 @@ describe('ReportActionsUtils', () => {
 
         it('returns undefined for an empty report', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
+        });
+
+        it('returns the newest comment of Concierge and of each custom agent', () => {
+            // Given a report where Concierge and two custom agents each wrote twice, and a human wrote last
+            const firstAgentAccountID = 1001;
+            const secondAgentAccountID = 1002;
+            const sorted = [
+                conciergeComment('700', '2026-09-07 00:00:00.000', {actorAccountID: 12345}),
+                conciergeComment('600', '2026-09-06 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('500', '2026-09-05 00:00:00.000'),
+                conciergeComment('400', '2026-09-04 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('100', '2026-09-01 00:00:00.000'),
+            ];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
+
+            // Then each AI author gets one prompt on its newest comment, so an agent reply does not take the prompt away from Concierge, and the human gets none
+            expect([...actionIDs].sort()).toEqual(['400', '500', '600']);
+        });
+
+        it('hides the prompt of an agent whose newest comment is not in Onyx yet, and keeps the prompt of Concierge', () => {
+            // Given an agent comment that exists only on the client, above saved comments of Concierge and of the same agent
+            const agentAccountID = 1001;
+            const unsavedAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const concierge = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const olderAgentComment = conciergeComment('100', '2026-09-01 00:00:00.000', {actorAccountID: agentAccountID});
+            const sorted = [unsavedAgentComment, concierge, olderAgentComment];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
+
+            // Then the older agent comment does not stand in for the unsaved one, which would ask the user to rate an older reply
+            expect(actionIDs).toEqual(['200']);
+        });
+
+        it('picks the newest comment of the given author out of a report actions collection', () => {
+            // Given a parent report where an agent wrote twice after Concierge
+            const agentAccountID = 1001;
+            const concierge = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const olderAgentComment = conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: agentAccountID});
+            const newerAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const collection = {
+                [concierge.reportActionID]: concierge,
+                [olderAgentComment.reportActionID]: olderAgentComment,
+                [newerAgentComment.reportActionID]: newerAgentComment,
+            };
+
+            // When a thread checks the message it hangs off against the newest comment of that message's author
+            // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
         });
     });
 });

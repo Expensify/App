@@ -786,6 +786,7 @@ const WRITE_COMMANDS = {
     SET_DEFAULT_DOMAIN_SECURITY_GROUP: 'SetDefaultDomainSecurityGroup',
     DELETE_DOMAIN_SECURITY_GROUP: 'DeleteDomainSecurityGroup',
     CREATE_AGENT: 'CreateAgent',
+    CREATE_COMPANY_AGENT: 'CreateCompanyAgent',
     CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
@@ -1610,6 +1611,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP]: Parameters.SetDefaultDomainSecurityGroupParams;
     [WRITE_COMMANDS.DELETE_DOMAIN_SECURITY_GROUP]: Parameters.DeleteDomainSecurityGroupParams;
     [WRITE_COMMANDS.CREATE_AGENT]: Parameters.CreateAgentParams;
+    [WRITE_COMMANDS.CREATE_COMPANY_AGENT]: Parameters.CreateCompanyAgentParams;
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
@@ -1739,6 +1741,7 @@ const READ_COMMANDS = {
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
     OPEN_PROFILE_PAGE: 'OpenProfilePage',
+    OPEN_RECIPIENT_PICKER: 'OpenRecipientPicker',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1864,6 +1867,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_PROFILE_PAGE]: null;
+    [READ_COMMANDS.OPEN_RECIPIENT_PICKER]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

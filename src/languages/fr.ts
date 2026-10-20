@@ -1181,7 +1181,18 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
-        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
+        compare: {
+            label: 'Comparer',
+            previousPeriod: 'Période précédente',
+            average: 'Moyenne',
+            dayLabel: (day?: number) => (day === undefined ? 'Jour' : `Jour ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semaine' : `Semaine ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mois' : `Mois ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
+            increase: (percentage: string) => `En hausse de ${percentage}`,
+            decrease: (percentage: string) => `En baisse de ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2192,6 +2203,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la finalisation du paiement${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` d’ici ${eta}` : ` ${eta}`;
+                }
+                return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2833,6 +2856,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
         },
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurer les remboursements globaux ?',
+            subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
+            getStarted: 'Commencer',
+            headerTitle: 'Remboursements globaux',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Ajouter la carte à ${walletName}`,
@@ -4123,6 +4153,7 @@ ${amount} pour ${merchant} - ${date}`,
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        loadTimedOut: 'Cette image met trop de temps à se charger.',
         retry: 'Réessayer',
     },
     messages: {
@@ -5137,6 +5168,7 @@ ${amount} pour ${merchant} - ${date}`,
             editPerDiemRates: 'Modifier les taux de per diem',
             editDestinationSubtitle: (destination: string) => `La mise à jour de cette destination la modifiera pour tous les sous-taux de per diem ${destination}.`,
             editCurrencySubtitle: (destination: string) => `La mise à jour de cette devise la modifiera pour tous les sous-taux de per diem de ${destination}.`,
+            missingPerDiemUnit: 'Le per diem n’est pas configuré correctement sur cet espace de travail. Veuillez contacter Concierge pour obtenir de l’aide.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Définissez comment les dépenses hors poche sont exportées vers QuickBooks Desktop.',
@@ -7473,6 +7505,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Une erreur s’est produite avec une connexion configurée dans Expensify Classic. [Accédez à Expensify Classic pour corriger ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
+            exactOnline: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -8864,6 +8902,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                    categoryHasRule: 'Cette catégorie a déjà une règle. Modifiez la règle existante ou décrivez une règle pour une autre catégorie.',
                 },
             },
             expenseDefaultsTable: {
@@ -10526,6 +10565,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `a modifié ${fieldName} en « ${newValue} » (auparavant « ${oldValue} »)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `définir ${fieldName} sur « ${newValue} »`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `a supprimé ${fieldName} (auparavant « ${oldValue} »)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(précédemment ${fromPolicyName})` : ''}`;

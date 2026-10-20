@@ -2,6 +2,7 @@ import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
 import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import Text from '@components/Text';
 
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -56,6 +57,7 @@ type ChartTooltipProps = {
 function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {top: safeAreaTop, bottom: safeAreaBottom} = useSafeAreaInsets();
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -146,7 +148,7 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         return Math.max(halfWidth, Math.min(chartWidth - halfWidth, x));
     }, [initialTooltipPosition, tooltipMeasuredWidth, chartWidth]);
 
-    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window */
+    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window's safe area, since the portal also spans the status bar */
     const tooltipStyle = useAnimatedStyle(() => {
         const {y} = initialTooltipPosition.get();
         const {x: originX, y: originY} = origin.get();
@@ -154,17 +156,19 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         const height = tooltipMeasuredHeight.get();
 
         const left = originX + clampedCenter.get() - width / 2;
+        const minTop = safeAreaTop;
+        const maxBottom = windowHeight - safeAreaBottom;
         const topAbove = originY + y - height;
         const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
-        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
+        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove - minTop, height, maxBottom - minTop, 2 * TOOLTIP_BAR_GAP, true);
         const isTooltipShown = (isVisible?.get() ?? true) && (isContentCurrent?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
             left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),
-            top: Math.max(0, Math.min(windowHeight - height, shiftedTop)),
+            top: Math.max(minTop, Math.min(maxBottom - height, shiftedTop)),
             opacity: isTooltipShown ? 1 : 0,
         };
-    }, [initialTooltipPosition, windowWidth, windowHeight]);
+    }, [initialTooltipPosition, windowWidth, windowHeight, safeAreaTop, safeAreaBottom]);
 
     return (
         <>

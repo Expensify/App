@@ -1130,7 +1130,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
-        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
+        compare: {
+            label: '比较',
+            previousPeriod: '上一期',
+            average: '平均',
+            dayLabel: (day?: number) => (day === undefined ? '天' : `第 ${day} 天`),
+            weekLabel: (week?: number) => (week === undefined ? '周' : `第 ${week} 周`),
+            monthLabel: (month?: number) => (month === undefined ? '月' : `第 ${month} 个月`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? '季度' : `第 ${quarter} 季度`),
+            yearLabel: (year?: number) => (year === undefined ? '年份' : `第 ${year} 年`),
+            increase: (percentage: string) => `上升 ${percentage}`,
+            decrease: (percentage: string) => `下降 ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2102,6 +2113,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
+                }
+                return `正在等待已取消的付款完成处理${formattedETA}。`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2722,6 +2745,8 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
         },
+        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用', headerTitle: '全球报销'},
+        wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,
@@ -3970,6 +3995,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             formLabel: '查看 PDF',
         },
         attachmentNotFound: '未找到附件',
+        loadTimedOut: '此图片加载时间过长。',
         retry: '重试',
     },
     messages: {
@@ -4946,6 +4972,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             editPerDiemRates: '编辑每日津贴费率',
             editDestinationSubtitle: (destination: string) => `更新此目的地将会更改所有 ${destination} 按日津贴子费率的设置。`,
             editCurrencySubtitle: (destination: string) => `更新此货币将会更改所有 ${destination} 的每日津贴子费率。`,
+            missingPerDiemUnit: '此工作区的每日津贴设置不正确。请联系 Concierge 获取帮助。',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '设置自掏腰包报销如何导出到 QuickBooks Desktop。',
@@ -7138,6 +7165,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
+            exactOnline: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入候补名单',
+                onWaitlist: '您在候补名单中',
+                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
@@ -8463,6 +8496,7 @@ ${reportName}`,
                     unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
                     unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
                     multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                    categoryHasRule: '该类别已有规则。请编辑现有规则，或为其他类别描述规则。',
                 },
             },
             expenseDefaultsTable: {
@@ -10022,6 +10056,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `将${fieldName}更改为“${newValue}”（先前为“${oldValue}”）`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `将 ${fieldName} 设置为“${newValue}”`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `已移除${fieldName}（先前为“${oldValue}”）`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（原为 ${fromPolicyName}）` : ''}`;
