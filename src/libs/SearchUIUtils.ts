@@ -1866,6 +1866,7 @@ function getTransactionsSections({
         shouldShowMerchant,
         lastExportedActionByReportID,
         exportedToNamesByReportID,
+        lastReimbursedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         shouldShowYearCreated,
@@ -1938,7 +1939,7 @@ function getTransactionsSections({
             const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
             const approved = report ? getApprovedDate(report, actions) : undefined;
-            const paid = report ? getPaidDate(report, undefined, actions) : undefined;
+            const paid = report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -3048,7 +3049,7 @@ function getReportSections({
                 date,
                 submitted: report ? getSubmittedDate(report, actions) : undefined,
                 approved: report ? getApprovedDate(report, actions) : undefined,
-                paid: report ? getPaidDate(report, undefined, actions) : undefined,
+                paid: report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,

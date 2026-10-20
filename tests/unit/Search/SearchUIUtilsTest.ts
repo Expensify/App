@@ -7337,6 +7337,43 @@ describe('SearchUIUtils', () => {
                 expect(yearFlags.shouldShowYearPaid).toBe(false);
             });
 
+            it("should take an expense's paid date from the snapshot payment when the live actions don't include it", () => {
+                // Given a paid report with no paid date of its own, whose payment is only in the snapshot actions
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: adminAccountID,
+                                created: paidAt,
+                            },
+                        },
+                    },
+                );
+
+                // When the expense rows are built with live actions that only hold a later comment, as when only the latest messages are loaded
+                const [sections] = callGetTransactionsSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: [
+                            {
+                                reportActionID: 'comment-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                                actorAccountID: adminAccountID,
+                                created: '2024-12-23 10:00:00',
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the expense still shows the snapshot's payment date, the same way the report row does
+                expect(item?.paid).toBe(paidAt);
+            });
+
             it('should keep the negative sign on formattedTotal for an unreported (tracked) credit', () => {
                 const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 5000});
                 const [sections] = callGetTransactionsSections(data);
