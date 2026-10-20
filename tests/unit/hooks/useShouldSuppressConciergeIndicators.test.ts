@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+import type {RefObject} from 'react';
+
 import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -27,6 +29,18 @@ const REPORT_ACTION_ID = '100';
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 const SESSION_START_TIME = '2026-06-29 10:00:00.000';
+
+const sidePanelState: ReturnType<typeof useSidePanelState> = {
+    sessionStartTime: null,
+    isSidePanelTransitionEnded: true,
+    isSidePanelHiddenOrLargeScreen: true,
+    shouldHideSidePanel: true,
+    shouldHideSidePanelBackdrop: true,
+    shouldHideHelpButton: false,
+    shouldHideToolTip: false,
+    sidePanelOffset: {current: null} as RefObject<never>,
+    sidePanelTranslateX: {current: null} as RefObject<never>,
+};
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
     return {
@@ -51,7 +65,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
         await waitForBatchedUpdates();
         // Safe defaults: outside the side panel with no active session, so the followup-list tests only exercise the flag.
         mockUseIsInSidePanel.mockReturnValue(false);
-        mockUseSidePanelState.mockReturnValue({sessionStartTime: null} as ReturnType<typeof useSidePanelState>);
+        mockUseSidePanelState.mockReturnValue(sidePanelState);
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: CURRENT_USER_ACCOUNT_ID});
     });
 
@@ -145,7 +159,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
         beforeEach(() => {
             // An active side panel session.
             mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({sessionStartTime: SESSION_START_TIME} as ReturnType<typeof useSidePanelState>);
+            mockUseSidePanelState.mockReturnValue({...sidePanelState, sessionStartTime: SESSION_START_TIME});
         });
 
         it('suppresses indicators in a Concierge chat with no session activity', async () => {

@@ -95,7 +95,8 @@ describe('useConciergeAskState', () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
         // When a question sent from another device arrives
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {'4': {...userMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000'}});
+        const newQuestion: ReportAction = {...userMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[newQuestion.reportActionID]: newQuestion});
         await waitForBatchedUpdates();
 
         // Then the welcome screen stays, so this device doesn't flicker

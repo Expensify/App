@@ -27,7 +27,6 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
-import type * as ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -51,7 +50,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@pages/inbox/report/AskConciergeWelcome', () => {
-    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
     return () => <View testID="AskConciergeWelcome" />;
 });
 jest.mock('@hooks/useInFlightRequests', () => ({
@@ -1130,7 +1129,7 @@ describe('ReportActionsList (body)', () => {
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}` && options?.selector) {
                     const reportActions = Object.fromEntries(oldReportActions.map((action) => [action.reportActionID, action]));
-                    return [(options.selector as (actions: OnyxTypes.ReportActions) => unknown)(reportActions), {status: 'loaded'}];
+                    return [!!(options.selector as (actions: OnyxTypes.ReportActions) => unknown)(reportActions), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
