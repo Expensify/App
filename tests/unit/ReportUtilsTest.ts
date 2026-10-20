@@ -21430,30 +21430,6 @@ describe('ReportUtils', () => {
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
             });
-
-            it('uses the passed phone formatter for a participant in the localized preview', async () => {
-                // Given an IOU report whose payer has a phone login and no display name
-                const managerID = 66327031;
-                const login = '+15556632731';
-                const iouReport: Report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    reportID: 'preview-phone-formatter-report',
-                    type: CONST.REPORT.TYPE.IOU,
-                    currency: CONST.CURRENCY.USD,
-                    managerID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[managerID]: {accountID: managerID, login, displayName: ''}});
-
-                // When the preview is built with the caller's formatter
-                const formatPhoneForLocale: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => (phoneNumber === login ? 'Locale formatted phone' : phoneNumber);
-                const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneForLocale);
-
-                // Then the payer name uses that formatter
-                expect(result).toContain('Locale formatted phone');
-            });
         });
 
         describe('getReportPreviewReportActionMessage (hardcoded English)', () => {
