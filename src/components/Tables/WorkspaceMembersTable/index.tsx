@@ -26,7 +26,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -37,6 +37,7 @@ type WorkspaceMemberRowData = TableData & {
     approverAccountID?: number;
     approverDisplayName?: string;
     approverLogin?: string;
+    bankAccountLastFour?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -61,6 +62,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField2Column: boolean;
     shouldShowApproverColumn: boolean;
     shouldUseOrdinalApproverLabel: boolean;
+    shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
@@ -89,6 +91,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     shouldShowApproverColumn,
     shouldUseOrdinalApproverLabel,
+    shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
     headerComponent,
@@ -153,6 +156,19 @@ export default function WorkspaceMembersTable({
                   },
               ]
             : []),
+        ...(shouldShowBankAccountColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'bankAccount' as const,
+                      label: translate('common.bankAccount'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) =>
+                              item.bankAccountLastFour ? [{text: `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`, fontSize: fontScale.text}] : [],
+                      },
+                  },
+              ]
+            : []),
         {
             key: 'role',
             label: translate('common.role'),
@@ -200,6 +216,10 @@ export default function WorkspaceMembersTable({
 
         if (activeSorting.columnKey === 'customField2') {
             return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'bankAccount') {
+            return compareOptionalValues(item1.bankAccountLastFour, item2.bankAccountLastFour, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -329,6 +349,7 @@ export default function WorkspaceMembersTable({
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
                 shouldShowApproverColumn={shouldShowApproverColumn}
+                shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                 policy={policy}
             />
         );

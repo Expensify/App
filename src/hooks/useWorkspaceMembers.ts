@@ -1,5 +1,5 @@
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
-import {shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, isPolicyAdmin, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -40,7 +40,10 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     };
     const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-    useEffect(() => getWorkspaceMembersEvent(), []);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
+    useEffect(() => getWorkspaceMembersEvent(), [shouldShowMemberBankAccounts]);
 
     const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
     for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {

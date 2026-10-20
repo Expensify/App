@@ -38,6 +38,9 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 
+    /** Whether the bank account column is visible on web screens or not */
+    shouldShowBankAccountColumn: boolean;
+
     /** Policy used to determine which roles can be assigned from the inline editor */
     policy: OnyxEntry<Policy>;
 };
@@ -48,6 +51,7 @@ export default function WorkspaceMembersTableRow({
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
     shouldShowApproverColumn,
+    shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
     policy,
 }: WorkspaceMembersTableRowProps) {
@@ -61,14 +65,10 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = [
-        item.name,
-        item.email,
-        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
-        roleLabel,
-    ]
-        .filter(Boolean)
-        .join(', ');
+    const bankAccountLabel =
+        !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
+    const approverLabel = shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : '';
+    const accessibilityLabel = [item.name, item.email, approverLabel, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -174,6 +174,22 @@ export default function WorkspaceMembersTableRow({
                                     text={item.employeePayrollID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     isSelectable
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowBankAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.bankAccountLastFour && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={bankAccountLabel}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             )}
                         </View>

@@ -7,14 +7,18 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
+import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -41,10 +45,16 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's own query */
     snapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the typical amounts */
+    /** The chart's query for the previous period */
+    previousPeriodQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the previous period */
+    previousPeriodSnapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's query for the average amounts */
     averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
 
-    /** The snapshot stored under the chart's query for the typical amounts */
+    /** The snapshot stored under the chart's query for the average amounts */
     averageSnapshot: OnyxEntry<SearchResults>;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -57,18 +67,40 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
+function InsightsChartWidget({
+    chart,
+    queryJSON,
+    snapshot,
+    previousPeriodQueryJSON,
+    previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
+    filters,
+    onRetry,
+    onGroupByChange,
+}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand']);
+    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
+
+    const downloadCSV = () => {
+        if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
+            return;
+        }
+
+        const content = buildInsightsChartCSV({data, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
+        localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
+    };
 
     const groupByControl =
         onGroupByChange && groupByOptions.length > 1 ? (
@@ -92,6 +124,16 @@ function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, aver
                         onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
                         shouldCallAfterModalHide: true,
                     },
+                    ...(state === INSIGHTS_CHART_STATE.READY
+                        ? [
+                              {
+                                  text: translate('spreadsheet.downloadCSV'),
+                                  icon: icons.Table,
+                                  onSelected: downloadCSV,
+                                  shouldCallAfterModalHide: true,
+                              },
+                          ]
+                        : []),
                 ]}
             />
         ) : null;
@@ -115,7 +157,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, averageQueryJSON, aver
                 <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}

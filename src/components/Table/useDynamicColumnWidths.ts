@@ -8,15 +8,17 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
+import type {ResizableColumn} from './columnResize/resolveDraggedColumnWidths';
 import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
-import getResizableColumnLayout from './columnResize/getResizableColumnLayout';
+import getFrozenColumnWidths from './columnResize/getFrozenColumnWidths';
+import getResizableColumnLayout, {getAvailableColumnsWidth} from './columnResize/getResizableColumnLayout';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -63,8 +65,8 @@ type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends 
     /** Whether columns are resizable, which forces px tracks read from custom properties. */
     isColumnResizingEnabled: boolean;
 
-    /** Widths the user dragged this table's columns to. */
-    columnWidthOverrides: ColumnWidthOverrides | undefined;
+    /** `undefined` until the first drag. After it, content no longer sizes the columns. */
+    storedTableColumnWidths: StoredTableColumnWidths | undefined;
 };
 
 type UseDynamicColumnWidthsResult = {
@@ -80,11 +82,17 @@ type UseDynamicColumnWidthsResult = {
     /** Keys of the columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
     resizableColumnKeys: string[];
 
+    /** Every column's width with one column resized, which a drag paints. */
+    getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
+
     /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
 
     /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
+
+    /** Layout to save when dragging `columnKey` ends, from the painted widths. `undefined` when no column is resizable. */
+    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths;
 };
 
 /**
@@ -189,7 +197,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     isEnabled,
     hasSelectionColumn,
     isColumnResizingEnabled,
-    columnWidthOverrides,
+    storedTableColumnWidths,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): UseDynamicColumnWidthsResult {
     const styles = useThemeStyles();
     const {values} = useLayoutSpacing();
@@ -199,6 +207,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         scrollWidth: undefined,
         rowWidth: undefined,
         resizableColumnKeys: [],
+        getResizedColumnWidths: (columnKey, width) => ({[columnKey]: width}),
         resolvedColumnWidths: {},
         dragMinWidths: {},
     };
@@ -287,6 +296,39 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         maxWidth: measurement.maxWidth ?? Number.POSITIVE_INFINITY,
     }));
 
+    const measuredWidths: Record<string, Pick<ResizableColumn, 'contentWidth' | 'minWidth'>> = {};
+    for (const [index, column] of dynamicColumns.entries()) {
+        measuredWidths[column.key] = {contentWidth: measurements.at(index)?.contentWidth ?? 0, minWidth: constraints.at(index)?.minWidth ?? 0};
+    }
+
+    const rowChromeWidths = {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth};
+    const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
+
+    const resizableColumns: ResizableColumn[] = columns.map((column) => ({
+        key: column.key,
+        label: column.label,
+        declaredWidth: typeof column.width === 'number' ? column.width : undefined,
+        contentWidth: measuredWidths[column.key]?.contentWidth ?? 0,
+        minWidth: measuredWidths[column.key]?.minWidth ?? 0,
+        maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
+    }));
+
+    const buildResizableResult = (baseColumnWidths: Record<string, number>, resizedColumnKeys: string[]): UseDynamicColumnWidthsResult => ({
+        ...getResizableColumnLayout({columns: resizableColumns, resolvedColumnWidths: baseColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}),
+        getStoredTableColumnWidths: (columnWidths, columnKey) => ({
+            availableColumnsWidth,
+            columnWidths,
+            resizedColumnKeys: resizedColumnKeys.includes(columnKey) ? resizedColumnKeys : [...resizedColumnKeys, columnKey],
+        }),
+    });
+
+    // After the first drag, only room changes move the columns, so new content never shifts them.
+    if (isColumnResizingEnabled && storedTableColumnWidths) {
+        const frozenColumnWidths = getFrozenColumnWidths({columns: resizableColumns, storedTableColumnWidths, availableColumnsWidth});
+
+        return buildResizableResult(frozenColumnWidths, storedTableColumnWidths.resizedColumnKeys);
+    }
+
     const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
     // Equal columns are what the static `1fr` tracks already do, but a drag needs px widths to start from.
     if (widths.length === 0 && !isColumnResizingEnabled) {
@@ -320,13 +362,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
     }
 
-    return getResizableColumnLayout({
-        columns,
-        resolvedColumnWidths,
-        columnWidthOverrides,
-        tableWidth,
-        rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
-    });
+    return buildResizableResult(resolvedColumnWidths, []);
 }
 
 export default useDynamicColumnWidths;

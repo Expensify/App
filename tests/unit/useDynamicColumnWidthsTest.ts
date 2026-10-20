@@ -19,7 +19,7 @@ const SORT_ICON_WIDTH = 12 + 4; // variables.iconSizeExtraSmall + styles.ml1.mar
 const ROW_CHROME_WIDTH = (12 + 12) * 2;
 
 // Column resizing is a separate feature, so these tests measure the layout the hook resolves on its own.
-const RESIZING_OFF = {isColumnResizingEnabled: false, columnWidthOverrides: undefined};
+const RESIZING_OFF = {isColumnResizingEnabled: false, storedTableColumnWidths: undefined};
 
 // styles.gap3.gap
 const GAP_WIDTH = 12;
