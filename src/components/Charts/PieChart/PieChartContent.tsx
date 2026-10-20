@@ -3,14 +3,12 @@ import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
-import VictoryTheme from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -34,12 +32,19 @@ type PieChartProps = ChartProps & {
     shouldShowLegend?: boolean;
 };
 
-function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
+type PieChartContentProps = PieChartProps & {
+    /** Null until the card has been measured. */
+    chartWidth: number | null;
+};
+
+type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
+    chartWidth: number;
+};
+
+function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, chartWidth}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [canvasWidth, setCanvasWidth] = useState(0);
-    const [canvasHeight, setCanvasHeight] = useState(0);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -52,15 +57,10 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
     const matchedIndex = useSharedValue(-1);
     const isTooltipActive = useDerivedValue(() => matchedIndex.get() >= 0);
 
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setCanvasWidth(event.nativeEvent.layout.width);
-        setCanvasHeight(event.nativeEvent.layout.height);
-    };
-
-    // Calculate pie geometry
-    const radius = Math.min(canvasWidth, canvasHeight) / 2;
+    const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
+    const radius = Math.min(chartWidth, canvasHeight) / 2;
     const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
-    const pieGeometry = {radius, innerRadius, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
+    const pieGeometry = {radius, innerRadius, centerX: chartWidth / 2, centerY: canvasHeight / 2};
 
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
@@ -201,18 +201,6 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
         );
     };
 
-    if (isLoading) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
-
-    if (data.length === 0) {
-        return null;
-    }
-
     return (
         <>
             <GestureDetector
@@ -221,11 +209,11 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
             >
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
-                    onLayout={handleLayout}
                     onTouchStart={onChartTouchStart}
                 >
                     {processedSlices.length > 0 && (
                         <PolarChart
+                            explicitSize={{width: chartWidth, height: canvasHeight}}
                             data={processedSlices}
                             labelKey="label"
                             valueKey="value"
@@ -268,7 +256,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                         data={data}
                         series={series}
                         formatValue={formatValue}
-                        chartWidth={canvasWidth}
+                        chartWidth={chartWidth}
                         initialTooltipPosition={tooltipPosition}
                         onChartMoved={onChartMoved}
                         onDismiss={onTooltipDismiss}
@@ -277,6 +265,29 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
             </GestureDetector>
             {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
         </>
+    );
+}
+
+function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
+    const styles = useThemeStyles();
+
+    if (!isLoading && canvasProps.data.length === 0) {
+        return null;
+    }
+
+    if (isLoading || chartWidth === null) {
+        return (
+            <View style={styles.chartActivityIndicator}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
+    return (
+        <PieChartCanvas
+            {...canvasProps}
+            chartWidth={chartWidth}
+        />
     );
 }
 
