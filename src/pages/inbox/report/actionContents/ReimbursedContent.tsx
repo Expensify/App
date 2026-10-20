@@ -31,6 +31,8 @@ function ReimbursedContent({action, reportOwnerAccountID, originalReport}: Reimb
     const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
     const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
+    // getReimbursedMessage can fall back to '' when there's no paymentMethod/creditBankAccountLast4 to build a
+    // message from. Guard against that so an empty message never renders as a bare ". Explain".
     if (hasReasoning(action) && message) {
         return (
             <ReportActionItemMessageWithExplain

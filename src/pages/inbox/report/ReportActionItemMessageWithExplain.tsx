@@ -13,7 +13,6 @@ import {explain} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
-import readOnceOnyxValue from '@libs/readOnceOnyxValue';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -49,6 +48,9 @@ function ReportActionItemMessageWithExplain({message, action, originalReport}: R
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    // Scoped here (rather than in the parent ReimbursedContent) so changes to the child report only re-render this
+    // small wrapper, not the whole reimbursed message, since explain() needs the full report synchronously on click.
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
@@ -59,22 +61,18 @@ function ReportActionItemMessageWithExplain({message, action, originalReport}: R
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
             const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
-
-            // Only read the child report when the link is actually clicked, instead of subscribing to it on every render.
-            readOnceOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`).then((childReport) => {
-                explain({
-                    childReport,
-                    originalReport,
-                    reportAction: action,
-                    translate,
-                    currentUserAccountID: personalDetail.accountID,
-                    introSelected,
-                    conciergeChat,
-                    isSelfTourViewed,
-                    delegateAccountID,
-                    participantsPersonalDetails,
-                    timezone: personalDetail?.timezone,
-                });
+            explain({
+                childReport,
+                originalReport,
+                reportAction: action,
+                translate,
+                currentUserAccountID: personalDetail.accountID,
+                introSelected,
+                conciergeChat,
+                isSelfTourViewed,
+                delegateAccountID,
+                participantsPersonalDetails,
+                timezone: personalDetail?.timezone,
             });
             return;
         }
