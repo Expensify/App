@@ -13,6 +13,7 @@ import type {
     ExpenseDefaultActions,
     ExpenseDefaultRule,
     ExpenseDefaultTaxValue,
+    ExpenseDefaultTrigger,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
@@ -313,7 +314,7 @@ function buildExpenseDefaultActions(formValues: Partial<ExpenseDefaultFormValues
  * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
-function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined): BuiltExpenseDefaultRule | undefined {
+function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined, existingTriggers?: Record<string, string>): BuiltExpenseDefaultRule | undefined {
     const filters = buildExpenseDefaultFilters(formValues);
     const actions = buildExpenseDefaultActions(formValues, policy);
 
@@ -321,7 +322,9 @@ function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, 
         return undefined;
     }
 
-    const triggers: ExpenseDefaultTriggers = toIndexMap([TRIGGER.CREATE_TRANSACTION]);
+    // A rule the backend wrote can fire on more than one event, and the form has no input for that, so an edit
+    // hands back the triggers the rule already carries instead of rebuilding them.
+    const triggers: ExpenseDefaultTriggers = getEditableTriggers(existingTriggers) ?? toIndexMap([TRIGGER.CREATE_TRANSACTION]);
 
     return {triggers, filters, actions};
 }
@@ -336,10 +339,27 @@ function isExpenseDefaultTaxValue(value: unknown): value is ExpenseDefaultTaxVal
     return !!taxField && typeof taxField === 'object' && 'externalID' in taxField && typeof taxField.externalID === 'string';
 }
 
+function isExpenseDefaultTrigger(trigger: string): trigger is ExpenseDefaultTrigger {
+    return trigger === TRIGGER.CREATE_TRANSACTION || trigger === TRIGGER.UPDATE_TRANSACTION;
+}
+
+/**
+ * The rule's triggers when the editor knows every one of them, otherwise undefined.
+ *
+ * The form has no trigger input, so it can only save a rule whose triggers it is able to hand back untouched.
+ */
+function getEditableTriggers(triggers: Record<string, string> | undefined): ExpenseDefaultTriggers | undefined {
+    const triggerValues = fromIndexMap(triggers);
+    const editableTriggers = triggerValues.filter(isExpenseDefaultTrigger);
+    if (editableTriggers.length === 0 || editableTriggers.length !== triggerValues.length) {
+        return undefined;
+    }
+    return toIndexMap(editableTriggers);
+}
+
 /** Every trigger has to be one the editor knows about, otherwise saving the form would drop the rest. */
 function areTriggersEditable(triggers: Record<string, string> | undefined): boolean {
-    const triggerValues = fromIndexMap(triggers);
-    return triggerValues.length > 0 && triggerValues.every((trigger) => trigger === TRIGGER.CREATE_TRANSACTION);
+    return !!getEditableTriggers(triggers);
 }
 
 /** The conditions the editor renders, read back off a rule's filter tree. */

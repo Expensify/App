@@ -382,6 +382,43 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
+    describe('triggers the backend sets', () => {
+        // Given a category tax default as the backend writes it, which also fires when an expense is edited
+        const backendTriggers = toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]);
+
+        it('opens a rule that also fires on UpdateTransaction', () => {
+            // When the editor reads it
+            const formValues = getExpenseDefaultFormValues(buildRuleWithOverrides({triggers: backendTriggers}));
+
+            // Then it is editable rather than read-only, because the form can hand every trigger back untouched
+            expect(formValues).toEqual({merchantToMatch: 'Starbucks', matchType: CONTAINS, category: 'Coffee'});
+        });
+
+        it('keeps both triggers when the rule is saved again', () => {
+            // When the edited rule is rebuilt from the form
+            const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy, backendTriggers);
+
+            // Then the trigger the form has no input for survives the save
+            expect(rule?.triggers).toEqual(backendTriggers);
+        });
+
+        it('sets only CreateTransaction on a new rule', () => {
+            // When a rule is built with no existing triggers to carry over
+            const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy);
+
+            // Then it fires on creation alone
+            expect(rule?.triggers).toEqual(toIndexMap([TRIGGER.CREATE_TRANSACTION]));
+        });
+
+        it('stays read-only when a trigger is one the form does not know', () => {
+            // When the rule carries a trigger outside the transaction lifecycle
+            const rule = buildRuleWithOverrides({triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.REPORT_APPROVE])});
+
+            // Then the editor refuses it, since saving would drop that trigger
+            expect(getExpenseDefaultFormValues(rule)).toBeUndefined();
+        });
+    });
+
     describe('isExpenseDefaultRule', () => {
         it('is true for a rule that runs on transaction creation and sets a field', () => {
             expect(isExpenseDefaultRule(asStoredRule(merchantRuleBody))).toBe(true);

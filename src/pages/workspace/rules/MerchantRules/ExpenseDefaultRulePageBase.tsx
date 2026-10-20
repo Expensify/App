@@ -362,7 +362,7 @@ function ExpenseDefaultRulePageBase({
             return;
         }
 
-        setRule(policyID, buildExpenseDefaultRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        setRule(policyID, buildExpenseDefaultRule(form, policy, existingRule?.triggers), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
         if (categorySettingsBackPath) {
             // Category settings enters through its own dynamic route, so the way back is the category the rule was
             // opened from rather than anything in the workspace Rules flow.
