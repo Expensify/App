@@ -7783,6 +7783,20 @@ describe('ReportUtils', () => {
                 );
             });
 
+            it('matches by position when the synced attachments have no attachment ID', () => {
+                // Given synced images without an attachment ID
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
             it('keeps the image the user kept when they deleted the other one', () => {
                 // Given the user deleted the first image while both were uploading
                 const draft = `Hello edited\n\n!(${secondSource})`;

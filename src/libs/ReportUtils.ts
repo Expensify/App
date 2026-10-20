@@ -7598,18 +7598,15 @@ function replaceLocalAttachmentReferences(
         return draftMarkdown;
     }
 
-    // Without a known attachment ID, a reference can only be matched by position when none were removed.
+    // Matching by position is only safe when the draft kept every attachment.
     const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
     return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
-        let syncedAttachmentTag: string | undefined;
-        if (attachmentID) {
-            syncedAttachmentTag = syncedAttachmentTags.find((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID);
-        } else if (canMatchByPosition) {
-            syncedAttachmentTag = syncedAttachmentTags.at(localReferenceIndex);
-        }
+        const syncedAttachmentTag =
+            (attachmentID ? syncedAttachmentTags.find((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
+            (canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined);
         localReferenceIndex++;
         if (!syncedAttachmentTag) {
             return '';
