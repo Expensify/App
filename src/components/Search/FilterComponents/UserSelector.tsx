@@ -40,7 +40,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
+    const [isSearching, setIsSearching] = useState(() => ready && !isOffline);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [pagination, setPagination] = useState({hasMore: false, nextCursor: '', isLoadingMore: false});
     const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
@@ -122,12 +122,14 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     if (prevSearchKey.trimmedSearchTerm !== trimmedSearchTerm || prevSearchKey.policyIDs !== policyIDs || prevSearchKey.isOffline !== isOffline) {
         setPrevSearchKey({trimmedSearchTerm, policyIDs, isOffline});
         setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
+        setIsSearching(ready && !isOffline);
     }
 
     const applyUserFiltersResponse = (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
         if (requestSeq !== requestSeqRef.current) {
             return;
         }
+        setIsSearching(false);
         if (policyIDs && logins.length > 0) {
             setServerScopedLoginsByPolicy((prev) => ({
                 policyIDs,
@@ -150,12 +152,13 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 if (requestSeq !== requestSeqRef.current) {
                     return;
                 }
+                setIsSearching(false);
                 setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
             });
     }, [ready, isOffline, trimmedSearchTerm, policyIDs, applyUserFiltersResponse]);
 
     const loadMoreUsers = () => {
-        if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearchingForUsers) {
+        if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearching) {
             return;
         }
 
@@ -191,7 +194,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         toggleSelection(option);
     };
 
-    const isLoadingNewOptions = !!isSearchingForUsers || pagination.isLoadingMore;
+    const isLoadingNewOptions = isSearching || pagination.isLoadingMore;
 
     const textInputOptions = {
         value: searchTerm,
