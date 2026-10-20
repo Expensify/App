@@ -1,0 +1,96 @@
+import {act, renderHook} from '@testing-library/react-native';
+
+import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import usePayViaABA from '@hooks/usePayViaABA';
+
+import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createRandomPolicy from '../../utils/collections/policies';
+import {translateLocal} from '../../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
+jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
+    payViaABA: jest.fn(),
+}));
+
+const ACCOUNT_ID = 1;
+
+function Wrapper({children}: {children: React.ReactNode}) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
+}
+const policy: Policy = {...createRandomPolicy(1), id: 'ABAPolicy'};
+
+describe('usePayViaABA', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'admin@test.com'});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'admin@test.com'}});
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+        });
+    });
+
+    it("pays the reports via ABA with the current user's details", async () => {
+        // Given the hook's pay function
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When two reports are paid without their held expenses
+        result.current(['123', '456'], policy, false);
+
+        // Then the ABA file is downloaded for them, with what the billing and onboarding checks need about the current user
+        expect(payViaABA).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportIDs: ['123', '456'],
+                policy,
+                full: false,
+                currentUserAccountID: ACCOUNT_ID,
+                amountOwed: 100,
+            }),
+        );
+    });
+
+    it('tells the user when the ABA file fails to download', async () => {
+        // Given a payment via ABA
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+        result.current(['123'], policy);
+
+        // When the download fails
+        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
+        onDownloadFailed?.();
+
+        // Then the same "download failed" message as other file downloads is shown
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: translateLocal('common.downloadFailedTitle'),
+                prompt: translateLocal('common.downloadFailedDescription'),
+            }),
+        );
+    });
+});

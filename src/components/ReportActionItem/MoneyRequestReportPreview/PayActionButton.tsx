@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
@@ -66,6 +67,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+    const payReportsViaABA = usePayViaABA();
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
@@ -109,6 +111,8 @@ function PayActionButton() {
                     isTrackIntentUser,
                     rules,
                 });
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                payReportsViaABA([iouReport.reportID], policy);
             } else {
                 payMoneyRequest({
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),

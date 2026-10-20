@@ -8,6 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
+    const payReportsViaABA = usePayViaABA();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -159,6 +161,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 isTrackIntentUser,
                 rules,
             });
+            return;
+        }
+
+        if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            payReportsViaABA([reportID], policy);
             return;
         }
 
