@@ -10316,6 +10316,7 @@ ${reportName}`,
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',
             pay: 'Έτοιμο για πληρωμή',
+            rejected: 'Απορρίφθηκε',
             accounting: 'Λογιστική',
             export: 'Αναμονή για εξαγωγή',
             unapprovedCash: 'Δεδουλευμένα μετρητών',
@@ -10372,6 +10373,10 @@ ${reportName}`,
             emptyPayResults: {
                 title: 'Δεν υπάρχουν έξοδα προς πληρωμή',
                 subtitle: 'Συγχαρητήρια! Περάσατε τη γραμμή τερματισμού.',
+            },
+            emptyRejectedResults: {
+                title: 'Δεν υπάρχουν απορριφθέντα έξοδα',
+                subtitle: 'Τίποτα για διόρθωση. Μπράβο!',
             },
             emptyExportResults: {
                 title: 'Δεν υπάρχουν έξοδα για εξαγωγή',

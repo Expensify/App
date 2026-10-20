@@ -705,6 +705,7 @@ function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
  *
  * @param policyCategories - Needed for migrated Control workspaces where `areRulesEnabled` is undefined; the Violations
  * by submitter insight then falls back to Classic category rules via `arePolicyRulesEnabled`.
+ * @param shouldShowRejectedSuggestion - True once the user has had a rejected expense; it doesn't depend on any policy.
  */
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
@@ -714,6 +715,7 @@ function getSuggestedSearchesVisibility(
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    shouldShowRejectedSuggestion = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -808,6 +810,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.REJECTED]: shouldShowRejectedSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
@@ -4786,6 +4789,7 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    shouldShowRejectedSuggestion?: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -4803,6 +4807,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
+        shouldShowRejectedSuggestion = false,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -4810,7 +4815,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
+    } = getSuggestedSearchesVisibility(
+        currentUserEmail,
+        cardFeedsByPolicy,
+        policies,
+        defaultExpensifyCard,
+        hasReportAwaitingApproval,
+        isTrackIntentUser,
+        policyCategories,
+        shouldShowRejectedSuggestion,
+    );
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -4870,6 +4884,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                     },
                 });
             }
+        }
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REJECTED]) {
+            expenseReportsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REJECTED],
+                emptyState: {
+                    title: 'search.searchResults.emptyRejectedResults.title',
+                    subtitle: 'search.searchResults.emptyRejectedResults.subtitle',
+                },
+            });
         }
 
         if (expenseReportsSection.menuItems.length > 0) {
