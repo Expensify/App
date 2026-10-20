@@ -14885,6 +14885,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * State  |  Status  |  What to display?  |
  * 0	  |  0	     |  Draft             |
  * 1	  |  1	     |  Outstanding       |
+ * 1      |  2      |  Done              |
  * 2	  |  2	     |  Done              |
  * 2	  |  3	     |  Approved          |
  * 2	  |  4	     |  Paid              |
@@ -14907,7 +14908,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return translate('common.outstanding');
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if ((stateNum === CONST.REPORT.STATE_NUM.SUBMITTED || stateNum === CONST.REPORT.STATE_NUM.APPROVED) && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return translate('common.done');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -14960,7 +14961,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return theme.reportStatusBadge.outstanding;
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if ((stateNum === CONST.REPORT.STATE_NUM.SUBMITTED || stateNum === CONST.REPORT.STATE_NUM.APPROVED) && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return theme.reportStatusBadge.closed;
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
