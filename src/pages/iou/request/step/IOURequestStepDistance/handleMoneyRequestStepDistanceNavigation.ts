@@ -49,6 +49,7 @@ import type {
     Rule,
     Transaction,
     TransactionViolation,
+    ReusableDistanceRoute,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -117,6 +118,10 @@ type MoneyRequestStepDistanceNavigationParams = {
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    moneyRequestReportTransactions: Transaction[];
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: ReusableDistanceRoute[];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -223,6 +228,8 @@ function handleMoneyRequestStepDistanceNavigation({
     isOffline = false,
     rules,
     isVendorMatchingBetaEnabled,
+    moneyRequestReportTransactions,
+    reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -355,6 +362,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             reportActionsList: undefined,
                             getCurrencyDecimals,
                             rules,
+                            reusableDistanceRoutes,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -391,6 +399,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         isVendorMatchingBetaEnabled,
                         report,
+                        moneyRequestReportTransactions,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -442,6 +451,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         getCurrencyDecimals,
                         participantsPolicyTags,
                         rules,
+                        reusableDistanceRoutes,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

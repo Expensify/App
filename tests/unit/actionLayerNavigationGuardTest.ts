@@ -78,7 +78,10 @@ type Exhaustive<Actual, Declared> = [Actual] extends [Declared]
 
 const RETURNING_EXPORTS_BY_MODULE = {
     Split: true satisfies Exhaustive<ReturningExports<typeof SplitActions>, 'createDistanceRequest' | 'createSplitsAndOnyxData' | 'resolveOptimisticSplitChatReportID'>,
-    SplitTransactionUpdate: true satisfies Exhaustive<ReturningExports<typeof SplitTransactionUpdateActions>, 'hasEditableSplitExpenseLeft'>,
+    SplitTransactionUpdate: true satisfies Exhaustive<
+        ReturningExports<typeof SplitTransactionUpdateActions>,
+        'getExpenseReportIDsEmptiedBySplitUpdate' | 'hasEditableSplitExpenseLeft' | 'willSplitUpdateEmptyExpenseReport'
+    >,
     SendInvoice: true satisfies Exhaustive<ReturningExports<typeof SendInvoiceActions>, 'getReceiverType' | 'getSendInvoiceInformation'>,
     SendMoney: true satisfies Exhaustive<ReturningExports<typeof SendMoneyActions>, never>,
     PerDiem: true satisfies Exhaustive<

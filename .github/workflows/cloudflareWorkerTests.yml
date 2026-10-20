@@ -1,0 +1,51 @@
+name: Cloudflare Worker tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - 'web/cloudflare-worker/**'
+      # The tests check its inline scripts against the CSP hashes.
+      - 'web/index.html'
+      - '.nvmrc'
+      - '.github/workflows/cloudflareWorkerTests.yml'
+
+concurrency:
+  group: ${{ github.ref }}-cloudflare-worker-tests
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Cloudflare Worker tests
+    if: github.actor != 'OSBotify'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: web/cloudflare-worker
+    env:
+      WRANGLER_SEND_METRICS: false
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      # The Worker is a standalone package, so this skips the root dependencies that setupNode restores.
+      - name: Setup Node
+        # v6.1.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: web/cloudflare-worker/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test

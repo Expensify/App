@@ -107,6 +107,13 @@ function ConfirmationPage({
     const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const isLottie = isIllustrationLottieAnimation(illustration);
     const shouldShowStaticFallback = isLottie && isReduceMotionEnabled && illustration === LottieAnimations.Fireworks;
+    const flattenedIllustrationStyle = StyleSheet.flatten(illustrationStyle);
+    const flattenedIllustrationWidth = flattenedIllustrationStyle?.width;
+    const flattenedIllustrationHeight = flattenedIllustrationStyle?.height;
+    const webIllustrationWidth =
+        typeof flattenedIllustrationWidth === 'string' || typeof flattenedIllustrationWidth === 'number' ? flattenedIllustrationWidth : styles.confirmationAnimation.width;
+    const webIllustrationHeight =
+        typeof flattenedIllustrationHeight === 'string' || typeof flattenedIllustrationHeight === 'number' ? flattenedIllustrationHeight : styles.confirmationAnimation.height;
 
     return (
         <View style={[styles.flex1, containerStyle]}>
@@ -120,6 +127,7 @@ function ConfirmationPage({
                                         <ImageSVG
                                             src={illustrations.Fireworks}
                                             contentFit="contain"
+                                            aria-hidden
                                         />
                                     </View>
                                 );
@@ -132,8 +140,8 @@ function ConfirmationPage({
                                         loop
                                         style={[styles.confirmationAnimation, illustrationStyle]}
                                         webStyle={{
-                                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                            width: webIllustrationWidth,
+                                            height: webIllustrationHeight,
                                         }}
                                     />
                                 );
@@ -143,11 +151,17 @@ function ConfirmationPage({
                                     <ImageSVG
                                         src={illustration}
                                         contentFit="contain"
+                                        aria-hidden
                                     />
                                 </View>
                             );
                         })()}
-                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                        <Text
+                            style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {heading}
+                        </Text>
                         {!!descriptionComponent && descriptionComponent}
                         {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
                         {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
