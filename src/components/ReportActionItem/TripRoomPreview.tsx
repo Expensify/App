@@ -67,13 +67,13 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     const description = translate(`travel.${reservation.type}`);
 
-    const cancelledStyle = isCancelled ? styles.textSupporting : undefined;
+    const titleStyle = [styles.mt1, isCancelled && styles.textSupporting];
 
     let titleComponent = (
         <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={cancelledStyle}
+            style={titleStyle}
         >
             {title}
         </Text>
@@ -87,7 +87,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             <Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                style={cancelledStyle}
+                style={titleStyle}
             >
                 {startName} {translate('common.to').toLowerCase()} {endName}
             </Text>
@@ -102,7 +102,6 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
             accessibilityLabel={isCancelled ? displayDescription : undefined}
-            titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}

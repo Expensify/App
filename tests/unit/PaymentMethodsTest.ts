@@ -1,4 +1,5 @@
-import {clearAddPaymentCardDraftCurrency, getMakeDefaultPaymentOnyxData} from '@userActions/PaymentMethods';
+import getMakeDefaultPaymentOnyxData from '@userActions/getMakeDefaultPaymentOnyxData';
+import {clearAddPaymentCardDraftCurrency} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

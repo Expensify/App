@@ -115,7 +115,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './
 import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
-import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
+import type {CreateTrackExpenseParams, TrackExpenseRetryParams} from './types/CreateTrackExpenseParams';
 import type {
     BuildOnyxDataForTrackExpenseKeys,
     TrackedExpenseParams,
@@ -193,6 +193,10 @@ type GetTrackExpenseInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
+    existingActionableWhisperReportActionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -427,6 +431,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {createChat: null},
             },
         },
         {
@@ -553,6 +558,10 @@ function buildOnyxDataForTrackExpense({
         value: quickAction ?? null,
     });
 
+    // The failure deletes the whisper, so its ID goes with the receipt error. A retry reuses it instead of adding a second whisper.
+    const receiptErrorRetryParams: TrackExpenseRetryParams | undefined =
+        actionableTrackExpenseWhisper && !iouReport ? {actionableWhisperReportActionID: actionableTrackExpenseWhisper.reportActionID} : undefined;
+
     if (iouReport) {
         onyxData.failureData?.push(
             {
@@ -592,7 +601,7 @@ function buildOnyxDataForTrackExpense({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [iouAction.reportActionID]: {
-                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, receiptErrorRetryParams),
                 },
             },
         });
@@ -624,7 +633,7 @@ function buildOnyxDataForTrackExpense({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
+                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, receiptErrorRetryParams),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -882,6 +891,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransaction,
         existingTransactionID,
         optimisticTransactionID: providedOptimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
+        existingActionableWhisperReportActionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -1168,7 +1181,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
-    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, newCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
         getCurrencyDecimals,
         iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -1179,11 +1192,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         participants: [participant],
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: !shouldUseMoneyReport,
-        existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+        existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        reportActionID: currentReportActionID,
         currentUserAccountID: currentUserAccountIDParam,
         delegateAccountIDParam: delegateAccountID,
     });
+
+    const optimisticCreatedActionForTransactionThread =
+        existingTransactionThreadReportID && existingTransactionThreadCreatedReportActionID
+            ? buildOptimisticCreatedReportAction({emailCreatingAction: payeeEmail, optimisticReportActionID: existingTransactionThreadCreatedReportActionID})
+            : newCreatedActionForTransactionThread;
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
@@ -1201,7 +1220,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     let actionableTrackExpenseWhisper: OnyxInputValue<OnyxTypes.ReportAction> = null;
     if (!isPolicyExpenseChat) {
-        actionableTrackExpenseWhisper = buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID);
+        actionableTrackExpenseWhisper = buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID, existingActionableWhisperReportActionID);
     }
 
     // STEP 5: Build Onyx Data
@@ -1215,6 +1234,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             threadReport: optimisticTransactionThread ?? {},
         },
         shouldCreateNewMoneyRequestReport,
+        existingTransactionThreadReportID,
         actionableTrackExpenseWhisper,
         retryParams,
         isASAPSubmitBetaEnabled,
@@ -2491,6 +2511,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
+        existingActionableWhisperReportActionID,
         isASAPSubmitBetaEnabled,
         currentUser,
         introSelected,
@@ -2629,6 +2653,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
+        currentReportActionID,
+        existingTransactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID,
+        existingActionableWhisperReportActionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
