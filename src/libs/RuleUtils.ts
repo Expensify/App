@@ -2,7 +2,8 @@
  * Helpers for the `rules_` collection, which holds every kind of rule (approval workflows, expense defaults, ...)
  * under one shape. Anything reading the collection has to narrow to the kind it handles first, so those predicates
  * live here rather than in the per-kind util files, which would otherwise import each other. The policy-scoped
- * readers shared by workflow actions and utils live here for the same reason.
+ * approval workflow readers live here too, so modules that cannot import `WorkflowUtils` (it reaches the connection
+ * actions through `merge/HRUtils`) can still use them.
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
