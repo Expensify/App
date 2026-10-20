@@ -52,8 +52,8 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                             Navigation.popRootToTop();
                             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(), {
                                 forceReplace: true,
+                                afterTransition: () => Navigation.navigate(ROUTES.HOME),
                             });
-                            Navigation.navigate(ROUTES.HOME);
                         };
 
                         // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
