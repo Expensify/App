@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -33,6 +34,7 @@ function WiseGlobalReimbursementsBanner() {
     const {pageGutterMargin, cardGapBottom} = useLayoutSpacing();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithCoins']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -40,7 +42,7 @@ function WiseGlobalReimbursementsBanner() {
 
     const bankAccountID = getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList);
 
-    if (!isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) || isDismissed || !bankAccountID) {
+    if (!isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) || shouldSuppressPromotionalUI || isDismissed || !bankAccountID) {
         return null;
     }
 
