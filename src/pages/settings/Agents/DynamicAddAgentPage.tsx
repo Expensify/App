@@ -39,7 +39,6 @@ import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createComp
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
