@@ -7572,8 +7572,9 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
 }
 
 /**
- * Saving a draft captured mid-upload would persist a local URI only the author's device can resolve, so swap it
- * for the synced attachment, or drop it while the upload is pending because the queued Add re-attaches the file.
+ * Saving a draft captured mid-upload would persist local URIs only the author's device can resolve, so swap each one
+ * for the synced attachment in the same position, or drop them while the upload is pending because the queued Add
+ * re-attaches the files.
  */
 function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
     const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
@@ -7588,23 +7589,23 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
     }
 
     const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
-    const syncedAttachmentTag = attachmentTags.find((tag) => {
+    const syncedAttachmentTags = attachmentTags.filter((tag) => {
         const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
         return source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
     });
-    if (!syncedAttachmentTag) {
+    if (syncedAttachmentTags.length === 0) {
         return draftMarkdown;
     }
 
-    const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
-    let isReplaced = false;
+    let localReferenceIndex = 0;
     localAttachmentReferenceRegex.lastIndex = 0;
     return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
-        if (isReplaced) {
+        const syncedAttachmentTag = syncedAttachmentTags.at(localReferenceIndex);
+        localReferenceIndex++;
+        if (!syncedAttachmentTag) {
             return '';
         }
-        isReplaced = true;
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${Parser.htmlToMarkdown(syncedAttachmentTag)}`;
     });
 }
 

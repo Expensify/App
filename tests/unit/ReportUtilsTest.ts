@@ -7764,6 +7764,20 @@ describe('ReportUtils', () => {
             );
         });
 
+        it('swaps each local reference for the synced attachment in the same position', () => {
+            // Given a message with two images that synced after the user started editing
+            const syncedTwoImagesHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg" alt="receipt.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/def.jpg" />`;
+            const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)\n\n!(blob:https://dev.new.expensify.com:8082/uuid-2)';
+
+            // When the edit is saved
+            const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID);
+
+            // Then both images stay in the message, so the edit doesn't delete the second one
+            expect(savedDraft).toBe(
+                `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+            );
+        });
+
         it('swaps a document reference for the synced attachment link', () => {
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
