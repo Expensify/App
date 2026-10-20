@@ -174,6 +174,9 @@ function getMerchantRulesTableData({
                     conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tagNames));
                 }
 
+                // The Categories section lists the rules a category alone decides. One that also matches on a
+                // merchant or a tag reads as a merchant rule, so it stays with them.
+                const isCategoryOnlyRule = categories.length > 0 && merchants.length === 0 && tags.length === 0;
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
@@ -235,7 +238,7 @@ function getMerchantRulesTableData({
                 return {
                     keyForList: ruleID,
                     ruleID,
-                    section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
+                    section: isCategoryOnlyRule ? CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES : CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
                     // A rule matches on every condition it carries, so the row reads them as one sentence.

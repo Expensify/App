@@ -363,7 +363,11 @@ function ExpenseDefaultRulePageBase({
         }
 
         setRule(policyID, buildExpenseDefaultRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
-        if (isCreatedFromExpense) {
+        if (categorySettingsBackPath) {
+            // Category settings enters through its own dynamic route, so the way back is the category the rule was
+            // opened from rather than anything in the workspace Rules flow.
+            Navigation.goBack(categorySettingsBackPath);
+        } else if (isCreatedFromExpense) {
             // Opened from the callout, so this page is a suffix on the expense's path. Dropping it returns to the
             // expense instead of the workspace Rules page.
             Navigation.goBack(backToRoute);

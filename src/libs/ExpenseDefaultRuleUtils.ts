@@ -214,7 +214,7 @@ type BuiltExpenseDefaultRule = Omit<ExpenseDefaultRule, 'filters'> & {
 };
 
 /** Drops the blanks a multi-select leaves behind, so an emptied picker reads as no condition at all. */
-function nonEmptyValues(values: string[] | undefined): string[] {
+function getNonEmptyValues(values: string[] | undefined): string[] {
     return (values ?? []).map((value) => value.trim()).filter(Boolean);
 }
 
@@ -232,12 +232,12 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.MERCHANT, operator: formValues.matchType ?? CONTAINS, right: merchantToMatch});
     }
 
-    const categoriesToMatch = nonEmptyValues(formValues.categoriesToMatch);
+    const categoriesToMatch = getNonEmptyValues(formValues.categoriesToMatch);
     if (categoriesToMatch.length > 0) {
         comparisons.push({left: CONDITION.CATEGORY, operator: EQUAL_TO, right: categoriesToMatch});
     }
 
-    const tagsToMatch = nonEmptyValues(formValues.tagsToMatch);
+    const tagsToMatch = getNonEmptyValues(formValues.tagsToMatch);
     if (tagsToMatch.length > 0) {
         comparisons.push({left: CONDITION.TAG, operator: EQUAL_TO, right: tagsToMatch});
     }
@@ -257,8 +257,8 @@ function hasExpenseDefaultConditions(formValues: Partial<ExpenseDefaultFormValue
 
 /** Compares two multi-select conditions, which are ORed lists rather than ordered ones. */
 function haveSameConditionValues(first: string[] | undefined, second: string[] | undefined): boolean {
-    const sortedFirst = nonEmptyValues(first).sort();
-    const sortedSecond = nonEmptyValues(second).sort();
+    const sortedFirst = getNonEmptyValues(first).sort();
+    const sortedSecond = getNonEmptyValues(second).sort();
 
     return sortedFirst.length === sortedSecond.length && sortedFirst.every((value, index) => value === sortedSecond.at(index));
 }
