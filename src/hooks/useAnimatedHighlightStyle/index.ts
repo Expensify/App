@@ -4,9 +4,15 @@ import useTheme from '@hooks/useTheme';
 
 import CONST from '@src/CONST';
 
-import React, {useRef} from 'react';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React, {useLayoutEffect, useRef} from 'react';
 import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
+
+import type {ArmedPlay} from './armedPlay';
+
+import {getNextArmedPlay, getPlayStep} from './armedPlay';
 
 type Props = {
     borderRadius?: number;
@@ -52,13 +58,38 @@ type Props = {
     highlightKey: string | undefined;
 };
 
-/** The play this instance last armed, and how far it has got. */
-type ArmedPlay = {
-    key: string | undefined;
+type HighlightTimings = Required<Pick<Props, 'itemEnterDelay' | 'itemEnterDuration' | 'highlightStartDelay' | 'highlightStartDuration' | 'highlightEndDelay' | 'highlightEndDuration'>>;
 
-    /** `armed` owes an entry and a pulse; `awaitingVisibility` is revealed and owes only the pulse; `played` owes nothing. */
-    stage: 'armed' | 'awaitingVisibility' | 'played';
-};
+function revealRow(nonRepeatableProgress: SharedValue<number>, itemEnterDuration: number) {
+    nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
+}
+
+function playPulse(repeatableProgress: SharedValue<number>, timings: HighlightTimings) {
+    repeatableProgress.set(
+        withSequence(
+            withDelay(timings.highlightStartDelay, withTiming(1, {duration: timings.highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+            withDelay(timings.highlightEndDelay, withTiming(0, {duration: timings.highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+        ),
+    );
+}
+
+/** Calls `onEntryFinished` on the JS thread once the entry completes. */
+function playEntry(nonRepeatableProgress: SharedValue<number>, timings: HighlightTimings, onEntryFinished: () => void) {
+    scheduleOnRN(() => {
+        nonRepeatableProgress.set(
+            withDelay(
+                timings.itemEnterDelay,
+                withTiming(1, {duration: timings.itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
+                    if (!finished) {
+                        return;
+                    }
+                    // This callback runs on the UI thread, so the pulse hops back to JS once.
+                    scheduleOnRN(onEntryFinished);
+                }),
+            ),
+        );
+    });
+}
 
 /**
  * Returns a highlight style that interpolates the color, height and opacity giving a fading effect.
@@ -103,83 +134,49 @@ export default function useAnimatedHighlightStyle({
         };
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
-    React.useEffect(() => {
-        // Runs on the JS thread. Only the entry below needs to hop threads.
-        const revealRow = () => {
-            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
-        };
+    // Set in the commit rather than after it, so a pulse queued from the UI thread in between can't read the item the row showed before.
+    useLayoutEffect(() => {
         currentKeyRef.current = highlightKey;
-        const armedPlay = armedPlayRef.current;
-        const isPlayForThisRow = !!armedPlay && armedPlay.key === highlightKey;
-        if (armedPlay && armedPlay.stage !== 'played' && !isPlayForThisRow) {
-            // The row shows another item now, so this play is dropped.
-            if (armedPlay.stage === 'armed') {
-                // A row mounted highlighted starts invisible, so it still needs revealing when its play is dropped.
-                revealRow();
-            }
-            armedPlayRef.current = {key: armedPlay.key, stage: 'played'};
-        }
-        // Owed when asked for and not yet played for this item. It stays owed once armed, since some callers ask for a single render.
-        if (shouldHighlight && (shouldHighlight !== prevShouldHighlightRef.current || !isPlayForThisRow)) {
-            // A row already revealed keeps waiting, rather than owing a second reveal.
-            const isRevealedAndWaiting = isPlayForThisRow && armedPlay.stage === 'awaitingVisibility';
-            armedPlayRef.current = {key: highlightKey, stage: isRevealedAndWaiting ? 'awaitingVisibility' : 'armed'};
-        }
+    }, [highlightKey]);
+
+    React.useEffect(() => {
+        const {play: armedPlay, shouldRevealDroppedRow} = getNextArmedPlay(armedPlayRef.current, {highlightKey, shouldHighlight, wasHighlightRequested: prevShouldHighlightRef.current});
         prevShouldHighlightRef.current = shouldHighlight;
-        const owedPlay = armedPlayRef.current;
-        if (!owedPlay || owedPlay.stage === 'played' || !didScreenTransitionEnd) {
+        if (shouldRevealDroppedRow) {
+            revealRow(nonRepeatableProgress, itemEnterDuration);
+        }
+
+        const {step, play} = getPlayStep(armedPlay, {didScreenTransitionEnd, isScreenVisible: visibility.getIsVisible()});
+        armedPlayRef.current = play;
+        if (step === 'none') {
             return;
         }
-        const playPulse = () => {
-            repeatableProgress.set(
-                withSequence(
-                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                ),
-            );
-        };
-        // On the JS thread, where the current key can be read, so a row recycled mid-entry doesn't pulse for the item it replaced.
-        const pulseUnlessRecycled = () => {
-            if (armedPlayRef.current?.key !== currentKeyRef.current) {
-                return;
-            }
-            playPulse();
-        };
-        const playEntryThenPulse = () => {
-            scheduleOnRN(() => {
-                nonRepeatableProgress.set(
-                    withDelay(
-                        itemEnterDelay,
-                        withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
-                            if (!finished) {
-                                return;
-                            }
-                            // This callback runs on the UI thread, so the pulse hops back to JS once.
-                            scheduleOnRN(pulseUnlessRecycled);
-                        }),
-                    ),
-                );
+        const timings = {itemEnterDelay, itemEnterDuration, highlightStartDelay, highlightStartDuration, highlightEndDelay, highlightEndDuration};
+        if (step === 'pulse') {
+            playPulse(repeatableProgress, timings);
+            return;
+        }
+        if (step === 'entryThenPulse') {
+            playEntry(nonRepeatableProgress, timings, () => {
+                // Checked on the JS thread, where the current key can be read, so a row recycled mid-entry doesn't pulse for the item it replaced.
+                if (currentKeyRef.current !== play.key) {
+                    return;
+                }
+                playPulse(repeatableProgress, timings);
             });
-        };
-        if (visibility.getIsVisible()) {
-            // A revealed row owes only its pulse.
-            const play = owedPlay.stage === 'awaitingVisibility' ? playPulse : playEntryThenPulse;
-            armedPlayRef.current = {key: owedPlay.key, stage: 'played'};
-            play();
             return;
         }
-        if (owedPlay.stage === 'armed') {
-            // Reveal now: a row mounted highlighted starts invisible, and the screen may never be uncovered. Only the pulse waits.
-            armedPlayRef.current = {key: owedPlay.key, stage: 'awaitingVisibility'};
-            revealRow();
+        if (step === 'revealThenWait') {
+            revealRow(nonRepeatableProgress, itemEnterDuration);
         }
         const unsubscribe = visibility.subscribe(() => {
-            if (!visibility.getIsVisible()) {
+            const nextPlayStep = getPlayStep(play, {didScreenTransitionEnd, isScreenVisible: visibility.getIsVisible()});
+            if (nextPlayStep.step !== 'pulse') {
                 return;
             }
             unsubscribe();
-            armedPlayRef.current = {key: owedPlay.key, stage: 'played'};
-            playPulse();
+            armedPlayRef.current = nextPlayStep.play;
+            playPulse(repeatableProgress, timings);
         });
         return unsubscribe;
     }, [

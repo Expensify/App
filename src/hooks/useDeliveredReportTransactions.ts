@@ -3,12 +3,16 @@ import type {Transaction} from '@src/types/onyx';
 import {useState} from 'react';
 
 type DeliveredReportTransactionsParams = {
+    /** Only the last report delivered is remembered, so any other report waits for its own full list, even one delivered before. */
     reportID: string | undefined;
+
+    /** The report's transactions that have arrived so far. */
     transactions: Transaction[];
 
     /** Counted before the caller filters any out. */
     arrivedTransactionCount: number;
 
+    /** The report's own count of its transactions (`transactionCount`). */
     expectedTransactionCount: number;
 };
 

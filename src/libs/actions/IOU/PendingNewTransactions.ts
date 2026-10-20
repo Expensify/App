@@ -15,9 +15,9 @@ const reportsShowingRowsWhenActionBegan = new Map<string, boolean>();
 
 /** Answers once per report per action. Cleared a microtask later, when the action's synchronous run ends. */
 function wasReportShowingRowsWhenActionBegan(reportID: string, isShowingRowsNow: () => boolean): boolean {
-    const answeredForThisAction = reportsShowingRowsWhenActionBegan.get(reportID);
-    if (answeredForThisAction !== undefined) {
-        return answeredForThisAction;
+    const isShowingRowsAtActionStart = reportsShowingRowsWhenActionBegan.get(reportID);
+    if (isShowingRowsAtActionStart !== undefined) {
+        return isShowingRowsAtActionStart;
     }
     const isShowingRows = isShowingRowsNow();
     const isFirstAnswerOfThisAction = reportsShowingRowsWhenActionBegan.size === 0;

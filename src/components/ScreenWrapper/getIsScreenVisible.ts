@@ -2,7 +2,11 @@ import type {RHPWidth} from '@components/WideRHPContextProvider/types';
 
 type GetIsScreenVisibleParams = {
     isFocused: boolean;
+
+    /** Whether the window is phone-sized, where only the focused screen can be seen. Not `shouldUseNarrowLayout`, which is also true inside an RHP on a wide window. */
     isSmallScreenWidth: boolean;
+
+    /** Whether this screen is the sidebar of a split navigator, such as a workspace or domain, whose navigator is focused. */
     isSidebarOfFocusedSplitNavigator: boolean;
 
     /** `undefined` unless this is a wide or super-wide RHP screen on display. */

@@ -61,7 +61,7 @@ function useNewTransactions({
     pendingNewTransactions,
     railReportID,
     isReportVisible,
-}: UseNewTransactionsParams) {
+}: UseNewTransactionsParams): Transaction[] {
     const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID: transactionsReportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const deliveredTransactions = useDeliveredReportTransactions({reportID: transactionsReportID, transactions, arrivedTransactionCount, expectedTransactionCount});

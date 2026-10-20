@@ -326,6 +326,32 @@ describe('useAnimatedHighlightStyle', () => {
         expect(pulsePlays()).toBe(0);
     });
 
+    it('pulses a row the list recycled into another new item once, even when the pulse for the earlier item is still queued at the swap', () => {
+        // Given a row whose entry has finished, with the pulse it schedules held until flushed
+        const queued: Array<() => void> = [];
+        scheduleOnRNMock.mockImplementation((callback: () => void) => {
+            queued.push(callback);
+        });
+        const flush = () => {
+            for (const callback of queued.splice(0)) {
+                callback();
+            }
+        };
+
+        const {recycleInto} = renderHarness(true);
+        flush();
+        expect(entryPlays()).toBe(1);
+
+        // When the list reuses the row for another new item before the earlier item's pulse runs
+        recycleInto('row-B', true);
+        flush();
+        flush();
+
+        // Then only the new item's own pulse plays, since the earlier pulse was for an item the row no longer shows
+        expect(entryPlays()).toBe(2);
+        expect(pulsePlays()).toBe(1);
+    });
+
     it('does not re-render a row when its screen is covered or uncovered', () => {
         // Given a row with nothing to play, like nearly every row
         renderHarness(false);

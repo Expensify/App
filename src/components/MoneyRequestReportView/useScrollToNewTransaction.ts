@@ -13,15 +13,26 @@ import type {TransactionListItemData} from './MoneyRequestReportTransactionList'
 
 type UseScrollToNewTransactionParams = {
     newTransactionID: string | undefined;
+
+    /** The table's items in display order, section headers included. When the rows are inlined, an item's index is also its index in the main list. */
     transactionListItems: TransactionListItemData[];
 
     /** Whether the rows are items of the main list, rather than of a table nested in it. */
     shouldInlineTransactions: boolean;
 
+    /** The main list. It is the only list that scrolls, even when the rows live in the nested table. */
     listRef: FlatListRefType;
+
+    /** The nested table, read for a row's position on the page. Used only when the rows are not inlined. */
     tableRef: RefObject<ExternalScrollFlashListTableHandle | null>;
+
+    /** The main list's items on screen, as its last viewability change reported them. */
     viewableItemsRef: RefObject<ViewToken[]>;
+
+    /** The main list's vertical scroll offset. */
     scrollOffsetStore: ScrollOffsetStore;
+
+    /** The main list's height. */
     viewportHeight: number;
 };
 

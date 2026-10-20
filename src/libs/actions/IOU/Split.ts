@@ -163,7 +163,6 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
