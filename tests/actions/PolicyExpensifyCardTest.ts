@@ -172,6 +172,16 @@ describe('actions/PolicyExpensifyCard', () => {
     });
 
     describe('openIssueNewCardShippingAddressStep', () => {
+        it('does not check for a phone number before a cardholder is picked', async () => {
+            // Given the shipping address step opening before the admin picked a cardholder
+            // When the step opens
+            openIssueNewCardShippingAddressStep(policyID, undefined);
+            await waitForBatchedUpdates();
+
+            // Then there is nobody to check, so no request is made
+            expect(TestHelper.getFetchMockCalls(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP)).toHaveLength(0);
+        });
+
         it('asks whether the cardholder has a phone number', async () => {
             // Given an admin who reaches the shipping address step for a cardholder
             // When the step opens
