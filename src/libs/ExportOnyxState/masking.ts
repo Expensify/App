@@ -154,6 +154,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['externalID', 'enabled', 'origin'],
         maskList: ['name'],
     },
+    // These are other members' bank details, so mask them in exports.
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: {
+        allowList: [],
+        maskList: ['bankName', 'bankAccountLastFour'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -444,6 +449,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT,
+    ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT,
     ONYXKEYS.CONCIERGE_PROMPT_DRAFT,
     ONYXKEYS.CORPAY_FIELDS,
     ONYXKEYS.CORPAY_ONBOARDING_FIELDS,
@@ -505,6 +511,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
     ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     ONYXKEYS.PENDING_CONTACT_ACTION,
+    ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL,
     ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     ONYXKEYS.PERSISTED_REQUESTS,
     ONYXKEYS.PERSONAL_BANK_ACCOUNT,
