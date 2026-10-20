@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
