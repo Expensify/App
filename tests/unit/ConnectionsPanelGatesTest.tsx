@@ -18,6 +18,7 @@ const NOT_FOUND = 'Not found';
 const LOADING = 'Loading';
 const POLICY_ID = 'policy-1';
 
+let mockIsUnifiedConnectionsBetaEnabled = true;
 let mockConnectedIntegration: string | undefined;
 let mockIsUberConnected = false;
 let mockHasConnectionsDataBeenFetched: boolean | undefined;
@@ -35,6 +36,7 @@ jest.mock('@components/FullscreenLoadingIndicator', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {__esModule: true, default: () => <MockText>Loading</MockText>};
 });
+jest.mock('@hooks/useIsUnifiedConnectionsBetaEnabled', () => () => mockIsUnifiedConnectionsBetaEnabled);
 jest.mock('@hooks/useWorkspaceDocumentTitle', () => () => {});
 jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => jest.fn());
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
@@ -83,22 +85,35 @@ function buildHRCard(isConnected: boolean): MergeProviderCardDescriptor {
 
 describe('Connections panel gates', () => {
     beforeEach(() => {
+        mockIsUnifiedConnectionsBetaEnabled = true;
         mockConnectedIntegration = undefined;
         mockIsUberConnected = false;
         mockHasConnectionsDataBeenFetched = true;
     });
 
     describe('ConnectionsAccountingPage', () => {
+        it('should block the panel for a user without the beta, even with an integration connected', () => {
+            // Given a connected workspace viewed by a user without the unified Connections beta
+            mockIsUnifiedConnectionsBetaEnabled = false;
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
+
+            // When the panel opens from a link
+            render(<ConnectionsAccountingPageUnderTest policy={policy} />);
+
+            // Then it shows Not Found, since this user still has the Accounting page
+            expect(screen.getByText(NOT_FOUND)).toBeOnTheScreen();
+        });
+
         it('should block the panel when no accounting integration is connected', () => {
-            // Given a workspace with nothing connected
+            // Given a beta user on a workspace with nothing connected
             render(<ConnectionsAccountingPageUnderTest policy={policy} />);
 
             // Then the panel shows Not Found, since it only holds a connected integration's settings
             expect(screen.getByText(NOT_FOUND)).toBeOnTheScreen();
         });
 
-        it('should open the panel with an integration connected', () => {
-            // Given a workspace connected to QuickBooks Online
+        it('should open the panel for a beta user with an integration connected', () => {
+            // Given a beta user on a workspace connected to QuickBooks Online
             mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
 
             // When the panel opens
@@ -111,7 +126,7 @@ describe('Connections panel gates', () => {
 
     describe('ConnectionsMergePageBase', () => {
         it('should block the panel when no provider of the category is connected', () => {
-            // Given a workspace with no HR provider connected
+            // Given a beta user on a workspace with no HR provider connected
             render(
                 <ConnectionsMergePageBase
                     policyID={POLICY_ID}
@@ -125,7 +140,7 @@ describe('Connections panel gates', () => {
         });
 
         it('should show a loading screen until the connections are fetched', () => {
-            // Given a user deep linking to a workspace whose connections haven't loaded yet
+            // Given a beta user deep linking to a workspace whose connections haven't loaded yet
             mockHasConnectionsDataBeenFetched = undefined;
 
             // When the panel opens before any provider shows as connected
@@ -143,7 +158,7 @@ describe('Connections panel gates', () => {
         });
 
         it('should open the panel once a provider is connected', () => {
-            // Given a workspace with Gusto connected
+            // Given a beta user on a workspace with Gusto connected
             render(
                 <ConnectionsMergePageBase
                     policyID={POLICY_ID}
@@ -159,10 +174,20 @@ describe('Connections panel gates', () => {
 
     describe('ConnectionsReceiptPartnersPage', () => {
         it('should block the panel when Uber is not connected', () => {
-            // Given a workspace without Uber
+            // Given a beta user on a workspace without Uber
             render(<ConnectionsReceiptPartnersPageUnderTest route={{params: {policyID: POLICY_ID}}} />);
 
             // Then the panel shows Not Found
+            expect(screen.getByText(NOT_FOUND)).toBeOnTheScreen();
+        });
+
+        it('should block the panel for a user without the beta', () => {
+            // Given Uber is connected but the user doesn't have the beta
+            mockIsUnifiedConnectionsBetaEnabled = false;
+            mockIsUberConnected = true;
+            render(<ConnectionsReceiptPartnersPageUnderTest route={{params: {policyID: POLICY_ID}}} />);
+
+            // Then the panel shows Not Found, since this user still has the Receipt partners page
             expect(screen.getByText(NOT_FOUND)).toBeOnTheScreen();
         });
     });

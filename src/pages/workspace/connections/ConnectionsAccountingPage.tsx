@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const policyID = policy?.id;
     const {
         connectedIntegration,
@@ -61,7 +63,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.ACCOUNTING}
-            shouldBeBlocked={!connectedIntegration && !hasUnsupportedNDIntegration}
+            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!connectedIntegration && !hasUnsupportedNDIntegration)}
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             <ScreenWrapper

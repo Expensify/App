@@ -4,6 +4,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
@@ -45,6 +46,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const policyID = policy?.id;
 
     // `removePolicyConnection` only runs once the user confirms, which can be a while after the flow started, so the
@@ -120,7 +122,14 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
-            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
+            if (
+                tryNavigateToSubmitWorkspaceUpgrade(
+                    policy,
+                    true,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                    isUnifiedConnectionsBetaEnabled ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID) : undefined,
+                )
+            ) {
                 return;
             }
 
@@ -143,11 +152,14 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     cardFeeds,
                     cardList: cardLists,
                     isIntuitEnterpriseSuiteOverride: newActiveIntegration.isIntuitEnterpriseSuite,
+                    isUnifiedConnectionsBetaEnabled,
                 },
             );
 
             // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
-            enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            if (isUnifiedConnectionsBetaEnabled) {
+                enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            }
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -168,17 +180,32 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
             // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
             // setup flow until the user has decided what to do with the connection that has to be disconnected first.
+            const connectionName = newActiveIntegration.isIntuitEnterpriseSuite
+                ? translate('workspace.accounting.intuitEnterpriseSuite')
+                : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
+            const modalCopy = isUnifiedConnectionsBetaEnabled
+                ? {
+                      title: translate('workspace.connections.replaceConnectionTitle'),
+                      prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
+                      confirmText: translate('common.replace'),
+                      buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                  }
+                : {
+                      title: translate('workspace.accounting.connectTitle', connectionName),
+                      prompt: translate('workspace.accounting.connectPrompt', connectionName),
+                      confirmText: translate('workspace.accounting.setup'),
+                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                  };
+
             isDisconnectConfirmationPendingRef.current = true;
 
             showConfirmModal({
                 // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
-                // `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
-                // repeat call updating this prompt in place instead of stacking a second copy behind it.
+                // `PolicyAccountingPage` and `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is
+                // re-created). A stable id keeps the repeat call updating this prompt in place instead of stacking a
+                // second copy behind it.
                 id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
-                title: translate('workspace.connections.replaceConnectionTitle'),
-                prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
-                confirmText: translate('common.replace'),
-                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                ...modalCopy,
                 cancelText: translate('common.cancel'),
             }).then((result) => {
                 // A repeat call for the same id is handed back the promise the first call got, so every call's handler
@@ -221,6 +248,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             accountingIcons,
             cardFeeds,
             cardLists,
+            isUnifiedConnectionsBetaEnabled,
         ],
     );
 
@@ -263,6 +291,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 cardFeeds,
                 cardList: cardLists,
                 isIntuitEnterpriseSuiteOverride: activeIntegration.isIntuitEnterpriseSuite,
+                isUnifiedConnectionsBetaEnabled,
             },
         )?.setupConnectionFlow;
     };
