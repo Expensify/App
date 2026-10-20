@@ -103,6 +103,8 @@ type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['original
 
 type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
 
+type AddCustomUnitRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>;
+
 type LegacyReportActionFields = {
     message?: string;
     originalMessage?: string;
@@ -1785,7 +1787,118 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceCustomUnitRateAddedMessage', () => {
+        function buildAddCustomUnitRateAction(originalMessage: AddCustomUnitRateAction['originalMessage']): AddCustomUnitRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE,
+                reportActionID: 'add-custom-unit-rate-1',
+                created: '2026-09-01 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
+                originalMessage,
+            };
+        }
+
+        const fuelBandRateMessage = {
+            customUnitName: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            rateName: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+            rate: 55,
+            currency: CONST.CURRENCY.GBP,
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            startDate: '2026-09-01',
+        };
+
+        it('should append the reclaimable tax amount and tax rate name when the log has tax details', () => {
+            // Given an added rate log for a UK fuel-band rate, whose reclaimable share is the 14p fuel rate out of the 55p rate
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55, taxRateName: 'Standard VAT (20%)'});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should show the reclaimable amount per mile, rate × taxClaimablePercentage, under the tax rate name
+            expect(message).toBe(
+                'added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026, with £0.14/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should show a zero reclaimable amount when the reclaimable share is zero', () => {
+            // Given an added rate log for a fuel band with no reclaimable fuel cost
+            const action = buildAddCustomUnitRateAction({
+                ...fuelBandRateMessage,
+                rateName: 'Cars & Vans (Electric) - Home charged',
+                taxClaimablePercentage: 0,
+                taxRateName: 'Standard VAT (20%)',
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then the tax details should still be shown, because the log carries them
+            expect(message).toBe(
+                'added "Cars & Vans (Electric) - Home charged" rate of £0.55/mile, valid from September 1, 2026, with £0.00/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should not append tax details when the log has no tax rate name', () => {
+            // Given an added rate log with a reclaimable share but no tax rate name
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should render the same text as a log without tax details
+            expect(message).toBe('added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026');
+        });
+    });
+
     describe('getMessageOfOldDotReportAction', () => {
+        it('should return the removed field message when a field with a value is cleared', () => {
+            // Given a field change whose new value is empty while the old value was set, which is what clearing a text field sends
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
+            expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the set field message when a field without a value is filled in', () => {
+            // Given a field change whose old value is empty
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: 'Apollo'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was set, because there is no previous value to show
+            expect(message).toBe('set Project to "Apollo"');
+        });
+
+        it('should return the changed field message when a field value is replaced', () => {
+            // Given a field change where both the old and the new value are set
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: 'Gemini'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows both the new and the previous value
+            expect(message).toBe('changed Project to "Gemini" (previously "Apollo")');
+        });
+
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
