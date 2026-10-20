@@ -2823,7 +2823,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Configurare i rimborsi globali?', subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.', getStarted: 'Inizia'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurare i rimborsi globali?',
+            subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',
+            getStarted: 'Inizia',
+            headerTitle: 'Rimborsi globali',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,

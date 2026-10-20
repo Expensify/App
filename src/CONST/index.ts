@@ -9379,6 +9379,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9620,6 +9621,10 @@ const CONST = {
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
+        },
+        WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWalletBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWalletBanner-Dismiss',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',

@@ -30,6 +30,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,7 +38,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,6 +49,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
+import WiseGlobalReimbursementsBanner from '@pages/settings/Wallet/WiseGlobalReimbursementsBanner';
 
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
@@ -112,6 +114,8 @@ function WalletPage() {
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
+    const {isBetaEnabled} = usePermissions();
+    const isWiseGlobalReimbursementsEnabled = isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS);
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
@@ -469,11 +473,7 @@ function WalletPage() {
 
     const shouldShowEditNicknameButton = paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
-    const shouldShowEnableGlobalReimbursementsButton =
-        paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
-        paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !paymentMethod.selectedPaymentMethod?.additionalData?.verifications?.corpay &&
-        paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const shouldShowEnableGlobalReimbursementsButton = isBankAccountEligibleForGlobalReimbursements(paymentMethod.selectedPaymentMethod);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
@@ -606,6 +606,10 @@ function WalletPage() {
                                   closeModal(() => showLockedAccountModal());
                                   return;
                               }
+                              if (isWiseGlobalReimbursementsEnabled) {
+                                  closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                                  return;
+                              }
                               closeModal(() =>
                                   Navigation.navigate(
                                       ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
@@ -635,6 +639,7 @@ function WalletPage() {
             hasEligibleShareRecipient,
             shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
+            isWiseGlobalReimbursementsEnabled,
             isAccountLocked,
             makeDefaultPaymentMethod,
             showLockedAccountModal,
@@ -765,6 +770,7 @@ function WalletPage() {
                         errors={userWallet?.errors}
                         errorRowStyles={styles.ph6}
                     >
+                        <WiseGlobalReimbursementsBanner />
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                             title={translate('common.bankAccounts')}
