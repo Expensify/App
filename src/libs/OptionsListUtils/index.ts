@@ -1030,6 +1030,11 @@ function processReport(
     };
 }
 
+/** Whether the report belongs to the default workspace (activePolicyID) and is owned by the current user. Combine with a workspace chat check. */
+function isOwnDefaultWorkspaceChat(report: Pick<Report, 'policyID' | 'ownerAccountID'>, currentUserAccountID: number, activePolicyID: string | undefined): boolean {
+    return !!activePolicyID && report.policyID === activePolicyID && report.ownerAccountID === currentUserAccountID;
+}
+
 /**
  * Sort Report objects by self-DM / default workspace chat status, archived status, and last visible action.
  * Mirrors recentReportComparator's isSelfDM priority so the raw top-N cap in createFilteredOptionList
@@ -1039,8 +1044,7 @@ function processReport(
 const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap, currentUserAccountID: number, activePolicyID: string | undefined): string => {
     const isArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     const isSelfDM = report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    const isDefaultWorkspaceChat =
-        !!activePolicyID && report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report.policyID === activePolicyID && report.ownerAccountID === currentUserAccountID;
+    const isDefaultWorkspaceChat = report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
     return `${isSelfDM || isDefaultWorkspaceChat ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
 };
 
@@ -2498,8 +2502,7 @@ function getValidOptions(
         };
 
         // Rank the user's default workspace chat first among workspace chats, so the per-group limit keeps it even when it has no recent activity
-        const isDefaultWorkspaceChat = (report: SearchOption<Report>) =>
-            !!activePolicyID && isWorkspaceChat(report) && report.policyID === activePolicyID && report.ownerAccountID === currentUserAccountID;
+        const isDefaultWorkspaceChat = (report: SearchOption<Report>) => isWorkspaceChat(report) && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
         const comparator = activePolicyID ? (report: SearchOption<Report>) => `${isDefaultWorkspaceChat(report) ? 1 : 0}_${recentReportComparator(report)}` : recentReportComparator;
 
         let selfDMChats: Array<SearchOption<Report>>;
