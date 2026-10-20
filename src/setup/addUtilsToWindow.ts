@@ -23,7 +23,7 @@ export default function addUtilsToWindow() {
             return;
         }
 
-        window.Onyx = Onyx as typeof Onyx & {
+        window.Onyx = Onyx as Omit<typeof Onyx, 'get'> & {
             get: (key: CollectionKeyBase) => Promise<unknown>;
             log: (key: CollectionKeyBase) => void;
         };

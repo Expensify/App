@@ -15,7 +15,8 @@ declare global {
     // Global methods for Onyx key management for debugging purposes
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Window {
-        Onyx: typeof Onyx & {
+        // Onyx has its own typed `get` since 3.0.118; the debug one below takes any collection key.
+        Onyx: Omit<typeof Onyx, 'get'> & {
             get: (key: CollectionKeyBase) => Promise<unknown>;
             log: (key: CollectionKeyBase) => void;
         };
