@@ -26,7 +26,6 @@ import Button from './Button';
 import Modal from './Modal';
 import Text from './Text';
 
-/** Shows the progress and result of a bulk action started from Search "Select all". */
 const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittingTitle',
@@ -199,6 +198,7 @@ type BulkActionStatusModalProps = {
     onClose: () => void;
 };
 
+/** Shows the progress and result of a bulk action started from Search "Select all". */
 function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionStatusModalProps) {
     const styles = useThemeStyles();
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
