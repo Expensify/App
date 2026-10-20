@@ -48,6 +48,9 @@ type ChartXAxisLabelsProps = {
     /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
 
+    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
+    canvasWidth: number;
+
     /** When set, labels wrap at word breaks across the full column, centered on the bar, never rotated or skipped. Used for bar-name labels. */
     wrapConfig?: WrappedLabelConfig;
 };
@@ -66,6 +69,7 @@ function ChartXAxisLabels({
     labelColor,
     xScale,
     chartBoundsBottom,
+    canvasWidth,
     wrapConfig,
 }: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
@@ -93,20 +97,32 @@ function ChartXAxisLabels({
     if (wrapConfig) {
         const {columnWidth} = wrapConfig;
         const wrapTop = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap;
+        const edgeMargin = VictoryTheme.axis.padding.left;
         return paragraphLabels.map((label, i) => {
             if (label.length === 0) {
                 return null;
             }
-            const paraData = paragraphs?.at(i) ?? null;
-            if (!paraData) {
+            const para = paragraphs?.at(i)?.para ?? null;
+            if (!para) {
                 return null;
             }
             const tickX = xScale(i);
+
+            // Center the column on the bar, then nudge the first/last label inward just enough that its widest
+            // line stays on-canvas. Edge bars sit close to the canvas edge, so a label as wide as its slot would
+            // otherwise clip its outer glyph (e.g. "No merchant" rendering as "Vo merchant").
+            const halfLine = para.getLongestLine() / 2;
+            let boxX = tickX - columnWidth / 2;
+            if (tickX - halfLine < edgeMargin) {
+                boxX += edgeMargin - (tickX - halfLine);
+            } else if (tickX + halfLine > canvasWidth - edgeMargin) {
+                boxX -= tickX + halfLine - (canvasWidth - edgeMargin);
+            }
             return (
                 <Paragraph
                     key={`x-label-${label}-${tickX}`}
-                    paragraph={paraData.para}
-                    x={tickX - columnWidth / 2}
+                    paragraph={para}
+                    x={boxX}
                     y={wrapTop}
                     width={columnWidth}
                 />

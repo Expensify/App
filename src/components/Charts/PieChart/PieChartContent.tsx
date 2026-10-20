@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {useState} from 'react';
@@ -47,6 +48,7 @@ type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
 function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
@@ -210,7 +212,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                 onMouseLeave={onLegendItemMouseLeave}
             >
                 {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
-                <Text style={[styles.textNormal, isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
+                <Text style={[styles.textNormal, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
             </View>
         );
     };

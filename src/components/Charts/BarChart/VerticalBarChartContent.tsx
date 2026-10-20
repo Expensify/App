@@ -218,6 +218,7 @@ function VerticalBarChartCanvas({
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
+                        canvasWidth={args.canvasSize.width}
                         wrapConfig={wrapConfig}
                     />
                 )}
