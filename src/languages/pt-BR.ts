@@ -2818,12 +2818,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
         },
-        wiseGlobalReimbursementsIntro: {
-            title: 'Configurar reembolsos globais?',
-            subtitle: 'Pague membros no mundo todo na moeda local deles.',
-            getStarted: 'Começar',
-            headerTitle: 'Reembolsos globais',
-        },
+        wiseGlobalReimbursementsIntro: {title: 'Configurar reembolsos globais?', subtitle: 'Pague membros no mundo todo na moeda local deles.', getStarted: 'Começar'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,

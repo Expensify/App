@@ -2843,7 +2843,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
-            headerTitle: 'Remboursements globaux',
         },
     },
     addCardToDigitalWallet: {

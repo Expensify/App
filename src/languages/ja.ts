@@ -2802,12 +2802,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
         },
-        wiseGlobalReimbursementsIntro: {
-            title: 'グローバル払い戻しを設定しますか？',
-            subtitle: '世界中のメンバーに現地通貨で支払えます。',
-            getStarted: '使い始める',
-            headerTitle: 'グローバル精算',
-        },
+        wiseGlobalReimbursementsIntro: {title: 'グローバル払い戻しを設定しますか？', subtitle: '世界中のメンバーに現地通貨で支払えます。', getStarted: '使い始める'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
