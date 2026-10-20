@@ -120,6 +120,7 @@ import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import isTransactionGroupListItemType from './isTransactionGroupListItemType';
 import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
@@ -868,6 +869,17 @@ function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
 
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: OnyxTypes.SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReportUtil(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
+}
+
 /**
  * @private
  */
@@ -888,13 +900,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
 
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
-}
-
-/**
- * Type guard that checks if something is a TransactionGroupListItemType
- */
-function isTransactionGroupListItemType(item: ListItem): item is TransactionGroupListItemType {
-    return 'transactions' in item;
 }
 
 /**
@@ -7441,6 +7446,7 @@ export {
     isGroupedItemArray,
     isGroupEntry,
     isReportEntry,
+    getExpenseReportIDs,
     isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,

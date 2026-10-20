@@ -25,11 +25,13 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
+import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import {useNavigation} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -51,6 +53,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
+    const navigation = useNavigation();
 
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
@@ -206,8 +209,17 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             .catch((error: unknown) => {
                 isCapturingPhoto.current = false;
                 maybeCancelShutterSpan();
-                showCameraAlert();
-                Log.warn('Error taking photo', {message: getErrorMessage(error), stack: error instanceof Error ? error.stack : undefined});
+                const errorMessage = getErrorMessage(error);
+                const isScreenFocused = navigation.isFocused();
+                // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
+                if (!isScreenFocused && isCameraClosedError(error)) {
+                    Log.info('Photo capture cancelled by leaving the screen', false, {error: errorMessage});
+                } else {
+                    Log.warn('Error taking photo', {message: errorMessage, stack: error instanceof Error ? error.stack : undefined});
+                }
+                if (isScreenFocused) {
+                    showCameraAlert();
+                }
                 discardPendingPhoto();
             });
 
