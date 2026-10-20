@@ -1185,6 +1185,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Comparer',
             previousPeriod: 'Période précédente',
             average: 'Moyenne',
+            dayLabel: (day?: number) => (day === undefined ? 'Jour' : `Jour ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semaine' : `Semaine ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mois' : `Mois ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
@@ -2198,6 +2203,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la finalisation du paiement${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` d’ici ${eta}` : ` ${eta}`;
+                }
+                return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2843,7 +2860,9 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
+            headerTitle: 'Remboursements globaux',
         },
+        wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Ajouter la carte à ${walletName}`,

@@ -1181,6 +1181,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Vergleichen',
             previousPeriod: 'Vorheriger Zeitraum',
             average: 'Durchschnitt',
+            dayLabel: (day?: number) => (day === undefined ? 'Tag' : `Tag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Woche' : `Woche ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Monat' : `Monat ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quartal' : `Quartal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jahr' : `Jahr ${year}`),
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
@@ -2193,6 +2198,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten, bis die Zahlung abgeschlossen ist${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` bis ${eta}` : ` ${eta}`;
+                }
+                return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2834,7 +2851,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Globale Rückerstattungen einrichten?', subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.', getStarted: "Los geht's"},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Globale Rückerstattungen einrichten?',
+            subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
+            getStarted: "Los geht's",
+            headerTitle: 'Globale Erstattungen',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,

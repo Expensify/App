@@ -1180,6 +1180,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Comparar',
             previousPeriod: 'Período anterior',
             average: 'Média',
+            dayLabel: (day?: number) => (day === undefined ? 'Dia' : `Dia ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semana' : `Semana ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mês' : `Mês ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Ano' : `Ano ${year}`),
             increase: (percentage: string) => `Alta de ${percentage}`,
             decrease: (percentage: string) => `Queda de ${percentage}`,
         },
@@ -2177,6 +2182,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Aguardando o pagamento ser concluído${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` até ${eta}` : ` ${eta}`;
+                }
+                return `Aguardando a conclusão do processamento do pagamento cancelado${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2818,7 +2835,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Configurar reembolsos globais?', subtitle: 'Pague membros no mundo todo na moeda local deles.', getStarted: 'Começar'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Configurar reembolsos globais?',
+            subtitle: 'Pague membros no mundo todo na moeda local deles.',
+            getStarted: 'Começar',
+            headerTitle: 'Reembolsos globais',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,

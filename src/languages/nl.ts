@@ -1180,6 +1180,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Vergelijken',
             previousPeriod: 'Vorige periode',
             average: 'Gemiddeld',
+            dayLabel: (day?: number) => (day === undefined ? 'Dag' : `Dag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Maand' : `Maand ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartaal' : `Kwartaal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jaar' : `Jaar ${year}`),
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
         },
@@ -2184,6 +2189,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de betaling is voltooid${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` vóór ${eta}` : ` ${eta}`;
+                }
+                return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2827,7 +2844,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Wereldwijde terugbetalingen instellen?', subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.', getStarted: 'Aan de slag'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Wereldwijde terugbetalingen instellen?',
+            subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
+            getStarted: 'Aan de slag',
+            headerTitle: 'Wereldwijde terugbetalingen',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,

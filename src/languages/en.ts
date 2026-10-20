@@ -1311,6 +1311,11 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
@@ -2336,6 +2341,19 @@ const translations = {
 
                 return `Waiting for payment to complete${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
+                }
+
+                return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2903,9 +2921,14 @@ const translations = {
         nickname: 'Nickname',
         editNicknameInstruction: 'Give the bank account a nickname that sets it apart from others.',
         wiseGlobalReimbursementsIntro: {
+            headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
             getStarted: 'Get started',
+        },
+        wiseGlobalReimbursementsBanner: {
+            title: 'Pay people worldwide',
+            subtitle: 'Enable global reimbursements on your USD account.',
         },
         deleteCard: 'Delete card',
         deleteCardConfirmation:
