@@ -2834,7 +2834,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
-        wiseGlobalReimbursementsIntro: {title: 'Globale Rückerstattungen einrichten?', subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.', getStarted: "Los geht's"},
+        wiseGlobalReimbursementsIntro: {
+            title: 'Globale Rückerstattungen einrichten?',
+            subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
+            getStarted: "Los geht's",
+            headerTitle: 'Globale Erstattungen',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
@@ -8850,6 +8856,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
                     unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
                     multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                    categoryHasRule: 'Für diese Kategorie gibt es bereits eine Regel. Bearbeite die bestehende Regel oder beschreibe eine Regel für eine andere Kategorie.',
                 },
             },
             expenseDefaultsTable: {

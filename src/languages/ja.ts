@@ -2802,7 +2802,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
         },
-        wiseGlobalReimbursementsIntro: {title: 'グローバル払い戻しを設定しますか？', subtitle: '世界中のメンバーに現地通貨で支払えます。', getStarted: '使い始める'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'グローバル払い戻しを設定しますか？',
+            subtitle: '世界中のメンバーに現地通貨で支払えます。',
+            getStarted: '使い始める',
+            headerTitle: 'グローバル払い戻し',
+        },
+        wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
@@ -8690,6 +8696,7 @@ ${reportName}`,
                     unsupported: 'そのルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。',
                     unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
                     multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
+                    categoryHasRule: 'このカテゴリにはすでにルールがあります。既存のルールを編集するか、別のカテゴリのルールを説明してください。',
                 },
             },
             expenseDefaultsTable: {

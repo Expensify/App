@@ -24,7 +24,7 @@ import Log from '@libs/Log';
 import {getEmailDomain} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getJoinWorkspaceMessage, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -40,7 +40,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -63,10 +62,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
     const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
-    const joinWorkspaceMessagesAddWorkEmail = joinWorkspaceMessages.addWorkEmail;
-    const joinWorkspaceMessagesValidateEmail = joinWorkspaceMessages.validateEmail;
-    const joinWorkspaceMessagesEmpty = joinWorkspaceMessages.empty;
-    const joinWorkspaceMessagesJoinWorkspace = joinWorkspaceMessages.joinWorkspace;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
@@ -88,7 +83,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, currentUserPersonalDetails.email);
     const workEmail = session?.email ?? '';
-    const isFromPublicDomain = PUBLIC_DOMAINS_SET.has(getEmailDomain(workEmail));
 
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -105,14 +99,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             setIsLoading(true);
             try {
-                let joinWorkspaceMessage = joinWorkspaceMessagesEmpty;
-                if (onboardingPolicyID) {
-                    joinWorkspaceMessage = onboardingPolicy ? {...joinWorkspaceMessagesJoinWorkspace, tasks: []} : joinWorkspaceMessagesJoinWorkspace;
-                } else if (isFromPublicDomain) {
-                    joinWorkspaceMessage = joinWorkspaceMessagesAddWorkEmail;
-                } else if (!isValidated) {
-                    joinWorkspaceMessage = joinWorkspaceMessagesValidateEmail;
-                }
+                const joinWorkspaceMessage = getJoinWorkspaceMessage({joinWorkspaceMessages, onboardingPolicyID, onboardingPolicy, workEmail, isValidated});
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
                     onboardingMessage: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? joinWorkspaceMessage : onboardingMessages[onboardingPurposeSelected],
@@ -153,12 +140,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingPurposeSelected,
             onboardingAdminsChatReportID,
             onboardingMessages,
-            joinWorkspaceMessagesAddWorkEmail,
-            joinWorkspaceMessagesValidateEmail,
-            joinWorkspaceMessagesEmpty,
-            joinWorkspaceMessagesJoinWorkspace,
+            joinWorkspaceMessages,
             isValidated,
-            isFromPublicDomain,
             workEmail,
             onboardingPolicyID,
             onboardingPolicy,
