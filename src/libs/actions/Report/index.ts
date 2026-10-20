@@ -621,6 +621,11 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
+/** Loads the policy expense chats the workspace picker needs, since OpenApp no longer returns all of them. */
+function openRecipientPicker() {
+    API.read(READ_COMMANDS.OPEN_RECIPIENT_PICKER, null);
+}
+
 function openUnreportedExpense(reportID: string | undefined, backToReport?: string) {
     if (!reportID) {
         return;
@@ -9283,6 +9288,7 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     createTransactionThreadReport,
+    openRecipientPicker,
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,

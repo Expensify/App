@@ -28,8 +28,8 @@ type TooltipChange = {
     /** The difference, without its sign */
     amount: string;
 
-    /** The difference relative to the compared amount, absent when that amount is zero */
-    percentage?: string;
+    /** The difference relative to the compared amount */
+    percentage: string;
 
     isIncrease: boolean;
 };
@@ -41,6 +41,16 @@ type TooltipComparison = {
     change?: TooltipChange;
 };
 
+/** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
+function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
+    if (comparedValue === 0) {
+        return '—';
+    }
+
+    const difference = primaryValue - comparedValue;
+    return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
+}
+
 /** Formats how much the primary value rose or fell against the compared one. */
 function formatChange(primaryValue: number, comparedValue: number, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
     if (primaryValue === comparedValue) {
@@ -50,7 +60,7 @@ function formatChange(primaryValue: number, comparedValue: number, formatAmount:
     const difference = primaryValue - comparedValue;
     return {
         amount: formatAmount(Math.abs(difference)),
-        percentage: comparedValue === 0 ? undefined : formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale),
+        percentage: formatChangePercentage(primaryValue, comparedValue, locale),
         isIncrease: difference > 0,
     };
 }
@@ -77,7 +87,7 @@ function formatTooltipComparison(
         const isPrimary = key === primarySeriesKey;
         return {
             key,
-            color,
+            color: dataPoint.seriesColors?.[key] ?? color,
             label,
             amount: formatAmount(value),
             percentage: isPrimary && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, locale) : undefined,
@@ -88,4 +98,5 @@ function formatTooltipComparison(
 }
 
 export default formatTooltipComparison;
+export {formatChangePercentage};
 export type {TooltipChange, TooltipRow};

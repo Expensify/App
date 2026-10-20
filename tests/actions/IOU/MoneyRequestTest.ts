@@ -813,6 +813,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             }),
             participantsPolicyTags: {},
             rules: undefined,
@@ -1743,6 +1744,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1761,6 +1763,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1779,6 +1782,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
@@ -1800,6 +1804,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1822,6 +1827,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1840,6 +1846,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
@@ -1860,6 +1867,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
@@ -1880,6 +1888,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);

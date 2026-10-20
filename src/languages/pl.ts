@@ -1198,7 +1198,13 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Zobacz w Wydatkach',
         emptyState: {title: 'Nic do wyświetlenia', subtitle: 'Spróbuj zmienić kryteria powyżej'},
         noExpensesState: {title: 'Zobacz, na co idą twoje pieniądze', subtitle: 'Gdy będziesz mieć wydatki, zobaczysz trendy w wydawaniu, najważniejszych sprzedawców i więcej.'},
-        compare: {label: 'Porównaj', previousPeriod: 'Poprzedni okres', average: 'Średnia'},
+        compare: {
+            label: 'Porównaj',
+            previousPeriod: 'Poprzedni okres',
+            average: 'Średnia',
+            increase: (percentage: string) => `Wzrost o ${percentage}`,
+            decrease: (percentage: string) => `Spadek o ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2855,6 +2861,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
         },
+        wiseGlobalReimbursementsIntro: {title: 'Skonfigurować globalne zwroty kosztów?', subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.', getStarted: 'Zacznij'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Dodaj kartę do ${walletName}`,
@@ -4128,6 +4135,7 @@ ${amount} dla ${merchant} - ${date}`,
             formLabel: 'Wyświetl PDF',
         },
         attachmentNotFound: 'Załącznik nie został znaleziony',
+        loadTimedOut: 'Ładowanie tego obrazu trwa zbyt długo.',
         retry: 'Ponów próbę',
     },
     messages: {
@@ -5131,6 +5139,7 @@ ${amount} dla ${merchant} - ${date}`,
             editPerDiemRates: 'Edytuj stawki diet',
             editDestinationSubtitle: (destination: string) => `Zaktualizowanie tego miejsca docelowego zmieni je dla wszystkich podstawek diet ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Zaktualizowanie tej waluty spowoduje jej zmianę dla wszystkich podrzędnych stawek diet w ${destination}.`,
+            missingPerDiemUnit: 'Dieta nie jest poprawnie skonfigurowana w tym workspace. Skontaktuj się z Concierge, żeby uzyskać pomoc.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ustaw sposób eksportu wydatków z własnej kieszeni do QuickBooks Desktop.',
