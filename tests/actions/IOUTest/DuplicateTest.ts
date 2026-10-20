@@ -2895,7 +2895,7 @@ describe('actions/Duplicate', () => {
             // report already exists in the user's local data. Without this seed, buildTransactionThread
             // would find no existing report in Onyx and generate a fresh ID regardless, causing the
             // test to pass even without the fix. With this seed, buildTransactionThread calls
-            // getReportOrDraftReport(existingTransactionThreadReportID), finds this report, and
+            // getReportOrDraftReport({reportID: existingTransactionThreadReportID}), finds this report, and
             // reuses its ID as transactionThreadReportID — which is exactly the collision the fix prevents.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${existingLinkedReportActionChildReportID}`, {
                 reportID: existingLinkedReportActionChildReportID,

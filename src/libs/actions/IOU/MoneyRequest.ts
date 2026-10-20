@@ -600,7 +600,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport({reportID: report?.chatReportID}) : report;
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];

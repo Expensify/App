@@ -114,7 +114,7 @@ function useDistanceSubmission({
     const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport
-        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        ? getReportOrDraftReport({reportID: report?.chatReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {}})
         : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);

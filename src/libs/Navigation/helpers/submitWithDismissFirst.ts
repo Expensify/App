@@ -108,7 +108,7 @@ function submitWithDismissFirst({
     }
 
     if (destinationReportID) {
-        const isDestinationLoaded = !!getReportOrDraftReport(destinationReportID)?.reportID;
+        const isDestinationLoaded = !!getReportOrDraftReport({reportID: destinationReportID})?.reportID;
         const isNarrow = getIsNarrowLayout();
         const isReportVisible = !isNarrow && isReportTopmostSplitNavigator();
         const currentReportID = isReportVisible ? getTopmostReportParams(navigationRef.getRootState())?.reportID : undefined;

@@ -143,8 +143,8 @@ const RORY_ACCOUNT_ID = 3;
 const RORY_CASH_CARD_ID = 777;
 
 const getTransactionAndExpenseReports = (reportID: string) => {
-    const transactionReport = getReportOrDraftReport(reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const transactionReport = getReportOrDraftReport({reportID});
+    const parentTransactionReport = getReportOrDraftReport({reportID: transactionReport?.parentReportID});
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
     return {transactionReport, expenseReport};
 };

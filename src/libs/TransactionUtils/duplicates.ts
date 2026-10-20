@@ -209,7 +209,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}))) as Transaction[];
 }
 
 /**

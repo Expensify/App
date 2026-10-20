@@ -139,7 +139,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(getReportOrDraftReport).toHaveBeenCalledWith('workspace-draft-1', undefined, undefined, participantReportDraft);
+        expect(getReportOrDraftReport).toHaveBeenCalledWith({reportID: 'workspace-draft-1', reportDraft: participantReportDraft});
     });
 
     it('should fall back to optimisticChatReportID when participant.isPolicyExpenseChat targets a report not present in the Onyx cache (mirrors action behavior)', () => {

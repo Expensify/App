@@ -282,7 +282,7 @@ function getAlternateText(
         rules,
     }: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
+    const report = getReportOrDraftReport({reportID: option.reportID});
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -641,7 +641,7 @@ function getReportOption({
     pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
+    const report = getReportOrDraftReport({reportID: participant.reportID, reportDraft});
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 

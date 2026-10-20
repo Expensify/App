@@ -142,7 +142,7 @@ function SearchTransactionsChangeReport() {
             return undefined;
         }
 
-        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
+        const report = getReportOrDraftReport({reportID: reportIDWithOwner, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]});
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
@@ -162,8 +162,7 @@ function SearchTransactionsChangeReport() {
         for (const transactionKey of selectedTransactionsKeys) {
             const selection = selectedTransactions[transactionKey];
             const reportID = selection?.reportID;
-            const ownerAccountID =
-                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
+            const ownerAccountID = selection?.ownerAccountID ?? getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]})?.ownerAccountID;
 
             if (typeof ownerAccountID === 'number') {
                 ownerAccountIDs.add(ownerAccountID);

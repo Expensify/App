@@ -44,7 +44,7 @@ const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteRe
         return NO_REPORT_ID_IN_PARAMS;
     }
 
-    const report = getReportOrDraftReport(focusedRouteReportID);
+    const report = getReportOrDraftReport({reportID: focusedRouteReportID});
     const isFocusedRouteAChatThread = isChatThread(report);
     const firstReportThatHasURLInAttachments = findURLInReportOrAncestorAttachments(report, url);
 
@@ -85,7 +85,7 @@ function findURLInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, 
     }
 
     if (parentReportID) {
-        const parentReport = getReportOrDraftReport(parentReportID);
+        const parentReport = getReportOrDraftReport({reportID: parentReportID});
         return findURLInReportOrAncestorAttachments(parentReport, url);
     }
 

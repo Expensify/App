@@ -138,7 +138,7 @@ function useTrackExpenseSubmission({
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport
-        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        ? getReportOrDraftReport({reportID: report?.chatReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {}})
         : report;
 
     // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft

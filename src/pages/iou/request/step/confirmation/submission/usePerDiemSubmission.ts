@@ -176,9 +176,9 @@ function usePerDiemSubmission({
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingChatReport = report;
         if (isExpenseReport) {
-            existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
+            existingChatReport = getReportOrDraftReport({reportID: report?.chatReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {}});
         } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
-            existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
+            existingChatReport = getReportOrDraftReport({reportID: participant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}});
         }
 
         // The recipient can be swapped without this screen remounting, so `existingChatReport` above

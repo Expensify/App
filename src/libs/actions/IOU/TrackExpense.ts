@@ -1577,7 +1577,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
     if (transactionThreadReportID) {
-        const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
+        const transactionThreadReport = getReportOrDraftReport({reportID: transactionThreadReportID});
 
         optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1760,7 +1760,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport({reportID: report?.chatReportID}) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
@@ -2572,7 +2572,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         selectedRouteDistance,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport({reportID: report?.chatReportID}) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
