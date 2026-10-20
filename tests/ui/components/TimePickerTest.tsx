@@ -1,7 +1,12 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
+
+import ScrollView from '@components/ScrollView';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import TimePicker from '@src/components/TimePicker/TimePicker';
 import type {TimePickerProps} from '@src/components/TimePicker/TimePicker';
+import CONST from '@src/CONST';
 
 import type {ComponentRef, Ref} from 'react';
 import type {TextInput, TextInputProps} from 'react-native';
@@ -10,6 +15,10 @@ import {NavigationContainer} from '@react-navigation/native';
 import React, {act} from 'react';
 
 import mockCreateMock from '../../utils/createMock';
+
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 // Store mocked inputs by testID so we can access them in tests
 const mockInputs: Record<string, ComponentRef<typeof TextInput>> = {};
@@ -72,6 +81,10 @@ describe('TimePicker Component', () => {
                 />
             </NavigationContainer>,
         );
+
+    beforeEach(() => {
+        mockUseResponsiveLayout.mockReturnValue(CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE);
+    });
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -144,5 +157,19 @@ describe('TimePicker Component', () => {
             pressBackspaceAndExpect({hours: '10', minutes: '00'});
             pressBackspaceAndExpect({hours: '00', minutes: '00'});
         });
+    });
+
+    it('keeps the Save button outside the scrollable area in landscape mode', () => {
+        // Given a landscape screen, which is too short to stack the inputs, number pad and Save button
+        mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, isInLandscapeMode: true});
+
+        // When the time picker is rendered
+        renderTimePicker({defaultValue: '2025-01-01 12:34 AM'});
+
+        // Then the number pad sits in a scrollable area and the Save button stays pinned outside it, so it is never pushed off-screen
+        const scrollView = screen.UNSAFE_getByType(ScrollView);
+        expect(within(scrollView).getByTestId('button_<')).toBeOnTheScreen();
+        // The Save button is the only button rendered outside the scrollable area
+        expect(screen.getAllByRole('button')).toHaveLength(within(scrollView).getAllByRole('button').length + 1);
     });
 });
