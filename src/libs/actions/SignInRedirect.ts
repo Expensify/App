@@ -21,6 +21,7 @@ let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentCredentialsValidateCode: string | undefined;
 let lastAuthTokenWrittenAt = 0;
+let lastAuthTokenWrittenEmail: string | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -41,6 +42,7 @@ Onyx.connectWithoutView({
     callback: (session) => {
         if (session?.authToken && session.authToken !== currentSessionAuthToken) {
             lastAuthTokenWrittenAt = Date.now();
+            lastAuthTokenWrittenEmail = session.email;
         }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
@@ -121,6 +123,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
                 newSessionMs: Date.now() - lastAuthTokenWrittenAt,
                 isNewSessionWiped: !currentSessionAuthToken,
                 emailAtClearStart,
+                newSessionEmail: lastAuthTokenWrittenEmail,
             });
         }
 
