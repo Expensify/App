@@ -360,10 +360,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.path,
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
                             exact: true,

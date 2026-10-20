@@ -329,6 +329,16 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
     },
+    COLLECT_DEPOSIT_ACCOUNT: {
+        path: 'collect-deposit-account/:subPage?/:action?',
+        entryScreens: [SCREENS.HOME, SCREENS.SETTINGS.WALLET.ROOT, SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE],
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'collect-deposit-account' as const;
+            }
+            return `collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
     MISSING_PERSONAL_DETAILS: {
         path: 'missing-personal-details/:cardID/:subPage?/:action?',
         entryScreens: [
@@ -2558,16 +2568,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
-        },
-    },
-    SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
-        route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
-        getRoute: (subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                return 'settings/wallet/collect-deposit-account' as const;
-            }
-
-            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {

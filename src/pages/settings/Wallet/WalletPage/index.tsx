@@ -307,7 +307,7 @@ function WalletPage() {
             return;
         }
         if (isCollectingDepositAccounts) {
-            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
             return;
         }
         openPersonalBankAccountSetupView({});
