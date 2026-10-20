@@ -1,13 +1,11 @@
 import ScrollView from '@components/ScrollView';
 
-import useCancelSendMessageSpanOnSkeleton from '@hooks/useCancelSendMessageSpanOnSkeleton';
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -30,8 +28,6 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     const styles = useThemeStyles();
     const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-
-    useCancelSendMessageSpanOnSkeleton(reportID, CONST.TELEMETRY.CANCELED_BY_SKELETON.CONCIERGE_WELCOME);
 
     return (
         <ScrollView
