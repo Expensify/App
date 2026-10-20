@@ -29,6 +29,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -67,6 +68,7 @@ import {
 import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +103,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
+    const payReportsViaABA = usePayViaABA();
 
     const {translate, localeCompare} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
@@ -188,6 +191,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             const holdMenuParams = {
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => startAnimation(),
             };
@@ -228,6 +232,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 rules,
             });
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport.reportID], policy);
+            }
         } else {
             startAnimation();
             payMoneyRequest({
@@ -305,6 +313,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,
         onlyShowPayElsewhere,
+        shouldShowPayViaABAOption: true,
     });
 
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -453,6 +462,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
+    const handleOptionsMenuShow = () => {
+        // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data
+        if (policy?.outputCurrency !== CONST.CURRENCY.AUD) {
+            return;
+        }
+        openPaymentMethods();
+    };
+
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         const runPaymentSelection = () =>
             selectPaymentType({
@@ -502,6 +519,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
             isDisabled={isDisabled}
+            onOptionsMenuShow={handleOptionsMenuShow}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton

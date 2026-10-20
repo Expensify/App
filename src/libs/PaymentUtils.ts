@@ -281,7 +281,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
-type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
+type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType | typeof CONST.PAYMENT_METHODS.ABA}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
 type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
