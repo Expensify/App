@@ -129,7 +129,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:

@@ -680,7 +680,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                 <RenderHTML
-                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)}
+                    html={translate(
+                        'workspace.categories.emptyCategories.subtitleWithAccounting',
+                        `${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyId, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`,
+                        canWriteCategories,
+                    )}
                 />
             </View>
         );

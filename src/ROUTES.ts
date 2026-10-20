@@ -3157,10 +3157,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/overview` as const, backTo);
         },
     },
-    WORKSPACE_ACCOUNTING: {
-        route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
-    },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
         getRoute: (

@@ -222,7 +222,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID));
             return;
         }
 
@@ -272,7 +272,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID));
             return;
         }
 

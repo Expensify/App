@@ -37,8 +37,8 @@ const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route | DynamicRouteSuf
     },
     [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path]: {
         [SCREENS.WORKSPACE.CONNECTIONS]: ROUTES.WORKSPACE_CONNECTIONS.route,
-        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.WORKSPACE_ACCOUNTING.route,
-        // With the unified Connections beta these routes render Connections, which can start the Xero flow
+        // These older routes render Connections, which can start the Xero flow
+        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.WORKSPACE_CONNECTIONS.route,
         [SCREENS.WORKSPACE.HR]: ROUTES.WORKSPACE_CONNECTIONS.route,
         [SCREENS.WORKSPACE.RECRUITING]: ROUTES.WORKSPACE_CONNECTIONS.route,
         [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: ROUTES.WORKSPACE_CONNECTIONS.route,
