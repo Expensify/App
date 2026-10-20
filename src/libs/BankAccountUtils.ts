@@ -139,7 +139,7 @@ function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>):
 /**
  * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
  */
-function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefined): boolean {
+function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined): boolean {
     return (
         accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
         accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
@@ -154,25 +154,20 @@ function isEligibleForWiseGlobalReimbursements(accountData: AccountData | undefi
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
     const eligibleAccounts = Object.values(bankAccountList ?? {})
         .map((bankAccount) => bankAccount.accountData)
-        .filter((accountData): accountData is AccountData => isEligibleForWiseGlobalReimbursements(accountData) && !!accountData?.bankAccountID);
+        .filter((accountData): accountData is AccountData => isBankAccountEligibleForGlobalReimbursements(accountData) && !!accountData?.bankAccountID);
 
-    const newestAccount = eligibleAccounts.reduce<AccountData | undefined>((newest, accountData) => {
-        if (!newest) {
-            return accountData;
-        }
-        // `created` is a DB timestamp, so plain string comparison orders it chronologically
-        const created = accountData.created ?? '';
-        const newestCreated = newest.created ?? '';
-        if (created !== newestCreated) {
-            return created > newestCreated ? accountData : newest;
-        }
-        // Accounts created in the same second fall back to the ID, which grows with each new account
-        const accountID = accountData.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        const newestAccountID = newest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        return accountID > newestAccountID ? accountData : newest;
-    }, undefined);
-
-    return newestAccount?.bankAccountID;
+    return eligibleAccounts
+        .sort((a, b) => {
+            // `created` is a DB timestamp, so plain string comparison orders it chronologically
+            const aCreated = a.created ?? '';
+            const bCreated = b.created ?? '';
+            if (aCreated !== bCreated) {
+                return bCreated > aCreated ? 1 : -1;
+            }
+            // Accounts created in the same second fall back to the ID, which grows with each new account
+            return (b.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) - (a.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        })
+        .at(0)?.bankAccountID;
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -339,7 +334,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
-    isEligibleForWiseGlobalReimbursements,
+    isBankAccountEligibleForGlobalReimbursements,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,
     getBankAccountState,

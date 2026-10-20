@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isEligibleForWiseGlobalReimbursements} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -63,7 +63,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isEligibleForWiseGlobalReimbursements(bankAccount?.accountData)}
+                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)}
                 onBackButtonPress={goBackToWallet}
             >
                 <Header>

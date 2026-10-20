@@ -38,7 +38,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isEligibleForWiseGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -473,7 +473,7 @@ function WalletPage() {
 
     const shouldShowEditNicknameButton = paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
-    const shouldShowEnableGlobalReimbursementsButton = isEligibleForWiseGlobalReimbursements(paymentMethod.selectedPaymentMethod);
+    const shouldShowEnableGlobalReimbursementsButton = isBankAccountEligibleForGlobalReimbursements(paymentMethod.selectedPaymentMethod);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
