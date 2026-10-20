@@ -209,10 +209,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType, paymentType, methodID}) => {
+        onHoldMenuOpen: ({requestType, paymentType, paymentMethod, methodID}) => {
             openHoldMenu({
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID,
                 onConfirm: () => clearSelectedTransactions(true),
             });

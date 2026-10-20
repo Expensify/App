@@ -45,9 +45,6 @@ type UsePaymentOptionsProps = Pick<
 > & {
     shouldShowApproveButton?: boolean;
     shouldDisableApproveButton?: boolean;
-
-    /** Whether to offer paying via ABA, for callers that handle its payment method */
-    shouldShowPayViaABAOption?: boolean;
 };
 
 /**
@@ -66,7 +63,6 @@ function usePaymentOptions({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
-    shouldShowPayViaABAOption = false,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
     const styles = useThemeStyles();
@@ -163,7 +159,7 @@ function usePaymentOptions({
         if (isExpenseReport && shouldShowPayWithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (shouldShowPayViaABAOption && isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
+        if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
             buttonOptions.push({
                 text: translate('iou.payViaABA'),
                 icon: icons.Bank,
@@ -282,7 +278,6 @@ function usePaymentOptions({
         icons,
         hasActivatedWallet,
         hasPersonalBankAccount,
-        shouldShowPayViaABAOption,
         policy,
         isOffline,
     ]);

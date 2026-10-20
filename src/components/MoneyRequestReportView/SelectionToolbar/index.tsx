@@ -199,6 +199,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         isHoldMenuVisible,
         requestType,
         paymentType,
+        paymentMethod,
         selectedVBBAToPayFromHoldMenu,
         handleHoldMenuClose,
         handleHoldMenuConfirm,
@@ -334,6 +335,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onClose={handleHoldMenuClose}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
+                    paymentMethod={paymentMethod}
                     methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
                     chatReport={chatReport}
                     moneyRequestReport={report}

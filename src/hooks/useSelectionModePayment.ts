@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
@@ -7,6 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,6 +43,7 @@ import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
+import usePayViaABA from './usePayViaABA';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
@@ -50,6 +53,7 @@ import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 type HoldMenuOpenParams = {
     requestType: ActionHandledType;
     paymentType: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
 };
 
@@ -96,6 +100,8 @@ function useSelectionModePayment({
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const payReportsViaABA = usePayViaABA();
+    const isAUDPolicy = policy?.outputCurrency === CONST.CURRENCY.AUD;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -181,6 +187,7 @@ function useSelectionModePayment({
             onHoldMenuOpen({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             });
             return;
@@ -211,6 +218,10 @@ function useSelectionModePayment({
                 isTrackIntentUser,
                 rules,
             });
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport.reportID], policy);
+            }
         } else {
             payMoneyRequest({
                 getCurrencyDecimals,
@@ -252,6 +263,15 @@ function useSelectionModePayment({
     useEffect(() => {
         confirmPaymentRef.current = confirmPayment;
     });
+
+    // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data. The selection
+    // menus have no hook for when their pay options open, so it's loaded when selection mode can pay instead.
+    useEffect(() => {
+        if (!hasPayAction || !isAUDPolicy) {
+            return;
+        }
+        openPaymentMethods();
+    }, [hasPayAction, isAUDPolicy]);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,

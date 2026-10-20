@@ -313,7 +313,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,
         onlyShowPayElsewhere,
-        shouldShowPayViaABAOption: true,
     });
 
     const activeAdminPolicies = useActiveAdminPolicies();
