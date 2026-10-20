@@ -29,9 +29,9 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Policy/DistanceRate', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test-only module mock. jest.requireActual returns an untyped module
     const actual = jest.requireActual('@userActions/Policy/DistanceRate');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- test-only module mock. Spreads the real actions and replaces only updatePolicyDistanceRateName
     return {
         ...actual,
         updatePolicyDistanceRateName: jest.fn(),
