@@ -275,7 +275,7 @@ type AddressFieldValues = Partial<Pick<HomeAddressForm, ValueOf<typeof ADDRESS_I
 type AddressFieldErrors = Partial<Record<keyof AddressFieldValues, string>>;
 
 /** Length and zip format errors for the inputs rendered by AddressFields */
-function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate) {
+function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate): AddressFieldErrors {
     const errors: AddressFieldErrors = {};
     for (const addressInputID of ['addressLine1', 'addressLine2', 'city'] as const) {
         const addressPart = values[addressInputID] ?? '';
