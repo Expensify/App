@@ -205,12 +205,12 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         requestDashboard();
     });
 
-    // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
     useEffect(() => {
         if (!isFocused) {
             return;
         }
         onRequestConditionsChanged();
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
     }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
