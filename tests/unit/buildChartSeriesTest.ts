@@ -304,12 +304,12 @@ describe('buildChartSeries', () => {
 
         // When the series is built for a line chart compared against the average
         const {series, rows} = buildChartSeries({
-            data,
-            comparison: {data: averages, label: 'Average', color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: averages, label: 'Average', color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -326,12 +326,12 @@ describe('buildChartSeries', () => {
 
         // When the series is built for a line chart compared against those rows
         const {rows} = buildChartSeries({
-            data,
-            comparison: {data: [quarterGroup(1, 45000)], label: 'Average', color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: [quarterGroup(1, 45000)], label: 'Average', color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -486,15 +486,7 @@ describe('buildChartSeries with a compared period', () => {
             comparison: {data: previousRows, color: themeColors.green200, periods: PERIODS},
             view: CONST.SEARCH.VIEW.BAR,
             groupBy,
-            getLabel: (item) => {
-                if (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
-                    return item.formattedMerchant ?? '';
-                }
-                if (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER) {
-                    return item.formattedQuarter ?? '';
-                }
-                return '';
-            },
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
             getCurrencyDecimals,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -503,7 +495,7 @@ describe('buildChartSeries with a compared period', () => {
     }
 
     it('pairs time buckets by their position in their own period, so a gap cannot shift the rest', () => {
-        // Given a period missing its second quarter, which a search returns no bucket for
+        // Given a period with no row for its second quarter
         const rows = [quarterGroup(1, 100000), quarterGroup(3, 300000)];
         const previousRows = [quarterGroup(1, 10000, 2025), quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025)];
 
@@ -628,15 +620,26 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
     });
 
-    it('pairs the days of a custom range by their position, even when both periods start on the same date', () => {
-        // Given January 31 to March 2 plotted by day against the 31 days before it, December 31 to January 30
-        const values = buildValues([dayGroup('2026-03-01')], CONST.SEARCH.GROUP_BY.DAY, {
-            primary: {start: '2026-01-31', end: '2026-03-02'},
-            comparison: {start: '2025-12-31', end: '2026-01-30'},
+    it('pairs the days of a custom range by their position, since its compared range is the same number of days before it', () => {
+        // Given October as a custom range, compared with the 31 days before it, which spent only on their first day, August 31
+        const {rows} = buildChartSeries({
+            data: [dayGroup('2026-10-01')],
+            comparison: {
+                data: [{...dayGroup('2026-08-31'), total: 50000}],
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-10-01', end: '2026-10-31'}, comparison: {start: '2026-08-31', end: '2026-09-30'}},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
         });
 
-        // Then March 1, the range's 30th day, is compared with January 29 rather than with February 1, outside the compared range
-        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}]);
+        // Then October 1 is compared with August 31, the first day of each range, rather than with September 1
+        expect(rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 500});
     });
 
     /** Builds the dates the tooltip shows for each period at every point. */
@@ -660,6 +663,22 @@ describe('buildChartSeries labels for compared time buckets', () => {
 
         // Then the tooltip names the days each period actually adds up, rather than the period names
         expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1 - Sep 5, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
+    });
+
+    it("names each period's row by its year when the same month of two years is compared", () => {
+        // Given April of this year to date plotted against April of the year before
+        const labels = buildSeriesLabels([monthGroup(2026, 4)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-01-01', end: '2026-10-20'}, {start: '2025-01-01', end: '2025-10-20'});
+
+        // Then each row is named by the year, since the month they share already titles the tooltip
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: '2026', [CHART_SERIES_KEY.COMPARISON]: '2025'}]);
+    });
+
+    it("names each period's row by its own date when paired days share no name", () => {
+        // Given October as a custom range, whose first day is paired with August 31, the first of the 31 days before it
+        const labels = buildSeriesLabels([dayGroup('2026-10-01')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-10-01', end: '2026-10-31'}, {start: '2026-08-31', end: '2026-09-30'});
+
+        // Then each row is named by its full date, since "1st" and "31st" name only one of the two days
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Oct 1, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 31, 2026'}]);
     });
 
     it('says "so far" on the current period of a bucket still collecting expenses, keeping the bucket name', () => {

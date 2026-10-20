@@ -16,9 +16,6 @@ import type {
 } from './SearchList/ListItem/types';
 import type {GroupedItem, SearchGroupBy} from './types';
 
-/** Calendar unit a time-bucketed group spans */
-type ChartBucketUnit = 'day' | 'week' | 'month' | 'quarter' | 'year';
-
 /** The dates a time bucket covers */
 type ChartBucketRange = {start: string; end: string};
 
@@ -40,9 +37,6 @@ type ChartGroupByConfig = {
 
     /** Builds the query fragment appended to the current query to drill into a group's transactions */
     getFilterQuery: (item: GroupedItem) => string;
-
-    /** Calendar unit each group spans, set only when grouping by time */
-    bucketUnit?: ChartBucketUnit;
 
     /** Returns the dates a time-based group covers, as yyyy-MM-dd strings */
     getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
@@ -91,7 +85,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
         axisLabelSteps: [1, 2, 7, 14],
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? `date>=${item.day} date<=${item.day}` : ''),
-        bucketUnit: 'day',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined),
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
@@ -104,7 +97,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
             const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
             return `date>=${start} date<=${end}`;
         },
-        bucketUnit: 'month',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
@@ -118,7 +110,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
             const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
             return `date>=${start} date<=${end}`;
         },
-        bucketUnit: 'week',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.YEAR]: {
@@ -130,7 +121,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
             const {start, end} = DateUtils.getYearDateRange(yearItem.year);
             return `date>=${start} date<=${end}`;
         },
-        bucketUnit: 'year',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined),
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
@@ -143,10 +133,9 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
             const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
             return `date>=${start} date<=${end}`;
         },
-        bucketUnit: 'quarter',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },
 };
 
 export default CHART_GROUP_BY_CONFIG;
-export type {ChartBucketRange, ChartBucketUnit};
+export type {ChartBucketRange};

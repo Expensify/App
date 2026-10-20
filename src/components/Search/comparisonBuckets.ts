@@ -28,36 +28,50 @@ import {
     subMonths,
 } from 'date-fns';
 
-import type {ChartBucketRange, ChartBucketUnit} from './chartGroupByConfig';
+import type {ChartBucketRange} from './chartGroupByConfig';
+import type {SearchGroupBy} from './types';
 
 const DAYS_IN_WEEK = 7;
 
+/** A group-by that buckets time */
+type TimeGroupBy =
+    | typeof CONST.SEARCH.GROUP_BY.DAY
+    | typeof CONST.SEARCH.GROUP_BY.WEEK
+    | typeof CONST.SEARCH.GROUP_BY.MONTH
+    | typeof CONST.SEARCH.GROUP_BY.QUARTER
+    | typeof CONST.SEARCH.GROUP_BY.YEAR;
+
 /** Bucket offset from the period start. Weeks count from the week holding the first day, whatever weekday weeks start on. */
-const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, periodStart: Date) => number> = {
-    day: differenceInCalendarDays,
-    week: (bucketStart, periodStart) => Math.ceil(differenceInCalendarDays(bucketStart, periodStart) / DAYS_IN_WEEK),
-    month: differenceInCalendarMonths,
-    quarter: differenceInCalendarQuarters,
-    year: differenceInCalendarYears,
+const BUCKET_OFFSET: Record<TimeGroupBy, (bucketStart: Date, periodStart: Date) => number> = {
+    [CONST.SEARCH.GROUP_BY.DAY]: differenceInCalendarDays,
+    [CONST.SEARCH.GROUP_BY.WEEK]: (bucketStart, periodStart) => Math.ceil(differenceInCalendarDays(bucketStart, periodStart) / DAYS_IN_WEEK),
+    [CONST.SEARCH.GROUP_BY.MONTH]: differenceInCalendarMonths,
+    [CONST.SEARCH.GROUP_BY.QUARTER]: differenceInCalendarQuarters,
+    [CONST.SEARCH.GROUP_BY.YEAR]: differenceInCalendarYears,
 };
 
 /** Moves a date forward by a number of buckets */
-const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> = {
-    day: addDays,
-    week: (date, amount) => addDays(date, amount * DAYS_IN_WEEK),
-    month: addMonths,
-    quarter: addQuarters,
-    year: addYears,
+const BUCKET_ADD: Record<TimeGroupBy, (date: Date, amount: number) => Date> = {
+    [CONST.SEARCH.GROUP_BY.DAY]: addDays,
+    [CONST.SEARCH.GROUP_BY.WEEK]: (date, amount) => addDays(date, amount * DAYS_IN_WEEK),
+    [CONST.SEARCH.GROUP_BY.MONTH]: addMonths,
+    [CONST.SEARCH.GROUP_BY.QUARTER]: addQuarters,
+    [CONST.SEARCH.GROUP_BY.YEAR]: addYears,
 };
 
 /** Labels for paired buckets that share no calendar name, numbered by position unless the bucket is the only one */
 const BUCKET_LABEL = {
-    day: 'insightsPage.compare.dayLabel',
-    week: 'insightsPage.compare.weekLabel',
-    month: 'insightsPage.compare.monthLabel',
-    quarter: 'insightsPage.compare.quarterLabel',
-    year: 'insightsPage.compare.yearLabel',
-} as const satisfies Record<ChartBucketUnit, string>;
+    [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.compare.dayLabel',
+    [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.compare.weekLabel',
+    [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.compare.monthLabel',
+    [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.compare.quarterLabel',
+    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.compare.yearLabel',
+} as const satisfies Record<TimeGroupBy, string>;
+
+/** Returns whether a group-by buckets time, so its groups can be paired across periods */
+function isTimeGroupBy(groupBy: SearchGroupBy): groupBy is TimeGroupBy {
+    return groupBy in BUCKET_OFFSET;
+}
 
 /** A period's first and last day */
 type ChartPeriod = {start: string; end: string};
@@ -71,22 +85,13 @@ type ChartComparisonPeriods = {
     monthsApart?: number;
 };
 
-/** date-fns patterns naming paired buckets by what they share, like "January" for January 2026 and January 2025 */
-type CalendarNamePatterns = {
-    /** The shared name, which titles the tooltip */
-    label: string;
-
-    /** The shared name on the axis */
-    shortLabel: string;
-
-    /** What tells the paired buckets apart, which names each period's row, like the year */
-    seriesLabel: string;
-};
-
-/** Calendar name patterns for a period's buckets, like "January" or "Mon". Undefined when a name could repeat within the period. */
-function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date, periodEnd: Date): CalendarNamePatterns | undefined {
-    switch (bucketUnit) {
-        case 'day':
+/**
+ * Returns date-fns patterns naming paired buckets by what they share, like "January" for January 2026 and January 2025, and each by what differs,
+ * like "2026" and "2025". Undefined when two buckets in the period would share a name, like "5th" for October 5 and November 5.
+ */
+function getCalendarNamePatterns(groupBy: TimeGroupBy, periodStart: Date, periodEnd: Date) {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.DAY:
             if (differenceInCalendarDays(periodEnd, periodStart) < DAYS_IN_WEEK) {
                 return {label: 'EEE', shortLabel: 'EEE', seriesLabel: 'MMM d, yyyy'};
             }
@@ -94,9 +99,9 @@ function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date,
                 return {label: 'do', shortLabel: 'do', seriesLabel: 'LLLL yyyy'};
             }
             return periodEnd < addYears(periodStart, 1) ? {label: 'MMM d', shortLabel: 'MMM d', seriesLabel: 'yyyy'} : undefined;
-        case 'month':
+        case CONST.SEARCH.GROUP_BY.MONTH:
             return differenceInCalendarMonths(periodEnd, periodStart) < 12 ? {label: 'LLLL', shortLabel: 'LLL', seriesLabel: 'yyyy'} : undefined;
-        case 'quarter':
+        case CONST.SEARCH.GROUP_BY.QUARTER:
             return differenceInCalendarQuarters(periodEnd, periodStart) < 4 ? {label: 'QQQ', shortLabel: 'QQQ', seriesLabel: 'yyyy'} : undefined;
         default:
             return undefined;
@@ -104,15 +109,15 @@ function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date,
 }
 
 /** Returns the start of the bucket holding a date. `weekStart` is the start of any week bucket, which tells the weekday weeks begin on. */
-function getBucketStart(bucketUnit: ChartBucketUnit, date: Date, weekStart: Date): Date {
-    switch (bucketUnit) {
-        case 'week':
+function getBucketStart(groupBy: TimeGroupBy, date: Date, weekStart: Date): Date {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.WEEK:
             return addDays(date, -((getDay(date) - getDay(weekStart) + DAYS_IN_WEEK) % DAYS_IN_WEEK));
-        case 'month':
+        case CONST.SEARCH.GROUP_BY.MONTH:
             return startOfMonth(date);
-        case 'quarter':
+        case CONST.SEARCH.GROUP_BY.QUARTER:
             return startOfQuarter(date);
-        case 'year':
+        case CONST.SEARCH.GROUP_BY.YEAR:
             return startOfYear(date);
         default:
             return date;
@@ -120,34 +125,34 @@ function getBucketStart(bucketUnit: ChartBucketUnit, date: Date, weekStart: Date
 }
 
 /**
- * The bucket a current bucket is compared with, or undefined when the comparison period has none, like October 31
+ * Returns the bucket a current bucket is compared with, or undefined when the comparison period has none, like October 31
  * against September, February 29 against a year without one, or a sixth week against a month of five.
  */
-function getCounterpartBucketRange(bucketRange: ChartBucketRange, periods: ChartComparisonPeriods, bucketUnit: ChartBucketUnit): ChartBucketRange | undefined {
+function getCounterpartBucketRange(bucketRange: ChartBucketRange, periods: ChartComparisonPeriods, groupBy: TimeGroupBy): ChartBucketRange | undefined {
     const bucketStart = parseISO(bucketRange.start);
     const primaryStart = parseISO(periods.primary.start);
     const comparisonStart = parseISO(periods.comparison.start);
 
     let counterpartStart: Date;
-    if (bucketUnit === 'day' && periods.monthsApart !== undefined) {
+    if (groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined) {
         counterpartStart = subMonths(bucketStart, periods.monthsApart);
         // Going back a month turns October 31 into September 30, since September has no 31st, so that day has no counterpart.
         if (getDate(counterpartStart) !== getDate(bucketStart)) {
             return undefined;
         }
     } else {
-        const dateInBucket = BUCKET_ADD[bucketUnit](comparisonStart, BUCKET_OFFSET[bucketUnit](bucketStart, primaryStart));
-        counterpartStart = getBucketStart(bucketUnit, dateInBucket, bucketStart);
+        const dateInBucket = BUCKET_ADD[groupBy](comparisonStart, BUCKET_OFFSET[groupBy](bucketStart, primaryStart));
+        counterpartStart = getBucketStart(groupBy, dateInBucket, bucketStart);
     }
 
     const start = format(counterpartStart, CONST.DATE.FNS_FORMAT_STRING);
     if (start > periods.comparison.end) {
         return undefined;
     }
-    return {start, end: format(addDays(BUCKET_ADD[bucketUnit](counterpartStart, 1), -1), CONST.DATE.FNS_FORMAT_STRING)};
+    return {start, end: format(addDays(BUCKET_ADD[groupBy](counterpartStart, 1), -1), CONST.DATE.FNS_FORMAT_STRING)};
 }
 
-/** The part of a bucket inside its period, since a week or month can start before the period or end after it */
+/** Clips a bucket to its period, since a week or month can start before the period or end after it */
 function clipToPeriod(range: ChartBucketRange, period: ChartBucketRange): ChartBucketRange {
     return {
         start: range.start > period.start ? range.start : period.start,
@@ -176,13 +181,6 @@ function formatDates({start, end}: ChartPeriod, dateFnsLocale: LocaleContextProp
     return DateUtils.getFormattedDateRangeForSearch(start, end, dateFnsLocale);
 }
 
-/** What a compared bucket is called: its title and axis label, and each period's name for its own bucket */
-type ComparedBucketLabels = {
-    label: string;
-    shortLabel: string;
-    seriesLabels: {primary: string; comparison?: string};
-};
-
 /**
  * Returns a time bucket's labels: the calendar name it shares with its counterpart, like "January", or else its position, like "Week 2".
  * Each period's bucket is then named by what that label leaves out, like its year, or else by its dates.
@@ -191,14 +189,14 @@ function getComparedBucketLabels(
     bucketRange: ChartBucketRange,
     counterpartRange: ChartBucketRange | undefined,
     periods: ChartComparisonPeriods,
-    bucketUnit: ChartBucketUnit,
+    groupBy: TimeGroupBy,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: LocaleContextProps['dateFnsLocale'],
-): ComparedBucketLabels {
+) {
     const bucketDate = parseISO(bucketRange.start);
     const primaryStart = parseISO(periods.primary.start);
     const primaryEnd = parseISO(periods.primary.end);
-    const patterns = getCalendarNamePatterns(bucketUnit, primaryStart, primaryEnd);
+    const patterns = getCalendarNamePatterns(groupBy, primaryStart, primaryEnd);
     const sharedPatterns = patterns && (!counterpartRange || format(bucketDate, patterns.label) === format(parseISO(counterpartRange.start), patterns.label)) ? patterns : undefined;
 
     const formatSeriesLabel = (range: ChartBucketRange, period: ChartPeriod) =>
@@ -215,10 +213,10 @@ function getComparedBucketLabels(
             seriesLabels,
         };
     }
-    const isLoneBucket = BUCKET_OFFSET[bucketUnit](getBucketStart(bucketUnit, primaryEnd, bucketDate), primaryStart) === 0;
-    const positionLabel = translate(BUCKET_LABEL[bucketUnit], isLoneBucket ? undefined : BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart) + 1);
+    const isLoneBucket = BUCKET_OFFSET[groupBy](getBucketStart(groupBy, primaryEnd, bucketDate), primaryStart) === 0;
+    const positionLabel = translate(BUCKET_LABEL[groupBy], isLoneBucket ? undefined : BUCKET_OFFSET[groupBy](bucketDate, primaryStart) + 1);
     return {label: positionLabel, shortLabel: positionLabel, seriesLabels};
 }
 
-export {formatDates, getComparedBucketLabels, getCounterpartBucketRange};
+export {formatDates, getComparedBucketLabels, getCounterpartBucketRange, isTimeGroupBy};
 export type {ChartComparisonPeriods, ChartPeriod};

@@ -17,7 +17,7 @@ import type {ChartComparisonPeriods, ChartPeriod} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import {formatDates, getComparedBucketLabels, getCounterpartBucketRange} from './comparisonBuckets';
+import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, isTimeGroupBy} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
@@ -112,22 +112,22 @@ function buildChartSeries({
     dateFnsLocale,
     colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
-    const {bucketUnit, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const periods = bucketUnit && getDateRange ? comparison?.periods : undefined;
+    const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    const periods = comparison?.periods;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
     const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
 
     /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period */
     const getCompared = (item: GroupedItem) => {
-        const bucketRange = periods && getDateRange?.(item);
-        if (periods && bucketUnit && bucketRange) {
-            const counterpartRange = getCounterpartBucketRange(bucketRange, periods, bucketUnit);
+        const bucketRange = getDateRange?.(item);
+        if (periods && isTimeGroupBy(groupBy) && bucketRange) {
+            const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
             return {
                 value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
                 percentOfTotal: comparedItem?.percentOfTotal,
-                bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, bucketUnit, translate, dateFnsLocale),
+                bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
             };
         }
 
