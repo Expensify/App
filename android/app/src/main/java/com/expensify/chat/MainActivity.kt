@@ -43,7 +43,7 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val initialIntent = intent
         val isColdShareIntent = initialIntent?.action == Intent.ACTION_SEND
-        if (isColdShareIntent && initialIntent != null && handleIntent(initialIntent, shouldLaunchActivity = false)) {
+        if (isColdShareIntent && handleIntent(initialIntent, shouldLaunchActivity = false)) {
             setIntent(Intent(Intent.ACTION_VIEW, Uri.parse("new-expensify://share/root")).apply {
                 addCategory(Intent.CATEGORY_BROWSABLE)
             })
