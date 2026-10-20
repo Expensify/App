@@ -17,6 +17,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -164,7 +165,7 @@ jest.mock('@components/HeaderWithBackButton', () => {
     return MockHeader;
 });
 
-let mockFormOnSubmit: ((values: {firstName: string; prompt: string}) => void) | undefined;
+let mockFormOnSubmit: ((values: {firstName: string; prompt: string; role?: ValueOf<typeof CONST.POLICY.ROLE>}) => void) | undefined;
 
 jest.mock('@components/Form/FormProvider', () => {
     function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: (values: {firstName: string; prompt: string}) => void}) {
@@ -376,9 +377,19 @@ describe('AddAgentPage', () => {
 
             renderAddAgentPage({policyID: 'POL_42'});
 
-            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.', role: CONST.POLICY.ROLE.ADMIN});
 
-            expect(mockCreateCompanyAgent).toHaveBeenCalledWith(OWNER_ACCOUNT_ID, OWNER_LOGIN, 'Reject gambling.', mockPolicy, CONST.POLICY.ROLE.ADMIN, 'Bot', 'bot-avatar--blue');
+            expect(mockCreateCompanyAgent).toHaveBeenCalledWith(
+                OWNER_ACCOUNT_ID,
+                OWNER_LOGIN,
+                'Reject gambling.',
+                mockPolicy,
+                CONST.POLICY.ROLE.ADMIN,
+                'Bot',
+                'bot-avatar--blue',
+                undefined,
+                undefined,
+            );
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(
