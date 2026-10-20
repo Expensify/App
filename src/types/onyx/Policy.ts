@@ -996,6 +996,7 @@ type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
     vendorBill?: string;
     journalEntry?: string;
+    creditCardCharge?: string;
 };
 
 /** NetSuite custom list */

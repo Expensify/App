@@ -28,6 +28,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -90,7 +91,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     </MenuItemField.Row>
                     {!!exportDestination && (
                         <MenuItem.HelpText
-                            message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`)}
+                            message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}` as TranslationPaths)}
                             shouldRenderMessageAsHTML
                         />
                     )}

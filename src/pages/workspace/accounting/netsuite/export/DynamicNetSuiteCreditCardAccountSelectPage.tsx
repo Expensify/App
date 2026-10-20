@@ -89,7 +89,6 @@ function DynamicNetSuiteCreditCardAccountSelectPage({policy}: WithPolicyConnecti
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
             listEmptyContent={listEmptyContent}
-            shouldUseDefaultListEmptyContent
         />
     );
 }
