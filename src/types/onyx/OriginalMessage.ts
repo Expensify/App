@@ -591,6 +591,12 @@ type OriginalMessagePolicyChangeLog = {
     /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     endDate?: string;
 
+    /** Share of the custom unit rate that is tax reclaimable, used in ADD actions */
+    taxClaimablePercentage?: number;
+
+    /** Name of the tax rate the custom unit rate's reclaimable tax falls under, used in ADD actions */
+    taxRateName?: string;
+
     /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newStartDate?: string;
 
