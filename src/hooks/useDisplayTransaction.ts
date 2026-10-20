@@ -9,6 +9,13 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useLocalize from './useLocalize';
 
+/**
+ * Normalizes a transaction for display, keeping commuter-reduced values in policy
+ * expense chats and restoring full-route values elsewhere when possible.
+ *
+ * @param policy Fallback policy used for display normalization when no original policy is found.
+ * @param rateLookupPolicy Policy checked for the selected rate before searching other policies. Defaults to policy.
+ */
 function useDisplayTransaction(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean, policy?: OnyxEntry<Policy>, rateLookupPolicy: OnyxEntry<Policy> = policy) {
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
