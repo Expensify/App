@@ -5,7 +5,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
-import useTransactionCardFeedSettings from '@hooks/useTransactionCardFeedSettings';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
@@ -46,19 +45,7 @@ function DynamicReviewReimbursablePage() {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
 
-    const keptTransaction = allDuplicates?.find((duplicate) => duplicate?.transactionID === reviewDuplicates?.transactionID) ?? transaction;
-    const keptTransactionCardFeedSettings = useTransactionCardFeedSettings(keptTransaction);
-
-    const compareResult = compareDuplicateTransactionFields(
-        policyTags ?? {},
-        transaction,
-        allDuplicates,
-        reviewDuplicatesReport,
-        reviewDuplicates?.transactionID,
-        policy,
-        policyCategories,
-        keptTransactionCardFeedSettings,
-    );
+    const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'reimbursable', route.params.reportID, route.params.backTo);
     const options = useMemo(

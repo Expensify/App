@@ -30,7 +30,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
-import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -1014,13 +1013,10 @@ function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'mana
 /**
  * Determine whether the reimbursable value of a transaction can be changed by the user.
  * Company card transactions follow their feed's reimbursable setting: only the "Do Not Force" options allow changes.
- * The value stamped on the transaction at import wins, so changing the feed setting only affects expenses imported afterward.
- * The feed setting is used as a fallback for transactions that weren't stamped.
+ * Only the value stamped on the transaction at import is used, so changing the feed setting only affects expenses imported afterward.
+ * A transaction without a stamped value behaves as "Force No".
  */
-function isCardTransactionReimbursableEditable(
-    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>,
-    feedSettings?: Pick<CustomCardFeedData, 'forceReimbursable'>,
-): boolean {
+function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
     if (!isManagedCardTransaction(transaction)) {
         return true;
     }
@@ -1029,9 +1025,7 @@ function isCardTransactionReimbursableEditable(
         return false;
     }
 
-    // A feed without a stored reimbursable setting behaves as "Force No"
-    const feedForceReimbursable = feedSettings ? (feedSettings.forceReimbursable ?? CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_NO) : undefined;
-    const forceReimbursable = transaction?.comment?.forceReimbursable ?? feedForceReimbursable;
+    const forceReimbursable = transaction?.comment?.forceReimbursable;
 
     return (
         forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES ||

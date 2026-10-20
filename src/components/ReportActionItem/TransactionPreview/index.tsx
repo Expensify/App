@@ -5,7 +5,6 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTransactionCardFeedSettings from '@hooks/useTransactionCardFeedSettings';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import ControlSelection from '@libs/ControlSelection';
@@ -86,21 +85,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const transactionCardFeedSettings = useTransactionCardFeedSettings(transaction);
     const navigateToReviewFields = () =>
-        Navigation.navigate(
-            getReviewNavigationRoute(
-                Navigation.getActiveRoute(),
-                route.params?.reportID,
-                transaction,
-                duplicates,
-                policy,
-                policyCategories,
-                policyTags ?? {},
-                report,
-                transactionCardFeedSettings,
-            ),
-        );
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 

@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionCardFeedSettings from '@hooks/useTransactionCardFeedSettings';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
@@ -114,7 +113,6 @@ function DynamicReviewPage() {
     const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
-    const selectedTransactionCardFeedSettings = useTransactionCardFeedSettings(selectedTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
@@ -252,7 +250,6 @@ function DynamicReviewPage() {
                 selectedTransactionPolicyCategories,
                 selectedTransactionPolicyTags ?? {},
                 selectedTransactionReport,
-                selectedTransactionCardFeedSettings,
             ),
         );
     };

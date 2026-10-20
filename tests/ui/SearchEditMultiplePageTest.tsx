@@ -218,8 +218,8 @@ describe('SearchEditMultiplePage', () => {
         expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
     });
 
-    it('uses the card feed setting for a company card expense with no stamped value', async () => {
-        // Given a company card expense with no stamped value, whose card belongs to a feed set to "Do Not Force"
+    it('ignores the current card feed setting for a company card expense with no stamped value', async () => {
+        // Given a company card expense with no stamped value, whose card belongs to a feed that is now set to "Do Not Force"
         const cardID = 1234;
         const fundID = '5678';
         const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
@@ -234,8 +234,8 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Reimbursable row shows, because the feed setting is the fallback for expenses that weren't stamped
-        expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        // Then the Reimbursable row is hidden, because changing the feed setting only affects expenses imported afterward
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
     });
 
     it('fetches policy categories and tags when they are enabled but not loaded yet', async () => {

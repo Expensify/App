@@ -1,11 +1,8 @@
 import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 
-import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
-import {getFeedSettingsFromCardFeeds} from '@libs/CardFeedUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -20,7 +17,6 @@ import {
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -81,10 +77,6 @@ function useFooterDerivedFlags({
     const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath: canNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
-    const [cardFeedsForTransactionCard] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${getNonEmptyStringOnyxID(transactionCard?.fundID)}`);
-    const transactionCardFeedSettings = getFeedSettingsFromCardFeeds(cardFeedsForTransactionCard, transactionCard);
 
     // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
@@ -113,7 +105,7 @@ function useFooterDerivedFlags({
         (isPolicyExpenseChat || isTrackExpense) &&
         !!policy &&
         (isManagedCardTransaction(transaction) || policy?.disabledFields?.reimbursable !== true) &&
-        isCardTransactionReimbursableEditable(transaction, transactionCardFeedSettings) &&
+        isCardTransactionReimbursableEditable(transaction) &&
         !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);

@@ -283,19 +283,7 @@ function getFeedSettingsForCard(card: AssignedCardForFeedAccess, allCardFeeds: O
         return undefined;
     }
 
-    return getFeedSettingsFromCardFeeds(allCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`], card);
-}
-
-/**
- * The settings of the company card feed an assigned card belongs to, read from the card's own feed record
- * (the `SHARED_NVP_PRIVATE_DOMAIN_MEMBER` entry for its `fundID`).
- */
-function getFeedSettingsFromCardFeeds(cardFeeds: OnyxEntry<CardFeeds>, card: AssignedCardForFeedAccess | undefined): CustomCardFeedData | undefined {
-    if (!card) {
-        return undefined;
-    }
-
-    return cardFeeds?.settings?.companyCards?.[getCompanyCardFeed(card.bank)];
+    return allCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`]?.settings?.companyCards?.[getCompanyCardFeed(card.bank)];
 }
 
 /**
@@ -712,8 +700,6 @@ export {
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
-    getFeedSettingsForCard,
-    getFeedSettingsFromCardFeeds,
     getPolicyIDsNamedByCardFeeds,
     getAssignedCardFeedAccess,
     getVisibleCompanyCardFeedsForSelector,

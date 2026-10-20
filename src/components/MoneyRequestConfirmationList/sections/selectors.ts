@@ -236,7 +236,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'bank' | 'cardID' | 'comment'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'bank' | 'comment'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -249,7 +249,6 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
         reportID: t.reportID,
         managedCard: t.managedCard,
         bank: t.bank,
-        cardID: t.cardID,
         // Only the card feed's reimbursable setting is needed, so the slice doesn't change while the description is edited
         comment: {forceReimbursable: t.comment?.forceReimbursable},
     };
