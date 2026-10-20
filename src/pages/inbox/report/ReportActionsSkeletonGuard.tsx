@@ -1,5 +1,4 @@
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
@@ -33,7 +32,6 @@ type ReportActionsSkeletonGuardProps = {
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
     const isReportLoadPending = useIsReportLoadPending(reportID);
-    const {shouldShowWelcome} = useConciergeAskState(reportID);
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
@@ -56,22 +54,31 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         loadOlderChats: actions.loadOlderChats,
     });
 
-    if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
-        if (shouldShowWelcome) {
-            return (
-                <AskConciergeWelcome
-                    reportID={reportID}
-                    hasPreviousMessages={!!state.hasPreviousMessages}
-                    onShowPreviousMessages={actions.handleShowPreviousMessages}
-                />
-            );
-        }
+    if ((shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) && state.shouldShowConciergeWelcome) {
+        return (
+            <AskConciergeWelcome
+                reportID={reportID}
+                hasPreviousMessages={!!state.hasPreviousMessages}
+                onShowPreviousMessages={actions.handleShowPreviousMessages}
+            />
+        );
+    }
 
+    if (shouldShowLoadingSkeleton) {
         return (
             <ReportActionsLoadingSkeleton
                 reportID={reportID}
-                skeletonName={shouldShowLoadingSkeleton ? CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING : CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
-                shouldAnimate={shouldShowLoadingSkeleton}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING}
+            />
+        );
+    }
+
+    if (shouldShowDerivedTimingSkeleton) {
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
+                shouldAnimate={false}
             />
         );
     }

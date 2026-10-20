@@ -11,6 +11,7 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 
 import {useRoute} from '@react-navigation/native';
 
+import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -62,6 +63,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
 
     const {showFullHistory: conciergeShowFullHistory} = useConciergeChatHistoryState();
     const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(reportID);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -146,6 +148,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
+        shouldShowConciergeWelcome,
+        isConciergeHistoryExpanded,
     };
 
     // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only

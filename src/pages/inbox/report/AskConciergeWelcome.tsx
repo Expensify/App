@@ -37,12 +37,13 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
-            <ConciergeChatHistoryToggle
-                hasPreviousMessages={hasPreviousMessages}
-                shouldShowFullHistory={false}
-                onShowPreviousMessages={onShowPreviousMessages}
-                containerStyles={styles.pv5}
-            />
+            {hasPreviousMessages && (
+                <ConciergeChatHistoryToggle
+                    isHistoryShown={false}
+                    onPress={onShowPreviousMessages}
+                    containerStyles={styles.pv5}
+                />
+            )}
         </ScrollView>
     );
 }

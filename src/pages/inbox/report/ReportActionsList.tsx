@@ -4,7 +4,6 @@ import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBann
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -56,6 +55,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
 import CONST from '@src/CONST';
@@ -140,6 +140,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
+        shouldShowConciergeWelcome,
+        isConciergeHistoryExpanded,
     } = useReportActionsListState();
 
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
@@ -148,7 +150,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
-    const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded} = useConciergeAskState(reportID);
+    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
 
     const didLayout = useRef(false);
 
@@ -506,11 +508,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const listHeaderComponent = (
         <>
-            {isHistoryExpanded && (
+            {isConciergeHistoryExpanded && !!hasPreviousMessages && (
                 <ConciergeChatHistoryToggle
-                    hasPreviousMessages={!!hasPreviousMessages}
-                    shouldShowFullHistory
-                    onShowPreviousMessages={onShowPreviousMessages}
+                    isHistoryShown
+                    onPress={() => setConciergeShowFullHistory(false)}
                 />
             )}
             <ReportActionsListHeader
