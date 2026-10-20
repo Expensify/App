@@ -6879,6 +6879,19 @@ describe('SearchUIUtils', () => {
             };
         }
 
+        function makeBillQueryJSON(status: string[] | undefined) {
+            return {
+                ...makeExpenseQueryJSON(status),
+                type: CONST.SEARCH.DATA_TYPES.BILL,
+                inputQuery: 'type:bill' as const,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    right: CONST.SEARCH.DATA_TYPES.BILL,
+                },
+            };
+        }
+
         describe('getTransactionsSections filtering and edge cases', () => {
             const filterTestReportID = 'filter-report-1';
             const filterTestTxID = 'filter-tx-1';
@@ -7361,6 +7374,24 @@ describe('SearchUIUtils', () => {
             it('should include report when queryJSON status matches report state (DRAFTS)', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
                 const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should show a submitted and closed bill under the Done filter', () => {
+                // Given a bill that closed after its payment was canceled.
+                const data = makeReportFilterTestData({
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    type: CONST.REPORT.TYPE.BILL,
+                });
+
+                // When the Bills search uses the Done filter.
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeBillQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DONE]),
+                    type: CONST.SEARCH.DATA_TYPES.BILL,
+                });
+
+                // Then the bill remains visible in the results.
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
             });
 
