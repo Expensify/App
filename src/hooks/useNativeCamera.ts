@@ -10,7 +10,7 @@ import type React from 'react';
 import type {Camera, Point} from 'react-native-vision-camera';
 
 import {useFocusEffect} from '@react-navigation/core';
-import {useCallback, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {AppState} from 'react-native';
 import {useTapGesture} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -67,42 +67,40 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const camera = useRef<Camera>(null);
 
-    const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
+    const askForPermissions = () => requestCameraPermission(translate, setCameraPermissionStatus);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocus ?? false);
 
     // Refresh camera permission on screen focus and app state changes
-    useFocusEffect(
-        useCallback(() => {
-            setDidCapturePhoto(false);
-            onFocusStart?.();
-            const refreshCameraPermissionStatus = () => {
-                CameraPermission?.getCameraPermissionStatus?.()
-                    .then(setCameraPermissionStatus)
-                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
-            };
+    useFocusEffect(() => {
+        setDidCapturePhoto(false);
+        onFocusStart?.();
+        const refreshCameraPermissionStatus = () => {
+            CameraPermission?.getCameraPermissionStatus?.()
+                .then(setCameraPermissionStatus)
+                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+        };
+
+        refreshCameraPermissionStatus();
+
+        // Refresh permission status when app gains focus
+        const subscription = AppState.addEventListener('change', (appState) => {
+            if (appState !== 'active') {
+                return;
+            }
 
             refreshCameraPermissionStatus();
+        });
 
-            // Refresh permission status when app gains focus
-            const subscription = AppState.addEventListener('change', (appState) => {
-                if (appState !== 'active') {
-                    return;
-                }
+        return () => {
+            subscription.remove();
+            onFocusCleanup?.();
 
-                refreshCameraPermissionStatus();
-            });
-
-            return () => {
-                subscription.remove();
-                onFocusCleanup?.();
-
-                if (isLoaderVisible) {
-                    setIsLoaderVisible(false);
-                }
-            };
-        }, [isLoaderVisible, setIsLoaderVisible, onFocusStart, onFocusCleanup]),
-    );
+            if (isLoaderVisible) {
+                setIsLoaderVisible(false);
+            }
+        };
+    });
 
     return {
         camera,

@@ -9,13 +9,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactElement} from 'react';
 import type {SvgProps} from 'react-native-svg';
 
-import {cloneElement, isValidElement, useEffect, useMemo, useRef, useState} from 'react';
+import {cloneElement, isValidElement, useEffect, useRef, useState} from 'react';
 
 /**
  * OXC can cache SVG assets as pre-rendered elements (including host `<svg>` nodes).
  * ImageSVG expects a component, so wrap those elements. Replacing them with PlaceholderIcon
  * blanks illustrations; unwrapping `.type` fails when type is the string `'svg'`.
  */
+
 const wrappedElementIconCache = new WeakMap<ReactElement, IconAsset>();
 
 function wrapElementAsIcon(element: ReactElement): IconAsset {
@@ -142,8 +143,8 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
  */
 function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): Record<string, IconAsset> {
     const cachedChunk = getIllustrationsChunk();
-    const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as IllustrationName[], [namesKey]);
+    const namesKey = names.join(',');
+    const namesList = namesKey.split(',') as IllustrationName[];
 
     // Try to get cached chunk synchronously to avoid Promise microtask delay
     const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {
@@ -219,8 +220,8 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
  */
 function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]): Record<string, IconAsset> {
     const cachedChunk = getExpensifyIconsChunk();
-    const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as ExpensifyIconName[], [namesKey]);
+    const namesKey = names.join(',');
+    const namesList = namesKey.split(',') as ExpensifyIconName[];
 
     // Try to get cached chunk synchronously to avoid Promise microtask delay
     const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {

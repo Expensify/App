@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {accountIDSelector, emailSelector} from '@selectors/Session';
-import {useCallback} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -31,23 +30,20 @@ function useCreateNewReport() {
 
     const hasViolations = hasViolationsUtil(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
 
-    return useCallback(
-        (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                policy,
-                isTrackIntentUser,
-                getCurrencyDecimals,
-                rules,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-        },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, rules],
-    );
+    return (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+    };
 }
 
 export default useCreateNewReport;
