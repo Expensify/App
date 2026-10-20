@@ -18,7 +18,7 @@ type ConciergeChatHistoryToggleProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether there are messages hidden before the session start */
+    /** Whether the chat has earlier messages to show */
     hasPreviousMessages: boolean;
 
     /** Whether the earlier conversation is currently shown */

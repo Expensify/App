@@ -32,7 +32,6 @@ type UseReportActionsVisibilityResult = {
     sortedReportActions: ReportAction[];
     sortedVisibleReportActions: ReportAction[];
     isConciergeSidePanel: boolean;
-    isConciergeMainDM: boolean;
     isConciergeHiddenHistory: boolean;
     showConciergeSidePanelWelcome: boolean;
     showFullHistory: boolean;
@@ -127,7 +126,6 @@ function useReportActionsVisibility({
         sortedReportActions: filteredReportActions,
         sortedVisibleReportActions: filteredVisibleActions,
         isConciergeSidePanel,
-        isConciergeMainDM,
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,
         showFullHistory: isConciergeMainDM ? !!conciergeShowFullHistory : showFullHistory,
