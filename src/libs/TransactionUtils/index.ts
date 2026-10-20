@@ -294,8 +294,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         reducedDistance < fullDistance &&
         Number.isFinite(storedReducedAmount) &&
         !!parsedReducedMerchant;
-    const restoreSavedReducedValues = () => {
-        if (!canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
+    function restoreSavedReducedValues(): OnyxEntry<Transaction> {
+        if (!transaction || !unit || typeof fullDistance !== 'number' || !canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
             return transaction;
         }
 
@@ -316,7 +316,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
             merchant: `${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${rateText}`,
             modifiedMerchant: undefined,
         };
-    };
+    }
 
     // When the rate cannot be resolved from policy data, recover from the available reduced snapshot
     // instead of leaving commuter values in a personal report.
