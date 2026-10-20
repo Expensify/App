@@ -858,10 +858,16 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
-    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
+    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none. Neither does
+    // an IOU report, which the server's count leaves out, so the count holds once the server's figures take over.
+    const isIOUReportID = (reportID: string) => currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.type === CONST.REPORT.TYPE.IOU;
     const selectedReportCount = isReportsSearch
-        ? selectedReports.length
-        : new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID) => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID)).size;
+        ? selectedReports.filter((report) => report.type !== CONST.REPORT.TYPE.IOU).length
+        : new Set(
+              selectedTransactionsKeys
+                  .map((key) => selectedTransactions[key]?.reportID)
+                  .filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && !isIOUReportID(reportID)),
+          ).size;
 
     // The count follows whatever the footer is describing: the selection's own reports when rows were hand-picked, the
     // server's report count otherwise. footerData.count already carries the expense side of both cases.

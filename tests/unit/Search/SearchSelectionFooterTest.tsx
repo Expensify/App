@@ -13,6 +13,7 @@ import type {SearchResults} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import {makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1200,6 +1201,50 @@ describe('SearchSelectionFooter', () => {
 
             // The server's 87 describes the whole search, so the selection reports its own two.
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
+        });
+
+        it('counts no report for a selected expense on an IOU report, which the server count leaves out too', async () => {
+            // Given one expense on an expense report and one on an IOU report, both in the loaded data
+            setSearchQuery('type:expense footerCount:reports');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'expenseReport'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'iouReport'},
+            };
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87);
+            mockCurrentSearchResults.current = createMock<SearchResults>({
+                ...searchResults,
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}expenseReport` as const]: {reportID: 'expenseReport', type: CONST.REPORT.TYPE.EXPENSE},
+                    [`${ONYXKEYS.COLLECTION.REPORT}iouReport` as const]: {reportID: 'iouReport', type: CONST.REPORT.TYPE.IOU},
+                },
+            });
+
+            // When the footer counts the reports the selection covers
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then only the expense report counts, so the figure holds once the server's count takes over
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
+        });
+
+        it('counts no selected IOU report on a Reports search either', async () => {
+            // Given a selected expense report and a selected IOU report on a Reports search
+            setSearchQuery('type:expense-report footerCount:reports');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'expenseReport'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'iouReport'},
+            };
+            mockSelectedReports.current = [
+                {...buildSelectedReport('expenseReport', -100), type: CONST.REPORT.TYPE.EXPENSE},
+                {...buildSelectedReport('iouReport', -100), type: CONST.REPORT.TYPE.IOU},
+            ];
+
+            // When the footer counts the selected reports
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+            await waitForBatchedUpdates();
+
+            // Then the IOU report is left out
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
         });
 
         it('counts no report for a selected unreported expense, which sits on none', async () => {
