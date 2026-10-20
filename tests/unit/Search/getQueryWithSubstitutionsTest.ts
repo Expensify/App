@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {getQueryWithSubstitutions} from '@src/components/Search/SearchRouter/getQueryWithSubstitutions';
+
+const personalDetailsByLogin = {
+    'johndoe@example.com': {
+        accountID: 12345,
+    },
+    'janedoe@example.com': {
+        accountID: 78901,
+    },
+} as PersonalDetailsByLogin;
 
 describe('getQueryWithSubstitutions should compute and return correct new query', () => {
     test('when both queries contain no substitutions', () => {
@@ -162,5 +173,71 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
 
         expect(result).toBe('from:me');
+    });
+
+    test('when a login is typed out by hand rather than picked from the autocomplete, it resolves to an account ID', () => {
+        const userTypedQuery = 'from:johndoe@example.com hello';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('from:12345 hello');
+    });
+
+    test('when a hand-typed login is used on every user-based filter key, each occurrence resolves', () => {
+        const userTypedQuery =
+            'from:johndoe@example.com to:janedoe@example.com assignee:johndoe@example.com payer:janedoe@example.com exporter:johndoe@example.com attendee:janedoe@example.com';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('from:12345 to:78901 assignee:12345 payer:78901 exporter:12345 attendee:78901');
+    });
+
+    test('when a comma separated list mixes hand-typed logins and account IDs, only the logins are resolved', () => {
+        const userTypedQuery = 'from:johndoe@example.com,55555,janedoe@example.com';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('from:12345,55555,78901');
+    });
+
+    test('when a hand-typed login has no personal details, it is left unresolved', () => {
+        const userTypedQuery = 'from:nobody@example.com';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('from:nobody@example.com');
+    });
+
+    test('when an existing substitution exists for a login, it takes precedence over the personal details', () => {
+        const userTypedQuery = 'from:johndoe@example.com';
+        const substitutionsMock = {
+            'from:johndoe@example.com': '5555',
+        };
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('from:5555');
+    });
+
+    test('when a login is used on a non-user-based filter, it is not resolved to an account ID', () => {
+        const userTypedQuery = 'merchant:johndoe@example.com';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, undefined, personalDetailsByLogin);
+
+        expect(result).toBe('merchant:johndoe@example.com');
+    });
+
+    test('when personalDetailsByLogin is not passed, a hand-typed login is left unresolved', () => {
+        const userTypedQuery = 'from:johndoe@example.com';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
+
+        expect(result).toBe('from:johndoe@example.com');
     });
 });

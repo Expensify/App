@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,16 +12,21 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -48,12 +54,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {doesPersonalDetailExist, loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -82,6 +88,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Supportal agents and copilots should not see the change-policy educational modal on behalf of another account
     const shouldSkipChangePolicyTrainingModal = isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI;
@@ -90,14 +97,15 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const ownerAccountID = report?.ownerAccountID;
     const managerID = report?.managerID;
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(ownerAccountID)});
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(ownerAccountID)});
-    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(managerID)});
+    const [submitterLogin] = usePersonalDetail(ownerAccountID, loginSelector);
+    const [hasSubmitterPersonalDetail = false] = usePersonalDetail(ownerAccountID, doesPersonalDetailExist);
+    const [managerLogin] = usePersonalDetail(managerID, loginSelector);
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -122,6 +130,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const currentSelection = draftPolicyID ?? report.policyID;
+    // Freeze the workspace selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
+
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -156,7 +168,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
-                doesSubmitterPersonalDetailExist ?? false,
+                hasSubmitterPersonalDetail,
                 getCurrencyDecimals,
                 rules,
                 reportTransactions,
@@ -188,12 +200,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
                 isASAPSubmitBetaEnabled,
                 employeeList,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isReportLastVisibleArchived,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
                 reportTransactions,
                 rules,
+                delegateAccountID,
             });
             refreshSearch();
             return;
@@ -216,6 +230,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isTrackIntentUser,
             reportTransactions,
             rules,
+            delegateAccountID,
         });
         refreshSearch();
     };
@@ -225,7 +240,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
-        policyIDsToSortToTop: report.policyID ? [report.policyID] : undefined,
+        // Pass the frozen selection (and an empty array, never undefined) so the list keeps the originally-selected
+        // workspace pinned and never falls back to sorting the live selection to the top, which would make the tapped one jump.
+        policyIDsToSortToTop: initialSelection ? [initialSelection] : [],
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {
@@ -264,12 +281,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('iou.changeWorkspace')}
-                        onBackButtonPress={() => {
-                            Navigation.goBack(navigateBackFromChangeWorkspacePath);
-                        }}
-                    />
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('iou.changeWorkspace')}
+                            onBackButtonPress={() => {
+                                Navigation.goBack(navigateBackFromChangeWorkspacePath);
+                            }}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -281,10 +300,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                             onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             textInputOptions={textInputOptions}
                             confirmButtonOptions={confirmButtonOptions}
-                            initiallyFocusedItemKey={report.policyID}
+                            initiallyFocusedItemKey={initialSelection}
+                            shouldScrollToFocusedIndexOnMount={false}
+                            shouldUpdateFocusedIndex
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
                         />
                     )}
                 </>

@@ -1,5 +1,4 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -17,8 +16,6 @@ import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +38,6 @@ type SearchAutocompleteInputProps = {
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    isFullWidth: boolean;
     disabled?: boolean;
     shouldShowOfflineMessage?: boolean;
 
@@ -77,7 +73,6 @@ function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
-    isFullWidth,
     disabled = false,
     shouldDelayFocus = false,
     autoFocus = true,
@@ -103,7 +98,7 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const inputRef = useRef<BaseTextInputRef>(null);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
@@ -136,8 +131,9 @@ function SearchAutocompleteInput({
         return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
     });
     const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => (typeof color === 'string' ? color : defaultBorderColor));
         return {
-            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], borderColors, 'RGB'),
         };
     });
 
@@ -193,8 +189,6 @@ function SearchAutocompleteInput({
         setSearchContext(false);
     };
 
-    const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
-
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
@@ -216,7 +210,7 @@ function SearchAutocompleteInput({
                     onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
-                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
                     clearButtonStyle={clearButtonStyle}
                     placeholderTextColor={theme.textSupporting}
@@ -236,7 +230,7 @@ function SearchAutocompleteInput({
                             return;
                         }
 
-                        inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element;
 
                         if (typeof ref === 'function') {
                             ref(element);

@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,10 +12,10 @@ import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isGroupPolicy} from '@libs/PolicyUtils';
@@ -48,21 +49,19 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
 
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
             return;
         }
-        if (!navigateTo) {
-            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
-            return;
-        }
-
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
 
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
 
-        if (policy?.areCategoriesEnabled) {
+        // Without a destination, the caller handles what comes next once it is back in focus.
+        if (navigateTo && policy?.areCategoriesEnabled) {
             Navigation.navigate(navigateTo);
             return;
         }
@@ -107,10 +106,12 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.setAsDefault')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('workspace.common.setAsDefault')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -125,6 +126,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
                         />
                     )}
                 </>

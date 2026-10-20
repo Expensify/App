@@ -1,8 +1,12 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
 
@@ -19,7 +23,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {buildPersonalDetails} from '../utils/TestHelper';
+import getOnyxValue from '../utils/getOnyxValue';
+import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'workflow-approvals-edit-test-policy';
@@ -86,16 +91,16 @@ const mockRoute = {
 
 const Stack = createStackNavigator();
 
-const renderEditPage = () =>
+const renderEditPage = (route = mockRoute) =>
     render(
         <NavigationContainer>
             <Stack.Navigator>
                 <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT}>
                     {() => (
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                             <WorkspaceWorkflowsApprovalsEditPage
                                 // @ts-expect-error - route type from navigator
-                                route={mockRoute}
+                                route={route}
                             />
                         </ComposeProviders>
                     )}
@@ -191,5 +196,121 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(emails.length).toBeGreaterThan(0);
         expect(emails).toHaveLength(uniqueEmails.length);
         expect(emails).toContain(ALICE_EMAIL);
+    });
+
+    it('makes the workflow the default one when it is saved with everyone in it', async () => {
+        // Given Bob approves Carol's workflow while the default workflow routes Alice and Bob to Alice
+        const bobEmail = 'bob@example.com';
+        const bobAccountID = 2;
+        const carolEmail = 'carol@example.com';
+        const carolAccountID = 3;
+        const bobApprover: Approver = {email: bobEmail, displayName: 'bob'};
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                employeeList: {
+                    [bobEmail]: {email: bobEmail, submitsTo: ALICE_EMAIL},
+                    [carolEmail]: {email: carolEmail, submitsTo: bobEmail},
+                },
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [bobAccountID]: buildPersonalDetails(bobEmail, bobAccountID, 'bob'),
+                [carolAccountID]: buildPersonalDetails(carolEmail, carolAccountID, 'carol'),
+            });
+
+            // And the admin has added everyone to Bob's workflow
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                approvers: [bobApprover],
+                originalApprovers: [bobApprover],
+                members: [ALICE_EMAIL, bobEmail, carolEmail].map((email) => ({email, displayName: email})),
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        jest.mocked(Navigation.dismissModal).mockImplementationOnce((options) => options?.afterTransition?.());
+
+        renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: bobEmail}});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin saves the workflow
+        fireEvent.press(screen.getByText(translateLocal('common.save')));
+
+        // Then Bob becomes the default approver, so Bob's workflow is the only one left and it is the default one
+        await waitFor(async () => expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`))?.approver).toBe(bobEmail));
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`);
+        const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails: {}, localeCompare: (a: string, b: string) => a.localeCompare(b)});
+        expect(approvalWorkflows).toHaveLength(1);
+        expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+        expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([bobEmail]);
+    });
+
+    describe('approver no longer on the workspace', () => {
+        it('flags the approver as soon as the editor opens and blocks saving', async () => {
+            // Given Bob still submits to someone who was removed from the workspace
+            const bobEmail = 'bob@example.com';
+            const removedEmail = 'removed@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[bobEmail]: {email: bobEmail, submitsTo: removedEmail}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the admin opens that workflow in the editor
+            renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: removedEmail}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the approver shows the error right away, before any Save attempt
+            expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
+
+            // And saving is blocked until the admin picks a new approver or deletes the workflow
+            jest.mocked(Navigation.dismissModal).mockClear();
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('shared approver hint', () => {
+        const aliceApprover: Approver = {
+            email: ALICE_EMAIL,
+            displayName: 'alice',
+        };
+
+        // Alice also approves another workflow, which is the case the hint is about.
+        const workflowWithSharedApprover: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            approvers: [aliceApprover],
+            originalApprovers: [aliceApprover],
+            members: [{email: 'member@example.com', displayName: 'Member'}],
+            availableMembers: [],
+            usedApproverEmails: [ALICE_EMAIL],
+            isDefault: false,
+        };
+
+        it('is shown without the multiple approvers beta', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, workflowWithSharedApprover);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('workflowsPage.approverInMultipleWorkflows'))).toBeOnTheScreen();
+        });
+
+        it('is hidden with the multiple approvers beta, since each workflow routes through its own rules', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, workflowWithSharedApprover);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('workflowsPage.approverInMultipleWorkflows'))).not.toBeOnTheScreen();
+        });
     });
 });

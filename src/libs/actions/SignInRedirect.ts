@@ -1,9 +1,12 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONFIG from '@src/CONFIG';
+import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -17,6 +20,8 @@ let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentCredentialsValidateCode: string | undefined;
+let lastAuthTokenWrittenAt = 0;
+let lastAuthTokenWrittenEmail: string | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -35,6 +40,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        if (session?.authToken && session.authToken !== currentSessionAuthToken) {
+            lastAuthTokenWrittenAt = Date.now();
+            lastAuthTokenWrittenEmail = session.email;
+        }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
     },
@@ -64,7 +73,10 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    Log.info('[SignInRedirect] Clearing storage and redirecting to sign in', false, {signOutReason});
+    logReceiptQueueSnapshot('signOut', signOutReason);
+
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
@@ -101,7 +113,20 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
     }
 
+    const clearStartedAt = Date.now();
+    const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
+        if (lastAuthTokenWrittenAt > clearStartedAt) {
+            Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
+                signOutReason,
+                clearDurationMs: Date.now() - clearStartedAt,
+                newSessionMs: Date.now() - lastAuthTokenWrittenAt,
+                isNewSessionWiped: !currentSessionAuthToken,
+                emailAtClearStart,
+                newSessionEmail: lastAuthTokenWrittenEmail,
+            });
+        }
+
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
 
@@ -132,11 +157,12 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
+ * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
  */
-function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    return clearStorageAndRedirect(errorMessage, isSAMLReauthentication).then(() => {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
     });
 }

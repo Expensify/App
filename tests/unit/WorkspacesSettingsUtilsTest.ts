@@ -1,4 +1,5 @@
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -264,6 +265,11 @@ describe('WorkspacesSettingsUtils', () => {
         it('returns approver key when user is an approver', () => {
             const policy = createMock<Policy>({approver: userEmail});
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationApprover');
+        });
+
+        it('returns approver key when user approves outstanding reports without being in the approval workflow', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, true)).toBe('common.leaveWorkspaceConfirmationApprover');
         });
 
         it('returns admin key when the policy role is admin', () => {

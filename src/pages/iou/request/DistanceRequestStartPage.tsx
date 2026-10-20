@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
@@ -25,8 +25,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SelectedTabRequest} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {TupleToUnion} from 'type-fest';
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -38,8 +39,11 @@ import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 
+const tabNames = [CONST.TAB_REQUEST.DISTANCE_MAP, CONST.TAB_REQUEST.DISTANCE_MANUAL, CONST.TAB_REQUEST.DISTANCE_GPS, CONST.TAB_REQUEST.DISTANCE_ODOMETER] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 function DistanceRequestStartPage({
@@ -60,7 +64,7 @@ function DistanceRequestStartPage({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
+    const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
     const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
@@ -79,9 +83,9 @@ function DistanceRequestStartPage({
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
     const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
-    const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isMapOrGPSRequired(reportPolicy)
-        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
+    const shouldHideManualAndOdometerTabs =
+        !isLoadingDefaultParticipants &&
+        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),

@@ -38,6 +38,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [PERF-17](rules/perf-17-pass-raw-index-on-demand.md) — Pass raw source, index on demand (no pre-built digest)
 - [PERF-18](rules/perf-18-use-pre-mount-destination.md) — Use usePreMountDestination for RHP pre-mounting
 - [PERF-19](rules/perf-19-scalar-collection-selectors.md) — Collection selectors return only what the consumer uses
+- [PERF-20](rules/perf-20-no-ad-hoc-deferral.md) — Defer heavy work to happen after visual transitions
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components
@@ -57,6 +58,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-15](rules/consistency-15-plain-comment-style.md) — Write comments as plain, natural sentences
 - [CONSISTENCY-16](rules/consistency-16-no-ai-jargon.md) — No AI-generated jargon in code or comments
 - [CONSISTENCY-17](rules/consistency-17-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
+- [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
+- [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
+- [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
@@ -74,6 +78,8 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-1](rules/ui-1-correct-loading-indicator.md) — Use the correct loading indicator based on navigation context
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
+- [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
+- [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
 
 ## Usage
 

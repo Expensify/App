@@ -1,6 +1,7 @@
 import usePolicy from '@hooks/usePolicy';
 
 import {enablePolicyInvoiceFields} from '@libs/actions/Policy/Policy';
+import {isInvoiceFieldsEnabled} from '@libs/PolicyUtils';
 
 import WorkspaceFieldsSection from '@pages/workspace/fields/WorkspaceFieldsSection';
 
@@ -22,7 +23,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
         <WorkspaceFieldsSection
             policy={policy}
             policyID={policyID}
-            isEnabled={!!policy?.areInvoiceFieldsEnabled}
+            isEnabled={isInvoiceFieldsEnabled(policy)}
             pendingAction={policy?.pendingFields?.areInvoiceFieldsEnabled}
             fieldFilter={(field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE}
             titleKey="workspace.common.invoiceFields"

@@ -1,4 +1,5 @@
 import {setInboxTab} from '@libs/actions/User';
+import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -18,6 +19,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -36,6 +38,8 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
+    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    hasStaleUnreadReport: boolean;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -65,7 +69,11 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
         [CONST.INBOX_TAB.TODO]: 0,
         [CONST.INBOX_TAB.UNREAD]: 0,
     },
+    hasStaleUnreadReport: false,
 });
+
+/** The Inbox tab's status alone, so tab bars re-render only when it changes, not on every LHN update. */
+const SidebarChatTabBrickRoadContext = createContext<BrickRoad>(undefined);
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
@@ -104,13 +112,16 @@ function SidebarOrderedReportsContextProvider({
     const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
     // below is enough to detect late guide hydration.
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
+    const prevReportAttributes = usePrevious(reportAttributes);
+    const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -123,7 +134,7 @@ function SidebarOrderedReportsContextProvider({
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
     const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
-    const prevBetas = usePrevious(betas);
+    const prevIsDefaultRoomsBetaEnabled = usePrevious(isDefaultRoomsBetaEnabled);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
     const prevConciergeReportID = usePrevious(conciergeReportID);
@@ -134,7 +145,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
+        if (isDefaultRoomsBetaEnabled !== prevIsDefaultRoomsBetaEnabled || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -147,6 +158,11 @@ function SidebarOrderedReportsContextProvider({
         if (reportNameValuePairsUpdates) {
             for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
                 reportsToUpdate.add(key);
+            }
+        }
+        if (reportAttributesUpdates) {
+            for (const reportID of reportAttributesUpdates) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
         if (transactionsUpdates) {
@@ -191,15 +207,16 @@ function SidebarOrderedReportsContextProvider({
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
+        reportAttributesUpdates,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
         policiesUpdates,
         chatReports,
         transactions,
-        betas,
+        isDefaultRoomsBetaEnabled,
         priorityMode,
-        prevBetas,
+        prevIsDefaultRoomsBetaEnabled,
         prevPriorityMode,
         isOffline,
         prevIsOffline,
@@ -213,9 +230,8 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
-        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
-        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
+        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
@@ -225,7 +241,7 @@ function SidebarOrderedReportsContextProvider({
             effectiveUpdatedReports = Object.keys(chatReports ?? {});
         }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
-        let reportsToDisplay = {};
+        let reportsToDisplay: ReportsToDisplayInLHN = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
@@ -233,7 +249,7 @@ function SidebarOrderedReportsContextProvider({
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
-                betas,
+                isDefaultRoomsBetaEnabled,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
@@ -250,7 +266,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: derivedCurrentReportID,
                 reports: chatReports,
-                betas,
+                isDefaultRoomsBetaEnabled,
                 priorityMode,
                 draftComments: reportsDrafts,
                 transactionViolations,
@@ -273,7 +289,7 @@ function SidebarOrderedReportsContextProvider({
         chatReports,
         derivedCurrentReportID,
         priorityMode,
-        betas,
+        isDefaultRoomsBetaEnabled,
         transactionViolations,
         reportNameValuePairs,
         reportAttributes,
@@ -343,8 +359,8 @@ function SidebarOrderedReportsContextProvider({
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
     }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
-    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
-    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    // Derived from the full "All" set (not the currently filtered view).
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
@@ -426,6 +442,7 @@ function SidebarOrderedReportsContextProvider({
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
                 inboxTabCounts,
+                hasStaleUnreadReport,
             };
         }
 
@@ -436,6 +453,7 @@ function SidebarOrderedReportsContextProvider({
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
             inboxTabCounts,
+            hasStaleUnreadReport,
         };
     }, [
         getOrderedReportIDs,
@@ -448,6 +466,7 @@ function SidebarOrderedReportsContextProvider({
         reportAttributes,
         activeTab,
         inboxTabCounts,
+        hasStaleUnreadReport,
         reportsToDisplayInLHN,
     ]);
 
@@ -458,13 +477,19 @@ function SidebarOrderedReportsContextProvider({
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
-            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            <SidebarChatTabBrickRoadContext.Provider value={stateValue.chatTabBrickRoad}>
+                <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            </SidebarChatTabBrickRoadContext.Provider>
         </SidebarOrderedReportsStateContext.Provider>
     );
 }
 
 function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useChatTabBrickRoad() {
+    return useContext(SidebarChatTabBrickRoadContext);
 }
 
 function useSidebarOrderedReportsActions() {
@@ -479,5 +504,5 @@ function useSidebarOrderedReports() {
     return useMemo(() => ({...state, ...actions}), [state, actions]);
 }
 
-export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
+export {SidebarOrderedReportsContextProvider, useChatTabBrickRoad, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
 export type {ReportsToDisplayInLHN};

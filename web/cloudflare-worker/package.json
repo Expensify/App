@@ -1,0 +1,21 @@
+{
+    "name": "@expensify/new-expensify-cloudflare-worker",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Cloudflare Worker that serves the New Expensify web build with Workers Static Assets.",
+    "type": "module",
+    "scripts": {
+        "prepare-dist": "./scripts/prepareDist.sh",
+        "dev": "wrangler dev",
+        "dev:production": "wrangler dev --env production",
+        "types": "wrangler types",
+        "typecheck": "npm run types > /dev/null && tsc -p . && tsc -p tests",
+        "test": "node --test 'tests/**/*.test.ts'",
+        "compare-headers": "node scripts/compareHeaders.ts"
+    },
+    "devDependencies": {
+        "@types/node": "24.19.0",
+        "typescript": "7.0.2",
+        "wrangler": "4.144.0"
+    }
+}

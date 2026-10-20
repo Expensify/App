@@ -46,7 +46,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/CardListItem', () => jest.fn(() => null));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
 jest.mock('@components/BlockingViews/BlockingView', () => jest.fn(() => null));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));
@@ -103,7 +103,6 @@ jest.mock('@libs/CardUtils', () => ({
 }));
 jest.mock('@libs/OptionsListUtils', () => ({getHeaderMessage: () => ''}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({temporaryGetDisplayNameOrDefault: () => ''}));
-jest.mock('@libs/SpendRulesUtils', () => ({getSpendRuleFormValuesFromCardRule: () => ({cardIDs: []})}));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/User', () => ({updateDraftSpendRule: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({openPolicyExpensifyCardsPage: jest.fn()}));

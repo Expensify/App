@@ -11,6 +11,7 @@ import {
 } from '@libs/actions/TravelBilling';
 import * as API from '@libs/API';
 // We need to import API because it is used in the tests
+import {getLatestErrorField, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
@@ -88,7 +89,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                paymentBankAccountID: settlementBankAccountID,
+                                paymentBankAccountID: previousPaymentBankAccountID,
                                 previousPaymentBankAccountID,
                             }),
                             isLoading: false,
@@ -103,6 +104,138 @@ describe('TravelBilling', () => {
                 ]),
             }),
         );
+    });
+
+    it('setTravelBillingSettlementAccount reverts to the previous account when the change fails', () => {
+        const workspaceAccountID = 456;
+        const previousPaymentBankAccountID = 111;
+        const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
+
+        setTravelBillingSettlementAccount('123', workspaceAccountID, 789, previousPaymentBankAccountID);
+
+        // Matched exactly so the rejected account cannot linger anywhere in the failure update
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'SetTravelBillingSettlementAccount',
+            expect.anything(),
+            expect.objectContaining({
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: cardSettingsKey,
+                        value: {
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                                paymentBankAccountID: previousPaymentBankAccountID,
+                                previousPaymentBankAccountID,
+                                monthlySettlementDate: undefined,
+                            },
+                            isLoading: false,
+                            pendingFields: {
+                                paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                paymentBankAccountID: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0),
+                            },
+                        },
+                    },
+                ],
+            }),
+        );
+    });
+
+    it('setTravelBillingSettlementAccount keeps the new account and clears the previous one on success', () => {
+        const workspaceAccountID = 456;
+        const settlementBankAccountID = 789;
+        const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
+
+        setTravelBillingSettlementAccount('123', workspaceAccountID, settlementBankAccountID, 111);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'SetTravelBillingSettlementAccount',
+            expect.anything(),
+            expect.objectContaining({
+                successData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: cardSettingsKey,
+                        value: {
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                                paymentBankAccountID: settlementBankAccountID,
+                                previousPaymentBankAccountID: null,
+                                monthlySettlementDate: undefined,
+                            },
+                            isLoading: false,
+                            pendingFields: {
+                                paymentBankAccountID: null,
+                            },
+                            errorFields: {
+                                paymentBankAccountID: null,
+                            },
+                        },
+                    },
+                ],
+            }),
+        );
+    });
+
+    it('setTravelBillingSettlementAccount leaves no settlement account when a first enable fails', () => {
+        const workspaceAccountID = 456;
+        const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
+
+        setTravelBillingSettlementAccount('123', workspaceAccountID, 789);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'SetTravelBillingSettlementAccount',
+            expect.anything(),
+            expect.objectContaining({
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                // null rather than undefined, otherwise the Onyx merge would not overwrite the optimistic value
+                                paymentBankAccountID: null,
+                            }),
+                        }),
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('setTravelBillingSettlementAccount falls back to the generic error keyed below a server message', () => {
+        const workspaceAccountID = 456;
+        const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
+
+        setTravelBillingSettlementAccount('123', workspaceAccountID, 789, 111);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'SetTravelBillingSettlementAccount',
+            expect.anything(),
+            expect.objectContaining({
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            errorFields: {
+                                paymentBankAccountID: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0),
+                            },
+                        }),
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('a server-supplied settlement account message outranks the generic fallback error', () => {
+        const serverErrorKey = '1770000000000000';
+        const serverMessage = 'The selected bank account ending in 1234 could not be used as the settlement account. Please contact Concierge to verify the account.';
+        const fallbackErrors = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0);
+
+        // The backend applies its onyxData before failureData, so both messages end up merged under the same field
+        const cardSettings = {errorFields: {paymentBankAccountID: {...fallbackErrors, [serverErrorKey]: serverMessage}}};
+
+        expect(getLatestErrorField(cardSettings, 'paymentBankAccountID')).toEqual({[serverErrorKey]: serverMessage});
+        expect(getLatestErrorField({errorFields: {paymentBankAccountID: fallbackErrors}}, 'paymentBankAccountID')).toEqual(fallbackErrors);
     });
 
     it('clearTravelBillingSettlementAccountErrors clears errors and pendingFields', () => {
@@ -210,7 +343,7 @@ describe('TravelBilling', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-        const monthlySettlementDate = new Date('2026-01-01');
+        const monthlySettlementDate = 1;
         clearTravelBillingSettlementFrequencyErrors(workspaceAccountID, monthlySettlementDate);
 
         expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
@@ -230,11 +363,13 @@ describe('TravelBilling', () => {
     it('updateTravelBillingSettlementFrequency sends correct optimistic, success, and failure data', () => {
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
-        const currentMonthlySettlementDate = new Date('2024-01-01');
+        const currentMonthlySettlementDate = 1;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-        // Set fake time to ensure deterministic optimistic data
+        // Set fake time to ensure deterministic optimistic data. The optimistic day of the month is read in local time,
+        // so derive the expected day from the mocked date rather than hard-coding it.
         const mockDate = new Date('2024-05-20');
+        const mockDayOfMonth = mockDate.getDate();
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
 
@@ -252,7 +387,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: currentMonthlySettlementDate,
                             }),
                             pendingFields: expect.objectContaining({
@@ -269,7 +404,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: null,
                             }),
                             pendingFields: expect.objectContaining({
@@ -286,7 +421,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: currentMonthlySettlementDate,
                             }),
                             pendingFields: expect.objectContaining({

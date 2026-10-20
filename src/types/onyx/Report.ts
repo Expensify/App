@@ -132,6 +132,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time when user read the last message */
         lastReadTime?: string;
 
+        /** reportActionID the user explicitly marked as unread. Unlike lastReadTime it is stable across the
+         *  optimistic→confirmed transition, so the "New" marker can anchor on a self-authored action. */
+        manuallyMarkedUnreadReportActionID?: string | null;
+
         /** The sequence number of the last report visit */
         lastReadSequenceNumber?: number;
 
@@ -175,6 +179,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report manager */
         managerID?: number;
 
+        /** Calendar link for the support rep assigned to a support ticket */
+        supportTicketCalendarLink?: string;
+
         lastVisibleActionLastModified?: string;
 
         /** HTML content of the last message in the report */
@@ -214,6 +221,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
+
+        /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
+        canCancelReimbursement?: boolean;
+
+        /** Whether the report can't be paid until the cancelled reimbursement finishes processing */
+        isWaitingForCancelledReimbursement?: boolean;
+
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;
         hasReportBeenReopened?: boolean;

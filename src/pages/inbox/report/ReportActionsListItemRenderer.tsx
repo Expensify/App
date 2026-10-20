@@ -1,10 +1,12 @@
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {memo, useMemo} from 'react';
 
@@ -38,6 +40,10 @@ type ReportActionsListItemRendererProps = {
 
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
+
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction?: boolean;
+
     shouldUseThreadDividerLine?: boolean;
 
     /** Animate highlight action in few seconds */
@@ -48,6 +54,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether context menu should be disabled for the active Concierge draft */
     shouldDisableContextMenuForConciergeDraft?: boolean;
+
+    /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionsListItemRenderer({
@@ -67,6 +76,8 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
+    isLatestConciergeFeedbackAction = false,
+    reportsParentHierarchy,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -155,6 +166,7 @@ function ReportActionsListItemRenderer({
                 transactionThreadReport={transactionThreadReport}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                reportsParentHierarchy={reportsParentHierarchy}
             />
         );
     }
@@ -176,6 +188,8 @@ function ReportActionsListItemRenderer({
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
             shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
+            reportsParentHierarchy={reportsParentHierarchy}
         />
     );
 }

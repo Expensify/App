@@ -1,3 +1,7 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -130,6 +134,49 @@ function getBankAccountConnectionStatus(state: string | undefined, currency?: st
  */
 function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
+}
+
+/**
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ */
+function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined): boolean {
+    return (
+        accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
+        accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData.verifications?.corpay &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
+}
+
+/**
+ * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
+ */
+function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
+        // Accounts deleted offline stay in the list until the request syncs, so they should not be offered
+        if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return latest;
+        }
+
+        const accountData = bankAccount.accountData;
+        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData)) {
+            return latest;
+        }
+
+        if (!latest) {
+            return accountData;
+        }
+
+        // `created` is a DB timestamp, so plain string comparison orders it chronologically.
+        // Accounts created in the same second fall back to the ID, which grows with each new account
+        const created = accountData.created ?? '';
+        const latestCreated = latest.created ?? '';
+        const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
+
+        return isNewer ? accountData : latest;
+    }, undefined);
+
+    return newest?.bankAccountID;
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -284,9 +331,20 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'], translate: LocaleContextProps['translate']) {
+    showConfirmModal({
+        title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+        prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
+    isBankAccountEligibleForGlobalReimbursements,
+    getWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
@@ -301,6 +359,7 @@ export {
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    showUnlockAlreadyRequestedModal,
     PERSONAL_INFO_STEP,
 };
 export type {BankAccountConnectionStatus, KYBVerificationResponses};
