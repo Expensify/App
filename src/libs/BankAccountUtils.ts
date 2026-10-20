@@ -153,6 +153,8 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
     const eligibleAccounts = Object.values(bankAccountList ?? {})
+        // Accounts deleted offline stay in the list until the request syncs, so they should not be offered
+        .filter((bankAccount) => bankAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map((bankAccount) => bankAccount.accountData)
         .filter((accountData): accountData is AccountData => isBankAccountEligibleForGlobalReimbursements(accountData) && !!accountData?.bankAccountID);
 

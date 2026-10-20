@@ -852,6 +852,18 @@ describe('BankAccountUtils', () => {
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
         });
 
+        it('skips accounts pending deletion', () => {
+            // Given a newer eligible account deleted offline and an older eligible account
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
+                accountTwo: {...buildBankAccount(2, '2026-05-01 10:00:00'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the pending-delete account is ignored, so the banner never points to an account queued for removal
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
         it('falls back to the higher ID when creation dates match', () => {
             // Given two eligible accounts created at the same time
             const bankAccountList = createMock<BankAccountList>({
