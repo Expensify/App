@@ -17,14 +17,13 @@ import {
     updateApprovalWorkflowRules,
     validateApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
-import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    getApprovalWorkflowRulesForPolicy,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';

@@ -4,7 +4,8 @@
  */
 import {isHRAdvancedMode} from '@libs/merge/HRUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
