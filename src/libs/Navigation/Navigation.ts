@@ -70,6 +70,7 @@ import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
+import {setRevealedWideTabPreMountModalRouteKey} from './helpers/wideTabPreMountRouteKey';
 import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
@@ -1215,10 +1216,18 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         holdPendingSearchWriteFlush();
     }
 
+    // RHP the revealed pre-mount was behind, recorded once the dismiss ends.
+    let revealedBehindModalRouteKey: string | undefined;
+
     // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
     const afterTransition = preMountedRouteKey
         ? () => {
               setIsRevealingPreMountedFullscreen(false);
+
+              // Recorded after the RHP is gone, or a RESET of the current state during the dismiss would drop the destination.
+              if (revealedBehindModalRouteKey) {
+                  setRevealedWideTabPreMountModalRouteKey(preMountedRouteKey, revealedBehindModalRouteKey);
+              }
 
               // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
               runAfterClosingScreenUnmount(() => {
@@ -1246,9 +1255,14 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
             setIsRevealingPreMountedFullscreen(false);
             releasePendingSearchWriteFlush();
         } else if (preMountedRouteKey && preMountOutcome?.isRevealed) {
-            finishWideTabPreMountReveal(preMountedRouteKey, modalRouteKey);
+            finishWideTabPreMountReveal(preMountedRouteKey);
+            revealedBehindModalRouteKey = modalRouteKey;
         } else if (preMountedRouteKey) {
             discardWideTabPreMount();
+
+            // The destination was built fresh, so a Search focus before the dismiss ends must not skip its overlay or wait.
+            setIsRevealingPreMountedFullscreen(false);
+            releasePendingSearchWriteFlush();
         }
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches

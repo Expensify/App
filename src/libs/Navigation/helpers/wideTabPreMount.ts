@@ -167,11 +167,11 @@ function isWideTabPreMountInTopFullscreen(): boolean {
 }
 
 /** Hands the pre-mount over to the reveal, which shows the pre-mounted screen as the destination. */
-function finishWideTabPreMountReveal(routeKey: string, modalRouteKey?: string) {
+function finishWideTabPreMountReveal(routeKey: string) {
     if (livePreMount?.routeKey !== routeKey) {
         return;
     }
-    markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey, modalRouteKey);
+    markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey);
     livePreMount = undefined;
     clearLiveWideTabPreMountKeys();
 }

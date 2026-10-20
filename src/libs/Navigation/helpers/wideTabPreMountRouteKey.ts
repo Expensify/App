@@ -42,6 +42,15 @@ function markWideTabPreMountRouteKeyRevealed(key: string, coveringRouteKey?: str
     revealedRouteKeys.set(key, {coveringRouteKey, modalRouteKey});
 }
 
+/** Records the modal a revealed pre-mount was behind. Call it once the modal is gone, or the current state would look saved. */
+function setRevealedWideTabPreMountModalRouteKey(key: string, modalRouteKey: string) {
+    const revealed = revealedRouteKeys.get(key);
+    if (!revealed) {
+        return;
+    }
+    revealedRouteKeys.set(key, {...revealed, modalRouteKey});
+}
+
 /**
  * True for a pre-mount nobody owns, e.g. restored from a saved browser history entry. That is one neither revealed nor live,
  * or a revealed one in an entry saved before the reveal. Such an entry still has the route it was mounted under right
@@ -85,8 +94,8 @@ export {
     setLiveWideTabPreMountTabRouteKey,
     isLiveWideTabPreMountTabRouteKey,
     markWideTabPreMountRouteKeyRevealed,
+    setRevealedWideTabPreMountModalRouteKey,
     isStaleWideTabPreMountRouteKey,
-    setLiveWideTabPreMountPreloadedRouteKey,
     isStaleWideTabPreMountPreloadedRouteKey,
     clearLiveWideTabPreMountKeys,
 };

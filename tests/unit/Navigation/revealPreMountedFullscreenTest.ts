@@ -1,8 +1,10 @@
 import {consumePreMountReplaceOutcome} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import {setIsRevealingPreMountedFullscreen, takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
 import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal} from '@libs/Navigation/helpers/wideTabPreMount';
+import {setRevealedWideTabPreMountModalRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 
 import CONST from '@src/CONST';
@@ -38,6 +40,11 @@ jest.mock('@libs/Navigation/helpers/wideTabPreMount', () => ({
     finishWideTabPreMountReveal: jest.fn(),
 }));
 
+jest.mock('@libs/Navigation/helpers/wideTabPreMountRouteKey', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/wideTabPreMountRouteKey'),
+    setRevealedWideTabPreMountModalRouteKey: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers'),
     consumePreMountReplaceOutcome: jest.fn(),
@@ -54,6 +61,7 @@ const mockedDiscardWideTabPreMount = jest.mocked(discardWideTabPreMount);
 const mockedSetIsRevealingPreMountedFullscreen = jest.mocked(setIsRevealingPreMountedFullscreen);
 const mockedReleasePendingSearchWriteFlush = jest.mocked(releasePendingSearchWriteFlush);
 const mockedFinishWideTabPreMountReveal = jest.mocked(finishWideTabPreMountReveal);
+const mockedSetRevealedWideTabPreMountModalRouteKey = jest.mocked(setRevealedWideTabPreMountModalRouteKey);
 const mockedConsumePreMountReplaceOutcome = jest.mocked(consumePreMountReplaceOutcome);
 // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() does not rely on `this` binding
 const mockedGetRootState = jest.mocked(navigationRef.getRootState);
@@ -70,12 +78,22 @@ const stateWithRHP = createMock<NavigationState>({
 
 describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
     let rootState: NavigationState;
+    let pendingTransitionCallbacks: Array<() => void | Promise<void>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
             callback(0);
             return 0;
+        });
+        pendingTransitionCallbacks = [];
+        jest.spyOn(TransitionTracker, 'runAfterTransitions').mockImplementation(({callback, runImmediately}) => {
+            if (runImmediately) {
+                callback();
+            } else {
+                pendingTransitionCallbacks.push(callback);
+            }
+            return {cancel: () => {}};
         });
         rootState = stateWithRHP;
         mockedGetRootState.mockImplementation(() => rootState);
@@ -108,10 +126,27 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
         // When the reveal runs
         Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: ''}));
 
-        // Then the pre-mount is handed over to the reveal with the RHP it was behind, which marks history entries saved before it
-        expect(mockedFinishWideTabPreMountReveal).toHaveBeenCalledWith(PRE_MOUNTED_ROUTE_KEY, 'rhp');
+        // Then the pre-mount is handed over to the reveal
+        expect(mockedFinishWideTabPreMountReveal).toHaveBeenCalledWith(PRE_MOUNTED_ROUTE_KEY);
         expect(mockedCancelWideTabPreMount).not.toHaveBeenCalled();
         expect(mockedDiscardWideTabPreMount).not.toHaveBeenCalled();
+
+        // And the RHP it was behind is not recorded while the RHP is still in the state, or a RESET of it would drop the destination
+        expect(mockedSetRevealedWideTabPreMountModalRouteKey).not.toHaveBeenCalled();
+    });
+
+    it('records the RHP the revealed pre-mount was behind once the dismiss ends', () => {
+        // Given a replace that the router reports as showing the pre-mounted screen
+        mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: true});
+
+        // When the reveal runs and the RHP dismiss transition ends
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: ''}));
+        for (const callback of pendingTransitionCallbacks) {
+            callback();
+        }
+
+        // Then the RHP is recorded, so history entries that still contain it are known to be saved before the reveal
+        expect(mockedSetRevealedWideTabPreMountModalRouteKey).toHaveBeenCalledWith(PRE_MOUNTED_ROUTE_KEY, 'rhp');
     });
 
     it('discards the pre-mount when the replace runs without it', () => {
@@ -125,6 +160,10 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
         expect(mockedDiscardWideTabPreMount).toHaveBeenCalled();
         expect(mockedFinishWideTabPreMountReveal).not.toHaveBeenCalled();
         expect(mockedCancelWideTabPreMount).not.toHaveBeenCalled();
+
+        // And the reveal state is reset right away, so a fresh Search focus before the dismiss ends shows its overlay and flushes
+        expect(mockedSetIsRevealingPreMountedFullscreen).toHaveBeenCalledWith(false);
+        expect(mockedReleasePendingSearchWriteFlush).toHaveBeenCalled();
     });
 
     it('cancels the pre-mount when the replace is rejected', () => {
