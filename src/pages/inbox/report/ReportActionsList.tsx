@@ -511,7 +511,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const listHeaderComponent = (
         <>
-            {isConciergeHistoryExpanded && !!hasPreviousMessages && (
+            {isConciergeHistoryExpanded && (
                 <ConciergeChatHistoryToggle
                     isHistoryShown
                     onPress={() => {
@@ -566,7 +566,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return (
             <AskConciergeWelcome
                 reportID={reportID}
-                hasPreviousMessages={!!hasPreviousMessages}
                 onShowPreviousMessages={onShowPreviousMessages}
             />
         );

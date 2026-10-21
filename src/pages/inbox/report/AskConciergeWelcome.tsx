@@ -17,14 +17,11 @@ type AskConciergeWelcomeProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether the chat has earlier messages to show */
-    hasPreviousMessages: boolean;
-
     /** Called when the user presses `View chat history` */
     onShowPreviousMessages: () => void;
 };
 
-function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessages}: AskConciergeWelcomeProps) {
+function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -32,18 +29,16 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     return (
         <ScrollView
             style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, !hasPreviousMessages && styles.pb5]}
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
-            {hasPreviousMessages && (
-                <ConciergeChatHistoryToggle
-                    isHistoryShown={false}
-                    onPress={onShowPreviousMessages}
-                    containerStyles={styles.pv5}
-                />
-            )}
+            <ConciergeChatHistoryToggle
+                isHistoryShown={false}
+                onPress={onShowPreviousMessages}
+                containerStyles={styles.pv5}
+            />
         </ScrollView>
     );
 }
