@@ -355,7 +355,8 @@ function parseForLiveMarkdown(
         return [];
     }
     const ranges = parsedAutocomplete.ranges;
-    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges

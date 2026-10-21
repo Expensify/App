@@ -78,6 +78,35 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([{start: 5, type: 'mention-user', length: 7}]);
         });
 
+        it('should use the last type filter to decide whether to highlight in:', () => {
+            // Given type:expense followed by type:chat, where the search parser uses the last type (chat)
+            const input = 'type:expense type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both types and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 7},
+                {start: 18, type: 'mention-user', length: 4},
+                {start: 26, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: when the last type filter does not support it', () => {
+            // Given type:chat followed by type:expense, where the search parser uses the last type (expense)
+            const input = 'type:chat type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the types are highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 15, type: 'mention-user', length: 7},
+            ]);
+        });
+
         it('should highlight current user mentions with mention-here type', () => {
             const input = 'from:currentuser@example.com';
 

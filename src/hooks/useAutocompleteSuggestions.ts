@@ -179,7 +179,8 @@ function useAutocompleteSuggestions({
             .map((range) => range.value.toLowerCase()),
     );
 
-    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeFilter = parsedQuery?.ranges?.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     switch (autocompleteKey) {

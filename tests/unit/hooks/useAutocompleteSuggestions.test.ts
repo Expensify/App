@@ -531,6 +531,42 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
     });
 
+    it('uses the last type filter to decide whether to show in: suggestions', () => {
+        // Given a query with type:expense followed by type:chat, where the search parser uses the last type (chat)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 13, length: 9},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense type:chat in:'}));
+
+        // Then chat suggestions are shown, because the query that runs is a chat search
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
+    });
+
+    it('hides in: suggestions when the last type filter does not support in:', () => {
+        // Given a query with type:chat followed by type:expense, where the search parser uses the last type (expense)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 10, length: 12},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat type:expense in:'}));
+
+        // Then no chat suggestions are shown, because the query that runs is an expense search
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
     it('returns empty array for unknown autocomplete key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: 'unknownKey', value: 'test'},
