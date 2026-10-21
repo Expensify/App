@@ -24,6 +24,9 @@ let lastSeenTransactions: Record<string, SeenTransaction> = {};
 
 let hasBaseline = false;
 
+/** A first-seen expense the server stored this recently is new, like a Pusher push or a statement import. */
+const NEW_EXPENSE_WINDOW_MS = 10 * 60 * 1000;
+
 /** Fields the card totals read. Edits land in the `modified` versions, so both are read. */
 function getCardFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
@@ -48,6 +51,15 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
  */
 function hasPendingWrite(transaction: Transaction): boolean {
     return !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
+}
+
+/** `inserted` is UTC in the DB format. A device clock behind the server reads as recent, which is the safe side. */
+function isRecentlyInserted(transaction: Transaction): boolean {
+    if (!transaction.inserted) {
+        return false;
+    }
+    const insertedTime = Date.parse(`${transaction.inserted.replace(' ', 'T')}Z`);
+    return !Number.isNaN(insertedTime) && Date.now() - insertedTime < NEW_EXPENSE_WINDOW_MS;
 }
 
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
@@ -100,8 +112,8 @@ export default createOnyxDerivedValueConfig({
             const seen = getSeenTransaction(transaction);
 
             // A key seen for the first time is usually a load, like opening an expense the cards only know from their
-            // snapshot, so only a local create counts. Recording it lets a later edit to it count.
-            if (!lastSeen && transaction && !hasPendingWrite(transaction)) {
+            // snapshot, so only a local create or a just-stored expense counts. Recording it lets a later edit count.
+            if (!lastSeen && transaction && !hasPendingWrite(transaction) && !isRecentlyInserted(transaction)) {
                 lastSeenTransactions[key] = seen;
                 continue;
             }

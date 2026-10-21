@@ -1,4 +1,5 @@
 import spendDataSignatureConfig from '@libs/actions/OnyxDerived/configs/spendDataSignature';
+import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -371,5 +372,34 @@ describe('spendDataSignature', () => {
 
         // Then both counters move, so the new expense shows up on the cards
         expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
+    it('moves the counters when an expense the server just stored arrives for the first time', () => {
+        // Given a new card expense pushed from the server, like a statement import or a member's expense, with no pending add
+        const pushed: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), inserted: DateUtils.getDBTime()}};
+
+        // When the value is computed with that delta
+        const result = spendDataSignatureConfig.compute([pushed, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: pushed},
+        });
+
+        // Then both counters move, so the new expense shows up on the cards
+        expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
+
+    it('does not move the counters when an older expense is loaded for the first time', () => {
+        // Given an expense the server stored a day ago, so opening it is only a load
+        const loaded: OnyxCollection<Transaction> = {
+            [transactionKey('1')]: {...makeTransaction('1', CARD_ID), inserted: DateUtils.getDBTime(Date.now() - 24 * 60 * 60 * 1000)},
+        };
+
+        // When it is written to Onyx for the first time
+        const result = spendDataSignatureConfig.compute([loaded, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: loaded},
+        });
+
+        // Then nothing moves
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
     });
 });

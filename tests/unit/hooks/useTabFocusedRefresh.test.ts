@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useAppReturnCount from '@hooks/useAppReturnCount';
 import useIsTabFocused from '@hooks/useIsTabFocused';
@@ -227,6 +227,47 @@ describe('useTabFocusedRefresh', () => {
         rerender({refreshKey: 'key-2'});
 
         // Then that change refreshes at once, because only returns to the app are throttled
+        expect(refresh).toHaveBeenCalledTimes(2);
+    });
+    it('refreshes a skipped return once the window ends', () => {
+        // Given a return to the app that was skipped because the screen had just refreshed
+        const {refresh, rerender} = renderRefresh();
+        returnToApp(rerender, 'key-1');
+        expect(refresh).toHaveBeenCalledTimes(1);
+
+        // When the user stays on the screen until the window ends
+        act(() => {
+            jest.advanceTimersByTime(APP_RETURN_REFRESH_INTERVAL_MS);
+        });
+
+        // Then the skipped return refreshes once, so an expense made while away still shows up
+        expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops a skipped return when another refresh lands first', () => {
+        // Given a skipped return to the app
+        const {refresh, rerender} = renderRefresh();
+        returnToApp(rerender, 'key-1');
+
+        // When a data change refreshes the screen before the window ends
+        rerender({refreshKey: 'key-2'});
+        act(() => {
+            jest.advanceTimersByTime(APP_RETURN_REFRESH_INTERVAL_MS);
+        });
+
+        // Then the window ending adds no second refresh, since the data was just read
+        expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('refreshes a return to the app after the device clock moved back', () => {
+        // Given a screen that has refreshed
+        const {refresh, rerender} = renderRefresh();
+
+        // When the device clock moves back and the user returns to the app
+        jest.setSystemTime(Date.now() - APP_RETURN_REFRESH_INTERVAL_MS);
+        returnToApp(rerender, 'key-1');
+
+        // Then the return refreshes, rather than waiting for the clock to catch up
         expect(refresh).toHaveBeenCalledTimes(2);
     });
 });

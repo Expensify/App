@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import useAppReturnCount from './useAppReturnCount';
 import useIsTabFocused from './useIsTabFocused';
@@ -25,6 +25,12 @@ function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () =
     const lastAppReturnCountRef = useRef(appReturnCount);
     const lastRefreshTimeRef = useRef(0);
     const isRefreshPendingRef = useRef(false);
+    // A skipped return is replayed once the window ends, so an expense made while away still shows up.
+    const deferredReturnTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const [deferredReturnCount, setDeferredReturnCount] = useState(0);
+    const lastDeferredReturnCountRef = useRef(deferredReturnCount);
+
+    useEffect(() => () => clearTimeout(deferredReturnTimerRef.current), []);
 
     useEffect(() => {
         const wasTabFocused = wasTabFocusedRef.current;
@@ -37,10 +43,21 @@ function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () =
             lastRefreshKeyRef.current = refreshKey;
             isRefreshPendingRef.current = true;
         }
+        if (deferredReturnCount !== lastDeferredReturnCountRef.current) {
+            lastDeferredReturnCountRef.current = deferredReturnCount;
+            isRefreshPendingRef.current = true;
+        }
         if (appReturnCount !== lastAppReturnCountRef.current) {
             lastAppReturnCountRef.current = appReturnCount;
-            if (Date.now() - lastRefreshTimeRef.current >= APP_RETURN_REFRESH_INTERVAL_MS) {
+            const elapsed = Date.now() - lastRefreshTimeRef.current;
+            // A negative gap means the device clock moved back, so the window is treated as over.
+            if (elapsed < 0 || elapsed >= APP_RETURN_REFRESH_INTERVAL_MS) {
                 isRefreshPendingRef.current = true;
+            } else if (!deferredReturnTimerRef.current) {
+                deferredReturnTimerRef.current = setTimeout(() => {
+                    deferredReturnTimerRef.current = undefined;
+                    setDeferredReturnCount((count) => count + 1);
+                }, APP_RETURN_REFRESH_INTERVAL_MS - elapsed);
             }
         }
 
@@ -50,8 +67,10 @@ function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () =
 
         isRefreshPendingRef.current = false;
         lastRefreshTimeRef.current = Date.now();
+        clearTimeout(deferredReturnTimerRef.current);
+        deferredReturnTimerRef.current = undefined;
         onRefresh();
-    }, [isTabFocused, isScreenVisible, refreshKey, appReturnCount]);
+    }, [isTabFocused, isScreenVisible, refreshKey, appReturnCount, deferredReturnCount]);
 }
 
 export default useTabFocusedRefresh;
