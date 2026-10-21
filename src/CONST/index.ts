@@ -1004,7 +1004,6 @@ const CONST = {
             NOT_PROVIDED: 'NOT_PROVIDED',
             IN_REVIEW: 'IN_REVIEW',
             VERIFIED: 'VERIFIED',
-            REJECTED: 'REJECTED',
         },
         /** Who asked for the requirement: us before Submit, Wise after */
         KYC_REQUIREMENT_REQUESTED_BY: {
