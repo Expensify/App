@@ -84,7 +84,7 @@ describe('buildWideTabPreMount', () => {
         } as NavigationPartialRoute;
 
         // When the Expenses view is pre-mounted
-        // Then it is skipped, because Search renders only its last root screen and navigating inside it is cheaper
+        // Then it is skipped, because the mounted Search can just navigate, which is cheaper than a second one under it
         expect(buildWideTabPreMount(tabState, expensesTarget, PRE_MOUNT_KEY)).toBeUndefined();
     });
 
@@ -110,7 +110,7 @@ describe('buildWideTabPreMount', () => {
         // When report B is pre-mounted
         const result = buildWideTabPreMount(tabState, reportTarget('B'), PRE_MOUNT_KEY);
 
-        // Then no screen is added, the mounted one is handed to the reveal, and the tab is only kept rendering
+        // Then no screen is added, the mounted one is reused for the reveal, and the tab is only marked preloaded
         expect(result?.routeKey).toBe('b-key');
         expect(result?.isExistingRoute).toBe(true);
         expect(getNestedKeys(result?.tabState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key', 'b-key']);
@@ -125,7 +125,7 @@ describe('buildWideTabPreMount', () => {
         // When report B is pre-mounted
         const result = buildWideTabPreMount(tabState, reportTarget('B'), PRE_MOUNT_KEY);
 
-        // Then the tab gets the stack the reveal would build, with the destination keyed for reuse
+        // Then the tab gets the stack the reveal would build, with the destination given the pre-mount key
         const reportsState = result?.tabState.routes.at(1)?.state;
         expect(reportsState?.routes.map((route) => route.name)).toEqual([SCREENS.INBOX, SCREENS.REPORT]);
         expect(reportsState?.routes.at(-1)?.key).toBe(PRE_MOUNT_KEY);

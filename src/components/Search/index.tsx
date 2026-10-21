@@ -1194,7 +1194,8 @@ function Search({
                     setSkeletonWasDisplayed(true);
                 };
 
-                // A revealed wide pre-mount focuses mid RHP slide. A transition keeps the slide painting.
+                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
+                // so a transition keeps that render from blocking the slide.
                 if (Navigation.getIsRevealingPreMountedFullscreen()) {
                     startTransition(rearm);
                 } else {

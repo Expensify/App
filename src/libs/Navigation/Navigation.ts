@@ -1216,15 +1216,17 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         holdPendingSearchWriteFlush();
     }
 
-    // RHP the revealed pre-mount was behind, recorded once the dismiss ends.
+    // Key of the RHP that covered the revealed pre-mount. Stored after the dismiss, so going back to a history entry
+    // that still has this RHP drops the pre-mount from it.
     let revealedBehindModalRouteKey: string | undefined;
 
-    // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
+    // The revealing flag is reset once the dismiss ends. Left set, a later Search focus would skip its overlay and defer its re-arm.
     const afterTransition = preMountedRouteKey
         ? () => {
               setIsRevealingPreMountedFullscreen(false);
 
-              // Recorded after the RHP is gone, or a RESET of the current state during the dismiss would drop the destination.
+              // Recorded only once the RHP is gone. Any state that still has this RHP loses the pre-mount, and during the dismiss
+              // that includes the current one.
               if (revealedBehindModalRouteKey) {
                   setRevealedWideTabPreMountModalRouteKey(preMountedRouteKey, revealedBehindModalRouteKey);
               }
@@ -1238,7 +1240,8 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         : options?.afterTransition;
 
     requestAnimationFrame(() => {
-        // History entries that still contain this RHP were saved before the reveal. Cross-tab pre-mounts rely on it.
+        // Key of the RHP covering the pre-mount, read before the replace. A history entry that still has this RHP is from before
+        // the reveal, and for a cross-tab pre-mount it is the only way to tell.
         const modalRouteKey = navigationRef.getRootState()?.routes.at(-1)?.key;
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
@@ -1246,7 +1249,7 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         });
 
         // No outcome means the replace was rejected (e.g. Browser Back closed the RHP first), leaving the pre-mount hidden.
-        // Otherwise the router reports whether it showed the pre-mount.
+        // Otherwise the outcome from handleReplaceFullscreenUnderRHP says whether it showed the pre-mount.
         const preMountOutcome = preMountedRouteKey ? consumePreMountReplaceOutcome() : undefined;
         if (preMountedRouteKey && preMountOutcome?.routeKey !== preMountedRouteKey) {
             cancelWideTabPreMount();
@@ -1260,7 +1263,7 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         } else if (preMountedRouteKey) {
             discardWideTabPreMount();
 
-            // The destination was built fresh, so a Search focus before the dismiss ends must not skip its overlay or wait.
+            // The destination was built fresh, so a Search focus before the dismiss ends must not skip its overlay or wait for the flush.
             setIsRevealingPreMountedFullscreen(false);
             releasePendingSearchWriteFlush();
         }

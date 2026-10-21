@@ -18,11 +18,13 @@ import {cancelWideTabPreMount, isWideTabPreMountInTopFullscreen} from './wideTab
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
 
-// Wide layout pre-mounts the destination screen inside the current TAB_NAVIGATOR instead of a route under the RHP. This
-// holds that screen's key and the route it was built for, so REPLACE can reveal it or the cancel can drop it. Cleared with the flag.
+// Wide layout keeps the screen beside the RHP visible, so the destination is pre-mounted as a hidden screen in TAB_NAVIGATOR.
+// Its key lets the reveal show it or the cancel remove it, and the route makes sure it is only revealed for the destination
+// it was built for.
 let preMountedFullscreen: {routeKey: string; route: Route} | undefined;
 
-// Set while the dismiss reveals a wide pre-mount, so its focus-time work stays out of the RHP slide (see useSearchOverlay).
+// True from the reveal until the RHP dismiss ends. The revealed screen's focus effects read it to avoid
+// work that would block the RHP slide.
 let isRevealingPreMountedFullscreen = false;
 
 // Set while a neutral placeholder route sits directly under the RHP, so a native swipe-dismiss
@@ -212,7 +214,7 @@ function markFullscreenPreInsertedUnderRHP(routeName: string | undefined, preMou
     preMountedFullscreen = preMounted;
 }
 
-/** Key of the wide-layout pre-mounted destination, only when it was pre-mounted for exactly this route. */
+/** Returns the key of the live wide pre-mount, if any. With `route`, only if the pre-mount was built for that route. */
 function getPreMountedFullscreenRouteKey(route?: Route) {
     if (!preMountedFullscreen) {
         return undefined;
@@ -220,7 +222,7 @@ function getPreMountedFullscreenRouteKey(route?: Route) {
     return route === undefined || preMountedFullscreen.route === route ? preMountedFullscreen.routeKey : undefined;
 }
 
-/** Hands the wide-layout pre-mount to a reveal of `route` and returns its key. A pre-mount for another route is dropped. */
+/** Returns the pre-mount's key if it can be revealed for `route` and marks it as revealing. Otherwise removes it and returns undefined. */
 function takePreMountedFullscreenForReveal(route: Route): string | undefined {
     if (!preMountedFullscreen) {
         return undefined;
@@ -256,8 +258,8 @@ function getPreInsertedFullscreenRouteName() {
 }
 
 /**
- * Called when the destination is shown without a reveal. A narrow pre-insert is that destination, so it stays and only the
- * Buffer route in front of it is cleaned up. A wide pre-mount is removed, since only a reveal can show it.
+ * Clears the pre-insert before a plain dismiss that skips the reveal. On narrow the route under the RHP is already the
+ * destination, so only Buffer is removed. On wide the hidden pre-mount is removed, since a plain dismiss would not show it.
  */
 function clearFullscreenPreInsertedFlag() {
     if (preMountedFullscreen) {
@@ -288,7 +290,8 @@ function removePreInsertedFullscreenIfNeeded() {
     preInsertedFullscreenRouteName = undefined;
     preMountedFullscreen = undefined;
 
-    // Wide layout: the destination is a hidden screen inside the current tab navigator, so taking it out is the whole cleanup.
+    // A pre-mount key exists only on wide layout, where the destination is a hidden screen in TAB_NAVIGATOR,
+    // so removing it is the whole cleanup.
     if (preMountedRouteKey) {
         cancelWideTabPreMount();
         return;

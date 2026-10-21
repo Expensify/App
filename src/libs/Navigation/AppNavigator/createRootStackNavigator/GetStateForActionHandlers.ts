@@ -117,14 +117,14 @@ function clearPreInsertedOriginalTabRoute() {
 }
 
 type PreMountReplaceOutcome = {
-    /** Key of the wide pre-mount the replace was asked to reveal */
+    /** Key of the pre-mounted route that REPLACE_FULLSCREEN_UNDER_RHP was asked to reveal */
     routeKey: string;
 
-    /** Whether the replace showed the pre-mounted screen, or built the destination without it */
+    /** True when the pre-mounted screen became the destination, false when the destination was built fresh without it */
     isRevealed: boolean;
 };
 
-/** Whether the last REPLACE_FULLSCREEN_UNDER_RHP showed its wide pre-mount. Read once by the reveal after dispatching. */
+/** Pre-mount key of the last REPLACE_FULLSCREEN_UNDER_RHP and whether it was revealed. Undefined if the replace was rejected. */
 let lastPreMountReplaceOutcome: PreMountReplaceOutcome | undefined;
 
 function consumePreMountReplaceOutcome(): PreMountReplaceOutcome | undefined {
@@ -554,7 +554,7 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     return withoutFocusedTabPreload({...builtTabState, routes});
 }
 
-/** Removes an unrevealed pre-mount from the destination stack, where the preserved native report history can keep it. */
+/** Removes an unrevealed pre-mount from the target tab's stack, in case the built state reused the stack that holds it. */
 function withoutPreMountedRoute(tabState: TabStateForReplacement, preMountedRouteKey: string): TabStateForReplacement {
     const targetTabRoute = tabState.routes[tabState.index];
     const nestedState = isNavigationStateWithRoutes(targetTabRoute?.state) ? targetTabRoute.state : undefined;

@@ -120,23 +120,23 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
     }
 
     it('finishes the pre-mount reveal when the replace shows the pre-mounted screen', () => {
-        // Given a replace that the router reports as showing the pre-mounted screen
+        // Given a replace whose outcome says the pre-mounted screen was shown
         mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: true});
 
         // When the reveal runs
         Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: ''}));
 
-        // Then the pre-mount is handed over to the reveal
+        // Then the live pre-mount is ended as revealed
         expect(mockedFinishWideTabPreMountReveal).toHaveBeenCalledWith(PRE_MOUNTED_ROUTE_KEY);
         expect(mockedCancelWideTabPreMount).not.toHaveBeenCalled();
         expect(mockedDiscardWideTabPreMount).not.toHaveBeenCalled();
 
-        // And the RHP it was behind is not recorded while the RHP is still in the state, or a RESET of it would drop the destination
+        // And the RHP it was behind is not recorded yet, since any state that still has this RHP loses the pre-mount
         expect(mockedSetRevealedWideTabPreMountModalRouteKey).not.toHaveBeenCalled();
     });
 
     it('records the RHP the revealed pre-mount was behind once the dismiss ends', () => {
-        // Given a replace that the router reports as showing the pre-mounted screen
+        // Given a replace whose outcome says the pre-mounted screen was shown
         mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: true});
 
         // When the reveal runs and the RHP dismiss transition ends
@@ -145,12 +145,12 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
             callback();
         }
 
-        // Then the RHP is recorded, so history entries that still contain it are known to be saved before the reveal
+        // Then the RHP is recorded, so a history entry that still has it is known to be from before the reveal
         expect(mockedSetRevealedWideTabPreMountModalRouteKey).toHaveBeenCalledWith(PRE_MOUNTED_ROUTE_KEY, 'rhp');
     });
 
     it('discards the pre-mount when the replace runs without it', () => {
-        // Given a replace that the router reports as built without the pre-mounted screen
+        // Given a replace whose outcome says the destination was built without the pre-mounted screen
         mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: false});
 
         // When the reveal runs
@@ -167,7 +167,7 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
     });
 
     it('cancels the pre-mount when the replace is rejected', () => {
-        // Given a replace rejected because the RHP was closed first (e.g. Browser Back), so the router reports nothing
+        // Given a replace rejected because the RHP was closed first (e.g. Browser Back), so there is no outcome
         mockReplaceOutcome(undefined);
 
         // When the reveal runs

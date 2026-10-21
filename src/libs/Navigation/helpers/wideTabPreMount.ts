@@ -17,10 +17,10 @@ type TabRoute = NavigationState['routes'][number];
 type TabStateWithPreloads = NavigationState & {preloadedRouteKeys?: string[]};
 
 type WideTabPreMount = {
-    /** Next state of the TAB_NAVIGATOR, with the destination screen mounted inside the destination tab */
+    /** TAB_NAVIGATOR state to dispatch, with the destination screen mounted inside the destination tab */
     tabState: TabStateWithPreloads;
 
-    /** Key of the destination screen the reveal reuses */
+    /** Key of the hidden destination screen, which the reveal shows instead of mounting a new one */
     routeKey: string;
 
     /** Whether the destination screen was already mounted, so cancel must leave it in place */
@@ -29,10 +29,13 @@ type WideTabPreMount = {
     /** Key of the destination tab route, marked preloaded so a covered tab renders instead of staying frozen */
     addedPreloadedRouteKey?: string;
 
-    /** Destination tab route as it was, when the pre-mount had to create its stack and cancel must put it back */
+    /** Destination tab route before the pre-mount built its stack, so cancel can put it back. Only set when the tab had no stack */
     originalTabRoute?: TabRoute;
 
-    /** Key of the screen the pre-mount was mounted under in the focused tab, which only states saved before the reveal hold */
+    /**
+     * Key of the screen the pre-mount sits under in the focused tab. A history entry with this screen right above
+     * the pre-mount is from before the reveal
+     */
     coveringRouteKey?: string;
 };
 
@@ -43,7 +46,10 @@ type LiveWideTabPreMount = Omit<WideTabPreMount, 'tabState' | 'coveringRouteKey'
     /** Name of the destination tab route */
     tabName: string;
 
-    /** Key of the screen the pre-mount was mounted under, required so a reveal cannot lose it */
+    /**
+     * Key of the screen the pre-mount sits under in the focused tab. Unlike in WideTabPreMount it is not optional,
+     * so the reveal never misses it
+     */
     coveringRouteKey: string | undefined;
 };
 
@@ -58,7 +64,7 @@ function isRealizedStackState(state: TabRoute['state']): state is NavigationStat
  * - Destination in the focused tab: the screen goes directly under the current screen, which stays on top.
  * - Destination in another tab: the screen goes on top of that tab's stack, and the tab is marked preloaded. When that tab
  *   already shows the destination, its mounted screen is reused as it is.
- * Returns undefined when there is nothing worth pre-mounting.
+ * Returns undefined when the destination cannot be pre-mounted or the focused tab already shows it.
  */
 function buildWideTabPreMount(tabState: TabStateWithPreloads, focusedTargetTab: NavigationPartialRoute, routeKey: string): WideTabPreMount | undefined {
     const targetTabIndex = tabState.routes.findIndex((route) => route.name === focusedTargetTab.name);
@@ -72,8 +78,8 @@ function buildWideTabPreMount(tabState: TabStateWithPreloads, focusedTargetTab: 
     const withTargetTabRoute = (route: TabRoute): TabRoute[] => tabState.routes.map((tabRoute, index) => (index === targetTabIndex ? route : tabRoute));
 
     if (targetTabIndex === tabState.index) {
-        // Search renders only from its last root screen, so a second one could not stay mounted under the current one.
-        // Navigating within the mounted Search is also cheaper than a pre-mount there.
+        // Search in the focused tab is skipped: the mounted Search can just navigate, which is cheaper than a second one under it.
+        // A destination this tab's stack cannot hold is skipped too.
         if (focusedTargetTab.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR || !nestedState?.routeNames.includes(destination.name)) {
             return undefined;
         }
@@ -109,7 +115,8 @@ function buildWideTabPreMount(tabState: TabStateWithPreloads, focusedTargetTab: 
         };
     }
 
-    // The tab never mounted, so its stack is built the way the reveal builds it, with the destination keyed for reuse.
+    // The tab was never opened, so its stack is built with getTargetTabRoute like the reveal does. The destination gets
+    // the pre-mount key so the reveal can find it.
     const builtTabRoute = getTargetTabRoute(targetTabRoute, focusedTargetTab);
     const builtRoutes = builtTabRoute.state?.routes;
     if (!builtRoutes?.length) {
@@ -155,18 +162,18 @@ function getCurrentTabState(): TabStateWithPreloads | undefined {
     return tabState && tabState.stale === false && tabState.key ? (tabState as TabStateWithPreloads) : undefined;
 }
 
-/** State of the tab navigator a pre-mount was built in, found by key so a fullscreen covering it does not hide it. */
+/** State of the tab navigator a pre-mount was built in. Found by key, so it is found even when another fullscreen covers it. */
 function getPreMountTabState(tabStateKey: string): TabStateWithPreloads | undefined {
     const tabState = navigationRef.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.key === tabStateKey)?.state;
     return tabState && tabState.stale === false ? (tabState as TabStateWithPreloads) : undefined;
 }
 
-/** True while the live pre-mount sits in the tab navigator shown as the top fullscreen, the only place a reveal can show it. */
+/** True while the tab navigator holding the live pre-mount is the topmost fullscreen, the only case where a reveal can show it. */
 function isWideTabPreMountInTopFullscreen(): boolean {
     return !!livePreMount && getCurrentTabState()?.key === livePreMount.tabStateKey;
 }
 
-/** Hands the pre-mount over to the reveal, which shows the pre-mounted screen as the destination. */
+/** Ends the live pre-mount after the reveal showed it, marking its key as revealed. */
 function finishWideTabPreMountReveal(routeKey: string) {
     if (livePreMount?.routeKey !== routeKey) {
         return;
@@ -189,7 +196,7 @@ function cancelWideTabPreMount() {
         navigationRef.dispatch({...CommonActions.reset(cancelledTabState), target: tabState.key});
     }
 
-    // Cleared after the dispatch, so the screen stays unfrozen until the commit that removes it.
+    // Live keys are cleared after the dispatch, so the screen stays unfrozen until React commits its removal.
     clearLiveWideTabPreMountKeys();
 }
 

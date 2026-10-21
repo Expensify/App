@@ -11,11 +11,15 @@ type RevealedPreMount = {
     /** Key of the screen the pre-mount was mounted under in the focused tab, if any */
     coveringRouteKey?: string;
 
-    /** Key of the root modal (e.g. RHP) the pre-mount was mounted behind. Only entries saved before the reveal contain it */
+    /**
+     * Key of the root modal (e.g. RHP) the pre-mount was mounted behind. Only browser history entries saved before the reveal
+     * still contain it
+     */
     modalRouteKey?: string;
 };
 
-// A revealed pre-mount becomes a regular screen but keeps its key. Maps it to keys marking entries saved before the reveal.
+// Revealed pre-mounts by key, with what covered each before the reveal. A restored state where it is still covered
+// is from before the reveal, so the pre-mount is dropped from it.
 const revealedRouteKeys = new Map<string, RevealedPreMount>();
 
 // Tab route keys a pre-mount marked preloaded, so a saved browser history entry cannot keep a covered tab unfrozen forever.
@@ -42,7 +46,7 @@ function markWideTabPreMountRouteKeyRevealed(key: string, coveringRouteKey?: str
     revealedRouteKeys.set(key, {coveringRouteKey, modalRouteKey});
 }
 
-/** Records the modal a revealed pre-mount was behind. Call it once the modal is gone, or the current state would look saved. */
+/** Records the modal a revealed pre-mount was behind. Call it only once the modal is gone, or the current state would lose the pre-mount. */
 function setRevealedWideTabPreMountModalRouteKey(key: string, modalRouteKey: string) {
     const revealed = revealedRouteKeys.get(key);
     if (!revealed) {
@@ -52,9 +56,8 @@ function setRevealedWideTabPreMountModalRouteKey(key: string, modalRouteKey: str
 }
 
 /**
- * True for a pre-mount nobody owns, e.g. restored from a saved browser history entry. That is one neither revealed nor live,
- * or a revealed one in an entry saved before the reveal. Such an entry still has the route it was mounted under right
- * above it (`nextRouteKey`), or the modal it was mounted behind among the root routes (`rootRouteKeys`).
+ * True for a pre-mount that should be dropped from a restored state: one neither live nor revealed, or a revealed one
+ * that is still covered there, by the screen right above it (`nextRouteKey`) or by its modal (`rootRouteKeys`).
  */
 function isStaleWideTabPreMountRouteKey(key: string | undefined, nextRouteKey?: string, rootRouteKeys?: string[]): boolean {
     if (!key || !key.includes(ROUTE_KEY_INFIX) || key === liveRouteKey) {
@@ -76,7 +79,7 @@ function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {
     }
 }
 
-/** Clears every live pre-mount key, for each path that ends the live pre-mount. */
+/** Clears every live pre-mount key once the live pre-mount ends. */
 function clearLiveWideTabPreMountKeys() {
     setLiveWideTabPreMountRouteKey(undefined);
     setLiveWideTabPreMountPreloadedRouteKey(undefined);

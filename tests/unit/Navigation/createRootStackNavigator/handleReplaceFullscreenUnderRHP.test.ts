@@ -400,7 +400,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitState(result)?.routes.map((route) => route.key)).toEqual(['inbox-key', 'Report-wide-pre-mount-1']);
         expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
 
-        // And the reveal is told the pre-mounted screen was shown, so it can hand the pre-mount over
+        // And the outcome says the pre-mounted screen was shown, so the reveal can end the live pre-mount
         expect(consumePreMountReplaceOutcome()).toEqual({routeKey: 'Report-wide-pre-mount-1', isRevealed: true});
     });
 
@@ -637,7 +637,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
         expect(getReportsSplitState(result)?.routes.at(-1)?.key).toBeUndefined();
 
-        // And the reveal is told the pre-mount was not shown, so it is not marked revealed
+        // And the outcome says the pre-mount was not shown, so it is not marked revealed
         expect(consumePreMountReplaceOutcome()).toEqual({routeKey: 'Report-wide-pre-mount-gone', isRevealed: false});
     });
 
@@ -924,7 +924,7 @@ describe('removeStalePreMountsFromResetAction', () => {
     });
 
     it('drops a revealed pre-mount from a history entry saved before the reveal, where it is still under its covering report', () => {
-        // Given a pre-mount of report B mounted under report A and revealed, and browser forward back to an entry saved before that
+        // Given a pre-mount of report B mounted under report A and revealed, and browser history returning to an entry saved before that
         const revealedKey = 'Report-wide-pre-mount-4';
         markWideTabPreMountRouteKeyRevealed(revealedKey, 'a-key');
         const action = makeResetWithReportsStack(
@@ -983,7 +983,7 @@ describe('removeStalePreMountsFromResetAction', () => {
         );
 
         // When the root router sanitizes the RESET
-        // Then nothing changes, because only report A right above B marks an entry saved before the reveal
+        // Then nothing changes, because only report A right above B means the entry is from before the reveal
         expect(removeStalePreMountsFromResetAction(action)).toBe(action);
     });
 });
