@@ -7571,12 +7571,15 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
+// ExpensiMark allows one level of brackets inside a link label, so a file named `report [Q1].csv` is one of these.
+const MARKDOWN_LABEL_PATTERN = '[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*\\][^\\[\\]\\r\\n]*)*';
+
 /**
  * Saving a draft captured mid-upload would persist a local URI only the author's device can resolve, so swap it
  * for the synced attachment, or drop it while the upload is pending because the queued Add re-attaches the file.
  */
 function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
-    const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
+    const localAttachmentReferenceRegex = new RegExp(`\\n*(?:!?\\[${MARKDOWN_LABEL_PATTERN}\\]\\((?:blob:|file:|content:)[^)]*\\)|!\\((?:blob:|file:|content:)[^)]*\\))`, 'g');
     if (!localAttachmentReferenceRegex.test(draftMarkdown)) {
         return draftMarkdown;
     }
@@ -7606,7 +7609,7 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
         isReplaced = true;
 
         // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
-        const draftLabel = match.match(/^\n*!?\[([^\]]*)\]/)?.at(1);
+        const draftLabel = match.match(new RegExp(`^\\n*!?\\[(${MARKDOWN_LABEL_PATTERN})\\]`))?.at(1);
         const labelledAttachmentMarkdown = draftLabel
             ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
             : syncedAttachmentMarkdown;
@@ -7641,7 +7644,7 @@ function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | unde
  * (`[label](blob:…)`). An image written without a label parses as `!(blob:…)`, which yields nothing to carry over.
  */
 function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource: string): string | undefined {
-    const labelledReferenceRegex = new RegExp(`!?\\[([^\\]]*)\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
+    const labelledReferenceRegex = new RegExp(`!?\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
     return draftMarkdown.match(labelledReferenceRegex)?.at(1) ?? undefined;
 }
 
@@ -7724,7 +7727,7 @@ function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalComme
     });
 }
 
-const MARKDOWN_LINK_REGEX = /(!?)\[([^\]]*)\]\(([^)]*)\)/g;
+const MARKDOWN_LINK_REGEX = new RegExp(`(!?)\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(([^)]*)\\)`, 'g');
 
 /**
  * A file name such as `my_report_v2.csv` reads as markdown emphasis when the edit is parsed, which leaves the anchor

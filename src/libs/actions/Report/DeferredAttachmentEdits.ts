@@ -79,9 +79,10 @@ function watchDeferredAttachmentEdit(reportActionID: string, deferredEdit: Defer
                     return;
                 }
                 if (!isEmptyObject(action.errors ?? {})) {
+                    // The failed Add already puts the action back as it was sent, still pending with its error, so
+                    // touching it here would only take away the faded look `OfflineWithFeedback` gives a failed send.
                     stop();
                     Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-                    Onyx.merge(reportActionsKey, {[reportActionID]: {pendingAction: null, ...(deferredEdit.originalMessage ? {message: [deferredEdit.originalMessage]} : {})}});
                     return;
                 }
                 if (getReportActionHtml(action)?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {

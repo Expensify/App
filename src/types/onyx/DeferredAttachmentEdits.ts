@@ -1,5 +1,3 @@
-import type {Message} from './ReportAction';
-
 /** An edit saved while its attachment was still uploading, replayed once the attachment has synced */
 type DeferredAttachmentEdit = {
     /** Report the edited comment belongs to */
@@ -16,9 +14,6 @@ type DeferredAttachmentEdit = {
 
     /** Whether the report was archived when the edit was saved */
     isOriginalReportArchived?: boolean;
-
-    /** Message shown before the edit, restored if the upload fails */
-    originalMessage?: Message;
 
     /** Video attributes the editor cached for the draft, keyed by source */
     videoAttributeCache?: Record<string, string>;

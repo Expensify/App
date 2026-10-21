@@ -2951,6 +2951,31 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('leaves a failed upload showing as failed when it drops the parked edit', async () => {
+            // Given a comment whose attachment is still uploading, with an edit parked on it
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
+            await waitForBatchedUpdates();
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeDefined();
+
+            // When the upload fails, which puts the action back as it was sent, still pending and now with an error
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    errors: {'1726585008134': 'report.genericAddCommentFailureMessage'},
+                },
+            });
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+
+            // Then the parked edit is dropped, and the action is left alone so it keeps the faded look of a failed send
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+            expect((await getAction())?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
         it('drops an edit superseded before its deferral was echoed back from Onyx', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);

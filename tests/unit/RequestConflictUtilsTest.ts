@@ -187,6 +187,32 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should keep the extension when the new name has none', () => {
+        // Given a queued attachment the editor renames to a bare word
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When the rename is applied to the queued file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'report');
+
+        // Then the original extension travels with it, because the server names the stored file after the upload and
+        // a download can only add back an extension the stored copy already has
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'report.csv'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
         // Given a queued request whose attachment is a web File, where the name is read-only
         const reportActionID = '2';

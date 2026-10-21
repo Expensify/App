@@ -284,9 +284,8 @@ describe('maskOnyxState', () => {
     });
 
     it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
-        // Given a parked edit holding the comment the author typed and the message it replaces
+        // Given a parked edit holding the comment the author typed
         const draft = 'lunch receipt for the Tokyo trip';
-        const originalHtml = '<a href="https://www.expensify.com/chat-attachments/1/w_a.csv">receipt.csv</a>';
         const reportActionID = '9876';
         const input = {
             [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
@@ -296,7 +295,6 @@ describe('maskOnyxState', () => {
                     currentUserLogin: 'author@example.com',
                     currentUserAccountID: 42,
                     isOriginalReportArchived: false,
-                    originalMessage: {type: 'COMMENT', html: originalHtml, text: 'receipt.csv'},
                 },
             },
         };
@@ -304,10 +302,9 @@ describe('maskOnyxState', () => {
         // When the state is exported, in either masking mode
         const exported = JSON.stringify(maskOnyxState(input, isMaskingFragileDataEnabled));
 
-        // Then none of the text the author wrote or the message it replaces survives, and the fields that only
-        // identify the parked edit are still readable
+        // Then none of the text the author wrote survives, and the fields that only identify the parked edit are
+        // still readable
         expect(exported).not.toContain(draft);
-        expect(exported).not.toContain('receipt.csv');
         expect(exported).not.toContain('author@example.com');
         expect(exported).toContain('"reportID":"1234"');
         expect(exported).toContain('"currentUserAccountID":42');

@@ -3901,7 +3901,6 @@ function editReportComment(
             currentUserLogin,
             currentUserAccountID,
             isOriginalReportArchived,
-            originalMessage,
             videoAttributeCache,
         };
         deferAttachmentEdit(reportActionID, deferredEdit);

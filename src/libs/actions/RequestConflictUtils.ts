@@ -1,6 +1,7 @@
 import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -276,6 +277,18 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
 }
 
 /**
+ * The server reads the stored file's extension from the name it is uploaded under, and a download can only put back
+ * an extension the stored copy already has. So dropping it in a rename would leave the file with none for good.
+ */
+function keepExtension(currentName: string, newName: string): string {
+    if (splitExtensionFromFileName(newName).fileExtension) {
+        return newName;
+    }
+    const currentExtension = splitExtensionFromFileName(currentName).fileExtension;
+    return currentExtension ? `${newName}.${currentExtension}` : newName;
+}
+
+/**
  * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
  * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
  */
@@ -283,12 +296,14 @@ function renameQueuedAttachment(file: unknown, name: string): unknown {
     if (typeof File !== 'undefined' && file instanceof File) {
         // The constructor copies only the standard fields, so `uri` and `source` are put back: the native payload
         // reads them to find the file on disk, and a share lands here as a File rather than a plain object.
-        return Object.assign(new File([file], name, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
+        const renamed = keepExtension(file.name, name);
+        return Object.assign(new File([file], renamed, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
     }
     if (typeof file !== 'object' || file === null) {
         return file;
     }
-    return {...file, name};
+    const currentName = 'name' in file && typeof file.name === 'string' ? file.name : '';
+    return {...file, name: keepExtension(currentName, name)};
 }
 
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(

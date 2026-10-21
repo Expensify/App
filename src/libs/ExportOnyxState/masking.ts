@@ -171,7 +171,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     // also covers the export taken with fragile-data masking turned off.
     [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
         allowList: ['reportID', 'currentUserAccountID', 'isOriginalReportArchived'],
-        maskList: ['textForNewComment', 'currentUserLogin', 'html', 'text'],
+        maskList: ['textForNewComment', 'currentUserLogin'],
     },
 };
 

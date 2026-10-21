@@ -7748,6 +7748,26 @@ describe('ReportUtils', () => {
             expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe('Hello edited');
         });
 
+        it('still recognizes the local reference when the file name carries brackets', () => {
+            // Given a draft that renamed the still-uploading file to a name ExpensiMark accepts as a link label
+            const draft = 'Hello edited\n\n[report [Q1].csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            // When the draft is saved while the upload is still pending
+            // Then the local reference is recognized and dropped, rather than saved as a blob link no one else can open
+            expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe('Hello edited');
+        });
+
+        it('carries a bracketed name over to the synced attachment', () => {
+            // Given the same rename, saved once the upload has synced
+            const draft = 'Hello edited\n\n[report [Q1].csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            // When the local reference is swapped for the synced one
+            // Then the new name is the one that travels, not the name the file was uploaded under
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(
+                `Hello edited\n\n![report [Q1].csv](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)`,
+            );
+        });
+
         it('leaves a draft with no local reference untouched while pending', () => {
             expect(replaceLocalAttachmentReferences('Hello edited', uploadingImageHtml, reportActionID)).toBe('Hello edited');
         });
@@ -7888,6 +7908,15 @@ describe('ReportUtils', () => {
                 expect(label).toBe('renamed.csv');
             });
 
+            it('reads a label whose file name carries brackets', () => {
+                // Given a draft that renamed the uploading file to a name holding brackets
+                const draft = `Hello\n\n[report [Q1].csv](${localSource})`;
+
+                // When the label is read for that file
+                // Then the whole name comes back, the way ExpensiMark reads a link label
+                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBe('report [Q1].csv');
+            });
+
             it('reads no label from an image reference written without one', () => {
                 // Given a draft that references the uploading image with no label, the way the parser writes it
                 const draft = `Hello\n\n!(${localSource})`;
@@ -8011,6 +8040,16 @@ describe('ReportUtils', () => {
             // When the labels are restored
             // Then each anchor gets the label from its own position in the draft
             expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${url}">first_a_.csv</a> and <a href="${url}">second_b_.csv</a>`);
+        });
+
+        it('puts back a bracketed file name the parser read as emphasis', () => {
+            // Given a file whose name holds both brackets and underscores
+            const draft = `[report [Q_1].csv](${url})`;
+            const parsed = `<a href="${url}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="55">report [Q<em>1].csv</em></a>`;
+
+            // When the labels are restored
+            // Then the card shows the name as typed
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${url}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="55">report [Q_1].csv</a>`);
         });
 
         it.each([
