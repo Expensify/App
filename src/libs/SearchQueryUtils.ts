@@ -1306,7 +1306,6 @@ function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, def
         return true;
     }
 
-    console.log('is saveable?', currentQueryJSON, defaultQueryJSON, getQueryHashes(currentQueryJSON), getQueryHashes(defaultQueryJSON));
     return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS) || getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON) > 0;
 }
 
