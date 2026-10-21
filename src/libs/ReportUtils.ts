@@ -7650,18 +7650,25 @@ function replaceLocalAttachmentReferences(
     // Matching by position is only safe when the draft kept every attachment.
     const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
+    const matchedTagIndexes = new Set<number>();
+    const findUnmatchedTagIndex = (isMatch: (tag: string) => boolean) => syncedAttachmentTags.findIndex((tag, index) => !matchedTagIndexes.has(index) && isMatch(tag));
     return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
         const localFileName = match.match(/\[([^\]]+)\]/)?.at(1) ?? localSource.split('/').pop();
-        const syncedAttachmentTag =
-            (attachmentID ? syncedAttachmentTags.find((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
-            (canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined) ??
-            (localFileName ? syncedAttachmentTags.find((tag) => getSyncedFileName(tag) === localFileName) : undefined);
+        let syncedAttachmentTagIndex = attachmentID ? findUnmatchedTagIndex((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : -1;
+        if (syncedAttachmentTagIndex === -1 && canMatchByPosition && !matchedTagIndexes.has(localReferenceIndex)) {
+            syncedAttachmentTagIndex = localReferenceIndex;
+        }
+        if (syncedAttachmentTagIndex === -1 && localFileName) {
+            syncedAttachmentTagIndex = findUnmatchedTagIndex((tag) => getSyncedFileName(tag) === localFileName);
+        }
         localReferenceIndex++;
-        if (!syncedAttachmentTag) {
+        if (syncedAttachmentTagIndex === -1) {
             return '';
         }
+        const syncedAttachmentTag = syncedAttachmentTags.at(syncedAttachmentTagIndex) ?? '';
+        matchedTagIndexes.add(syncedAttachmentTagIndex);
         return `${match.match(/^\n*/)?.at(0) ?? ''}${Parser.htmlToMarkdown(syncedAttachmentTag)}`;
     });
 }

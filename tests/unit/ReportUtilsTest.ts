@@ -7885,6 +7885,25 @@ describe('ReportUtils', () => {
                 // Then the second image stays, matched by its file name
                 expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
             });
+
+            it('matches same-named images to different synced attachments', () => {
+                // Given three synced images with the same file name, and a draft that kept two of them after the app restarted
+                const syncedSameNameHtml = ['a', 'b', 'c']
+                    .map(
+                        (name) =>
+                            `<img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_${name}.png" alt="image.png" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/${name}.png" />`,
+                    )
+                    .join('');
+                const draft = 'Hello edited\n\n![image.png](file:///var/mobile/Documents/image.png)\n\n![image.png](file:///var/mobile/Documents/image.png)';
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, `Hello<br /><br />${syncedSameNameHtml}`, reportActionID, {});
+
+                // Then each kept image gets its own synced attachment instead of both getting the first one
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_a.png)\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_b.png)`,
+                );
+            });
         });
 
         it('swaps a document reference for the synced attachment link', () => {
