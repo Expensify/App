@@ -30,7 +30,7 @@ The Top Spenders report is available to Workspace Admins, Approvers, and Auditor
 ## Where to find the Top Spenders report
 
 **Web:**  
-Use the navigation tabs on the left and select **Spend**, then click **Top spenders** under the **Insights** section.
+In the navigation tabs on the left, select **Insights**. **Top spenders** appears as a chart on the Insights page.
 
 **Mobile:**  
 Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top spenders**.

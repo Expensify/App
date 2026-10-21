@@ -29,7 +29,7 @@ The Top Merchants report is available to all workspace members on web and mobile
 ## Where to find the Top Merchants report
 
 **Web:**  
-Click **Spend** in the left navigation, then click **Top merchants** under the **Insights** section
+In the navigation tabs on the left, select **Insights**. **Top merchants** appears as a chart on the Insights page.
 
 **Mobile:**  
 Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top merchants**.
