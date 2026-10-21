@@ -17,6 +17,7 @@
 
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
+#include "JHybridShareActionHandlerSpec.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::utils {
@@ -43,6 +44,14 @@ struct JHybridAppStartTimeModuleSpecImpl: public jni::JavaClass<JHybridAppStartT
     return javaPart->getJHybridAppStartTimeModuleSpec();
   }
 };
+struct JHybridShareActionHandlerSpecImpl: public jni::JavaClass<JHybridShareActionHandlerSpecImpl, JHybridShareActionHandlerSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridShareActionHandler;";
+  static std::shared_ptr<JHybridShareActionHandlerSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridShareActionHandlerSpecImpl::javaobject()>();
+    jni::local_ref<JHybridShareActionHandlerSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridShareActionHandlerSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
@@ -51,6 +60,7 @@ void registerAllNatives() {
   // Register native JNI methods
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridShareActionHandlerSpec::CxxPart::registerNatives();
 
   // Register Nitro Hybrid Objects
   HybridObjectRegistry::registerHybridObjectConstructor(
@@ -63,6 +73,12 @@ void registerAllNatives() {
     "AppStartTimeModule",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridAppStartTimeModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "ShareActionHandler",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridShareActionHandlerSpecImpl::create();
     }
   );
 }

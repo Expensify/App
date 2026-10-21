@@ -93,7 +93,6 @@ namespace margelo::nitro::utils {
       return __promise;
     }();
   }
-
   std::shared_ptr<Promise<std::vector<Contact>>> JHybridContactsModuleSpec::pick(const std::vector<ContactFields>& keys) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("pick");
     auto __result = method(_javaPart, [&](auto&& __input) {
