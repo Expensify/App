@@ -7650,25 +7650,22 @@ function replaceLocalAttachmentReferences(
     // Matching by position is only safe when the draft kept every attachment.
     const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
-    const matchedTagIndexes = new Set<number>();
-    const findUnmatchedTagIndex = (isMatch: (tag: string) => boolean) => syncedAttachmentTags.findIndex((tag, index) => !matchedTagIndexes.has(index) && isMatch(tag));
+    const matchedTags = new Set<string>();
+    const findUnmatchedTag = (isMatch: (tag: string) => boolean) => syncedAttachmentTags.find((tag) => !matchedTags.has(tag) && isMatch(tag));
     return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
         const localFileName = match.match(/\[([^\]]+)\]/)?.at(1) ?? localSource.split('/').pop();
-        let syncedAttachmentTagIndex = attachmentID ? findUnmatchedTagIndex((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : -1;
-        if (syncedAttachmentTagIndex === -1 && canMatchByPosition && !matchedTagIndexes.has(localReferenceIndex)) {
-            syncedAttachmentTagIndex = localReferenceIndex;
-        }
-        if (syncedAttachmentTagIndex === -1 && localFileName) {
-            syncedAttachmentTagIndex = findUnmatchedTagIndex((tag) => getSyncedFileName(tag) === localFileName);
-        }
+        const positionTag = canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined;
+        const syncedAttachmentTag =
+            (attachmentID ? findUnmatchedTag((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
+            (positionTag && !matchedTags.has(positionTag) ? positionTag : undefined) ??
+            (localFileName ? findUnmatchedTag((tag) => getSyncedFileName(tag) === localFileName) : undefined);
         localReferenceIndex++;
-        if (syncedAttachmentTagIndex === -1) {
+        if (!syncedAttachmentTag) {
             return '';
         }
-        const syncedAttachmentTag = syncedAttachmentTags.at(syncedAttachmentTagIndex) ?? '';
-        matchedTagIndexes.add(syncedAttachmentTagIndex);
+        matchedTags.add(syncedAttachmentTag);
         return `${match.match(/^\n*/)?.at(0) ?? ''}${Parser.htmlToMarkdown(syncedAttachmentTag)}`;
     });
 }
