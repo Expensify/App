@@ -7989,7 +7989,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
-            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
             filters: {
                 description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
                 stages: {
@@ -8023,8 +8023,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             finalApprover: `Τελική έγκριση`,
             finalApproverOptional: 'Τελικός εγκρίτης (προαιρετικό)',
             approvalModeDescription: (providerName: string) => `Ορίστε τον εγκριτή για τα νέα μέλη που εισάγονται από το ${providerName} στο Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Επιλέξτε τον πρώτο εγκρίνοντα για τους υποψηφίους σας: είτε τον υπεύθυνο προσλήψεών τους είτε τον συντονιστή τους που έχει οριστεί στο ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `το ${fieldNames.slice(0, -1).join(', ')} τους ή το ${lastFieldName} τους` : `είτε ο/η ${fieldNames.join('ή την/τον/τα')} τους`;
+                return `Επιλέξτε τον πρώτο εγκριτή για τους υποψηφίους σας: ${fieldList} που έχουν ανατεθεί στο ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Επιλέξτε έναν μόνο εγκρίνοντα',
                 advanced: `Ο υπεύθυνος προσλήψεων ή ο συντονιστής της υποψηφιότητας γίνεται εγκρίνων των εξόδων τους`,

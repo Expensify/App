@@ -9037,7 +9037,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             dontSeeYourATS: `<muted-text-label>Non vedi il tuo ATS qui? <a href="#">Chiedi a Concierge</a> e possiamo aggiungerlo.</muted-text-label>`,
             importSettings: 'Impostazioni di importazione',
             defaultApprover: 'Approvatore predefinito',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting', hiringManager: 'Responsabile delle assunzioni'},
             filters: {
                 description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base alle fasi lavorative, ai tag e alle sedi.`,
                 stages: {
@@ -9071,8 +9071,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             finalApprover: `Approvatore finale`,
             finalApproverOptional: 'Approvatore finale (facoltativo)',
             approvalModeDescription: (providerName: string) => `Imposta il responsabile delle approvazioni per i nuovi membri importati da ${providerName} in Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Scegli il primo approvatore per i tuoi candidati: il loro Recruiter oppure il loro Coordinator assegnato in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `il loro ${fieldNames.slice(0, -1).join(', ')} o ${lastFieldName}` : `o il loro ${fieldNames.join('o il loro')}`;
+                return `Scegli il primo approvatore per i tuoi candidati: ${fieldList} assegnato in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Scegli un solo approvatore',
                 advanced: `Il recruiter o il coordinatore del candidato diventa il suo approvatore di spese`,

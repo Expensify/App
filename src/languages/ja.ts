@@ -8923,7 +8923,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
-            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
                 stages: {
@@ -8952,8 +8952,12 @@ ${reportName}`,
             finalApprover: `最終承認者`,
             finalApproverOptional: '最終承認者（任意）',
             approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
-            approverFieldDescription: (providerName: string) =>
-                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `${fieldNames.slice(0, -1).join(', ')} または ${lastFieldName}` : `または ${fieldNames.join('またはその')} のいずれか`;
+                return `候補者の最初の承認者を選択してください：${providerName} で割り当てられている ${fieldList}`;
+            },
             approvalModeDescriptions: {
                 basic: '承認者を 1 名選択してください',
                 advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,

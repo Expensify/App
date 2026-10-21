@@ -8690,7 +8690,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
-            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员', hiringManager: '招聘经理'},
             filters: {
                 description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
                 stages: {
@@ -8714,7 +8714,12 @@ ${reportName}`,
             finalApprover: `最终审批人`,
             finalApproverOptional: '最终审批人（可选）',
             approvalModeDescription: (providerName: string) => `为从 ${providerName} 导入到 Expensify 的新成员设置审批人。`,
-            approverFieldDescription: (providerName: string) => `为候选人选择第一位审批人：可以是他们在 ${providerName} 中指定的招聘人员或协调员。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `其 ${fieldNames.slice(0, -1).join(', ')} 或 ${lastFieldName}` : `其 ${fieldNames.join('或其')}`;
+                return `为您的候选人选择第一位审批人：在 ${providerName} 中分配的 ${fieldList}。`;
+            },
             approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {

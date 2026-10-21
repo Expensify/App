@@ -9113,7 +9113,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
-            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement', hiringManager: 'Responsable du recrutement'},
             filters: {
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
@@ -9148,8 +9148,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             finalApprover: `Approbateur final`,
             finalApproverOptional: 'Approbateur final (facultatif)',
             approvalModeDescription: (providerName: string) => `Définissez l’approbateur pour les nouveaux membres importés de ${providerName} vers Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Choisissez le premier approbateur pour vos candidat·es : soit leur recruteur·se, soit leur coordinateur·rice assigné·e dans ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `leur ${fieldNames.slice(0, -1).join(', ')}, ou leur ${lastFieldName}` : `soit leur ${fieldNames.join('ou leur')}`;
+                return `Choisissez le premier approbateur pour vos candidats : ${fieldList} assigné dans ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Choisir un seul approbateur',
                 advanced: `Le recruteur ou le coordinateur du candidat devient la personne qui approuve ses dépenses`,

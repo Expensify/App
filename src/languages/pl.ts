@@ -9036,7 +9036,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             dontSeeYourATS: `<muted-text-label>Nie widzisz tutaj swojego ATS? <a href="#">Zapytaj Concierge</a>, a my możemy go dodać.</muted-text-label>`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
-            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji', hiringManager: 'Rekruter'},
             filters: {
                 description: (providerName: string) => `Wybierz, którzy członkowie zostaną zaimportowani z ${providerName}. Możesz wybierać spośród etapów rekrutacji, tagów i biur.`,
                 stages: {
@@ -9065,7 +9065,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             finalApprover: `Ostateczny akceptujący`,
             finalApproverOptional: 'Ostateczny zatwierdzający (opcjonalnie)',
             approvalModeDescription: (providerName: string) => `Ustaw osobę zatwierdzającą dla nowych członków importowanych z ${providerName} do Expensify.`,
-            approverFieldDescription: (providerName: string) => `Wybierz pierwszą osobę akceptującą dla swoich kandydatów: Rekrutera lub Koordynatora przypisanego w ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `ich ${fieldNames.slice(0, -1).join(', ')} lub ${lastFieldName}` : `albo ich ${fieldNames.join('lub ich')}`;
+                return `Wybierz pierwszą osobę zatwierdzającą dla swoich kandydatów: ${fieldList} przypisane w ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Wybierz jedną osobę zatwierdzającą',
                 advanced: `Rekruter lub koordynator kandydata zostaje jego akceptującym wydatki`,

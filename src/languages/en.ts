@@ -8266,7 +8266,12 @@ const translations = {
             finalApprover: `Final approver`,
             finalApproverOptional: 'Final approver (optional)',
             approvalModeDescription: (providerName: string) => `Set the approver for new members being imported from ${providerName} to Expensify.`,
-            approverFieldDescription: (providerName: string) => `Choose the first approver for your candidates: either their Recruiter or their Coordinator assigned in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `their ${fieldNames.slice(0, -1).join(', ')}, or ${lastFieldName}` : `either their ${fieldNames.join(' or their ')}`;
+                return `Choose the first approver for your candidates: ${fieldList} assigned in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Choose a single approver',
                 advanced: `Candidate's recruiter or coordinator becomes their expense approver`,
@@ -8274,6 +8279,7 @@ const translations = {
             },
             approverFields: {
                 recruiter: 'Recruiter',
+                hiringManager: 'Hiring manager',
                 recruitingCoordinator: 'Recruiting coordinator',
             },
             filters: {
