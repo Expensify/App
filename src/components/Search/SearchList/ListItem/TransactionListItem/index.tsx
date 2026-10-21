@@ -29,6 +29,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
+    getAttendees,
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -163,6 +164,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -212,7 +214,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         onyxViolations,
         policyCategories,
         transaction?.category ?? transactionItem.category ?? '',
-        transaction?.comment?.attendees ?? transactionItem.attendees,
+        getAttendees(transaction ?? transactionItem),
         currentUserDetails,
         isAttendeeTrackingEnabled(policyForViolations),
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
@@ -281,6 +283,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
+            bankAccountList,
         });
     };
 

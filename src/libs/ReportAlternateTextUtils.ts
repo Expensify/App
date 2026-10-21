@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     CardList,
     PersonalDetails,
@@ -506,6 +507,8 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID,
     lastOriginalAction,
     rules,
+    bankAccountList,
+    formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -532,6 +535,10 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID?: string;
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -597,11 +604,13 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+            personalDetails,
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy,
             isForListPreview: true,
+            bankAccountList,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
@@ -620,6 +629,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+                personalDetails,
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -630,13 +640,14 @@ function getLastMessageTextForReport({
                 policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
+                bankAccountList,
             });
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayString);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -984,11 +995,13 @@ function getLastMessageTextForReport({
                     formatReportLastMessageText(
                         Parser.htmlToText(
                             getReportPreviewMessage(translate, convertToDisplayString, {
+                                personalDetails,
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
                                 policy,
                                 isForListPreview: true,
+                                bankAccountList,
                             }),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;
@@ -1206,6 +1219,9 @@ type GetReportAlternateTextParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -1244,6 +1260,7 @@ function getReportAlternateText({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
+    bankAccountList,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1259,7 +1276,7 @@ function getReportAlternateText({
         if (participantPersonalDetailListExcludeCurrentUserParam) {
             return participantPersonalDetailListExcludeCurrentUserParam;
         }
-        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
         const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
         return Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
     };
@@ -1308,6 +1325,8 @@ function getReportAlternateText({
             oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
             rules,
+            bankAccountList,
+            formatPhoneNumber,
         });
 
     const getLastActorDisplayNamePrefix = () =>
