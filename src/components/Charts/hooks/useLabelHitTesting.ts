@@ -79,7 +79,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
     const wrapHitGeometry =
         wrapConfig && wrapConfig.lineHeight > 0
             ? {
-                  halfWidths: wrapConfig.labelWidths.map((w) => (w > 0 ? wrapConfig.columnWidth / 2 : 0)),
+                  halfWidths: wrapConfig.hasLabel.map((present) => (present ? wrapConfig.columnWidth / 2 : 0)),
                   topOffset: VictoryTheme.axis.xAxisLabelGap,
                   boxHeight: wrapConfig.maxLines * wrapConfig.lineHeight,
               }

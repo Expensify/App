@@ -111,8 +111,11 @@ type WrappedLabelConfig = {
     /** Pixel line height reserved per label line, shared so the hit box matches the painted lines. */
     lineHeight: number;
 
-    /** Full (non-truncated) pixel width of each label, used to size the wrapped hit box. */
-    labelWidths: number[];
+    /** Whether each label has text, so empty labels stay non-interactive in hit testing. */
+    hasLabel: boolean[];
+
+    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
+    canvasWidth: number;
 };
 
 export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback, WrappedLabelConfig};

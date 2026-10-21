@@ -298,7 +298,6 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
-                        canvasWidth={args.canvasSize.width}
                     />
                 )}
                 <ChartYAxisLabels

@@ -48,9 +48,6 @@ type ChartXAxisLabelsProps = {
     /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
 
-    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
-    canvasWidth: number;
-
     /** When set, labels wrap at word breaks across the full column, centered on the bar, never rotated or skipped. Used for bar-name labels. */
     wrapConfig?: WrappedLabelConfig;
 };
@@ -69,7 +66,6 @@ function ChartXAxisLabels({
     labelColor,
     xScale,
     chartBoundsBottom,
-    canvasWidth,
     wrapConfig,
 }: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
@@ -95,7 +91,7 @@ function ChartXAxisLabels({
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
 
     if (wrapConfig) {
-        const {columnWidth} = wrapConfig;
+        const {columnWidth, canvasWidth} = wrapConfig;
         const wrapTop = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap;
         const edgeMargin = VictoryTheme.axis.padding.left;
         return paragraphLabels.map((label, i) => {

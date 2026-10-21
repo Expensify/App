@@ -17,7 +17,7 @@ import {
 } from '@components/Charts/hooks';
 import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
 import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_ROTATIONS, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -107,11 +107,17 @@ function VerticalBarChartCanvas({
     const labelColumnWidth = Math.min(barLayout.barWidth + barLayout.gap, plotBounds.width);
     const wrapConfig: WrappedLabelConfig | undefined =
         shouldWrapLabels && measurements.lineHeight > 0
-            ? {columnWidth: labelColumnWidth, maxLines: MAX_BAR_LABEL_LINES, lineHeight: measurements.lineHeight, labelWidths: measurements.labelWidths}
+            ? {
+                  columnWidth: labelColumnWidth,
+                  maxLines: MAX_BAR_LABEL_LINES,
+                  lineHeight: measurements.lineHeight,
+                  hasLabel: originalLabels.map((label) => label.length > 0),
+                  canvasWidth: chartWidth,
+              }
             : undefined;
     const wrapLabelHeight = wrapConfig ? wrapConfig.maxLines * wrapConfig.lineHeight : 0;
-    const effectiveRotation = shouldWrapLabels ? LABEL_ROTATIONS.HORIZONTAL : labelRotation;
-    const effectiveSkipInterval = shouldWrapLabels ? 1 : labelSkipInterval;
+    // When wrapping, labelAreaWidth is 0 above so the hook returns EMPTY_LAYOUT (horizontal, skip 1).
+    // xAxisLabelHeight is 0 there too, so the wrap height has to be substituted explicitly.
     const resolvedLabelHeight = shouldWrapLabels ? wrapLabelHeight : (xAxisLabelHeight ?? 0);
 
     const barHitHalfWidth = useSharedValue(0);
@@ -124,8 +130,8 @@ function VerticalBarChartCanvas({
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         truncatedLabelWidths,
-        labelRotation: effectiveRotation,
-        labelSkipInterval: effectiveSkipInterval,
+        labelRotation,
+        labelSkipInterval,
         chartBottom,
         wrapConfig,
     });
@@ -213,14 +219,13 @@ function VerticalBarChartCanvas({
                         firstLabelMaxWidth={firstLabelMaxWidth}
                         lastLabelMaxWidth={lastLabelMaxWidth}
                         ellipsisWidth={ellipsisWidth}
-                        labelRotation={effectiveRotation}
-                        labelSkipInterval={effectiveSkipInterval}
+                        labelRotation={labelRotation}
+                        labelSkipInterval={labelSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
-                        canvasWidth={args.canvasSize.width}
                         wrapConfig={wrapConfig}
                     />
                 )}
