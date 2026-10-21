@@ -697,8 +697,7 @@ describe('actions/IOU', () => {
 
     describe('resetDraftTransactionsCustomUnit', () => {
         it('should do nothing if transaction is not passed', async () => {
-            // Given an empty draft collection
-            // When the reset function is called without a transaction
+            // Call the reset function without a transaction
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);

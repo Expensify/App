@@ -6688,10 +6688,8 @@ describe('actions/Report', () => {
         });
 
         it('should not set anything if no reportID was provided', async () => {
-            // Given no report to attach the transaction thread to
             const reportID = undefined;
 
-            // When the thread creation is requested
             Report.setOptimisticTransactionThread(reportID);
 
             await waitForBatchedUpdates();

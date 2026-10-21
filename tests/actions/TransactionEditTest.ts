@@ -71,8 +71,6 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transaction gracefully', async () => {
-                // Given no transaction to back up
-                // When a backup is requested
                 createBackupTransaction(undefined, false);
                 await waitForBatchedUpdates();
 
@@ -134,8 +132,6 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transactionID gracefully', async () => {
-                // Given no transaction ID to restore
-                // When a restore is requested
                 restoreOriginalTransactionFromBackup(undefined, false);
                 await waitForBatchedUpdates();
 

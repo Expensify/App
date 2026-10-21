@@ -1,7 +1,5 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
-import * as UseOnyxModule from '@hooks/useOnyx';
-
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
@@ -66,10 +64,6 @@ describe('useInsightsFilters', () => {
         await waitForBatchedUpdates();
     });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     it('opens on the page defaults, in the default workspace currency', async () => {
         // Given a user whose default workspace reports in PLN, and no stored selections
         await setUpActivePolicy('PLN');
@@ -131,18 +125,22 @@ describe('useInsightsFilters', () => {
     });
 
     it('waits for the stored selections before saying it has resolved', async () => {
-        // Given Onyx has not hydrated its cache yet
-        const useOnyxSpy = jest.spyOn(UseOnyxModule, 'default').mockReturnValue([undefined, {status: 'loading'}]);
-        // When the dashboard first asks for its filters
-        const {result, rerender} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
+        // Given stored selections that are still being written
+        Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [SPEND_SEARCH_KEY]: {
+                query: buildInsightsQueryString({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'}),
+            },
+        });
+
+        // When the dashboard asks for its filters before that write lands
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
 
         // Then it reports as unresolved, so the page doesn't request a dashboard the user never asked for
         expect(result.current.isResolved).toBe(false);
 
-        // When hydration finishes without stored selections, the defaults can safely be used
-        useOnyxSpy.mockReturnValue([undefined, {status: 'loaded'}]);
-        rerender({});
-        expect(result.current.isResolved).toBe(true);
+        // And it resolves once the selections are in
+        await waitForBatchedUpdates();
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
     });
 
     it('stores a control’s selection alongside the rest of the dashboard’s filters', async () => {
