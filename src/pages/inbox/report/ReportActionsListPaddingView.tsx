@@ -1,3 +1,4 @@
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,11 +24,12 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
     const reportActionsListFSClass = FS.getChatFSClass(report);
 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const {shouldLabelComposerAsNewQuestion} = useConciergeAskState(report.reportID);
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
 
     return (
         <View
-            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer && !shouldLabelComposerAsNewQuestion ? styles.pb4 : {}]}
             fsClass={reportActionsListFSClass}
         >
             {children}

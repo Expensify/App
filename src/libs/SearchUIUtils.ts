@@ -714,13 +714,13 @@ function getSuggestedSearchesVisibility(
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    hasOthersExpenses = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
-    let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowExpensifyCardSuggestion = false;
     let shouldShowReimbursementsSuggestion = false;
@@ -766,7 +766,6 @@ function getSuggestedSearchesVisibility(
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
@@ -785,7 +784,6 @@ function getSuggestedSearchesVisibility(
         shouldShowApproveSuggestion ||= isPolicyEligibleForApproveSuggestion;
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
@@ -804,13 +802,20 @@ function getSuggestedSearchesVisibility(
     return {
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]: hasOthersExpenses,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: hasOthersExpenses,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS]: false,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: false,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: false,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
+            // Cash accruals always sits under Accounting, whether or not a workspace qualifies it on its own.
+            // Without a workspace there is no accounting to do, so the group stays away entirely.
+            [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: hasEligibleGroupPolicies,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
@@ -2808,7 +2813,14 @@ function getReportSections({
     const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key of orderedKeys) {
-        if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
+        if (
+            isReportEntry(key) &&
+            !data[key].isHiddenForBillReceiver &&
+            (data[key].type === CONST.REPORT.TYPE.IOU ||
+                data[key].type === CONST.REPORT.TYPE.EXPENSE ||
+                data[key].type === CONST.REPORT.TYPE.INVOICE ||
+                data[key].type === CONST.REPORT.TYPE.BILL)
+        ) {
             const reportItem = {...data[key]} as OnyxTypes.Report;
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
@@ -2841,10 +2853,9 @@ function getReportSections({
                     allReportTransactions,
                 );
 
+                const fromAccountID = reportItem.billSenderAccountID ?? reportItem.ownerAccountID;
                 const fromDetails =
-                    mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
-                    getPersonalDetailsForAccountID(reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ??
-                    emptyPersonalDetails;
+                    mergedPersonalDetails?.[fromAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? getPersonalDetailsForAccountID(fromAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
@@ -2852,8 +2863,12 @@ function getReportSections({
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
-                const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: fromDetails, translate, formatPhoneNumber});
-                const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
+                const formattedFrom =
+                    currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.BILL
+                        ? (fromDetails?.login ?? '')
+                        : temporaryGetDisplayNameOrDefault({passedPersonalDetails: fromDetails, translate, formatPhoneNumber});
+                const toDisplayName = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
+                const formattedTo = currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.BILL ? (toDetails?.login ?? '') : toDisplayName;
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
                 // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
@@ -3754,7 +3769,7 @@ function getSections({
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
     }
 
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         return getReportSections({
             data,
             currentSearch,
@@ -3893,7 +3908,7 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
     }
 
@@ -4350,7 +4365,7 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
 
-    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.BILL) {
         return !Object.keys(searchResults?.data).some(
             (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -4389,6 +4404,7 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
@@ -4430,6 +4446,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.INVOICE;
@@ -4785,6 +4802,8 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    hasOthersExpenses?: boolean;
+    hasBills?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
@@ -4802,6 +4821,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        hasOthersExpenses = false,
+        hasBills = false,
         policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
@@ -4810,7 +4831,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
+    } = getSuggestedSearchesVisibility(
+        currentUserEmail,
+        cardFeedsByPolicy,
+        policies,
+        defaultExpensifyCard,
+        hasReportAwaitingApproval,
+        isTrackIntentUser,
+        policyCategories,
+        hasOthersExpenses,
+    );
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -4825,8 +4855,14 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
         }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]);
+        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]);
         }
 
         if (!isTrackIntentWithWorkflowsDisabled) {
@@ -4875,6 +4911,17 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (expenseReportsSection.menuItems.length > 0) {
             typeMenuSections.push(expenseReportsSection);
         }
+    }
+
+    if (hasBills) {
+        const billMenuItems = [suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]];
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+            billMenuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]);
+        }
+        typeMenuSections.push({
+            translationPath: 'billPay.bills',
+            menuItems: billMenuItems,
+        });
     }
 
     // Accounting section
@@ -5001,6 +5048,7 @@ function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTyp
 const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.BILL]: 'InvoiceBookmark',
     [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
     [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
     [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
@@ -5103,6 +5151,7 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return getExpenseReportedStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
@@ -5973,6 +6022,9 @@ function getDisplayValue(
         if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return translate('common.expenseReport');
         }
+        if (filterValue === CONST.SEARCH.DATA_TYPES.BILL) {
+            return translate('billPay.bills');
+        }
         return filterValue ? translate(`common.${filterValue}`) : undefined;
     }
 
@@ -6528,7 +6580,7 @@ function getColumnsToShow({
         return !!getReportCustomColumnValue(column, reportToCheck);
     };
 
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.DATE,

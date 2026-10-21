@@ -670,6 +670,12 @@ const ONYXKEYS = {
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
+    /** Whether the navigation bar lists the destinations that are still being designed. Defaults to on. */
+    SHOULD_SHOW_EXTRA_NAV_ITEMS: 'shouldShowExtraNavItems',
+
+    /** Whether the navigation bar lists the Ask Concierge destination. Defaults to off. */
+    SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM: 'shouldShowAskConciergeNavItem',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -1166,6 +1172,8 @@ const ONYXKEYS = {
 
     /** List of Form ids */
     FORMS: {
+        CREATE_BILL_FORM: 'createBillForm',
+        CREATE_BILL_FORM_DRAFT: 'createBillFormDraft',
         ADD_PAYMENT_CARD_FORM: 'addPaymentCardForm',
         ADD_PAYMENT_CARD_FORM_DRAFT: 'addPaymentCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
@@ -1543,6 +1551,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM]: FormTypes.WorkspaceTaxCodeForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM]: FormTypes.WorkspaceInvoicesCompanyNameForm;
+    [ONYXKEYS.FORMS.CREATE_BILL_FORM]: FormTypes.CreateBillForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM]: FormTypes.WorkspaceInvoicesCompanyWebsiteForm;
     [ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM]: FormTypes.WorkspaceTimeTrackingDefaultRateForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
@@ -1934,6 +1943,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
+    [ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS]: boolean;
+    [ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];

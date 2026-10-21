@@ -170,7 +170,7 @@ function SearchPageFooter({
 
     if (!isFooterSelectorsEnabled) {
         return (
-            <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+            <View style={[styles.borderTop, shouldUseNarrowLayout ? styles.ph3 : styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
                 <View
                     style={[
                         shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
@@ -201,7 +201,13 @@ function SearchPageFooter({
                 </View>
                 {isTotalLoading && (
                     <View
-                        style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}
+                        style={[
+                            StyleSheet.absoluteFill,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            shouldUseNarrowLayout ? styles.ph3 : styles.ph5,
+                            shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
+                        ]}
                     >
                         <SearchPageFooterSkeleton shouldStandInForWholeRow />
                     </View>
@@ -295,7 +301,7 @@ function SearchPageFooter({
     );
 
     return (
-        <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View style={[styles.borderTop, shouldUseNarrowLayout ? styles.ph3 : styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
                 <FilterPopupButton
                     PopoverComponent={renderFooterPopup}

@@ -43,6 +43,21 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    billPay: {
+        bills: 'Bills',
+        createBill: 'Create bill',
+        vendorEmail: 'Vendor email',
+        domain: 'Receiving domain',
+        invoiceDetails: 'Invoice details',
+        attachPDF: 'Attach PDF',
+        payByACH: 'Pay by ACH',
+        markAsPaid: 'Mark as paid',
+        paymentFailed: 'We couldn’t pay this bill. Please try again.',
+        createFailed: 'We couldn’t create this bill. Please try again.',
+        payBills: ({count}: {count: number}) => ({one: 'Pay 1 bill', other: `Pay ${count} bills`}),
+        primaryContactHint: (domain: string) =>
+            `The primary contact is the main point of contact for ${domain} and will receive bills sent to this domain's bill pay address ${domain}@expensify.cash`,
+    },
     earlyRenewal: {
         title: 'Renew your Expensify subscription',
         subtitle: 'One less thing to do before the new year.',
@@ -597,7 +612,28 @@ const translations = {
         tagGLCode: 'Tag GL code',
         concierge: {
             greeting: 'Hi there, how can I help?',
-            showHistory: 'Show history',
+            subtitle: 'Your personal AI assistant',
+            welcomeDescription: 'Concierge can answer questions, update expenses, and more.',
+            viewChatHistory: 'View chat history',
+            hideChatHistory: 'Hide chat history',
+            askNewQuestion: 'Ask a new question',
+            newChat: 'New chat',
+            composerPlaceholders: {
+                spendLastMonth: 'How much did I spend last month?',
+                topExpenses: 'Show me my top expenses this month',
+                spendDrivers: 'What drove my spend last quarter?',
+                travelSpendChange: 'How did my travel spend change from last month?',
+                topSpender: 'Who spent the most this month?',
+                missingCategory: 'Which expenses are missing a category?',
+                awaitingApproval: 'Which reports are waiting on my approval?',
+                notReimbursed: "What haven't I been reimbursed yet?",
+                unsubmitted: 'Which of my expenses are still unsubmitted?',
+                leftToPay: "What's left to pay this month?",
+                createExpense: 'Create an expense for a $30 lunch',
+                combineExpenses: 'Combine all my open expenses into one report',
+                exportPdf: 'Export my last report to PDF',
+                exportCsv: 'Give me a CSV of my expenses over $50',
+            },
         },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
@@ -1236,8 +1272,6 @@ const translations = {
                 broomDescription: 'Tasks are clean, though stay tuned for more to-dos.',
                 houseTitle: 'All caught up',
                 houseDescription: 'This is your home base for upcoming to-dos.',
-                conciergeBotTitle: 'Nothing to show',
-                conciergeBotDescription: 'Beep boop beep boop, check back for more tasks!',
                 checkboxTextTitle: 'All caught up',
                 checkboxTextDescription: 'Check off your upcoming to-dos here.',
                 flashTitle: "You're done!",
@@ -1714,6 +1748,7 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `started payment, but is waiting for ${vendorDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -2544,6 +2579,7 @@ const translations = {
             profileTrace: 'Profile trace',
             results: 'Results',
             testingPreferences: 'Testing preferences',
+            showExtraNavItems: 'Show extra nav items',
             server: 'Server',
             servers: {
                 production: {label: 'Production', description: 'The live environment real users see'},
@@ -3491,6 +3527,12 @@ const translations = {
         title: 'Welcome to #focus mode!',
         prompt: (priorityModePageUrl: string) =>
             `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exports, accruals, statements and reconciliation',
+        savedSearchesDescription: 'Jump back to a search you saved',
+        insightsDescription: 'See where your spend is going',
+        workspacesDescription: 'Manage your workspaces and domains',
     },
     inboxTabs: {
         all: 'All',
@@ -10372,6 +10414,11 @@ const translations = {
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            allExpenses: 'All expenses',
+            allReports: 'All reports',
+            allBills: 'All bills',
+            myReports: 'My reports',
+            myExpenses: 'My expenses',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

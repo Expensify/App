@@ -27,7 +27,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AncestorReportActionItem from './AncestorReportActionItem';
-import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 
 type ReportActionItemParentActionProps = {
@@ -115,7 +114,6 @@ function ReportActionItemParentAction({
 
     return (
         <View style={[styles.pRelative]}>
-            <AnimatedEmptyStateBackground />
             <OfflineWithFeedback
                 shouldDisableOpacity
                 errors={
@@ -124,9 +122,10 @@ function ReportActionItemParentAction({
                 errorRowStyles={[styles.ml10, styles.mr2]}
                 onClose={onCloseParentReportActionItem}
             >
-                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
+                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}, index) => (
                     <AncestorReportActionItem
                         key={ancestorReportAction.reportActionID}
+                        shouldHideThreadDivider={index === 0}
                         report={ancestorReport}
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}

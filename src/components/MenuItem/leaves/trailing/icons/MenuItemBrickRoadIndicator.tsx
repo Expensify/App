@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
@@ -39,6 +41,8 @@ function MenuItemBrickRoadIndicator({status}: MenuItemBrickRoadIndicatorProps) {
             <Icon
                 src={icons.DotIndicator}
                 fill={status === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
             />
         </View>
     );

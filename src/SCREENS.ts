@@ -17,6 +17,8 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
+    ASK_CONCIERGE: 'AskConcierge',
+    MORE: 'More',
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
@@ -350,6 +352,7 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
+        CREATE_BILL: 'Money_Request_Create_Bill',
         DYNAMIC_HOLD_REASON: 'Dynamic_Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         REPORT_REJECT: 'Money_Request_Report_Reject',

@@ -35,6 +35,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bills: 'Factures à payer',
+        createBill: 'Créer une facture à payer',
+        vendorEmail: 'E-mail du fournisseur',
+        domain: 'Domaine destinataire',
+        invoiceDetails: 'Détails de la facture',
+        attachPDF: 'Joindre un PDF',
+        payByACH: 'Payer par ACH',
+        markAsPaid: 'Marquer comme payée',
+        paymentFailed: 'Nous n’avons pas pu payer cette facture. Veuillez réessayer.',
+        createFailed: 'Nous n’avons pas pu créer cette facture. Veuillez réessayer.',
+        payBills: ({count}) => ({one: 'Payer 1 facture', other: `Payer ${count} factures`}),
+        primaryContactHint: (domain) =>
+            `Le contact principal est l’interlocuteur de ${domain} et recevra les factures envoyées à l’adresse de paiement des factures du domaine ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -506,7 +521,31 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
-        concierge: {greeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
+        concierge: {
+            greeting: 'Bonjour, comment puis-je vous aider ?',
+            subtitle: 'Votre assistant IA personnel',
+            welcomeDescription: 'Concierge peut répondre à vos questions, mettre à jour vos dépenses et plus encore.',
+            viewChatHistory: 'Afficher l’historique du chat',
+            hideChatHistory: 'Masquer l’historique du chat',
+            askNewQuestion: 'Poser une nouvelle question',
+            newChat: 'Nouveau chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Combien ai-je dépensé le mois dernier ?',
+                topExpenses: 'Montre-moi mes plus grosses dépenses ce mois-ci',
+                spendDrivers: "Qu'est-ce qui a fait augmenter mes dépenses le trimestre dernier ?",
+                travelSpendChange: 'Comment mes dépenses de voyage ont-elles évolué depuis le mois dernier ?',
+                topSpender: 'Qui a le plus dépensé ce mois-ci ?',
+                missingCategory: "Quelles dépenses n'ont pas de catégorie ?",
+                awaitingApproval: 'Quels rapports attendent mon approbation ?',
+                notReimbursed: "Qu'est-ce qui ne m'a pas encore été remboursé ?",
+                unsubmitted: 'Lesquelles de mes dépenses ne sont pas encore soumises ?',
+                leftToPay: 'Que reste-t-il à payer ce mois-ci ?',
+                createExpense: 'Crée une dépense de 30 $ pour un déjeuner',
+                combineExpenses: 'Regroupe toutes mes dépenses ouvertes dans un seul rapport',
+                exportPdf: 'Exporte mon dernier rapport en PDF',
+                exportCsv: 'Donne-moi un CSV de mes dépenses de plus de 50 $',
+            },
+        },
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
         goToConcierge: 'Aller à Concierge',
@@ -1072,8 +1111,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Les tâches sont terminées, mais restez à l’affût de nouvelles tâches.',
                 houseTitle: 'Tout est à jour',
                 houseDescription: 'Voici votre base pour les prochaines tâches à faire.',
-                conciergeBotTitle: 'Rien à afficher',
-                conciergeBotDescription: 'Bip bop bip bop, revenez pour plus de tâches !',
                 checkboxTextTitle: 'Tout est à jour',
                 checkboxTextDescription: 'Cochez vos prochaines tâches à faire ici.',
                 flashTitle: 'C’est terminé !',
@@ -1579,6 +1616,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -2396,6 +2434,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Profil de trace',
             results: 'Résultats',
             testingPreferences: 'Préférences de test',
+            showExtraNavItems: 'Afficher les éléments de navigation supplémentaires',
             server: 'Serveur',
             servers: {
                 production: {label: 'Production', description: "L'environnement en direct que voient les vrais utilisateurs"},
@@ -3350,6 +3389,12 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Bienvenue dans le mode #focus !',
         prompt: (priorityModePageUrl: string) =>
             `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exports, charges à payer, relevés et rapprochement',
+        savedSearchesDescription: 'Revenez à une recherche enregistrée',
+        insightsDescription: 'Voyez où passent vos dépenses',
+        workspacesDescription: 'Gérez vos espaces de travail et domaines',
     },
     inboxTabs: {
         all: 'Tout',
@@ -10483,6 +10528,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            allExpenses: 'Toutes les dépenses',
+            allReports: 'Toutes les notes de frais',
+            allBills: 'Toutes les factures',
+            myReports: 'Mes notes de frais',
+            myExpenses: 'Mes dépenses',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',

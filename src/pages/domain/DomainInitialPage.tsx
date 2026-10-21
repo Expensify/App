@@ -139,6 +139,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                shouldUseNavigationRowStyles
                                 shouldIconUseAutoWidthStyle
                                 shouldGreyOutWhenDisabled={false}
                             />

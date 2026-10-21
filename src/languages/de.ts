@@ -35,6 +35,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bills: 'Eingangsrechnungen',
+        createBill: 'Eingangsrechnung erstellen',
+        vendorEmail: 'E-Mail des Lieferanten',
+        domain: 'Empfangende Domain',
+        invoiceDetails: 'Rechnungsdetails',
+        attachPDF: 'PDF anhängen',
+        payByACH: 'Per ACH bezahlen',
+        markAsPaid: 'Als bezahlt markieren',
+        paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
+        createFailed: 'Diese Rechnung konnte nicht erstellt werden. Bitte versuche es erneut.',
+        payBills: ({count}) => ({one: '1 Rechnung bezahlen', other: `${count} Rechnungen bezahlen`}),
+        primaryContactHint: (domain) =>
+            `Der Hauptkontakt ist die zentrale Kontaktperson für ${domain} und erhält Rechnungen, die an die Rechnungsadresse dieser Domain ${domain}@expensify.cash gesendet werden.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
@@ -507,7 +522,31 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Quartal',
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
-        concierge: {greeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
+        concierge: {
+            greeting: 'Hallo, wie kann ich helfen?',
+            subtitle: 'Dein persönlicher KI-Assistent',
+            welcomeDescription: 'Concierge kann Fragen beantworten, Ausgaben aktualisieren und mehr.',
+            viewChatHistory: 'Chatverlauf anzeigen',
+            hideChatHistory: 'Chatverlauf ausblenden',
+            askNewQuestion: 'Neue Frage stellen',
+            newChat: 'Neuer Chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Wie viel habe ich letzten Monat ausgegeben?',
+                topExpenses: 'Zeig mir meine größten Ausgaben in diesem Monat',
+                spendDrivers: 'Was hat meine Ausgaben im letzten Quartal getrieben?',
+                travelSpendChange: 'Wie haben sich meine Reisekosten seit letztem Monat verändert?',
+                topSpender: 'Wer hat diesen Monat am meisten ausgegeben?',
+                missingCategory: 'Welche Ausgaben haben keine Kategorie?',
+                awaitingApproval: 'Welche Berichte warten auf meine Genehmigung?',
+                notReimbursed: 'Was wurde mir noch nicht erstattet?',
+                unsubmitted: 'Welche meiner Ausgaben sind noch nicht eingereicht?',
+                leftToPay: 'Was ist diesen Monat noch zu zahlen?',
+                createExpense: 'Erstelle eine Ausgabe über 30 $ für ein Mittagessen',
+                combineExpenses: 'Fasse alle meine offenen Ausgaben in einem Bericht zusammen',
+                exportPdf: 'Exportiere meinen letzten Bericht als PDF',
+                exportCsv: 'Gib mir eine CSV meiner Ausgaben über 50 $',
+            },
+        },
         duplicateReport: 'Duplizierten Bericht',
         approver: 'Genehmiger',
         goToConcierge: 'Zu Concierge',
@@ -1071,8 +1110,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Aufgaben sind erledigt, bleiben Sie aber gespannt auf weitere To-dos.',
                 houseTitle: 'Alles erledigt',
                 houseDescription: 'Hier ist Ihre Zentrale für anstehende Aufgaben.',
-                conciergeBotTitle: 'Nichts anzuzeigen',
-                conciergeBotDescription: 'Biep biep biep biep, schauen Sie später nach weiteren Aufgaben!',
                 checkboxTextTitle: 'Alles erledigt',
                 checkboxTextDescription: 'Haken Sie hier Ihre anstehenden Aufgaben ab.',
                 flashTitle: 'Sie sind fertig!',
@@ -1573,6 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${vendorDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -2391,6 +2429,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Profil-Trace',
             results: 'Ergebnisse',
             testingPreferences: 'Testeinstellungen',
+            showExtraNavItems: 'Zusätzliche Navigationselemente anzeigen',
             server: 'Server',
             servers: {
                 production: {label: 'Produktion', description: 'Die Live-Umgebung, die echte Nutzer sehen'},
@@ -3344,6 +3383,12 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Willkommen im #Focus-Modus!',
         prompt: (priorityModePageUrl: string) =>
             `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
+    },
+    morePage: {
+        accountingDescription: 'Exporte, Abgrenzungen, Abrechnungen und Abstimmung',
+        savedSearchesDescription: 'Zurück zu einer gespeicherten Suche',
+        insightsDescription: 'Sehen Sie, wohin Ihre Ausgaben fließen',
+        workspacesDescription: 'Verwalten Sie Ihre Arbeitsbereiche und Domains',
     },
     inboxTabs: {
         all: 'Alle',
@@ -10457,6 +10502,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            allExpenses: 'Alle Ausgaben',
+            allReports: 'Alle Berichte',
+            allBills: 'Alle Rechnungen',
+            myReports: 'Meine Berichte',
+            myExpenses: 'Meine Ausgaben',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',

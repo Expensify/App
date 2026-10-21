@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInAskConcierge, {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
@@ -34,6 +35,8 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
+    const isInAskConcierge = useIsInAskConcierge();
+    const {openConciergeThread} = useAskConciergeActions();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
     const shouldRespondInThread = targetReportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
@@ -61,8 +64,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
-            shouldNavigateToConciergeThread: !isInSidePanel,
+            shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
         });
+        if (conciergeThreadReportID && isInAskConcierge) {
+            openConciergeThread?.(conciergeThreadReportID);
+            return;
+        }
         if (!conciergeThreadReportID || isInSidePanel) {
             openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
         }
@@ -88,8 +95,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
-            shouldNavigateToConciergeThread: !isInSidePanel,
+            shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
         });
+        if (conciergeThreadReportID && isInAskConcierge) {
+            openConciergeThread?.(conciergeThreadReportID);
+            return;
+        }
         if (!conciergeThreadReportID || isInSidePanel) {
             openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
         }

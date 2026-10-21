@@ -32,6 +32,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bills: 'Λογαριασμοί',
+        createBill: 'Δημιουργία λογαριασμού',
+        vendorEmail: 'Email προμηθευτή',
+        domain: 'Τομέας παραλήπτη',
+        invoiceDetails: 'Στοιχεία τιμολογίου',
+        attachPDF: 'Επισύναψη PDF',
+        payByACH: 'Πληρωμή μέσω ACH',
+        markAsPaid: 'Σήμανση ως πληρωμένο',
+        paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        createFailed: 'Δεν μπορέσαμε να δημιουργήσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        payBills: ({count}) => ({one: 'Πληρωμή 1 λογαριασμού', other: `Πληρωμή ${count} λογαριασμών`}),
+        primaryContactHint: (domain) =>
+            `Η κύρια επαφή είναι το βασικό σημείο επικοινωνίας για το ${domain} και θα λαμβάνει λογαριασμούς που αποστέλλονται στη διεύθυνση πληρωμών του τομέα ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -510,7 +525,28 @@ const translations: TranslationDeepObject<typeof en> = {
         tagGLCode: 'Ετικέτα κωδικού GL',
         concierge: {
             greeting: 'Γεια σας, πώς μπορώ να σας βοηθήσω;',
-            showHistory: 'Εμφάνιση ιστορικού',
+            subtitle: 'Ο προσωπικός σας βοηθός AI',
+            welcomeDescription: 'Ο Concierge μπορεί να απαντήσει σε ερωτήσεις, να ενημερώσει δαπάνες και άλλα.',
+            viewChatHistory: 'Προβολή ιστορικού συνομιλιών',
+            hideChatHistory: 'Απόκρυψη ιστορικού συνομιλιών',
+            askNewQuestion: 'Κάντε μια νέα ερώτηση',
+            newChat: 'Νέα συνομιλία',
+            composerPlaceholders: {
+                spendLastMonth: 'Πόσα ξόδεψα τον προηγούμενο μήνα;',
+                topExpenses: 'Δείξε μου τις μεγαλύτερες δαπάνες μου αυτόν τον μήνα',
+                spendDrivers: 'Τι οδήγησε τις δαπάνες μου το προηγούμενο τρίμηνο;',
+                travelSpendChange: 'Πώς άλλαξαν οι δαπάνες ταξιδιού μου από τον προηγούμενο μήνα;',
+                topSpender: 'Ποιος ξόδεψε τα περισσότερα αυτόν τον μήνα;',
+                missingCategory: 'Ποιες δαπάνες δεν έχουν κατηγορία;',
+                awaitingApproval: 'Ποιες αναφορές περιμένουν την έγκρισή μου;',
+                notReimbursed: 'Τι δεν μου έχει αποζημιωθεί ακόμη;',
+                unsubmitted: 'Ποιες από τις δαπάνες μου δεν έχουν υποβληθεί ακόμη;',
+                leftToPay: 'Τι μένει να πληρωθεί αυτόν τον μήνα;',
+                createExpense: 'Δημιούργησε μια δαπάνη 30 $ για ένα γεύμα',
+                combineExpenses: 'Συνδύασε όλες τις ανοιχτές δαπάνες μου σε μία αναφορά',
+                exportPdf: 'Εξήγαγε την τελευταία μου αναφορά σε PDF',
+                exportCsv: 'Δώσε μου ένα CSV με τις δαπάνες μου άνω των 50 $',
+            },
         },
         vacationDelegate: 'Εκπρόσωπος διακοπών',
         expensifyLogo: 'Λογότυπο Expensify',
@@ -1142,8 +1178,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Οι εργασίες είναι τακτοποιημένες, αλλά μείνετε συντονισμένοι για περισσότερα προς διεκπεραίωση.',
                 houseTitle: 'Είστε καλυμμένος',
                 houseDescription: 'Αυτή είναι η κεντρική σας σελίδα για τις επερχόμενες εκκρεμότητες.',
-                conciergeBotTitle: 'Τίποτα προς εμφάνιση',
-                conciergeBotDescription: 'Μπιπ μπουπ μπιπ μπουπ, ελάτε ξανά για περισσότερες εργασίες!',
                 checkboxTextTitle: 'Είστε καλυμμένος',
                 checkboxTextDescription: 'Σημειώστε εδώ τις επερχόμενες εκκρεμότητές σας.',
                 flashTitle: 'Ολοκληρώσατε!',
@@ -1629,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${vendorDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,
@@ -2442,6 +2477,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Ίχνος προφίλ',
             results: 'Αποτελέσματα',
             testingPreferences: 'Προτιμήσεις δοκιμών',
+            showExtraNavItems: 'Εμφάνιση επιπλέον στοιχείων πλοήγησης',
             server: 'Διακομιστής',
             servers: {
                 production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},
@@ -3392,6 +3428,12 @@ ${amount} για ${merchant} - ${date}`,
         title: 'Καλώς ήρθατε στη λειτουργία #focus!',
         prompt: (priorityModePageUrl: string) =>
             `Μείνετε οργανωμένοι βλέποντας μόνο μη αναγνωσμένες συνομιλίες ή συνομιλίες που χρειάζονται την προσοχή σας. Μη σας ανησυχεί, μπορείτε να το αλλάξετε οποιαδήποτε στιγμή από τις <a href="${priorityModePageUrl}">ρυθμίσεις</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Εξαγωγές, δεδουλευμένα, καταστάσεις και συμφωνία',
+        savedSearchesDescription: 'Επιστρέψτε σε μια αποθηκευμένη αναζήτηση',
+        insightsDescription: 'Δείτε πού πηγαίνουν οι δαπάνες σας',
+        workspacesDescription: 'Διαχειριστείτε τους χώρους εργασίας και τους τομείς σας',
     },
     inboxTabs: {
         all: 'Όλα',
@@ -10354,6 +10396,11 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            allExpenses: 'Όλα τα έξοδα',
+            allReports: 'Όλες οι αναφορές',
+            allBills: 'Όλοι οι λογαριασμοί',
+            myReports: 'Οι αναφορές μου',
+            myExpenses: 'Τα έξοδά μου',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',
