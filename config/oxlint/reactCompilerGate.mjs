@@ -26,7 +26,13 @@ function resolveMessage(rule, descriptor) {
     return template.replaceAll(/\{\{\s*(\w+)\s*\}\}/g, (match, key) => descriptor.data?.[key] ?? match);
 }
 
+// Only runs outside scripts/lint need this (the editor, raw `oxlint`): without it they flag these rules
+// in files the React Compiler memoizes, and the fix they suggest (useCallback/useMemo) is banned there.
 function withGating(rule, shouldGate) {
+    // scripts/lint already drops these messages in ReactCompilerFilter, so skip a second compile.
+    if (process.env.LINT_PIPELINE === '1') {
+        return rule;
+    }
     return {
         ...rule,
         create(context) {
