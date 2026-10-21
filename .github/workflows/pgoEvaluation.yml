@@ -29,7 +29,7 @@ jobs:
       github.repository == 'Expensify/App' &&
       (github.event_name != 'pull_request' ||
       (github.event.pull_request.head.repo.full_name == 'Expensify/App' &&
-      github.event.pull_request.head.ref == '@chrispader/perf/pgo-ci-evaluation'))
+      github.event.pull_request.head.ref == '@chrispader/perf/pgo-ci-verification'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -97,6 +97,7 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.app-sha }}
           submodules: recursive
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
           persist-credentials: false
       - name: Checkout reviewed evaluation tooling
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -135,6 +136,10 @@ jobs:
           PGO_ANDROID_APP_ID: ${{ vars.PGO_ANDROID_APP_ID }}
           PGO_ANDROID_FIXTURE_PATH: ${{ secrets.PGO_ANDROID_FIXTURE_PATH }}
           PGO_ANDROID_ENVFILE: ${{ secrets.PGO_ANDROID_ENVFILE }}
+          PGO_ANDROID_KEYSTORE_PATH: ${{ secrets.PGO_ANDROID_KEYSTORE_PATH }}
+          PGO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.PGO_ANDROID_KEYSTORE_PASSWORD }}
+          PGO_ANDROID_KEY_ALIAS: ${{ secrets.PGO_ANDROID_KEY_ALIAS }}
+          PGO_ANDROID_KEY_PASSWORD: ${{ secrets.PGO_ANDROID_KEY_PASSWORD }}
           PGO_IOS_DEVICE_ID: ${{ secrets.PGO_IOS_DEVICE_ID }}
           PGO_IOS_APP_ID: ${{ vars.PGO_IOS_APP_ID }}
           PGO_IOS_FIXTURE_PATH: ${{ secrets.PGO_IOS_FIXTURE_PATH }}

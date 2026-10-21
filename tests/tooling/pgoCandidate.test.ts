@@ -52,7 +52,7 @@ const read: GitHubRead = async (path) => {
 };
 
 function preview(repo = 'Expensify/App', sha = appSha) {
-    return {number: 3, pull_request: {head: {sha, ref: '@chrispader/perf/pgo-ci-evaluation', repo: {full_name: repo}}, base: {repo: {full_name: 'Expensify/App'}}}};
+    return {number: 3, pull_request: {head: {sha, ref: '@chrispader/perf/pgo-ci-verification', repo: {full_name: repo}}, base: {repo: {full_name: 'Expensify/App'}}}};
 }
 
 describe('PGO immutable candidate resolution', () => {
@@ -97,6 +97,9 @@ describe('PGO immutable candidate resolution', () => {
         // Then only the current trusted head can evaluate; normal forks receive no device authorization.
         expect(plan.platforms).toEqual(['android', 'ios']);
         await expect(resolvePreview(preview('fork/App'), toolingSha, read)).rejects.toThrow();
+        const wrongBranch = preview();
+        wrongBranch.pull_request.head.ref = 'other-preview';
+        await expect(resolvePreview(wrongBranch, toolingSha, read)).rejects.toThrow();
         await expect(resolvePreview(preview('Expensify/App', toolingSha), toolingSha, read)).rejects.toThrow();
         await expect(resolvePreview(preview(), toolingSha, async (path) => (path.includes('/pulls/') ? {head: {sha: appSha}, state: 'closed'} : read(path)))).rejects.toThrow();
     });

@@ -6,7 +6,7 @@ import {isGitID, isRecord, parseCandidate} from './evaluationSchema';
 
 type GitHubRead = (path: string) => Promise<unknown>;
 const repository = 'Expensify/App';
-const previewBranch = '@chrispader/perf/pgo-ci-evaluation';
+const previewBranch = '@chrispader/perf/pgo-ci-verification';
 const producerName = 'Deploy code to staging or production';
 
 async function resolveProducer(metadata: unknown, run: unknown, jobs: unknown, toolingSha: string, read: GitHubRead, platform?: EvaluationPlatform): Promise<EvaluationPlan> {

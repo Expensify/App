@@ -123,7 +123,7 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         archiveReleaseApk(artifactPaths[kind]);
         writeFileSync(
             `${artifactPaths[kind]}.build-settings.json`,
-            `${JSON.stringify({kind, releasePipeline: releasePipeline.enabled, appID: appID(), sourceBuiltRuntime: true, shrinking: releasePipeline.shrinking, fullStory: releasePipeline.enabled, signing: 'existing-project-configuration', storeEquivalent: false, gradleArguments, buildEnvironment}, null, 2)}\n`,
+            `${JSON.stringify({kind, releasePipeline: releasePipeline.enabled, appID: appID(), sourceBuiltRuntime: true, shrinking: releasePipeline.shrinking, fullStory: releasePipeline.enabled, signing: process.env.PGO_ANDROID_KEYSTORE_PATH ? 'dedicated-pgo-keystore' : 'existing-project-configuration', storeEquivalent: false, gradleArguments, buildEnvironment}, null, 2)}\n`,
         );
     }
 

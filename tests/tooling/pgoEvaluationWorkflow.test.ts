@@ -1,3 +1,5 @@
+// cspell:ignore chrispader
+/* eslint-disable @typescript-eslint/naming-convention -- Fixtures reproduce GitHub's event schema. */
 import {describe, expect, it} from 'bun:test';
 
 import {isRecord} from '@scripts/pgo/evaluationSchema';
@@ -6,6 +8,23 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 describe('PGO evaluation workflow contract', () => {
+    it.each([
+        ['Expensify/App', '@chrispader/perf/pgo-ci-verification', true],
+        ['margelo/Expensify', '@chrispader/perf/pgo-ci-verification', false],
+        ['Expensify/App', 'other-preview', false],
+    ])('gates physical-device access for %s on %s', (repository, branch, eligible) => {
+        // Given the actual prepare-job condition and a pull-request head.
+        const job = workflowJob('.github/workflows/pgoEvaluation.yml', 'prepare');
+        if (typeof job.if !== 'string') {
+            throw new Error('Missing preview authorization condition.');
+        }
+        const github = {repository: 'Expensify/App', event_name: 'pull_request', event: {pull_request: {head: {repo: {full_name: repository}, ref: branch}}}};
+        // When the condition runs with the event metadata available to Actions.
+        const actual: unknown = runInNewContext(job.if, {github});
+        // Then only the named upstream branch can request credential devices.
+        expect(actual).toBe(eligible);
+    });
+
     it('keeps producer metadata failures outside canonical deployment eligibility', () => {
         // Given the ordinary deploy workflow and its evaluation metadata additions.
         const job = workflowJob('.github/workflows/deploy.yml', 'prep');
@@ -33,6 +52,10 @@ describe('PGO evaluation workflow contract', () => {
         expect(environment.PGO_ANDROID_DEVICE_ID).toBe(expression('', 'secrets.PGO_ANDROID_DEVICE_ID'));
         expect(environment.PGO_IOS_FIXTURE_PATH).toBe(expression('', 'secrets.PGO_IOS_FIXTURE_PATH'));
         expect(environment.PGO_IOS_ENVFILE).toBe(expression('', 'secrets.PGO_IOS_ENVFILE'));
+        expect(environment.PGO_ANDROID_KEYSTORE_PATH).toBe(expression('', 'secrets.PGO_ANDROID_KEYSTORE_PATH'));
+        expect(environment.PGO_ANDROID_KEYSTORE_PASSWORD).toBe(expression('', 'secrets.PGO_ANDROID_KEYSTORE_PASSWORD'));
+        const checkout = workflowStep(job, 'Checkout pinned native candidate');
+        expect(isRecord(checkout.with) && checkout.with.token).toBe(expression('', 'secrets.OS_BOTIFY_TOKEN'));
         expect(job.concurrency.queue).toBe('max');
         const report = workflowJob('.github/workflows/pgoEvaluation.yml', 'report');
         if (!isRecord(report.concurrency)) {
