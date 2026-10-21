@@ -78,7 +78,7 @@ function createOption(
             accountID: personalDetail.accountID,
             formatPhoneNumber,
             personalDetailsData: {[personalDetail.accountID]: personalDetail},
-            translate,
+            hiddenTranslation: translate?.('common.hidden'),
         }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
@@ -531,7 +531,7 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
  * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
  */
 function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
-    const allRecentAttendees = [...recentAttendees];
+    const allRecentAttendees = Array.isArray(recentAttendees) ? [...recentAttendees] : [];
     if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
         allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
     }
@@ -541,7 +541,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
         allRecentAttendees
             .filter((attendee) => {
                 // Deduplicate: use email for regular users, displayName for name-only attendees
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const key = attendee.email || attendee.displayName || '';
                 if (!key || seenAttendees.has(key)) {
                     return false;
@@ -551,7 +550,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
             })
             .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
             // Use || to fall back to displayName for name-only attendees (empty email)
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             .map((attendee) => attendee.email || attendee.displayName)
     );
 }

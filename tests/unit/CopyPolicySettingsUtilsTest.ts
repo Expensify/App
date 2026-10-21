@@ -270,6 +270,18 @@ describe('CopyPolicySettingsUtils', () => {
             distancePolicy.areDistanceRatesEnabled = true;
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
         });
+
+        it('shows invoices only when the feature is enabled and has invoice configuration', () => {
+            const invoicePolicy = createRandomPolicy(12);
+            invoicePolicy.areInvoicesEnabled = true;
+
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: true})).toBe(true);
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: false})).toBe(false);
+
+            const disabledInvoicePolicy = createRandomPolicy(13);
+            disabledInvoicePolicy.areInvoicesEnabled = false;
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: disabledInvoicePolicy, hasInvoiceConfiguration: true})).toBe(false);
+        });
     });
 
     describe('isTargetCompatibleForAccountingPart', () => {
@@ -444,8 +456,37 @@ describe('CopyPolicySettingsUtils', () => {
                 expect(getControlOnlySelectedParts([collectTarget(1)], ['categories', 'tags'] as Part[])).toEqual([]);
             });
 
-            it('does not treat rules as Control-only, since Collect can access them', () => {
-                expect(getControlOnlySelectedParts([collectTarget(1)], ['rules'] as Part[])).toEqual([]);
+            it('treats rules as Control-only, since a Collect target cannot receive a Control rules configuration', () => {
+                // Given a Collect target and the rules part selected
+                // When the Control-only parts are computed
+                // Then rules is returned, so the Upgrade step is offered instead of a copy the backend rejects
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['rules'] as Part[])).toEqual(['rules']);
+            });
+
+            it('treats coding rules as Control-only, since they copy the same Control-only policy fields', () => {
+                // Given a Collect target and the codingRules part selected
+                // When the Control-only parts are computed
+                // Then codingRules is returned, because it maps to the same rules configuration as the rules part
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['codingRules'] as Part[])).toEqual(['codingRules']);
+            });
+
+            it('does not treat rules as Control-only when every target is already Control', () => {
+                // Given only a Control target
+                // When the Control-only parts are computed
+                // Then nothing is returned, so the flow goes straight to Confirm
+                expect(getControlOnlySelectedParts([controlTarget(1)], ['rules', 'codingRules'] as Part[])).toEqual([]);
+            });
+
+            it('treats invoices as Control-only when source policy has invoice fields enabled', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).toContain('invoices');
+            });
+
+            it('does not treat invoices as Control-only when source policy has no invoice fields', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).not.toContain('invoices');
             });
 
             it('returns nothing when there are no Collect targets', () => {
@@ -482,6 +523,13 @@ describe('CopyPolicySettingsUtils', () => {
 
             it('is false when no Control-only part is selected', () => {
                 expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['categories'] as Part[])).toBe(false);
+            });
+
+            it('is true when rules target a Collect workspace', () => {
+                // Given a Collect target and the rules part selected
+                // When the upgrade step gate is evaluated
+                // Then it is true, so Select settings routes to Upgrade rather than Confirm
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['rules'] as Part[])).toBe(true);
             });
         });
     });

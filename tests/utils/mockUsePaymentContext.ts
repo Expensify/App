@@ -6,7 +6,7 @@ const defaultMockPaymentContextValue = {
     email: 'test@example.com',
     localCurrencyCode: 'USD',
     introSelected: undefined,
-    betas: undefined,
+    isASAPSubmitBetaEnabled: false,
     isSelfTourViewed: false,
     activePolicyID: undefined,
     activePolicy: undefined,

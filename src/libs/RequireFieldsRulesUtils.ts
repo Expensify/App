@@ -10,6 +10,7 @@ import type {Route} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -27,6 +28,8 @@ import {
 import {setDraftRequireFieldsRule} from './actions/User';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
+
+const REQUIRE_FIELDS_SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
 type FieldRequirementsDirection = DeepValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
@@ -308,6 +311,7 @@ function applyRequireFieldsReceiptSettings(
     category: PolicyCategory | undefined,
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
@@ -334,22 +338,23 @@ function applyRequireFieldsReceiptSettings(
     }
 
     if (isReceiptOverrideValue(receiptTarget) && isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget);
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget, isVendorMatchingBetaEnabled);
         return;
     }
 
     if (isReceiptOverrideValue(receiptTarget)) {
-        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget);
+        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget, isVendorMatchingBetaEnabled);
     }
 
     if (isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget);
+        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget, isVendorMatchingBetaEnabled);
     }
 }
 
 function saveRequireFieldsRule(
     policyData: PolicyData,
     form: RequireFieldsRuleForm,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
@@ -381,19 +386,19 @@ function saveRequireFieldsRule(
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields, clearedFields);
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
     }
 }
 
-function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
+function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string, isVendorMatchingBetaEnabled: boolean | undefined) {
     const {categoryName} = parseRequireFieldsRuleKey(ruleKey);
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -416,11 +421,11 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
     }
 
     if (isReceiptRequireOverrideForCategory(category) || isReceiptWaivedForCategory(category)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (isItemizedReceiptRequireOverrideForCategory(category) || isItemizedReceiptWaivedForCategory(category)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 }
 
@@ -795,6 +800,24 @@ function getRequireFieldsFieldSettingUpdate(
     };
 }
 
+/** Returns the require fields draft for generated values, and the setting fields that the generated settings change */
+function getRequireFieldsDraftFromGeneratedValues(values: GeneratedRuleValues): {draft: GeneratedRuleValues; touchedFieldKeys: Set<RequireFieldsRuleSettingFieldKey>} {
+    let draft = values;
+    const touchedFieldKeys = new Set<RequireFieldsRuleSettingFieldKey>();
+    for (const fieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
+        const setting = values[fieldKey];
+        if (setting === undefined) {
+            continue;
+        }
+        const update = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
+        draft = {...draft, ...update.formUpdate};
+        for (const touchedFieldKey of update.touchedFieldKeys) {
+            touchedFieldKeys.add(touchedFieldKey);
+        }
+    }
+    return {draft, touchedFieldKeys};
+}
+
 /**
  * Direction currently applied on the category for this field, or undefined when there is no override.
  * Unlike getRequireFieldsFormFromCategory, unset fields stay undefined instead of defaulting to Don't require.
@@ -971,6 +994,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    REQUIRE_FIELDS_SETTING_FIELD_KEYS,
     canClearRequireFieldsField,
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
@@ -981,6 +1005,7 @@ export {
     getRequireFieldsDisplayedSetting,
     getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldCouplingTooltipKey,
+    getRequireFieldsDraftFromGeneratedValues,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsPendingActionForCategory,

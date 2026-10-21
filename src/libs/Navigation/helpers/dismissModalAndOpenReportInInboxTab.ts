@@ -1,3 +1,4 @@
+import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {endSubmitFollowUpActionSpan, isTracking as isSubmitTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -14,7 +15,7 @@ import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotas
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
  * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  */
-function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean) {
+function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean, transactionID?: string) {
     const rootState = navigationRef.getRootState();
     const hasActiveTracking = isSubmitTracking();
 
@@ -40,6 +41,11 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
             }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
+                // This navigation opens the expense report that contains the new transaction, so consume its pending growl
+                // before the deferred navigation. Inferring the destination from navigation state races the queued action below.
+                if (transactionID) {
+                    mergeExpenseAddedGrowlTransactionIDs({[transactionID]: null});
+                }
                 // On small screens, dismiss all modals and then navigate to the right report.
                 // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
                 const isNarrowLayout = getIsNarrowLayout();

@@ -12,13 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, isInvoiceRoom, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -43,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -95,7 +88,6 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
@@ -108,6 +100,7 @@ type CreateTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -146,7 +139,6 @@ function createTransaction({
     reimbursable = true,
     allTransactionDrafts,
     isSelfTourViewed,
-    betas,
     personalDetails,
     recentWaypoints,
     optimisticTransactionIDs,
@@ -159,6 +151,7 @@ function createTransaction({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -214,7 +207,6 @@ function createTransaction({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -229,8 +221,8 @@ function createTransaction({
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
+                isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -289,6 +281,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getMoneyRequestParticipantOptions({
@@ -304,13 +297,14 @@ function getMoneyRequestParticipantOptions({
     translate,
     convertToDisplayString,
     dateFnsLocale,
+    formatPhoneNumber,
 }: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
+            : getReportOption({
                   participant,
                   privateIsArchived,
                   policy,
@@ -319,13 +313,16 @@ function getMoneyRequestParticipantOptions({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID,
-                  {
+                  localize: {
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
-              );
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
+              });
     });
 }
 
@@ -340,6 +337,7 @@ type InitMoneyRequestParams = {
     report: OnyxEntry<Report>;
     parentReport: OnyxEntry<Report>;
     currentDate: string | undefined;
+    overrideCurrency?: string;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
@@ -370,6 +368,7 @@ function initMoneyRequest({
     report,
     parentReport,
     currentDate,
+    overrideCurrency,
     lastSelectedDistanceRates,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
@@ -377,7 +376,7 @@ function initMoneyRequest({
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
@@ -595,7 +594,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
@@ -987,8 +986,19 @@ function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    // Mark that the user has explicitly picked the date. A draft is seeded with today's date, so this is the only way
+    // the Scan flow can tell a user-picked date apart from the default one.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created, isCreatedSet: !!created});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
+}
+
+/**
+ * Returns the date to the state it starts the Scan confirmation in: the field renders empty again (SmartScan is back
+ * to being the one that fills it), while the seeded `created` stays on the transaction as the fallback date, so a
+ * cleared field can never submit an expense with no date at all.
+ */
+function clearMoneyRequestCreated(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isCreatedSet: false});
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1154,6 +1164,7 @@ export {
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
+    clearMoneyRequestCreated,
     clearMoneyRequestMerchant,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,

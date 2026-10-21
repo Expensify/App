@@ -6,7 +6,7 @@ import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 
 import type CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -18,7 +18,7 @@ type AnchorOrigin = {
     shiftVertical?: number;
 };
 
-type EmojiPopoverAnchor = RefObject<View | HTMLDivElement | TextInput | null>;
+type EmojiPopoverAnchor = RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof TextInput> | null>;
 
 type EmojiPickerOnWillShow = (callback?: CloseContextMenuCallback) => void;
 

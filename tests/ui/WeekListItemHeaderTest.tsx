@@ -57,6 +57,9 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -65,14 +68,14 @@ const mockSearchActionsContext = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
-    setCurrentSearchKey: jest.fn(),
-    resetSearchKey: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupListItemType> = {}): TransactionWeekGroupListItemType => ({
     week,
     formattedWeek: options.formattedWeek ?? 'Jan 25 - Jan 31, 2026',
     shortFormattedWeek: options.shortFormattedWeek ?? 'Jan 25 - 31, ’26',
+    lineChartFormattedWeek: options.lineChartFormattedWeek ?? 'Jan 25',
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

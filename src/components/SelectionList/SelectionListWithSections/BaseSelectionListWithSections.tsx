@@ -60,11 +60,11 @@ function BaseSelectionListWithSectionsImpl({
     onDismissError,
     onScroll,
     onScrollBeginDrag,
+    keyboardShouldPersistTaps = 'always',
     onEndReached,
     onEndReachedThreshold,
     customListHeaderContent,
     customHeaderContent,
-    rightHandSideComponent,
     listEmptyContent,
     footerContent,
     listFooterContent,
@@ -87,11 +87,11 @@ function BaseSelectionListWithSectionsImpl({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventAutoScrollOnSelect = false,
-    isRowMultilineSupported = false,
+    shouldAllowArrowUpToSearchInput = false,
     titleNumberOfLines,
-    shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     selectionButtonPosition,
+    shouldFooterBeInsideList = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListWithSectionsProps<ListItem>) {
     const styles = useThemeStyles();
@@ -124,9 +124,16 @@ function BaseSelectionListWithSectionsImpl({
         debouncedScrollToIndex,
         announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
+        shouldAllowArrowUpToSearchInput,
+        onArrowUpToSearchInput: focusSearchInputFromList,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+
+    // A Tab-focused row keeps DOM focus after ArrowUp clears the focused index, so move it back to the search input
+    function focusSearchInputFromList() {
+        focusTextInput();
+    }
 
     const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
@@ -269,6 +276,7 @@ function BaseSelectionListWithSectionsImpl({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
+                onPress={shouldAllowArrowUpToSearchInput ? () => setFocusedIndex(-1) : undefined}
                 dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
@@ -314,16 +322,11 @@ function BaseSelectionListWithSectionsImpl({
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
-                        wrapperStyle={style?.listItemWrapperStyle}
-                        titleStyles={style?.listItemTitleStyles}
-                        isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
                         selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
@@ -335,6 +338,17 @@ function BaseSelectionListWithSectionsImpl({
         }
     };
 
+    // Footer renders nothing when there is no footer content
+    const footer = (
+        <Footer<ListItem>
+            footerContent={footerContent}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        />
+    );
+
+    const shouldShowEmptyState = itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent);
+    const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
+
     return (
         <View
             ref={containerRef}
@@ -343,7 +357,7 @@ function BaseSelectionListWithSectionsImpl({
         >
             {textInputComponent()}
             {customHeaderContent}
-            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {shouldShowEmptyState ? (
                 <SelectionListEmptyState
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
@@ -371,21 +385,25 @@ function BaseSelectionListWithSectionsImpl({
                     }}
                     indicatorStyle="white"
                     showsVerticalScrollIndicator
-                    keyboardShouldPersistTaps="always"
+                    keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                     ListHeaderComponent={customListHeaderContent}
-                    ListFooterComponent={listFooterContent}
+                    ListFooterComponent={
+                        isFooterInsideList ? (
+                            <>
+                                {listFooterContent}
+                                {footer}
+                            </>
+                        ) : (
+                            listFooterContent
+                        )
+                    }
                     ListFooterComponentStyle={style?.listFooterContentStyle}
                     style={style?.listStyle}
                     contentContainerStyle={style?.contentContainerStyle}
                     maintainVisibleContentPosition={{disabled: true}}
                 />
             )}
-            {!!footerContent && (
-                <Footer<ListItem>
-                    footerContent={footerContent}
-                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-                />
-            )}
+            {!isFooterInsideList && footer}
         </View>
     );
 }

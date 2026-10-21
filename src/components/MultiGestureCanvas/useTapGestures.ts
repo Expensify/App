@@ -1,4 +1,4 @@
-import type {TapGesture} from 'react-native-gesture-handler';
+import type {LegacyTapGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
@@ -14,6 +14,7 @@ type UseTapGesturesProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'contentSize'
+    | 'zoomRange'
     | 'minContentScale'
     | 'maxContentScale'
     | 'offsetX'
@@ -31,6 +32,7 @@ type UseTapGesturesProps = Pick<
 const useTapGestures = ({
     canvasSize,
     contentSize,
+    zoomRange,
     minContentScale,
     maxContentScale,
     offsetX,
@@ -43,13 +45,13 @@ const useTapGestures = ({
     isTransformGestureActive,
     onScaleChanged,
     onTap,
-}: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
+}: UseTapGesturesProps): {singleTapGesture: LegacyTapGesture; doubleTapGesture: LegacyTapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
-    // On double tap the content should be zoomed to fill, but at least zoomed by DOUBLE_TAP_SCALE
-    const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
+    // On double tap the content should be zoomed to fill, but at least zoomed by DOUBLE_TAP_SCALE — never past the allowed zoom range
+    const doubleTapScale = useMemo(() => Math.min(zoomRange.max, Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale)), [maxContentScale, minContentScale, zoomRange.max]);
 
     const zoomToCoordinates = useCallback(
         (focalX: number, focalY: number, callback: () => void) => {

@@ -10,9 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDistanceRateNameError, getDistanceRateNameErrorMessage} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -46,20 +49,18 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM> = {};
-            const newRateName = values.rateName.trim();
+            const existingRateNames = Object.values(customUnit?.rates ?? {}).map((existingRate) => existingRate.name ?? '');
+            // The input starts from the name without the hidden date suffix, so check the full name that will be saved
+            const nameToSave = rate ? DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName)) : values.rateName;
+            const nameError = getDistanceRateNameError(existingRateNames, nameToSave, currentRateName);
 
-            if (!newRateName) {
-                errors.rateName = translate('workspace.distanceRates.errors.rateNameRequired');
-            } else if (Object.values(customUnit?.rates ?? {}).some((r) => r.name === newRateName) && currentRateName !== newRateName) {
-                errors.rateName = translate('workspace.distanceRates.errors.existingRateName');
-            } else if ([...newRateName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.rateName = translate('common.error.characterLimitExceedCounter', [...newRateName].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
+            if (nameError) {
+                errors.rateName = getDistanceRateNameErrorMessage(translate, nameError, nameToSave);
             }
 
             return errors;
         },
-        [customUnit?.rates, currentRateName, translate],
+        [customUnit?.rates, currentRateName, rate, translate],
     );
 
     const submit = useCallback(
@@ -67,11 +68,12 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
             if (!customUnit || !rate) {
                 return;
             }
-            if (currentRateName === values.rateName) {
+            const nameToSave = DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName));
+            if (currentRateName === nameToSave) {
                 Navigation.goBack();
                 return;
             }
-            updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: values.rateName}]);
+            updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: nameToSave}]);
             Keyboard.dismiss();
             Navigation.goBack();
         },
@@ -111,7 +113,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
-                        defaultValue={currentRateName}
+                        defaultValue={DistanceRequestUtils.getRateDisplayName(rate)}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
                         inputID={INPUT_IDS.RATE_NAME}

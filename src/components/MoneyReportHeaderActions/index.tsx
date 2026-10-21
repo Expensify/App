@@ -4,9 +4,11 @@ import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactio
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useExportAgainModal from '@hooks/useExportAgainModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -37,11 +39,12 @@ function narrowPrimaryAction(primaryAction: MoneyReportHeaderActionsProps['prima
 
 function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, backTo}: MoneyReportHeaderActionsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null) as React.RefObject<ButtonWithDropdownMenuRef>;
 
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
     const shouldDisplayNarrowMoreButton = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -54,7 +57,10 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
-    const isTransactionThread = !!transactionThreadReportID;
+
+    // In the table view a single-expense report lists its expense as a selectable row, so it acts like a multi-expense report here.
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
+    const isTransactionThread = !!transactionThreadReportID && !shouldUseTableViewForSingleExpense;
 
     useEffect(() => {
         if (!transactionThreadReportID) {
@@ -64,11 +70,16 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
         clearSelectedTransactions(true);
     }, [transactionThreadReportID]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Report-level actions must not be usable while expenses are selected, otherwise they get mixed up with the bulk expense actions.
+    const shouldDisableReportActions = hasSelectedTransactions && !isTransactionThread;
+
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
-    if (hasSelectedTransactions && !isTransactionThread) {
+    // A wide layout acts on the selection through the bulk action bar floating over the list instead, so the report's own
+    // actions stay in the header but are disabled while a selection is being built up.
+    if (shouldDisableReportActions && shouldUseNarrowLayoutOnWideRHP) {
         return (
-            <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
+            <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, pageGutter, styles.pb3]}>
                 <MoneyReportHeaderSelectionDropdown
                     reportID={reportID}
                     primaryAction={narrowedPrimaryAction}
@@ -80,7 +91,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     }
 
     return (
-        <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
+        <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, pageGutter, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
             {!!primaryAction && (
                 <View style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
                     <MoneyReportHeaderPrimaryAction
@@ -88,6 +99,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
                         chatReportID={chatReport?.reportID}
                         primaryAction={primaryAction}
                         onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                        isDisabled={shouldDisableReportActions}
                     />
                 </View>
             )}
@@ -97,6 +109,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
                 isReportInSearch={isReportInSearch}
                 backTo={backTo}
                 dropdownMenuRef={dropdownMenuRef}
+                isDisabled={shouldDisableReportActions}
             />
         </View>
     );

@@ -1,4 +1,4 @@
-import type {PinchGesture} from 'react-native-gesture-handler';
+import type {LegacyPinchGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
@@ -38,7 +38,7 @@ const usePinchGesture = ({
     isTransformGestureActive,
     stopAnimation,
     onScaleChanged,
-}: UsePinchGestureProps): PinchGesture => {
+}: UsePinchGestureProps): LegacyPinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
 

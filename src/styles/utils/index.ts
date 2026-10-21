@@ -15,7 +15,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -61,6 +61,7 @@ import splitPercentageInputStyles from './splitPercentageInputStyles';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
     isAmountColumnWide?: boolean;
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
@@ -130,6 +131,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
@@ -144,6 +146,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarSizeMidSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
@@ -160,6 +163,7 @@ const avatarFontSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
@@ -174,6 +178,7 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarBorderWidthDefault,
@@ -181,6 +186,10 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
 } satisfies Record<AvatarSizeName, number>;
+
+const selectedAvatarRingBorderWidth = 2;
+const selectedAvatarRingPadding = 1;
+const selectedAvatarRingOffset = selectedAvatarRingBorderWidth + selectedAvatarRingPadding;
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
@@ -371,7 +380,6 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
     if (!transactionID) {
         return CONST.ERECEIPT_COLORS.YELLOW;
@@ -505,11 +513,12 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns a style with width set to the specified number, or on web to a CSS expression like `calc()`
  */
-function getWidthStyle(width: number): ViewStyle & ImageStyle {
+function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        width,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        width: width as DimensionValue,
     };
 }
 
@@ -541,20 +550,26 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+/**
+ * Sizes the camera viewfinder.
+ *
+ * When `shouldFillPortraitViewport` is true (the default), a portrait viewfinder with a known aspect ratio overflows the
+ * container so the preview fills the screen and is cropped. Pass false to keep the preview fully visible instead.
+ */
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean, shouldFillPortraitViewport = true): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
     }
-    if (aspectRatio) {
+    if (aspectRatio && shouldFillPortraitViewport) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
-    return {flex: 1};
+    return {flex: 1, alignSelf: 'stretch'};
 }
 
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextColorStyle {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -854,6 +869,24 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
+ */
+function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract values only if they are numbers
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    const borderWidth = getNumericValue(flatStyle?.borderWidth);
+    const borderTopWidth = getNumericValue(flatStyle?.borderTopWidth ?? borderWidth);
+    const borderBottomWidth = getNumericValue(flatStyle?.borderBottomWidth ?? borderWidth);
+    const paddingTop = getNumericValue(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    const paddingBottom = getNumericValue(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+
+    return borderTopWidth + borderBottomWidth + paddingTop + paddingBottom + (hasMultilineLabelPadding ? variables.inputPaddingTop : 0);
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -880,11 +913,12 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
- * Get minimum width as style
+ * Get minimum width as style, or on web a CSS expression like `calc()`
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        minWidth,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        minWidth: minWidth as DimensionValue,
     };
 }
 
@@ -1081,13 +1115,24 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
 }
 
 /**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle & {transformOrigin?: string} {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
+    };
+}
+
+/**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};
@@ -1185,7 +1230,7 @@ function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
 /**
  * Returns color style
  */
-function getColorStyle(color: string): TextColorStyle {
+function getColorStyle(color: ColorValue): TextColorStyle {
     return {color};
 }
 
@@ -1436,6 +1481,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1461,6 +1507,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -1546,8 +1593,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number): ViewStyle => {
-        if (textInputHeight > maxHeight) {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
+        // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
+        // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
+        if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
@@ -1557,9 +1606,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {
             ...styles.pr0,
             ...styles.overflowHidden,
-            // maxHeight is not of the input only but the of the whole input container
-            // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+            // maxHeight is not of the input only but of the whole input container, so the inset has to be subtracted.
+            // It must match the height the input gets once it flips to overflow: auto, otherwise the box resizes at the
+            // flip and the scroll offset the browser picked while growing stops short of the end of the content.
+            height: maxHeight - verticalInset,
         };
     },
 
@@ -1598,6 +1648,23 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             marginTop: -(verticalPaddingDiff / 2),
             height: '100%',
             justifyContent: 'center',
+        };
+    },
+
+    /**
+     * Ring drawn around an avatar while its navigation entry is selected
+     */
+    getSelectedAvatarRingStyle: (size: AvatarSizeName): ViewStyle => {
+        const ringSize = getAvatarSize(size) + selectedAvatarRingOffset * 2;
+        return {
+            height: ringSize,
+            width: ringSize,
+            borderRadius: ringSize / 2,
+            padding: selectedAvatarRingPadding,
+            borderWidth: selectedAvatarRingBorderWidth,
+            borderColor: theme.success,
+            right: -selectedAvatarRingOffset,
+            top: -selectedAvatarRingOffset,
         };
     },
 
@@ -1822,6 +1889,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
+    /** Returns the color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
@@ -1915,7 +1985,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
-    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+    getSearchRowBackgroundStyle: (isSelected?: boolean): ViewStyle => ({
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+    }),
 
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {
@@ -1924,6 +1996,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
+            isDateColumnCreated,
             isTaxAmountColumnWide,
             isAmountColumnWide,
             shouldRemoveTotalColumnFlex,
@@ -1982,11 +2055,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DATE: {
+                const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
                 columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),
                 };
                 break;
+            }
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -1995,6 +2070,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
@@ -2045,6 +2121,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
                 columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -2089,6 +2166,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
@@ -2452,9 +2530,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({

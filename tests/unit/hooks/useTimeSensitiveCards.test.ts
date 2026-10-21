@@ -37,7 +37,6 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
-        expect(result.current.hasActiveExpensifyCard).toBe(false);
     });
 
     it('should return empty arrays when no cards need action', async () => {
@@ -53,7 +52,6 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsNeedingActivation).toEqual([]);
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
-        expect(result.current.hasActiveExpensifyCard).toBe(true);
     });
 
     it('should identify cards needing shipping address and set shouldShowAddShippingAddress to true', async () => {
@@ -189,6 +187,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -217,6 +216,7 @@ describe('useTimeSensitiveCards', () => {
             ...baseFraudAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
             originalMessage: {
+                cardID: 1,
                 resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
             },
         };
@@ -256,6 +256,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(2),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -336,6 +337,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(3),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -360,6 +362,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(10),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -384,6 +387,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(11),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);

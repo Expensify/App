@@ -1,6 +1,7 @@
 import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -26,7 +27,12 @@ import Onyx from 'react-native-onyx';
  * rewrites the queued requests themselves.
  */
 
-const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SCREENS.SETTINGS.AGENTS.EDIT_NAME, SCREENS.SETTINGS.AGENTS.EDIT_PROMPT, SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]);
+const AGENT_SETTINGS_SCREENS = new Set<string>([
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
+]);
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can
 // arrive before this collection is hydrated, so consumers wait for this promise. Onyx always fires the callback at
@@ -117,8 +123,8 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 
                 remapReportParticipants(optimisticAccountID, realAccountID);
 
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
-                Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
+                Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, null);
                 Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
             },
         });

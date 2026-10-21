@@ -258,7 +258,7 @@ describe('Domain group preferred workspace pages', () => {
     });
 
     describe('DomainGroupPreferredWorkspacePage', () => {
-        it("preselects the group's current preferred workspace and stores the newly picked one via updateDomainSecurityGroup", async () => {
+        it("preselects the group's current preferred workspace and stores the newly picked one via updateDomainSecurityGroup once Save is pressed", async () => {
             // Given a domain admin with an existing security group whose preferred workspace is already set
             await setUpDomainAdminWithPolicies(3);
             await setUpSecurityGroup(GROUP_ID, {restrictedPrimaryPolicyID: 'policy01'});
@@ -273,6 +273,16 @@ describe('Domain group preferred workspace pages', () => {
 
             // When a different workspace row is pressed
             fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}policy02`));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the checkmark moves to the picked row, but nothing is written yet
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}policy02`).props.accessibilityState).toMatchObject({selected: true});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}policy01`).props.accessibilityState).toMatchObject({selected: false});
+            const domainBeforeSave = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`);
+            expect(domainBeforeSave?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${GROUP_ID}`]).toMatchObject({restrictedPrimaryPolicyID: 'policy01'});
+
+            // When the Save button is pressed
+            fireEvent.press(screen.getByText('Save'));
             await waitForBatchedUpdatesWithAct();
 
             // Then the group's restrictedPrimaryPolicyID is updated in place, instead of a separate draft key

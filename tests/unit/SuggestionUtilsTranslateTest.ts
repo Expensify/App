@@ -27,14 +27,14 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
         jest.clearAllMocks();
     });
 
-    it('passes the provided translate function to getDisplayNameForParticipant', () => {
+    it('passes the resolved hidden string to getDisplayNameForParticipant', () => {
         const first = {login: 'first@test.com', weight: 2, accountID: 801} as PersonalDetails & {weight: number};
         const second = {login: 'second@test.com', weight: 2, accountID: 802} as PersonalDetails & {weight: number};
 
         getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumber, translateLocal);
 
-        // The sort comparator resolves each display name via getDisplayNameForParticipant, which must receive the provided translate.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({translate: translateLocal}));
+        // The sort comparator resolves each display name via getDisplayNameForParticipant, which must receive the resolved "Hidden" string.
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: translateLocal('common.hidden')}));
     });
 
     it('sorts by the display name resolved through the provided translate function', () => {

@@ -1,4 +1,5 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
@@ -19,6 +20,8 @@ let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentCredentialsValidateCode: string | undefined;
+let lastAuthTokenWrittenAt = 0;
+let lastAuthTokenWrittenEmail: string | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -37,6 +40,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        if (session?.authToken && session.authToken !== currentSessionAuthToken) {
+            lastAuthTokenWrittenAt = Date.now();
+            lastAuthTokenWrittenEmail = session.email;
+        }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
     },
@@ -67,6 +74,7 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
 ];
 
 function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    Log.info('[SignInRedirect] Clearing storage and redirecting to sign in', false, {signOutReason});
     logReceiptQueueSnapshot('signOut', signOutReason);
 
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
@@ -105,7 +113,20 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
     }
 
+    const clearStartedAt = Date.now();
+    const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
+        if (lastAuthTokenWrittenAt > clearStartedAt) {
+            Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
+                signOutReason,
+                clearDurationMs: Date.now() - clearStartedAt,
+                newSessionMs: Date.now() - lastAuthTokenWrittenAt,
+                isNewSessionWiped: !currentSessionAuthToken,
+                emailAtClearStart,
+                newSessionEmail: lastAuthTokenWrittenEmail,
+            });
+        }
+
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
 
