@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import {useRecyclerViewController} from '@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController';
 
 function renderShortListController() {
+    // The hook uses only these manager methods in this test; the full manager requires layout setup.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const manager = {
         props: {horizontal: false, inverted: false},
         firstItemOffset: 0,
@@ -17,6 +19,8 @@ function renderShortListController() {
         updateScrollOffset: () => undefined,
     } as unknown as Parameters<typeof useRecyclerViewController>[0];
     const scrollTo = jest.fn();
+    // The hook only calls scrollTo on this ref; no native ScrollView is mounted here.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const scrollViewRef = {current: {scrollTo}} as unknown as Parameters<typeof useRecyclerViewController>[2];
     const scrollAnchorRef: Parameters<typeof useRecyclerViewController>[3] = {current: {scrollBy: jest.fn()}};
     const {result} = renderHook(() => useRecyclerViewController(manager, null, scrollViewRef, scrollAnchorRef));

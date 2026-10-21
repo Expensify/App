@@ -1,7 +1,6 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import type {ViewHolderCollectionProps} from '@shopify/flash-list/dist/recyclerview/ViewHolderCollection';
-import type {Text, View} from 'react-native';
 
 import {ViewHolderCollection} from '@shopify/flash-list/dist/recyclerview/ViewHolderCollection';
 import React from 'react';
@@ -9,14 +8,14 @@ import {Platform} from 'react-native';
 
 jest.mock('@shopify/flash-list/dist/recyclerview/ViewHolder', () => ({
     ViewHolder: ({index}: {index: number}) => {
-        const {Text: NativeText} = jest.requireActual<{Text: typeof Text}>('react-native');
+        const {Text: NativeText} = jest.requireActual<{Text: React.ComponentType<{testID?: string; children?: React.ReactNode}>}>('react-native');
         return <NativeText testID="flash-list-row">{index}</NativeText>;
     },
 }));
 
 jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => ({
     CompatView: ({children}: {children: React.ReactNode}) => {
-        const {View: NativeView} = jest.requireActual<{View: typeof View}>('react-native');
+        const {View: NativeView} = jest.requireActual<{View: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
         return <NativeView>{children}</NativeView>;
     },
 }));
@@ -24,6 +23,16 @@ jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => (
 jest.mock('@shopify/flash-list/dist/recyclerview/RecyclerViewContextProvider', () => ({
     useRecyclerViewContext: () => undefined,
 }));
+
+function getRenderedIndices(): number[] {
+    return screen.getAllByTestId('flash-list-row').map((row) => {
+        const index: unknown = row.props.children;
+        if (typeof index !== 'number') {
+            throw new Error('Expected a numeric row index');
+        }
+        return index;
+    });
+}
 
 describe('FlashList web DOM ordering', () => {
     const originalPlatform = Platform.OS;
@@ -90,10 +99,10 @@ describe('FlashList web DOM ordering', () => {
                 data={['first', 'inserted', 'second', 'third']}
             />,
         );
-        expect(screen.getAllByTestId('flash-list-row').map((row) => row.props.children)).toEqual([0, 2, 3, 1]);
+        expect(getRenderedIndices()).toEqual([0, 2, 3, 1]);
         act(() => jest.advanceTimersByTime(1000));
 
         // Then the deferred sort restores DOM order to match the visible order
-        expect(screen.getAllByTestId('flash-list-row').map((row) => row.props.children)).toEqual([0, 1, 2, 3]);
+        expect(getRenderedIndices()).toEqual([0, 1, 2, 3]);
     });
 });
