@@ -81,8 +81,8 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            deleteOfficeLocation(policyID, officeID, officeLocation);
-            Navigation.goBack();
+            // Delete after the panel closes, so this page doesn't flash "Not here" once the office is marked for deletion
+            Navigation.goBack(undefined, {afterTransition: () => deleteOfficeLocation(policyID, officeID, officeLocation)});
         });
     };
 
