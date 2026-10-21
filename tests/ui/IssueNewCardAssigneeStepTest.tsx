@@ -221,4 +221,35 @@ describe('IssueNewCard AssigneeStep', () => {
         expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).toEqual(expect.objectContaining({assigneeEmail: 'user03@example.com', shippingAddress: null}));
         expect(clearIssueNewCardAssigneePhoneNumber).toHaveBeenCalledWith(POLICY_ID);
     });
+
+    it('keeps the shipping address while the admin invites a new cardholder', () => {
+        // Given a flow where the admin already entered an address for user07
+        mockIssueNewCard = {
+            data: {
+                assigneeEmail: 'user07@example.com',
+                shippingAddress: {
+                    legalFirstName: 'User',
+                    legalLastName: 'Seven',
+                    addressStreet: '224 Main Street',
+                    addressCity: 'San Francisco',
+                    addressState: 'CA',
+                    addressZip: '94123',
+                    addressCountry: CONST.COUNTRY.US,
+                },
+            },
+            isEditing: true,
+        };
+        renderStep();
+        jest.mocked(clearIssueNewCardAssigneePhoneNumber).mockClear();
+
+        // When the admin picks someone who isn't a member yet
+        act(() => {
+            getSelectionListProps()?.onSelectRow({login: 'new@example.com', accountID: 99});
+        });
+
+        // Then the address and phone number check stay, since cancelling the invite keeps user07 as the cardholder
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].step).toBe(CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER);
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).not.toHaveProperty('shippingAddress');
+        expect(clearIssueNewCardAssigneePhoneNumber).not.toHaveBeenCalled();
+    });
 });
