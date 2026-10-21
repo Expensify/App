@@ -9209,6 +9209,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Organizacja Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',
             prerequisitesTitle: 'Zanim się połączysz...',

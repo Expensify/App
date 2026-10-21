@@ -9089,6 +9089,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Organización Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
             prerequisitesTitle: 'Antes de conectar...',

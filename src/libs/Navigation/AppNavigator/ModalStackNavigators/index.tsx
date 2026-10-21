@@ -798,6 +798,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksFxExpenseAccountSelectPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOAuthPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/ClaimOfferPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default,

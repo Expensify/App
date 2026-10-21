@@ -765,6 +765,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
         'Pencil',
