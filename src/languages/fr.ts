@@ -10329,6 +10329,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
                 customDay: 'Jour personnalisé',
             },
+            describeSearch: {
+                title: 'Décrivez votre recherche',
+                description: 'Décrivez en anglais simple les dépenses que vous souhaitez voir et nous appliquerons automatiquement les bons filtres.',
+                inputLabel: 'Décrivez votre recherche',
+                buttonText: 'Appliquer',
+            },
             status: 'Statut',
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
