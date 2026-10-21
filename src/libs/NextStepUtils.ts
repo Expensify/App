@@ -36,23 +36,6 @@ import {
 } from './ReportUtils';
 import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
-/**
- * Report next step override is a FE-only override values for ReportNextStep
- * This is not stored in Onyx
- */
-type ReportNextStepOverride = {
-    /** Message key */
-    messageKey?: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE>;
-
-    /** Icon */
-    icon?: ValueOf<typeof CONST.NEXT_STEP.ICONS_OVERRIDE>;
-
-    /** The fill color of the icon */
-    iconFill?: string;
-};
-
-type ReportNextStepWithOverride = MergeExclusive<ReportNextStep, ReportNextStepOverride>;
-
 type BuildOptimisticNextStepParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
@@ -76,7 +59,7 @@ type BuildOptimisticNextStepParams = {
 };
 
 function buildNextStepMessage(
-    nextStep: ReportNextStepWithOverride,
+    nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
@@ -359,30 +342,32 @@ function buildOptimisticsNoFurtherActionNextStep(): ReportNextStep {
     };
 }
 
-function buildOptimisticNextStepForStrictPolicyRuleViolations(): ReportNextStepOverride {
+function buildOptimisticNextStepForStrictPolicyRuleViolations(): ReportNextStep {
     return {
-        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.STRICT_POLICY_RULE_VIOLATIONS,
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
     };
 }
 
-function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string): ReportNextStepOverride {
+function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string): ReportNextStep {
     return {
-        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR,
-        icon: CONST.NEXT_STEP.ICONS_OVERRIDE.DOT_INDICATOR,
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR,
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
         iconFill,
     };
 }
-function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string): ReportNextStepOverride {
+function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string): ReportNextStep {
     return {
-        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR,
-        icon: CONST.NEXT_STEP.ICONS_OVERRIDE.DOT_INDICATOR,
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR,
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
         iconFill,
     };
 }
 
-function buildOptimisticNextStepForDEWOffline(): ReportNextStepOverride {
+function buildOptimisticNextStepForDEWOffline(): ReportNextStep {
     return {
-        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE,
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
     };
 }
 
@@ -418,7 +403,7 @@ function getReportNextStep({
     isReportArchived,
     theme,
     isOffline,
-}: GetReportNextStepParams): ReportNextStepWithOverride | undefined {
+}: GetReportNextStepParams): ReportNextStep | undefined {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
@@ -513,5 +498,4 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
     return !automaticAction;
 }
 
-export type {ReportNextStepWithOverride};
 export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, shouldShowDynamicExternalWorkflowApproveErrorNextStep};

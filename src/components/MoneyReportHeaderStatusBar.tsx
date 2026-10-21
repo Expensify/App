@@ -5,11 +5,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {buildNextStepMessage} from '@libs/NextStepUtils';
-import type {ReportNextStepWithOverride} from '@libs/NextStepUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -21,10 +21,10 @@ import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    nextStep: ReportNextStepWithOverride;
+    nextStep: ReportNextStep;
 };
 
-type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS & typeof CONST.NEXT_STEP.ICONS_OVERRIDE>;
+type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
@@ -38,7 +38,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
             [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
             [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
             [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
-            [CONST.NEXT_STEP.ICONS_OVERRIDE.DOT_INDICATOR]: icons.DotIndicator,
+            [CONST.NEXT_STEP.ICONS.DOT_INDICATOR]: icons.DotIndicator,
         }),
         [icons],
     );

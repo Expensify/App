@@ -2461,11 +2461,6 @@ const CONST = {
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
-        },
-        /**
-         * Extra message keys that are FE-only. These can be found only in `ReportNextStepOverride`
-         */
-        MESSAGE_KEY_OVERRIDE: {
             STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
@@ -2476,13 +2471,9 @@ const CONST = {
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
             BOX: 'box',
-        },
-        /**
-         * Extra icons that are FE-only. These can be found only in `ReportNextStepOverride`
-         */
-        ICONS_OVERRIDE: {
             DOT_INDICATOR: 'dotIndicator',
         },
+
         ETA_KEY: {
             SHORTLY: 'shortly',
             TODAY: 'today',

@@ -53,10 +53,6 @@ type Participants = Record<number, Participant>;
 
 /**
  * Report next step
- *
- * IMPORTANT: Do NOT add fields that are not returned by the backend.
- *            BE send the next step updates using Onyx MERGE method and any frontend-only field becomes stale.
- *            Use ReportNextStepOverride for FE-only override values.
  */
 type ReportNextStep = {
     /** Message key */
@@ -78,6 +74,9 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** The fill color of the icon */
+    iconFill?: string;
 };
 
 /** Model of report data */
