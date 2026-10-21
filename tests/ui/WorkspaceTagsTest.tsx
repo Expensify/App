@@ -250,7 +250,13 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+
+        fireEvent.press(selectAll);
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
