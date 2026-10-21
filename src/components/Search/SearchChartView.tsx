@@ -4,6 +4,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -78,24 +79,38 @@ function SearchChartView({
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
+    const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
-    const isSinglePointBar = shouldShowSinglePointAsBar && data.length === 1;
     const {series, rows} = buildChartSeries({
         data,
-        comparison: isSinglePointBar ? undefined : comparison,
+        comparison,
+        groupBy,
         view,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+        isLaterPeriod: (item) => {
+            const range = getDateRange?.(item);
+            if (!range) {
+                return false;
+            }
+
+            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
+            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
+            return start > today;
+        },
+        translate,
+        dateFnsLocale,
+        colorScheme: theme.colorScheme,
     });
     const points = rows.map((row) => row.point);
 
@@ -139,26 +154,27 @@ function SearchChartView({
                 shouldShowLabels={shouldShowGroupLabels}
             />
         ),
-        [CONST.SEARCH.VIEW.LINE]: isSinglePointBar ? (
-            <BarChart
-                data={points}
-                series={series}
-                isLoading={isLoading}
-                onBarPress={onItemPress}
-                yAxisUnit={unit}
-                yAxisUnitPosition={unitPosition}
-            />
-        ) : (
-            <LineChart
-                data={points}
-                series={series}
-                isLoading={isLoading}
-                onPointPress={onItemPress}
-                labelSteps={labelSteps}
-                yAxisUnit={unit}
-                yAxisUnitPosition={unitPosition}
-            />
-        ),
+        [CONST.SEARCH.VIEW.LINE]:
+            shouldShowSinglePointAsBar && points.length === 1 ? (
+                <BarChart
+                    data={points}
+                    series={series}
+                    isLoading={isLoading}
+                    onBarPress={onItemPress}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                />
+            ) : (
+                <LineChart
+                    data={points}
+                    series={series}
+                    isLoading={isLoading}
+                    onPointPress={onItemPress}
+                    labelSteps={labelSteps}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                />
+            ),
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}

@@ -3869,6 +3869,15 @@ function clearAllReportActionDrafts() {
     Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
 }
 
+/** Clears drafts for the comment report actions of a single report, keeping drafts of other reports */
+function clearReportActionDrafts(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, null);
+}
+
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, reportActions: OnyxEntry<ReportActions>, draftMessage: string, isOffline: boolean) {
     if (!reportAction) {
@@ -4143,7 +4152,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -9192,6 +9201,7 @@ export {
     isNoSupportRepAvailableResponse,
     dismissFailedSupportTicket,
     clearAllReportActionDrafts,
+    clearReportActionDrafts,
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,

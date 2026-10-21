@@ -111,7 +111,9 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | `staging` | `staging-new-expensify-assets` | None until switchover, then `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` | Production |
 
-Every staging deploy also deploys the same build to the `test-staging` and `staging` Workers (the `webDeployCloudflareWorkers` job in `.github/workflows/deploy.yml`). It uses `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit those two Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail. A failure there does not fail the staging deploy.
+Every staging deploy also deploys the same build to the `staging` Worker (the `webDeployStagingWorker` job in `.github/workflows/deploy.yml`) and the `test-staging` Worker (`webDeployTestStaging`). Both use `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit those two Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
+
+The `staging` deploy runs after the S3 upload and is required: if it fails, or `staging.new.expensify.com/version.json` doesn't report the new version, the staging deploy fails. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
 
 `test-staging` serves a staging build on a hostname nobody else uses. `staging` serves nothing until `staging.new.expensify.com/*` is pointed at its Worker in Cloudflare.
 
@@ -131,7 +133,7 @@ The bucket and its 60-day lifecycle rule are managed in Terraform. The upload us
 
 Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
-Workers Logs are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs every request.
+Workers Logs and traces are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs and traces every request.
 
 To check the config without credentials or uploading anything:
 

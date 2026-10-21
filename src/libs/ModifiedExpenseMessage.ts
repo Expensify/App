@@ -18,15 +18,7 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import {
-    arePolicyRulesEnabled,
-    findVendorByID,
-    getCleanedTagName,
-    getCommaSeparatedTagNameWithSanitizedColons,
-    getSortedTagKeys,
-    isPolicyAdmin,
-    isXeroActiveMatchingSource,
-} from './PolicyUtils';
+import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
@@ -537,7 +529,7 @@ function getForReportAction({
             translate,
             resolveVendorName(reportActionOriginalMessage?.vendor),
             resolveVendorName(reportActionOriginalMessage?.oldVendor),
-            isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor'),
+            translate('common.vendor'),
             true,
             setFragments,
             removalFragments,

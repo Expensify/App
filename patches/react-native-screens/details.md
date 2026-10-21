@@ -97,3 +97,10 @@
 - Upstream PR/issue: TBD
 - E/App issue: [#104226](https://github.com/Expensify/App/issues/104226)
 - PR introducing patch: [#104238](https://github.com/Expensify/App/pull/104238)
+
+### [react-native-screens+4.28.0+006+stack-scroll-to-top-uses-scroll-view-marker.patch](react-native-screens+4.28.0+006+stack-scroll-to-top-uses-scroll-view-marker.patch)
+
+- Reason: On iOS, a second tap on a native tab scrolls the tab's content to the top. When the tab's root is a native stack, as with the Inbox tab's split navigator, `RNSScreenStack` handles that tap and picks the scroll view by following each view's first native subview. On the Inbox the first one it reaches is the horizontal tab selector above the list. That selector is already at the top, so nothing scrolls. A `ScrollViewMarker` around the list registers the list's scroll view with the tabs screen, but the stack never reads it. The patch makes the stack scroll the marked scroll view while it shows a single screen, and fall back to the first-subview search otherwise, since the marker can sit on any screen of the stack. The marker only exists on iOS when `RNS_GAMMA_ENABLED=1` is set at `pod install`, which both Podfiles do.
+- Upstream PR/issue: [#4985](https://github.com/software-mansion/react-native-screens/pull/4985)
+- E/App issue: https://github.com/Expensify/App/issues/104284
+- PR introducing patch: [#104368](https://github.com/Expensify/App/pull/104368)
