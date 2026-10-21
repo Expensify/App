@@ -2311,10 +2311,10 @@ const translations = {
                 `Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
-                `This report can't be submitted. Please review the comments to resolve.`,
+                `<alert-text>This report can't be submitted. Please review the comments to resolve.</alert-text>`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
-                `This report can't be approved. Please review the comments to resolve.`,
+                `<alert-text>This report can't be approved. Please review the comments to resolve.</alert-text>`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) => `Waiting for you to come back online to determine next steps.`,
         },
