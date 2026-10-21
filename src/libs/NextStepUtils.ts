@@ -9,7 +9,7 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {MergeExclusive, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
@@ -447,7 +447,8 @@ function getReportNextStep({
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
             if (errors?.dewSubmitFailed) {
                 return buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme?.danger);
-            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
+            }
+            if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
                 return buildOptimisticNextStepForDEWOffline();
             }
         } else if (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
@@ -462,7 +463,8 @@ function getReportNextStep({
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
                 return buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme?.danger);
-            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+            }
+            if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 return buildOptimisticNextStepForDEWOffline();
             }
         }
