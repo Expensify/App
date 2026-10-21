@@ -36,15 +36,12 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  * configuration gate — mirrors `Xero::hasVendorFeature` on the PHP side. The `isConfigured` check
  * matters because Integration-Server clears that flag during a Xero tenant switch while the old
  * tenant's `data.contacts` lingers until the next sync repopulates it; without the gate the
- * Supplier picker would render stale contacts from the previous tenant and a user-pick during
+ * vendor picker would render stale contacts from the previous tenant and a user-pick during
  * that window would persist a now-invalid `comment.vendor.externalID` that flips inactive the
  * moment the new sync completes.
  *
  * This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source predicate — on
- * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`. Use
- * `isXeroActiveMatchingSource` when the question is "is Xero the integration whose vendors are
- * actually being shown to the user?" (e.g. for the Supplier/Vendor label flip in the expense row,
- * picker, and modified-expense fragments).
+ * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`.
  */
 function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config?.isConfigured;
@@ -81,18 +78,6 @@ function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
     return config?.isConfigured === true && config?.hasPSA !== true;
-}
-
-/**
- * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
- * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Campfire → Business Central → Certinia) so the UI labels, copy, and
- * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
- * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
- * QBO vendors under the "Supplier" label.
- */
-function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
-    return getActiveVendorMatchingIntegration(policy) === CONST.POLICY.CONNECTIONS.NAME.XERO;
 }
 
 /**
@@ -417,8 +402,8 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                title: translate('workspace.xero.noSuppliersFound'),
-                subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                title: translate('workspace.xero.noVendorsFound'),
+                subtitle: translate('workspace.xero.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             return {
@@ -529,7 +514,6 @@ export {
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
-    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,

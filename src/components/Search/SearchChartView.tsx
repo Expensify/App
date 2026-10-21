@@ -90,7 +90,7 @@ function SearchChartView({
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const {data: chartData, comparison: chartComparison} = runningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
@@ -105,6 +105,16 @@ function SearchChartView({
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+        isLaterPeriod: (item) => {
+            const range = getDateRange?.(item);
+            if (!range) {
+                return false;
+            }
+
+            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
+            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
+            return start > today;
+        },
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
