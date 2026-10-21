@@ -7860,11 +7860,16 @@ describe('ReportUtils', () => {
                 // Given a draft that keeps the second image but not the first
                 const draft = `Hello edited\n\n!(${secondSource})`;
 
+                // When the removed uploads are looked up
+                const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml);
+
                 // Then only the first image counts as removed
-                expect(getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml)).toEqual(['11']);
+                expect(removedAttachmentIDs).toEqual(['11']);
             });
 
             it('keeps showing every attachment the edit kept', () => {
+                // Given a message with two uploading images
+
                 // When the first image is removed
                 const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, ['11']);
 
@@ -7874,8 +7879,12 @@ describe('ReportUtils', () => {
             });
 
             it('re-appends all the attachments when none were removed', () => {
+                // Given a message with two uploading images
+
+                // When the edit keeps both images
                 const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
 
+                // Then both images are re-appended to the edited message
                 expect(html).toContain(firstSource);
                 expect(html).toContain(secondSource);
             });
