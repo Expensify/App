@@ -1,6 +1,8 @@
 import AgentRulesList from '@components/AgentRules/AgentRulesList';
 import useAgentRulesSectionHeader from '@components/AgentRules/useAgentRulesSectionHeader';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
@@ -111,6 +113,22 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                         listContainerStyle={[styles.mt6, styles.gap2]}
                         menuItemWrapperStyle={styles.justifyContentCenter}
                     />
+                    {/* The row stays pressable when the user cannot write rules. Pressing it explains why, so it only looks disabled. */}
+                    <View style={[styles.mt2, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}>
+                        <MenuItemSectionRoot
+                            onPress={handleAddAgentRule}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Plus} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('workspace.rules.agentRules.addRule')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </Section>
             </View>
         </ScrollView>

@@ -496,7 +496,7 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
                 transactionID: '0',
                 sequenceIndex: 0,
                 reservationIndex: reservationData.reservationIndex,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- using || intentionally: pnrCancelled is boolean, ?? would not fall through on false
+                // using || intentionally: pnrCancelled is boolean, ?? would not fall through on false
                 isCancelled: pnrCancelled || reservationData.isCancelled || undefined,
             }));
         })

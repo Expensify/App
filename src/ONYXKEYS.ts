@@ -176,6 +176,9 @@ const ONYXKEYS = {
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
 
+    /** Delegator the acting copilot is removing themselves from, kept until the removal is queued so a kill can't lose it */
+    PENDING_SELF_COPILOT_REMOVAL: 'pendingSelfCopilotRemoval',
+
     BETAS: 'betas',
     BETA_CONFIGURATION: 'betaConfiguration',
 
@@ -192,6 +195,9 @@ const ONYXKEYS = {
     PERSONAL_POLICY_ID: 'personalPolicyID',
 
     /** NVP keys */
+
+    /** UTC signup timestamp for the account's Exact Online waitlist membership */
+    NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
 
     /** This NVP contains list of at most 5 recent attendees */
     NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
@@ -556,6 +562,9 @@ const ONYXKEYS = {
     /** Selected domain member account IDs for the move-to-group operation */
     RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE: 'domainMembersSelectedForMove',
 
+    /** The workspace members selected for the bulk role change, with the workspace they were selected on */
+    RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE: 'workspaceMembersSelectedForRoleChange',
+
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
     PREFERRED_THEME: 'nvp_preferredTheme',
@@ -810,6 +819,9 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
+    /** A fresh link to Wise's embedded KYC page */
+    RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
+
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
 
@@ -927,6 +939,9 @@ const ONYXKEYS = {
     /** Dragged table column widths, keyed by `columnResizingID` then column key. Per device, since ideal widths depend on window size. */
     TABLE_COLUMN_WIDTHS: 'tableColumnWidths',
 
+    /** Stores whether the user views single-expense reports in the expense view or the table view */
+    NVP_SINGLE_EXPENSE_REPORT_VIEW: 'nvp_expensify_singleExpenseReportView',
+
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
 
@@ -960,6 +975,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_VENDORS: 'policyVendors_',
+        POLICY_MEMBER_BANK_ACCOUNTS: 'policyMemberBankAccounts_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
         POLICY_RECENTLY_USED_DESTINATIONS: 'nvp_recentlyUsedDestinations_',
         // Whether the policy's connection data was attempted to be fetched in
@@ -973,6 +989,7 @@ const ONYXKEYS = {
         RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
+        WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT: 'workspaceInviteWorkArrangementDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
         WORKSPACE_INVITE_APPROVER_DRAFT: 'workspaceInviteApproverDraft_',
         REPORT: 'report_',
@@ -1051,6 +1068,7 @@ const ONYXKEYS = {
 
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
+        /** Deprecated. Use agent_ instead */
         SHARED_NVP_AGENT_PROMPT: 'sharedNVP_agentPrompt_',
 
         /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
@@ -1219,6 +1237,10 @@ const ONYXKEYS = {
         COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT: 'collectDepositAccountFormDraft',
         INTERNATIONAL_BANK_ACCOUNT_FORM: 'internationalBankAccountForm',
         INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
+        DYNAMIC_FORM_LIST_ITEM_FORM: 'dynamicFormListItemForm',
+        DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT: 'dynamicFormListItemFormDraft',
+        WISE_BUSINESS_ONBOARDING_FORM: 'wiseBusinessOnboardingForm',
+        WISE_BUSINESS_ONBOARDING_FORM_DRAFT: 'wiseBusinessOnboardingFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         NEW_TASK_FORM: 'newTaskForm',
@@ -1251,6 +1273,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM_DRAFT: 'settingsStatusSetFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        VACATION_DELEGATE_FORM: 'vacationDelegateForm',
+        VACATION_DELEGATE_FORM_DRAFT: 'vacationDelegateFormDraft',
         CHANGE_BILLING_CURRENCY_FORM: 'billingCurrencyForm',
         CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'billingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
@@ -1495,6 +1519,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.VACATION_DELEGATE_FORM]: FormTypes.VacationDelegateForm;
     [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
@@ -1560,6 +1585,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM]: FormTypes.CollectDepositAccountForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
+    [ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: FormTypes.DynamicFormListItemForm;
+    [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: FormTypes.WiseBusinessOnboardingForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
     [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM]: FormTypes.SearchEditMultipleDescriptionForm;
@@ -1598,7 +1625,7 @@ type OnyxFormDraftValuesMapping = {
 };
 
 type OnyxCollectionValuesMapping = {
-    [ONYXKEYS.COLLECTION.AGENT]: OnyxTypes.AgentPrompt;
+    [ONYXKEYS.COLLECTION.AGENT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
@@ -1610,12 +1637,14 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
     [ONYXKEYS.COLLECTION.POLICY_VENDORS]: OnyxTypes.PolicyVendors;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: OnyxTypes.PolicyMemberBankAccounts;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -1664,7 +1693,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
@@ -1756,6 +1785,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL]: string;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
     [ONYXKEYS.AGENT_TEMPLATES]: OnyxTypes.SuggestedAgent[];
@@ -1771,6 +1801,7 @@ type OnyxValuesMapping = {
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
@@ -1867,6 +1898,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
+    [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE]: OnyxTypes.WorkspaceMembersSelectedForRoleChange;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
@@ -1959,6 +1991,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
+    [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
@@ -2005,6 +2038,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_OPTION]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
+    [ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW]: ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;

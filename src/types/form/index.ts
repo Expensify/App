@@ -38,6 +38,7 @@ export type {DebugTransactionViolationForm} from './DebugTransactionViolationFor
 export type {RoomNameForm} from './RoomNameForm';
 export type {SettingsStatusClearDateForm} from './SettingsStatusClearDateForm';
 export type {SettingsStatusSetForm} from './SettingsStatusSetForm';
+export type {VacationDelegateForm} from './VacationDelegateForm';
 export type {WaypointForm} from './WaypointForm';
 export type {WorkspaceInviteMessageForm} from './WorkspaceInviteMessageForm';
 export type {WorkspaceCategoryForm} from './WorkspaceCategoryForm';
@@ -100,6 +101,8 @@ export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
 export type {CollectDepositAccountForm} from './CollectDepositAccountForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
+export type {DynamicFormListItemForm} from './DynamicFormListItemForm';
+export type {WiseBusinessOnboardingForm} from './WiseBusinessOnboardingForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
 export type {ReportRejectForm} from './ReportRejectForm';
