@@ -6764,7 +6764,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enableVendor: '启用供应商',
             enableVendors: '启用供应商',
             disableVendor: '停用供应商',
-            disableVendors: '禁用供应商',
+            disableVendors: '停用供应商',
             updateFailureMessage: '更新供应商时出错，请重试',
         },
         tags: {

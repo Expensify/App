@@ -197,7 +197,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             keyForList: vendor.externalID,
             name: vendor.name,
             enabled: vendor.enabled,
-            disabled: !canWriteVendors,
             isLocked,
             errors: vendor.errors ?? undefined,
             pendingAction: vendor.pendingAction,

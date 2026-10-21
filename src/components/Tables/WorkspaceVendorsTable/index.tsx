@@ -23,7 +23,6 @@ type WorkspaceVendorTableColumnKey = 'name' | 'enabled';
 type WorkspaceVendorTableRowData = TableData & {
     name: string;
     enabled: boolean;
-    disabled: boolean;
     isLocked: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -111,7 +110,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                     <Switch
                         isOn={item.enabled}
                         showLockIcon={item.isLocked}
-                        disabled={item.disabled || item.isLocked}
+                        disabled={item.disabled}
                         accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
                         onToggle={item.onToggleEnabled}
                     />

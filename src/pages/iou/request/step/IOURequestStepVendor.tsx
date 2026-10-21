@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -26,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -69,21 +70,18 @@ function IOURequestStepVendor({
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
-    const fetchVendorsIfMissing = () => {
-        if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
-            return;
-        }
-        openPolicyVendorsPage(policy.id);
-    };
-
-    useNetwork({onReconnect: fetchVendorsIfMissing});
-
-    useEffect(() => {
+    const fetchVendorsIfMissing = useCallback(() => {
         if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policy.id);
     }, [isFeatureAvailable, policy?.id, policyVendors]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchVendorsIfMissing});
+
+    useEffect(() => {
+        fetchVendorsIfMissing();
+    }, [fetchVendorsIfMissing]);
     const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
@@ -92,7 +90,9 @@ function IOURequestStepVendor({
 
     const currentVendorID = transaction?.comment?.vendor?.externalID;
     const currentVendor = currentVendorID ? policyVendors?.[currentVendorID] : undefined;
-    const isCurrentVendorDisabled = !!currentVendorID && !currentVendor?.enabled;
+    const isCurrentVendorDisabled = !!currentVendorID && policyVendors !== undefined && !currentVendor?.enabled;
+
+    const isLoading = !isOffline && policyVendors === undefined;
 
     const enabledVendors = Object.values(policyVendors ?? {}).filter((vendor) => vendor.enabled);
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
@@ -192,6 +192,14 @@ function IOURequestStepVendor({
                 // and shows up as a backdrop flicker on the underlying expense view.
                 if (!didScreenTransitionEnd) {
                     return null;
+                }
+                if (isLoading) {
+                    return (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                        />
+                    );
                 }
                 return (
                     <SelectionList
