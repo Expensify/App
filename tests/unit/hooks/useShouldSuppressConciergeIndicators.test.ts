@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+// eslint-disable-next-line no-restricted-imports -- useSidePanelState types its refs as React Native Animated.Value, so the mock needs the same class.
 import {Animated} from 'react-native';
 import Onyx from 'react-native-onyx';
 
