@@ -10333,6 +10333,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             withdrawn: 'Zurückgezogen',
             billable: 'Abrechenbar',
             rejected: 'Abgelehnt',
+            held: 'Zurückgestellt',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
             sortOrder: {

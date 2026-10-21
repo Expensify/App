@@ -10281,6 +10281,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             withdrawn: 'Ritirata',
             billable: 'Fatturabile',
             rejected: 'Rifiutato',
+            held: 'In sospeso',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
             sortOrder: {

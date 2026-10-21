@@ -10169,6 +10169,7 @@ ${reportName}`,
             withdrawn: 'Retirada',
             billable: 'Facturable',
             rejected: 'Rechazado',
+            held: 'Retenido',
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             sortOrder: {

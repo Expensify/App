@@ -10584,6 +10584,7 @@ const translations = {
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             rejected: 'Rejected',
+            held: 'Held',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
