@@ -1,5 +1,5 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 
@@ -121,13 +121,7 @@ function WorkspaceTravelPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.travel.title')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                >
+                <HeaderCentralPane title={translate('workspace.moreFeatures.travel.title')}>
                     {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
@@ -137,7 +131,7 @@ function WorkspaceTravelPage({
                             shouldUseOptionIcon
                         />
                     )}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 <ScrollViewWithContext addBottomSafeAreaPadding>
                     <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
                 </ScrollViewWithContext>

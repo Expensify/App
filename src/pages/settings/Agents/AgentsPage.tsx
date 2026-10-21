@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
@@ -97,8 +97,6 @@ function AgentsPage() {
         </>
     );
 
-    const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
-
     const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
@@ -118,16 +116,14 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     onBackButtonPress={goBackOrClearSelection}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                    shouldDisplaySearchRouter
                 >
-                    {headerContent}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}

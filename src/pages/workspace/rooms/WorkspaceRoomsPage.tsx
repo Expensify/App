@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SortOrder} from '@components/Table/middlewares/sorting';
@@ -184,13 +184,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.rooms')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldDisplayHelpButton
-                >
+                <HeaderCentralPane title={translate('workspace.common.rooms')}>
                     {!shouldUseNarrowLayout && canCreateRooms && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -200,7 +194,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                             <Button.Text>{translate('common.create')}</Button.Text>
                         </Button>
                     )}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
