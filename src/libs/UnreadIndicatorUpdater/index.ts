@@ -170,4 +170,4 @@ AppStateMonitor.addBecameActiveListener(() => {
     triggerUnreadUpdate();
 });
 
-export default {getUnreadReportsForUnreadIndicator};
+export default {getUnreadReportsForUnreadIndicator, memoizedGetUnreadReportsForUnreadIndicator};
