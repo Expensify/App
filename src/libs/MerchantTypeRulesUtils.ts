@@ -158,13 +158,26 @@ function getMerchantRulesTableData({
                     ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
                 );
                 const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
-                const merchantNames = merchants.join(', ');
+                const merchantNames = merchants.map(({value}) => value).join(', ');
+                const containedMerchantNames = merchants
+                    .filter(({isExactMatch}) => !isExactMatch)
+                    .map(({value}) => value)
+                    .join(', ');
+                const exactMerchantNames = merchants
+                    .filter(({isExactMatch}) => isExactMatch)
+                    .map(({value}) => value)
+                    .join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
 
                 const conditions: string[] = [];
-                if (merchantNames) {
-                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantNames));
+                // Spelled out rather than a single "Merchant is", so a contains rule and an exact match rule on the
+                // same merchant don't read as duplicates.
+                if (containedMerchantNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantContains', containedMerchantNames));
+                }
+                if (exactMerchantNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantExactlyMatches', exactMerchantNames));
                 }
                 if (categoryNames) {
                     conditions.push(translate('workspace.rules.expenseDefaultsTable.categoryIs', categoryNames));

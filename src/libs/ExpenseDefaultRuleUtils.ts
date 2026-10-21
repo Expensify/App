@@ -5,7 +5,6 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Rule} from '@src/types/onyx';
 import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
@@ -17,7 +16,6 @@ import type {
     ExpenseDefaultTrigger,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
-import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -517,10 +515,19 @@ function getExpenseDefaultFormValues(rule: Rule | ExpenseDefaultRule | undefined
     return formValues;
 }
 
+/** A merchant a rule matches on, with the way it matches, since a rule can match a merchant exactly or by substring. */
+type MerchantCondition = {
+    /** The merchant text the rule matches against */
+    value: string;
+
+    /** Whether the merchant has to match in full rather than only contain the text */
+    isExactMatch: boolean;
+};
+
 /** The values a rule matches on, grouped by field. */
 type ExpenseDefaultConditionSummary = {
     /** The merchants the rule matches on */
-    merchants: string[];
+    merchants: MerchantCondition[];
 
     /** The categories the rule matches on, as they are stored on the policy */
     categories: string[];
@@ -542,7 +549,7 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
         const values = [leaf.right].flat().filter((value): value is string => typeof value === 'string');
 
         if (leaf.left === CONDITION.MERCHANT) {
-            summary.merchants.push(...values);
+            summary.merchants.push(...values.map((value) => ({value, isExactMatch: leaf.operator === EQUAL_TO})));
         } else if (leaf.left === CONDITION.CATEGORY) {
             summary.categories.push(...values);
         } else if (leaf.left === CONDITION.TAG) {

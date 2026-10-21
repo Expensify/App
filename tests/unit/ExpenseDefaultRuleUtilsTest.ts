@@ -271,7 +271,11 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When its conditions are summarized
             // Then each field keeps its own values, so the table can name them separately
-            expect(getExpenseDefaultConditionSummary(rule?.filters)).toEqual({merchants: ['Starbucks'], categories: ['Coffee', 'Travel'], tags: ['Team A']});
+            expect(getExpenseDefaultConditionSummary(rule?.filters)).toEqual({
+                merchants: [{value: 'Starbucks', isExactMatch: false}],
+                categories: ['Coffee', 'Travel'],
+                tags: ['Team A'],
+            });
         });
 
         it('summarizes a rule the editor cannot open', () => {
@@ -284,7 +288,25 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When it is summarized
             // Then both merchants are listed, so a read-only rule still shows what it matches
-            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: ['Starbucks', 'Costa'], categories: [], tags: []});
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({
+                merchants: [
+                    {value: 'Starbucks', isExactMatch: false},
+                    {value: 'Costa', isExactMatch: false},
+                ],
+                categories: [],
+                tags: [],
+            });
+        });
+
+        it('keeps the match type of each merchant condition', () => {
+            // Given one rule matching a merchant exactly and another matching it by substring
+            const exactRule = buildExpenseDefaultRule({merchantToMatch: 'Uber', matchType: EQUAL_TO, category: 'Travel'}, policy);
+            const containsRule = buildExpenseDefaultRule({merchantToMatch: 'Uber', matchType: CONTAINS, category: 'Travel'}, policy);
+
+            // When each is summarized
+            // Then the match type comes back with the merchant, so the table can tell the two rules apart
+            expect(getExpenseDefaultConditionSummary(exactRule?.filters).merchants).toEqual([{value: 'Uber', isExactMatch: true}]);
+            expect(getExpenseDefaultConditionSummary(containsRule?.filters).merchants).toEqual([{value: 'Uber', isExactMatch: false}]);
         });
 
         it('ignores a field the table has no wording for', () => {
