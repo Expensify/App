@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -15,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
@@ -23,7 +24,6 @@ import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
-import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
     reportID: string | undefined;
@@ -31,11 +31,6 @@ type MoneyReportHeaderModalsProps = {
 };
 
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
-    // PDF modal state
-    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    // Callback invoked when the PDF modal is dismissed while still generating (e.g. Submit via PDF retracts the submit).
-    const onPDFCancelRef = useRef<(() => void) | undefined>(undefined);
-
     // Educational modals ref
     const educationalModalsRef = useRef<MoneyReportHeaderEducationalModalsHandle>(null);
 
@@ -63,6 +58,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
     const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
 
     const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
         const open = () =>
@@ -94,8 +90,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const contextValue = {
         openHoldMenu,
         openPDFDownload: (options?: {onCancel?: () => void}) => {
-            onPDFCancelRef.current = options?.onCancel;
-            setIsPDFModalVisible(true);
+            if (!moneyRequestReport?.reportID) {
+                return;
+            }
+            showReportPDFDownloadModal({reportID: moneyRequestReport.reportID, onCancel: options?.onCancel});
         },
         openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
@@ -111,13 +109,6 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
                 <MoneyReportHeaderEducationalModals
                     ref={educationalModalsRef}
                     reportID={moneyRequestReport?.reportID}
-                />
-
-                <ReportPDFDownloadModal
-                    reportID={moneyRequestReport?.reportID}
-                    isVisible={isPDFModalVisible}
-                    onClose={() => setIsPDFModalVisible(false)}
-                    onCancel={() => onPDFCancelRef.current?.()}
                 />
             </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>

@@ -6454,6 +6454,11 @@ const CONST = {
         ERROR: 'error',
         INFO: 'info',
     },
+    FILE_DOWNLOAD_STATUS: {
+        GENERATING: 'generating',
+        READY: 'ready',
+        FAILED: 'failed',
+    },
     REPORT_DETAILS_MENU_ITEM: {
         GO_TO_ROOM: 'goToRoom',
         MEMBERS: 'member',

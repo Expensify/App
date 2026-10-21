@@ -41,7 +41,7 @@ jest.mock('@components/ButtonWithDropdownMenu', () => ({
 }));
 jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
 jest.mock('@components/HoldSubmitterEducationalModal', () => () => null);
-jest.mock('@components/ReportPDFDownloadModal', () => () => null);
+jest.mock('@components/Modal/FileDownloadModal', () => () => null);
 jest.mock('@components/KYCWall', () => ({
     __esModule: true,
     default: ({children}: {children: (triggerKYCFlow: jest.Mock, buttonRef: React.RefObject<null>) => React.ReactNode}) => children(jest.fn(), {current: null}),
