@@ -3,8 +3,9 @@
 import {file} from 'bun';
 /**
  * Fails the lint run when an inline `eslint-disable` of one of the rules in `REASONED_RULES` (see
- * `onyxLintDisableReason.ts`) does not explain itself. Candidate files are narrowed with git grep the
- * same way `checkOnyxLintBypass.ts` does, then each directive is checked in the Babel AST.
+ * `onyxLintDisableReason.ts`) does not explain itself, or an `eslint` config comment names one of
+ * them. Candidate files are narrowed with git grep the same way `checkOnyxLintBypass.ts` does, then
+ * each comment is checked in the Babel AST.
  */
 import path from 'node:path';
 

@@ -8,10 +8,19 @@
  * `--` holds fewer than `MIN_REASON_LENGTH` letters or digits. A block `eslint-disable` that names the
  * rule always counts, even with a reason: one sentence cannot vouch for every read under it. Blanket
  * directives that name no rule are left to `onyxLintBypass.ts`. A file Babel cannot parse fails closed:
- * every disable naming the rule counts.
+ * every disable naming the rule counts. An `eslint` config comment naming the rule always counts.
  */
 
-import {collectDirectiveMatches, directiveDescription, directiveTargetsBan, extractCommentsByRegex, isCheckedSourceFile, lineNumberAtOffset, parseSource} from './onyxLintBypass';
+import {
+    collectDirectiveMatches,
+    configDirectiveNamesBan,
+    directiveDescription,
+    directiveTargetsBan,
+    extractCommentsByRegex,
+    isCheckedSourceFile,
+    lineNumberAtOffset,
+    parseSource,
+} from './onyxLintBypass';
 
 /** Fewest letters and digits after `--` that count as a reason, so `-- ok`, `-- todo` or a row of dashes does not pass. */
 const MIN_REASON_LENGTH = 12;
@@ -28,9 +37,9 @@ const ONYX_SNAPSHOT_KEY_RULE: ReasonedRule = {
     id: 'rulesdir/no-onyx-get-snapshot-key',
     name: 'no-onyx-get-snapshot-key',
     appliesTo: isCheckedSourceFile,
-    searchTerms: ['no-onyx-get-snapshot-key', 'eslint-disable'],
+    searchTerms: ['no-onyx-get-snapshot-key', 'eslint'],
     message:
-        'A disable of no-onyx-get-snapshot-key needs a reason after `--` that says why live data is right for this Search snapshot key, on the line it covers. For example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. A block eslint-disable of this rule is never accepted.',
+        'A disable of no-onyx-get-snapshot-key needs a reason after `--` that says why live data is right for this Search snapshot key, on the line it covers. For example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. A block eslint-disable or an eslint config comment for this rule is never accepted.',
 };
 
 const REASONED_RULES: ReasonedRule[] = [ONYX_SNAPSHOT_KEY_RULE];
@@ -64,7 +73,13 @@ function collectUnreasonedDisables(source: string, filePath: string, rule: Reaso
         }
         unreasoned.push({file: filePath, line: lineNumberAtOffset(source, match.index)});
     }
-    return unreasoned;
+    // A config comment turns the rule off for the whole file, so no reason can cover it
+    for (const match of collectDirectiveMatches(comments, source, 'config')) {
+        if (configDirectiveNamesBan(match.args, rule)) {
+            unreasoned.push({file: filePath, line: lineNumberAtOffset(source, match.index)});
+        }
+    }
+    return unreasoned.sort((a, b) => a.line - b.line);
 }
 
 export {MIN_REASON_LENGTH, ONYX_SNAPSHOT_KEY_RULE, REASONED_RULES, collectUnreasonedDisables};

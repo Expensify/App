@@ -518,3 +518,76 @@ describe('OnyxUtils import bypasses', () => {
         expect(ONYX_UTILS_IMPORT_BAN.appliesTo('tests/unit/FooTest.ts')).toBe(false);
     });
 });
+
+describe('eslint config comments', () => {
+    const connectFile = ["import Onyx from 'react-native-onyx';", onyxConnectCall('x')];
+    const readFile = ["import Onyx from 'react-native-onyx';", `function f() { return Onyx${'.get'}('x'); }`];
+    const onyxUtilsRuntimeImport = `import OnyxUtils from 'react-native-onyx/dist/${'OnyxUtils'}';`;
+    const onyxUtilsTypeImport = `import type OnyxUtils from 'react-native-onyx/dist/${'OnyxUtils'}';`;
+
+    it.each([
+        '/* eslint rulesdir/no-onyx-connect: off */',
+        '/* eslint rulesdir/no-onyx-connect: 0 */',
+        '/* eslint rulesdir/no-onyx-connect: [0] */',
+        '/* eslint rulesdir/no-onyx-connect: warn */',
+        '/* eslint "rulesdir/no-onyx-connect": "off" */',
+        '/*eslint rulesdir/no-onyx-connect:off*/',
+        '/*eslint\n  rulesdir/no-onyx-connect: off\n*/',
+        '/* eslint rulesdir/no-onyx-connect: off -- legacy */',
+        '/* eslint no-console: 0 rulesdir/no-onyx-connect: 0 */',
+        '/* eslint "rulesdir/no-onyx\\u002dconnect": "off" */',
+    ])('flags %s wherever it sits in the file', (comment) => {
+        // Given a config comment that turns the connect ban off, downgrades it, or names it through a JSON escape
+        // When the connect ban scans it above the call and again after the call
+        // Then it is reported both times, since ESLint applies a config comment to the whole file
+        expect(collectDisableDirectivesFromSource([comment, ...connectFile].join('\n'), 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource([...connectFile, comment].join('\n'), 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+    });
+
+    it('ignores comments ESLint does not read as rule configuration', () => {
+        // Given a line comment, a JSDoc comment, an eslint-env comment, a global comment, and config comments for another rule
+        // When the connect ban scans each one above a connect call
+        // Then nothing is reported, since ESLint reads none of them as rule configuration
+        const comments = [
+            '// eslint rulesdir/no-onyx-connect: off',
+            '/** eslint rulesdir/no-onyx-connect: off */',
+            '/* eslint-env node */',
+            '/* global Onyx */',
+            '/* eslint no-console: off */',
+            '/* eslint no-console: off -- not rulesdir/no-onyx-connect */',
+        ];
+        for (const comment of comments) {
+            expect(collectDisableDirectivesFromSource([comment, ...connectFile].join('\n'), 'src/libs/Foo.ts')).toEqual([]);
+        }
+    });
+
+    it('flags a config comment that turns off the read ban', () => {
+        // Given a config comment that turns no-unsafe-onyx-read off above a read in a function
+        // When the read ban scans it
+        // Then it is reported
+        const source = ['/* eslint rulesdir/no-unsafe-onyx-read: off */', ...readFile].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags a reconfigured import restriction only over a runtime OnyxUtils import', () => {
+        // Given a config comment that replaces the no-restricted-imports options with an empty path list
+        // When the OnyxUtils ban scans it over a runtime import and over a type-only import
+        // Then only the runtime import is reported, since the restriction allows type imports anyway
+        const reconfigure = '/* eslint @typescript-eslint/no-restricted-imports: ["error", {"paths": []}] */';
+
+        expect(collectDisableDirectivesFromSource([reconfigure, onyxUtilsRuntimeImport].join('\n'), 'src/libs/Foo.ts', ONYX_UTILS_IMPORT_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(
+            collectDisableDirectivesFromSource(['/* eslint @typescript-eslint/no-restricted-imports: off */', onyxUtilsTypeImport].join('\n'), 'src/libs/Foo.ts', ONYX_UTILS_IMPORT_BAN),
+        ).toEqual([]);
+    });
+
+    it('counts every config comment when the file cannot be parsed', () => {
+        // Given a file with a syntax error and a config comment for an unrelated rule
+        // When the connect ban scans it
+        // Then it is reported, since nothing can be verified without an AST
+        const source = ['/* eslint no-console: off */', ...connectFile, 'const = ;', '<<<'].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+});

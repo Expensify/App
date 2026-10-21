@@ -131,3 +131,14 @@ describe('a reasoned key disable next to the read ban', () => {
         expect(collectDisableDirectivesFromSource(source, FILE, ONYX_READ_BAN)).toEqual([{file: FILE, line: 1}]);
     });
 });
+
+describe('a config comment for the snapshot key rule', () => {
+    it('is always reported, even with a reason', () => {
+        // Given a config comment that turns the rule off for the whole file with a long reason after `--`
+        const source = [`/* eslint ${RULE_ID}: off -- ${REASON} */`, snapshotKeyRead].join('\n');
+
+        // When the reason check scans it
+        // Then it is reported, since the rule is off for the whole file and the reason covers nothing specific
+        expect(collectUnreasonedDisables(source, FILE)).toEqual([{file: FILE, line: 1}]);
+    });
+});

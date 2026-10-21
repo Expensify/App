@@ -2,14 +2,14 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when a new inline `eslint-disable` silences one of the Onyx lint bans in
- * `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint rule, so an inline
- * disable can silence it. The runner re-elevates those disables by scanning source for directives
- * that name the ban, or blanket directives that cover a real banned use. For the OnyxUtils ban a
- * named directive counts only when it covers a runtime import. No disable comment can reach this
- * check.
+ * Fails the lint run when a new inline `eslint-disable` or `eslint` config comment silences one of
+ * the Onyx lint bans in `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint
+ * rule, so an inline comment can silence it. The runner re-elevates those by scanning source for
+ * directives that name the ban, blanket directives that cover a real banned use, and config comments
+ * that name the ban. For the OnyxUtils ban a named directive or config comment counts only when the
+ * file has a runtime import. No disable comment can reach this check.
  *
- * A real bypass requires a file to contain an `eslint-disable` directive and the ban's search terms,
+ * A real bypass requires a file to contain an `eslint` comment and the ban's search terms,
  * so we first narrow the targets to files matching all of them (via git grep). The candidate scan
  * does not require the contiguous text `Onyx.connect`: git grep is line-oriented, so a spaced or
  * split `Onyx . connect(` would otherwise be skipped. Extra matches like `Onyx.connectWithoutView`
