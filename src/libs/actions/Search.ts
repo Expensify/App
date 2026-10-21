@@ -293,6 +293,7 @@ type HandleActionButtonPressParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<BankAccountList>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function handleActionButtonPress({
@@ -338,6 +339,7 @@ function handleActionButtonPress({
     conciergeChat,
     getCurrencyDecimals,
     bankAccountList,
+    formatPhoneNumber,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -394,6 +396,7 @@ function handleActionButtonPress({
                 rules,
                 bankAccountList,
                 iouReportTransactions: allReportTransactions,
+                formatPhoneNumber,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -645,6 +648,7 @@ type GetPayActionCallbackParams = {
     rules: OnyxCollection<Rule>;
     bankAccountList: OnyxEntry<BankAccountList>;
     iouReportTransactions: Transaction[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getPayActionCallback({
@@ -677,6 +681,7 @@ function getPayActionCallback({
     rules,
     bankAccountList,
     iouReportTransactions,
+    formatPhoneNumber,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -734,6 +739,7 @@ function getPayActionCallback({
         conciergeChat,
         getCurrencyDecimals,
         rules,
+        formatPhoneNumber,
     });
 }
 
@@ -1909,6 +1915,7 @@ function rejectMoneyRequestInBulk(
     isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
@@ -1943,6 +1950,7 @@ function rejectMoneyRequestInBulk(
             rules,
             shouldUseBulkAction: true,
             reportTransactionsCollection,
+            formatPhoneNumber,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1984,6 +1992,7 @@ function rejectMoneyRequestsOnSearch({
     getCurrencyDecimals,
     allReportsTransactionsAndViolations,
     rules,
+    formatPhoneNumber,
 }: {
     hash: number;
     selectedTransactions: Record<string, TransactionReportInfo>;
@@ -1997,6 +2006,7 @@ function rejectMoneyRequestsOnSearch({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined;
     rules: OnyxCollection<Rule>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -2043,6 +2053,7 @@ function rejectMoneyRequestsOnSearch({
                 isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 getCurrencyDecimals,
+                formatPhoneNumber,
                 rules,
                 reportTransactionsCollection,
                 hash,
@@ -2072,6 +2083,7 @@ function rejectMoneyRequestsOnSearch({
                         setExistingRejectedReport,
                     },
                     reportTransactionsCollection,
+                    formatPhoneNumber,
                 });
             }
         }
