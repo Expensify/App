@@ -37,7 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
 import type {PersonalDetailsList, Policy, ReportActions} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -77,14 +77,14 @@ function submitterAndLastForwardedActorEmailSelector(
     currentUserAccountID: number | undefined,
     policy: OnyxEntry<Policy>,
 ) {
-    const canCheckMembership = !isEmptyObject(policy?.employeeList);
     return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => ({
         submitterEmail: personalDetailsLoginSelector(submitterAccountID)(personalDetailsList),
-        // Skip the current user, the submitter, and approvers who have since been removed from the workspace
+        // Skip the current user, the submitter, and approvers who are not in the workspace's employeeList.
+        // isPolicyMember fails closed when employeeList isn't loaded, matching Auth's server-side strictness.
         lastForwardedActorEmail: forwardedActorAccountIDs
             ?.filter((accountID) => accountID !== currentUserAccountID && accountID !== submitterAccountID)
             .map((accountID) => getLoginByAccountID(accountID, personalDetailsList))
-            .find((login) => !!login && (!canCheckMembership || isPolicyMember(policy, login))),
+            .find((login) => isPolicyMember(policy, login)),
     });
 }
 
@@ -148,12 +148,14 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         isSelected: selectedTargetAccountID === String(submitterAccountID),
     });
 
+    const validSelectedTargetAccountID = options.some((option) => option.keyForList === selectedTargetAccountID) ? selectedTargetAccountID : '';
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
         if (!values[INPUT_IDS.COMMENT]) {
             errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
         }
-        if (isSubmitAttempt.current && hasPreviousApprover && !selectedTargetAccountID) {
+        if (isSubmitAttempt.current && hasPreviousApprover && !validSelectedTargetAccountID) {
             setSelectionError(translate('iou.rejectReport.selectMemberError'));
             errors[INPUT_IDS.COMMENT] = errors[INPUT_IDS.COMMENT] ?? undefined;
         } else if (isSubmitAttempt.current) {
@@ -173,7 +175,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             return;
         }
 
-        const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
+        const targetAccountID = hasPreviousApprover ? Number(validSelectedTargetAccountID) : submitterAccountID;
         if (!report) {
             return;
         }
