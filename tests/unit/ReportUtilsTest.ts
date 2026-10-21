@@ -24726,8 +24726,7 @@ describe('ReportUtils', () => {
             const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
 
             // Then the action leaves the old value empty, matching the server's action so the message doesn't change when it arrives
-            expect(action.originalMessage?.oldValue).toBeUndefined();
-            expect(action.originalMessage?.newValue).toBe('');
+            expect(action).toMatchObject({originalMessage: {oldValue: undefined, newValue: ''}});
         });
 
         it('should use the saved value as the old value when the field has one', () => {
