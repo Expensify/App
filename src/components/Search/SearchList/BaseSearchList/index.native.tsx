@@ -17,6 +17,7 @@ function BaseSearchList({
     ref,
     onEndReached,
     onEndReachedThreshold,
+    ListHeaderComponent,
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
@@ -42,6 +43,7 @@ function BaseSearchList({
             ref={ref}
             onEndReached={onEndReached}
             onEndReachedThreshold={onEndReachedThreshold}
+            ListHeaderComponent={ListHeaderComponent}
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}

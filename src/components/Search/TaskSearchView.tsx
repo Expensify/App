@@ -53,8 +53,20 @@ function TaskSearchView({
 }: TaskSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
-        useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true});
+    const {
+        isOffline,
+        isKeyboardShown,
+        safeAreaPaddingBottomStyle,
+        isLargeScreenWidth,
+        shouldScrollMainHeader,
+        toggleAll,
+        selectedTransactions,
+        listRef,
+        onLongPressRow,
+        modal,
+        handleSelectRow,
+        scrollToListIndex,
+    } = useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true});
 
     // Task is a flat list, so visibility and selection counts are a single pass over the rows.
     const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
@@ -86,6 +98,22 @@ function TaskSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them.
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -98,21 +126,9 @@ function TaskSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
+            {!shouldScrollMainHeader && selectionTopBar}
             <BaseSearchList
+                ListHeaderComponent={shouldScrollMainHeader ? selectionTopBar : undefined}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}

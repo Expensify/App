@@ -14,6 +14,7 @@ type BaseSearchListProps = Pick<
     | 'contentContainerStyle'
     | 'onEndReached'
     | 'onEndReachedThreshold'
+    | 'ListHeaderComponent'
     | 'ListFooterComponent'
     | 'onViewableItemsChanged'
     | 'keyExtractor'

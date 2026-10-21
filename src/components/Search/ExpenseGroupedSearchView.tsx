@@ -196,6 +196,7 @@ function ExpenseGroupedSearchView({
         modal,
         handleSelectRow,
         scrollToListIndex,
+        shouldScrollMainHeader,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
 
     const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
@@ -327,6 +328,22 @@ function ExpenseGroupedSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them.
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={shouldSplit}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -339,21 +356,9 @@ function ExpenseGroupedSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={shouldSplit}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
+            {!shouldScrollMainHeader && selectionTopBar}
             <BaseSearchList
+                ListHeaderComponent={shouldScrollMainHeader ? selectionTopBar : undefined}
                 data={listData}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}

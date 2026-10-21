@@ -54,13 +54,24 @@ function ChatSearchView({
 }: ChatSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
-        useSearchListViewState({
-            data,
-            isMobileSelectionModeEnabled,
-            onSelectRow,
-            shouldPreventLongPressRow: true,
-        });
+    const {
+        isKeyboardShown,
+        safeAreaPaddingBottomStyle,
+        isLargeScreenWidth,
+        shouldScrollMainHeader,
+        toggleAll,
+        selectedTransactions,
+        listRef,
+        onLongPressRow,
+        modal,
+        handleSelectRow,
+        scrollToListIndex,
+    } = useSearchListViewState({
+        data,
+        isMobileSelectionModeEnabled,
+        onSelectRow,
+        shouldPreventLongPressRow: true,
+    });
 
     // Chat is a flat list: no group children, no empty groups, so selection counts are a single pass.
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
@@ -88,6 +99,22 @@ function ChatSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them.
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -100,21 +127,9 @@ function ChatSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
+            {!shouldScrollMainHeader && selectionTopBar}
             <BaseSearchList
+                ListHeaderComponent={shouldScrollMainHeader ? selectionTopBar : undefined}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}

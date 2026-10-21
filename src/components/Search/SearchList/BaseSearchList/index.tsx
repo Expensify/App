@@ -1,6 +1,7 @@
 import {useEditingCellState} from '@components/EditableCell';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -61,6 +62,7 @@ function BaseSearchList({
     scrollToIndex,
     onEndReached,
     onEndReachedThreshold,
+    ListHeaderComponent,
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
@@ -76,6 +78,7 @@ function BaseSearchList({
     overrideItemLayout,
 }: BaseSearchListProps) {
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
+    const scrollLockStyle = useSearchListScrollLockStyle(true);
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
@@ -189,6 +192,7 @@ function BaseSearchList({
             extraData={extraData}
             onEndReached={onEndReached}
             onEndReachedThreshold={onEndReachedThreshold}
+            ListHeaderComponent={ListHeaderComponent}
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
@@ -201,6 +205,7 @@ function BaseSearchList({
             stickyHeaderConfig={stickyHeaderConfig}
             getItemType={getItemType}
             overrideItemLayout={overrideItemLayout}
+            overrideProps={scrollLockStyle ? {style: scrollLockStyle} : undefined}
         />
     );
 }

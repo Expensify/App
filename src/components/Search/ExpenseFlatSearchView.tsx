@@ -70,6 +70,7 @@ function ExpenseFlatSearchView({
         isKeyboardShown,
         safeAreaPaddingBottomStyle,
         isLargeScreenWidth,
+        shouldScrollMainHeader,
         toggle,
         toggleAll,
         selectedTransactions,
@@ -133,6 +134,22 @@ function ExpenseFlatSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them.
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -149,21 +166,9 @@ function ExpenseFlatSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
+            {!shouldScrollMainHeader && selectionTopBar}
             <BaseSearchList
+                ListHeaderComponent={shouldScrollMainHeader ? selectionTopBar : undefined}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
