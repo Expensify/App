@@ -67,7 +67,7 @@ function MergeResultPage() {
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: LottieAnimations.Fireworks,
                 illustrationStyle: {width: 150, height: 150},
             },
@@ -84,7 +84,7 @@ function MergeResultPage() {
                         />
                     </View>
                 ),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 buttonText: translate('common.buttonConfirm'),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
@@ -97,7 +97,7 @@ function MergeResultPage() {
                 ),
                 cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
                 ctaStyle: {...styles.mt2, ...styles.textSupporting},
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 buttonText: translate('common.buttonConfirm'),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
@@ -110,7 +110,7 @@ function MergeResultPage() {
                 ),
                 buttonText: translate('common.buttonConfirm'),
                 illustration: lazyIllustrations.LockClosedOrange,
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -120,7 +120,7 @@ function MergeResultPage() {
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
@@ -141,7 +141,7 @@ function MergeResultPage() {
                 },
                 shouldShowSecondaryButton: !isClassicRedirectBlocked,
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.RunningTurtle,
                 illustrationStyle: {width: 132, height: 150},
             },
@@ -153,7 +153,7 @@ function MergeResultPage() {
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
@@ -164,7 +164,7 @@ function MergeResultPage() {
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING]: {
@@ -175,28 +175,28 @@ function MergeResultPage() {
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS]: {
                 heading: translate('mergeAccountsPage.mergeFailureTooManyAttempts.heading'),
                 description: translate('mergeAccountsPage.mergeFailureTooManyAttempts.description'),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ACCOUNT_UNVALIDATED]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 description: translate('mergeAccountsPage.mergeFailureUnvalidatedAccount.description'),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
                 buttonText: translate('common.buttonConfirm'),
-                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
                 illustration: lazyIllustrations.LockClosedOrange,
             },
         };

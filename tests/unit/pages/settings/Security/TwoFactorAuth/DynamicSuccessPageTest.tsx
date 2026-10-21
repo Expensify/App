@@ -24,11 +24,13 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../../../utils/waitForBatchedUpdates';
 
 let mockOnButtonPress: (() => void) | undefined;
+let mockOnBackButtonPress: (() => void) | undefined;
 
 jest.mock('@pages/settings/Security/TwoFactorAuth/SuccessPageBase', () => ({
     __esModule: true,
-    default: ({onButtonPress}: {onButtonPress: () => void}) => {
+    default: ({onButtonPress, onBackButtonPress}: {onButtonPress: () => void; onBackButtonPress: () => void}) => {
         mockOnButtonPress = onButtonPress;
+        mockOnBackButtonPress = onBackButtonPress;
         return null;
     },
 }));
@@ -51,7 +53,7 @@ const mockedUseDynamicBackPath = jest.mocked(useDynamicBackPath);
 
 const Stack = createPlatformStackNavigator<TwoFactorAuthNavigatorParamList>();
 
-async function renderPageAndPressGotIt() {
+async function renderPage(initialParams?: TwoFactorAuthNavigatorParamList[typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]) {
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
@@ -59,13 +61,13 @@ async function renderPageAndPressGotIt() {
                     <Stack.Screen
                         name={SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS}
                         component={DynamicSuccessPage}
+                        initialParams={initialParams}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
         </OnyxListItemProvider>,
     );
     await waitForBatchedUpdates();
-    mockOnButtonPress?.();
 }
 
 describe('DynamicSuccessPage', () => {
@@ -76,6 +78,7 @@ describe('DynamicSuccessPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnButtonPress = undefined;
+        mockOnBackButtonPress = undefined;
         jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         jest.spyOn(Navigation, 'revealRouteBeforeDismissingModal').mockImplementation((_route, options) => {
             options?.afterTransition?.();
@@ -84,28 +87,48 @@ describe('DynamicSuccessPage', () => {
     });
 
     it('sends an admin who already finished onboarding Home after the required-2FA overlay setup', async () => {
-        // Given the 2FA setup was opened from the require-2FA overlay (Home base) by a user who already completed onboarding
-        mockedUseDynamicBackPath.mockReturnValue(ROUTES.HOME);
+        // Given the 2FA setup was opened from the require-2FA overlay (Security base with forceSetup) by a user who already completed onboarding
+        mockedUseDynamicBackPath.mockReturnValue(ROUTES.SETTINGS_SECURITY.getRoute(true));
         await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
         await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await renderPage({forceSetup: 'true'});
 
         // When the user presses "Got it"
-        await renderPageAndPressGotIt();
+        mockOnButtonPress?.();
 
-        // Then the RHP is dismissed back to Home instead of staying on the Enabled page or resuming onboarding
-        expect(quitAndNavigateBack).toHaveBeenCalledWith(ROUTES.HOME);
+        // Then Home is revealed under the RHP and setup data is cleared, instead of staying on the Enabled page or resuming onboarding
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.HOME, expect.anything());
+        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_2FA_ENABLED, expect.anything());
         expect(resumeOnboardingAfterRequired2FASetup).not.toHaveBeenCalled();
+        expect(quitAndNavigateBack).not.toHaveBeenCalled();
+    });
+
+    it('sends an admin who already finished onboarding Home when they press back on the success page of the required-2FA overlay setup', async () => {
+        // Given the 2FA setup was opened from the require-2FA overlay (Security base with forceSetup) by a user who already completed onboarding
+        mockedUseDynamicBackPath.mockReturnValue(ROUTES.SETTINGS_SECURITY.getRoute(true));
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await renderPage({forceSetup: 'true'});
+
+        // When the user presses the back button
+        mockOnBackButtonPress?.();
+
+        // Then Home is revealed under the RHP instead of returning to Settings > Security
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.HOME, expect.anything());
+        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
+        expect(quitAndNavigateBack).not.toHaveBeenCalled();
     });
 
     it('resumes onboarding after the required-2FA overlay setup when onboarding is incomplete', async () => {
-        // Given the 2FA setup was opened from the require-2FA overlay (Home base) by a user who has not finished onboarding
-        mockedUseDynamicBackPath.mockReturnValue(ROUTES.HOME);
+        // Given the 2FA setup was opened from the require-2FA overlay (Security base with forceSetup) by a user who has not finished onboarding
+        mockedUseDynamicBackPath.mockReturnValue(ROUTES.SETTINGS_SECURITY.getRoute(true));
         await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSetupInProgress: true});
         await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await renderPage({forceSetup: 'true'});
 
         // When the user presses "Got it"
-        await renderPageAndPressGotIt();
+        mockOnButtonPress?.();
 
         // Then Home is revealed and onboarding resumes, so the deferred openApp handoff still runs
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.HOME, expect.anything());
@@ -114,17 +137,19 @@ describe('DynamicSuccessPage', () => {
     });
 
     it('keeps the RHP open on the Enabled page when 2FA was set up voluntarily from Settings > Security', async () => {
-        // Given the 2FA setup was opened from Settings > Security by a user who already completed onboarding
-        mockedUseDynamicBackPath.mockReturnValue(ROUTES.SETTINGS_SECURITY);
+        // Given the 2FA setup was opened from Settings > Security without forceSetup by a user who already completed onboarding
+        mockedUseDynamicBackPath.mockReturnValue(ROUTES.SETTINGS_SECURITY.getRoute());
         await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
         await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await renderPage();
 
         // When the user presses "Got it"
-        await renderPageAndPressGotIt();
+        mockOnButtonPress?.();
 
         // Then the user stays in the RHP on the Enabled page, and setup progress is cleared
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
         expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
+        expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
         expect(quitAndNavigateBack).not.toHaveBeenCalled();
     });
 });

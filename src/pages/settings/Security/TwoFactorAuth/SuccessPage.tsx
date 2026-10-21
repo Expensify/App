@@ -21,7 +21,7 @@ function SuccessPage() {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = () => {
-        quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
+        quitAndNavigateBack(ROUTES.SETTINGS_SECURITY.getRoute());
     };
 
     const onButtonPress = () => {

@@ -42,8 +42,9 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
-    // The require-2FA overlay is the only entry that uses Home as the base route.
-    const isRequired2FAOverlayFlow = focusedRoute?.name === SCREENS.HOME;
+    // The require-2FA overlay opens setup on settings/security?forceSetup=true. The base route's query params are merged
+    // into this screen's params and survive the Onyx clear in validateTwoFactorAuth, unlike account flags.
+    const isForcedSetupFlow = isSecuritySettingsFlow && route.params?.forceSetup === 'true';
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -57,12 +58,12 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
     const isIncompleteOnboarding = hasCompletedGuidedSetupFlow === false;
     const hasSavedOnboardingPath = !!onboardingInitialPath?.includes(`/${ROUTES.ONBOARDING_ROOT.route}`);
-    // Forced onboarding 2FA enters from the require-2FA overlay, which uses Home as its base route. Users can also reach it from Settings > Security.
+    // Forced onboarding 2FA always enters via Settings > Security (from the require-2FA overlay).
     // Gate on the real hasCompletedGuidedSetupFlow so the handoff only fires for users who haven't finished
     // guided setup; passing a literal false made it fire for every user setting up 2FA from Settings > Security.
     const isForcedOnboardingHandoff =
         AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
-    const shouldReturnToOnboardingAfter2FA = (isSecuritySettingsFlow || isRequired2FAOverlayFlow) && isForcedOnboardingHandoff;
+    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
 
     const completeForcedOnboarding2FAHandoff = () => {
         clearTwoFactorAuthData(true);
@@ -74,9 +75,22 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         });
     };
 
+    // Users forced into 2FA by the overlay keep Settings > Security behind the RHP during setup, but should land on Home when they leave.
+    const sendForcedSetupUserHome = () => {
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                clearTwoFactorAuthData(true);
+            },
+        });
+    };
+
     const goBack = () => {
         if (shouldReturnToOnboardingAfter2FA) {
             completeForcedOnboarding2FAHandoff();
+            return;
+        }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
             return;
         }
         if (isUSDBankAccountFlow) {
@@ -102,6 +116,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         }
         if (shouldReturnToOnboardingAfter2FA) {
             completeForcedOnboarding2FAHandoff();
+            return;
+        }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it

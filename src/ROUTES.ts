@@ -2313,7 +2313,11 @@ const ROUTES = {
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_COPILOT: 'settings/copilot',
-    SETTINGS_SECURITY: 'settings/security',
+    SETTINGS_SECURITY: {
+        route: 'settings/security',
+        // forceSetup marks the 2FA setup opened from the require-2FA overlay, so DynamicSuccessPage can send the user Home after "Got it".
+        getRoute: (forceSetup?: boolean) => `settings/security${forceSetup ? '?forceSetup=true' : ''}` as const,
+    },
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
