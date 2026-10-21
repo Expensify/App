@@ -431,6 +431,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
         policyID: string;
         accountID: string;
@@ -650,6 +653,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
@@ -1684,6 +1690,7 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
         policyID: string;
+        generationID?: string;
     };
     [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
         policyID: string;

@@ -330,14 +330,16 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
     [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
     [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
     [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+    [CONST.GENERATED_RULE.STATE.AGENT_RULE]: 'workspace.rules.newRule.promptErrors.unsupported',
 };
 
 /**
- * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
- * queued. The answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * Asks Concierge to turn a description into rule form values. The answer carries its own rule type, which can differ
+ * from `ruleType`. The response only confirms that the server queued the job. The answer arrives later under
+ * `ONYXKEYS.GENERATED_RULE`. Therefore the form stays in the loading state until the answer arrives.
  * @returns the generationID the answer carries
  */
-function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {
+function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRuleType): string {
     const generationID = rand64();
     type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
 
@@ -381,14 +383,29 @@ function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     });
 }
 
+/** Stops the loading state of the prompt form when the answer is shown in the form and not as an error */
+function stopNewRulePromptLoading() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: false});
+}
+
+/** Shows the empty description error above the submit button of the new rule prompt form */
+function setNewRulePromptEmptyError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.rules.newRule.selectTemplateOrDescribe'),
+    });
+}
+
 function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
 
+/**
+ * Clears the prompt form and its draft. The answer stays, because a page that opens after the form closes reads it by
+ * its generationID. The next `generateRule` call clears it.
+ */
 function clearNewRulePrompt() {
     Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
     clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
-    clearGeneratedRule();
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
@@ -655,10 +672,12 @@ export {
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
     generateRule,
+    setNewRulePromptEmptyError,
     setNewRulePromptError,
     setNewRulePromptErrorMessage,
     clearGeneratedRule,
     clearNewRulePrompt,
+    stopNewRulePromptLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,

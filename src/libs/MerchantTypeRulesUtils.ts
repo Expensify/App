@@ -24,7 +24,7 @@ import {
     isExpenseDefaultTaxValue,
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy, isXeroActiveMatchingSource} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -128,14 +128,13 @@ function getMerchantRulesTableData({
         return [];
     }
 
-    const isOnXero = isXeroActiveMatchingSource(policy);
     const fieldLabels = {
         category: translate('common.category').toLowerCase(),
         tag: translate('common.tag').toLowerCase(),
         description: translate('common.description').toLowerCase(),
         tax: translate('common.tax').toLowerCase(),
         amount: translate('iou.amount').toLowerCase(),
-        vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
+        vendor: translate('common.vendor').toLowerCase(),
     };
     const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 
@@ -211,7 +210,7 @@ function getMerchantRulesTableData({
                             ),
                         );
                     } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
-                        const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+                        const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
                         actions.push(
                             translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)),
                         );

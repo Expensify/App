@@ -5,6 +5,7 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Rule} from '@src/types/onyx';
 import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
@@ -16,6 +17,7 @@ import type {
     ExpenseDefaultTrigger,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
