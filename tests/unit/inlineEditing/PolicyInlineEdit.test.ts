@@ -141,7 +141,7 @@ describe('PolicyInlineEdit', () => {
         it('delegates a valid rename to the canonical action', () => {
             renameCategoryInline(translate, policyData, 'Food', '  Meals  ', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true, {});
         });
 
         it('does not persist a name that matches an HTML-encoded category', () => {
@@ -159,7 +159,7 @@ describe('PolicyInlineEdit', () => {
         it('persists a rename of an HTML-encoded category using the raw stored name', () => {
             renameCategoryInline(translate, policyData, encodedFoodAndDrink, 'Snacks', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true, {});
         });
     });
 
