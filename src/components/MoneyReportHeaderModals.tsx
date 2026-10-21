@@ -89,11 +89,11 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     const contextValue = {
         openHoldMenu,
-        openPDFDownload: (options?: {onCancel?: () => void}) => {
+        openPDFDownload: () => {
             if (!moneyRequestReport?.reportID) {
-                return;
+                return Promise.resolve(undefined);
             }
-            showReportPDFDownloadModal({reportID: moneyRequestReport.reportID, onCancel: options?.onCancel});
+            return showReportPDFDownloadModal({reportID: moneyRequestReport.reportID});
         },
         openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),

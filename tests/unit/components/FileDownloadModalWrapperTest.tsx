@@ -23,6 +23,7 @@ describe('FileDownloadModalWrapper', () => {
         <FileDownloadModalWrapper
             closeModal={jest.fn()}
             resolveModal={jest.fn()}
+            title="title"
             status={CONST.FILE_DOWNLOAD_STATUS.GENERATING}
             message="message"
             onDownload={jest.fn()}
@@ -37,8 +38,7 @@ describe('FileDownloadModalWrapper', () => {
     it('removes itself from the modal stack once, and only after the modal has finished hiding', () => {
         // Given the wrapper rendered by the global modal stack
         const closeModal = jest.fn();
-        const onClose = jest.fn();
-        render(getWrapperElement({closeModal, onClose}));
+        render(getWrapperElement({closeModal}));
         expect(getLatestModalProps()?.isVisible).toBe(true);
 
         // When a hide event fires while the modal is still visible
@@ -54,9 +54,8 @@ describe('FileDownloadModalWrapper', () => {
             getLatestModalProps()?.onClose?.();
         });
 
-        // Then the caller is told right away, and the modal starts hiding but is not removed until the hide animation
-        // ends, so callers awaiting the show promise run their cleanup after the modal is gone
-        expect(onClose).toHaveBeenCalledTimes(1);
+        // Then the modal starts hiding but is not removed until the hide animation ends, so callers awaiting the show
+        // promise run their cleanup after the modal is gone
         expect(getLatestModalProps()?.isVisible).toBe(false);
         expect(closeModal).not.toHaveBeenCalled();
 
@@ -66,9 +65,54 @@ describe('FileDownloadModalWrapper', () => {
             getLatestModalProps()?.onModalHide?.();
         });
 
-        // Then the wrapper removes itself exactly once
+        // Then the wrapper removes itself exactly once, reporting a dismissal while generating as a cancel
         expect(closeModal).toHaveBeenCalledTimes(1);
         expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CLOSE});
+    });
+
+    it.each([CONST.FILE_DOWNLOAD_STATUS.READY, CONST.FILE_DOWNLOAD_STATUS.FAILED])('confirms when dismissed once the file is %s', (status) => {
+        // Given a file that is no longer generating, so there is nothing left to cancel
+        const closeModal = jest.fn();
+        render(getWrapperElement({closeModal, status}));
+
+        // When the user closes the modal and it finishes hiding
+        act(() => {
+            getLatestModalProps()?.onClose?.();
+        });
+        act(() => {
+            getLatestModalProps()?.onModalHide?.();
+        });
+
+        // Then the show promise resolves as confirmed, so callers like Submit via PDF keep what they did
+        expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
+    });
+
+    it('keeps a dismissed modal unchanged while it hides', () => {
+        // Given the user dismissed the modal while the file was generating
+        const closeModal = jest.fn();
+        const {rerender} = render(getWrapperElement({closeModal}));
+        act(() => {
+            getLatestModalProps()?.onClose?.();
+        });
+
+        // When the caller updates the modal in place with the ready state during the hide animation
+        rerender(getWrapperElement({closeModal, status: CONST.FILE_DOWNLOAD_STATUS.READY, message: 'reportDetailsPage.successPDF'}));
+
+        // Then the hiding modal keeps the state it had when dismissed, and still reports the dismissal as a cancel
+        expect(screen.getByText('message')).toBeOnTheScreen();
+        expect(screen.queryByText('common.download')).not.toBeOnTheScreen();
+        act(() => {
+            getLatestModalProps()?.onModalHide?.();
+        });
+        expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CLOSE});
+    });
+
+    it('shows the header text the caller passes', () => {
+        // Given a caller with its own header text
+        render(getWrapperElement({title: 'reportDetailsPage.generatingPDF'}));
+
+        // Then the modal shows it
+        expect(screen.getByText('reportDetailsPage.generatingPDF')).toBeOnTheScreen();
     });
 
     it('shows the spinner and a cancel button while the file is still generating', () => {
@@ -110,8 +154,7 @@ describe('FileDownloadModalWrapper', () => {
     it('closes the modal after a manual download only when asked to', () => {
         // Given a ready file whose caller wants the modal closed on download
         const onDownload = jest.fn();
-        const onClose = jest.fn();
-        render(getWrapperElement({onDownload, onClose, status: CONST.FILE_DOWNLOAD_STATUS.READY, shouldCloseOnDownload: true}));
+        render(getWrapperElement({onDownload, status: CONST.FILE_DOWNLOAD_STATUS.READY, shouldCloseOnDownload: true}));
         onDownload.mockClear();
 
         // When the user presses the download button
@@ -119,7 +162,6 @@ describe('FileDownloadModalWrapper', () => {
 
         // Then the file downloads and the modal starts hiding
         expect(onDownload).toHaveBeenCalledTimes(1);
-        expect(onClose).toHaveBeenCalledTimes(1);
         expect(getLatestModalProps()?.isVisible).toBe(false);
     });
 });

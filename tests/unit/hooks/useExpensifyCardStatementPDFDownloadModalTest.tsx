@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import FileDownloadModal from '@components/Modal/FileDownloadModal';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 
 import useExpensifyCardStatementPDFDownloadModal from '@hooks/useExpensifyCardStatementPDFDownloadModal';
 import useOnyx from '@hooks/useOnyx';
@@ -74,6 +74,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         expect(getLatestModalProps()).toEqual(
             expect.objectContaining({
                 isVisible: true,
+                title: 'reportDetailsPage.generatingPDF',
                 status: CONST.FILE_DOWNLOAD_STATUS.GENERATING,
                 message: 'reportDetailsPage.waitForPDF',
                 shouldCloseOnDownload: true,
@@ -89,18 +90,25 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         });
         await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
 
-        // Then the same modal instance switches to the ready state, and both callers share one close promise
-        expect(secondPromise).toBe(firstPromise);
+        // Then the same modal instance switches to the ready state
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY, message: 'reportDetailsPage.successPDF'}));
         expect(mockOnFileDownloadModalMount).toHaveBeenCalledTimes(1);
 
-        // When the modal downloads the file
-        act(() => {
+        // When the modal downloads the file, which also closes it, and it finishes hiding
+        await act(async () => {
             getLatestModalProps()?.onDownload();
+            getLatestModalProps()?.onClose();
+            await waitForBatchedUpdates();
+        });
+        await act(async () => {
+            getLatestModalProps()?.onModalHide?.();
+            await waitForBatchedUpdates();
         });
 
-        // Then it downloads the statement for that key
+        // Then it downloads the statement for that key, and both callers learn the flow completed
         expect(downloadExpensifyCardStatementPDF).toHaveBeenCalledWith(expect.any(Function), 'statement.pdf', STATEMENT_KEY, 'employee@mail.com', 'token', 'development');
+        await expect(firstPromise).resolves.toEqual({action: ModalActions.CONFIRM});
+        await expect(secondPromise).resolves.toEqual({action: ModalActions.CONFIRM});
     });
 
     it('keeps the generating state while the statement is still generating', async () => {

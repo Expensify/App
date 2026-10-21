@@ -1,16 +1,12 @@
-import type {FileDownloadModalWrapperProps} from '@components/Modal/Global/FileDownloadModalWrapper';
-import FileDownloadModalWrapper from '@components/Modal/Global/FileDownloadModalWrapper';
-import type {ModalProps} from '@components/Modal/Global/ModalContext';
-import {useModal} from '@components/Modal/Global/ModalContext';
-
 import {downloadReportPDF} from '@libs/actions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useFileDownloadModal from './useFileDownloadModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -18,26 +14,12 @@ import useStallLogger from './useStallLogger';
 
 type ReportPDFDownloadModalOptions = {
     reportID: string;
-
-    /** Called when the modal is dismissed while the PDF is still generating (e.g. Submit via PDF retracts the submit). */
-    onCancel?: () => void;
 };
 
-// A fixed id lets the hook show the open modal again with fresh props, which updates it in place as the PDF
-// filename arrives instead of stacking a new modal.
 const REPORT_PDF_DOWNLOAD_MODAL_ID = 'reportPDFDownloadModal';
 
 const useReportPDFDownloadModal = () => {
-    const context = useModal();
     const [activeReportID, setActiveReportID] = useState<string>();
-
-    // Whether the modal is open. It turns false as soon as the user dismisses the modal, so a late update can't show
-    // it again: a show call with the fixed id after the modal has closed pushes a new modal instead of updating it.
-    const isOpenRef = useRef(false);
-
-    // Resolves once the modal has finished hiding. Set from the first show call until then.
-    const modalPromiseRef = useRef<ReturnType<typeof context.showModal> | undefined>(undefined);
-    const onCancelRef = useRef<(() => void) | undefined>(undefined);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${activeReportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${activeReportID}`);
@@ -76,15 +58,19 @@ const useReportPDFDownloadModal = () => {
         return translate('reportDetailsPage.successPDF');
     })();
 
-    const getStatus = () => {
+    const status = (() => {
         if (hasPDFDownloadFailed) {
             return CONST.FILE_DOWNLOAD_STATUS.FAILED;
         }
         return hasFinishedPDFDownload ? CONST.FILE_DOWNLOAD_STATUS.READY : CONST.FILE_DOWNLOAD_STATUS.GENERATING;
-    };
+    })();
 
-    const getModalProps = (): Omit<FileDownloadModalWrapperProps, keyof ModalProps> => ({
-        status: getStatus(),
+    // reportPDFFilename is null while the backend is still generating, so the modal reports a dismissal at that point
+    // as a cancel (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has resolved.
+    const {showFileDownloadModal} = useFileDownloadModal({
+        id: REPORT_PDF_DOWNLOAD_MODAL_ID,
+        title: translate('reportDetailsPage.generatingPDF'),
+        status,
         message,
         shouldTreatModalAsCovering: true,
         onDownload: () => {
@@ -93,50 +79,15 @@ const useReportPDFDownloadModal = () => {
             }
             downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin, encryptedAuthToken);
         },
-        // reportPDFFilename is null while the backend is still generating, so a dismissal at that point is a cancel
-        // (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has already resolved.
-        onClose: () => {
-            if (!isOpenRef.current) {
-                return;
-            }
-            isOpenRef.current = false;
-            if (!reportPDFFilename) {
-                onCancelRef.current?.();
-            }
-        },
     });
 
-    const updateOpenModal = useEffectEvent(() => {
-        if (!isOpenRef.current) {
-            return;
-        }
-        context.showModal({component: FileDownloadModalWrapper, id: REPORT_PDF_DOWNLOAD_MODAL_ID, props: getModalProps()});
-    });
-
-    // Push the latest generation state into the open modal so it stays reactive without remounting.
-    useEffect(() => {
-        updateOpenModal();
-    }, [activeReportID, reportPDFFilename, reportName, message, currentUserLogin, encryptedAuthToken]);
-
-    const showReportPDFDownloadModal = ({reportID, onCancel}: ReportPDFDownloadModalOptions) => {
-        onCancelRef.current = onCancel;
+    /** Resolves once the modal has finished hiding, with `CLOSE` if it was dismissed while the PDF was still generating. */
+    const showReportPDFDownloadModal = ({reportID}: ReportPDFDownloadModalOptions) => {
         setActiveReportID(reportID);
-
-        // The modal is still on the stack (open or hiding), so the effect above updates it in place while it is open.
-        if (modalPromiseRef.current) {
-            return modalPromiseRef.current;
-        }
-
-        isOpenRef.current = true;
-        const modalPromise = context.showModal({component: FileDownloadModalWrapper, id: REPORT_PDF_DOWNLOAD_MODAL_ID, props: getModalProps()}).then((result) => {
-            isOpenRef.current = false;
-            modalPromiseRef.current = undefined;
-            onCancelRef.current = undefined;
+        return showFileDownloadModal().then((result) => {
             setActiveReportID(undefined);
             return result;
         });
-        modalPromiseRef.current = modalPromise;
-        return modalPromise;
     };
 
     return {showReportPDFDownloadModal};

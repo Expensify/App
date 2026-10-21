@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import FileDownloadModal from '@components/Modal/FileDownloadModal';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 
 import useOnyx from '@hooks/useOnyx';
 import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
@@ -76,7 +76,13 @@ describe('useReportPDFDownloadModal', () => {
 
         // Then it shows the generating state with the spinner copy
         expect(getLatestModalProps()).toEqual(
-            expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.GENERATING, message: 'reportDetailsPage.waitForPDF', shouldTreatModalAsCovering: true}),
+            expect.objectContaining({
+                isVisible: true,
+                title: 'reportDetailsPage.generatingPDF',
+                status: CONST.FILE_DOWNLOAD_STATUS.GENERATING,
+                message: 'reportDetailsPage.waitForPDF',
+                shouldTreatModalAsCovering: true,
+            }),
         );
 
         // When the backend pushes the generated filename
@@ -110,42 +116,53 @@ describe('useReportPDFDownloadModal', () => {
         expect(getLatestModalProps()).toEqual(expect.objectContaining({status: CONST.FILE_DOWNLOAD_STATUS.FAILED, message: 'reportDetailsPage.errorPDF'}));
     });
 
-    it('cancels once when dismissed while the PDF is still generating', async () => {
-        // Given the modal opened by Submit via PDF, which retracts the submit when cancelled
-        const onCancel = jest.fn();
+    it('resolves with CLOSE when dismissed while the PDF is still generating', async () => {
+        // Given the modal opened by Submit via PDF, which retracts the submit when the modal is cancelled
+        const onResolve = jest.fn();
         const {result} = renderReportPDFDownloadModal();
         await act(async () => {
-            result.current.showReportPDFDownloadModal({reportID: REPORT_ID, onCancel});
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
             await waitForBatchedUpdates();
         });
 
         // When the user dismisses it before the filename arrives, and the close fires again from another control
-        act(() => {
+        await act(async () => {
             getLatestModalProps()?.onClose();
             getLatestModalProps()?.onClose();
+            await waitForBatchedUpdates();
+        });
+        await act(async () => {
+            getLatestModalProps()?.onModalHide?.();
+            await waitForBatchedUpdates();
         });
 
-        // Then the submit is retracted exactly once
-        expect(onCancel).toHaveBeenCalledTimes(1);
+        // Then the caller is told once that the modal was cancelled
+        expect(onResolve).toHaveBeenCalledTimes(1);
+        expect(onResolve).toHaveBeenCalledWith({action: ModalActions.CLOSE});
     });
 
-    it('does not cancel when dismissed after the PDF is ready', async () => {
+    it('resolves with CONFIRM when dismissed after the PDF is ready', async () => {
         // Given the modal opened by Submit via PDF and the filename has arrived, so the submit has already resolved
-        const onCancel = jest.fn();
+        const onResolve = jest.fn();
         const {result, rerender} = renderReportPDFDownloadModal();
         await act(async () => {
-            result.current.showReportPDFDownloadModal({reportID: REPORT_ID, onCancel});
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
             await waitForBatchedUpdates();
         });
         await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf', rerender);
 
-        // When the user dismisses the modal
-        act(() => {
+        // When the user dismisses the modal and it finishes hiding
+        await act(async () => {
             getLatestModalProps()?.onClose();
+            await waitForBatchedUpdates();
+        });
+        await act(async () => {
+            getLatestModalProps()?.onModalHide?.();
+            await waitForBatchedUpdates();
         });
 
-        // Then the submit is kept
-        expect(onCancel).not.toHaveBeenCalled();
+        // Then the caller is told the flow completed, so the submit is kept
+        expect(onResolve).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
     });
 
     it('resolves the show promise only after the modal has finished hiding', async () => {

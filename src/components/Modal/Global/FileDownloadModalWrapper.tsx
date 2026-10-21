@@ -1,24 +1,36 @@
 import type {FileDownloadModalProps} from '@components/Modal/FileDownloadModal';
 import FileDownloadModal from '@components/Modal/FileDownloadModal';
 
+import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import React, {useRef, useState} from 'react';
 
 import type {ModalProps} from './ModalContext';
 
 import {ModalActions} from './ModalContext';
 
-type FileDownloadModalWrapperProps = ModalProps &
-    Omit<FileDownloadModalProps, 'isVisible' | 'onClose' | 'onModalHide'> & {
-        /** Called when the user dismisses the modal, before it starts hiding */
-        onClose?: () => void;
-    };
+type FileDownloadModalWrapperProps = ModalProps & Omit<FileDownloadModalProps, 'isVisible' | 'onClose' | 'onModalHide'>;
 
-function FileDownloadModalWrapper({closeModal, onClose, ...props}: FileDownloadModalWrapperProps) {
+function FileDownloadModalWrapper({closeModal, ...props}: FileDownloadModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
+
+    // The props at the moment the user dismissed the modal. The caller keeps updating the modal in place until it has
+    // finished hiding, so render these instead to keep a dismissed modal from changing while it fades out.
+    const [dismissedProps, setDismissedProps] = useState<typeof props>();
+    const closeActionRef = useRef<ValueOf<typeof ModalActions>>(ModalActions.CLOSE);
     const hasClosedModalRef = useRef(false);
 
     const handleClose = () => {
-        onClose?.();
+        if (!isVisible) {
+            return;
+        }
+
+        // Dismissing while the file is still generating cancels the download. Once it is ready or has failed, the
+        // flow has run its course.
+        closeActionRef.current = props.status === CONST.FILE_DOWNLOAD_STATUS.GENERATING ? ModalActions.CLOSE : ModalActions.CONFIRM;
+        setDismissedProps(props);
         setIsVisible(false);
     };
 
@@ -29,14 +41,14 @@ function FileDownloadModalWrapper({closeModal, onClose, ...props}: FileDownloadM
             return;
         }
         hasClosedModalRef.current = true;
-        closeModal({action: ModalActions.CLOSE});
+        closeModal({action: closeActionRef.current});
     };
 
     return (
         <FileDownloadModal
             // Spreading is needed to forward the presentation props the caller passes through the global modal stack.
 
-            {...props}
+            {...(dismissedProps ?? props)}
             isVisible={isVisible}
             onClose={handleClose}
             onModalHide={handleModalHide}

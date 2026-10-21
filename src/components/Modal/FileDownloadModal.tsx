@@ -24,6 +24,9 @@ import Modal from '.';
 type FileDownloadStatus = ValueOf<typeof CONST.FILE_DOWNLOAD_STATUS>;
 
 type FileDownloadModalProps = {
+    /** Header text shown at the top of the modal */
+    title: string;
+
     /** Whether the file is still generating, ready to download, or failed to generate */
     status: FileDownloadStatus;
 
@@ -57,6 +60,7 @@ type FileDownloadModalProps = {
  * download button. Callers supply the status, copy, and download action for their specific file.
  */
 function FileDownloadModal({
+    title,
     status,
     message,
     onDownload,
@@ -114,7 +118,7 @@ function FileDownloadModal({
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
                                 <HeaderTitle>
-                                    <HeaderTitle.Text>{translate('reportDetailsPage.generatingPDF')}</HeaderTitle.Text>
+                                    <HeaderTitle.Text>{title}</HeaderTitle.Text>
                                 </HeaderTitle>
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
