@@ -350,8 +350,7 @@ export default defineConfig({
         'rulesdir/prefer-at': 'off',
         // ESLint's copy needs the type checker; a type-free rewrite runs for src/**/*.ts(x) below.
         'rulesdir/prefer-locale-compare-from-context': 'off',
-        // Its reports are dropped in files both React Compilers memoize: by ReactCompilerFilter when run
-        // through scripts/lint, and by config/oxlint/reactCompilerGate.mjs otherwise (editor, raw oxlint).
+        // config/oxlint/reactCompilerGate.mjs drops its reports in files both React Compilers memoize.
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'no-array-constructor': 'error',
         'no-bitwise': 'error',
@@ -564,9 +563,8 @@ export default defineConfig({
             {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
             {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
         ],
-        // ESLint's own rule, not oxlint's: ReactCompilerFilter spots the "wrap it in useCallback/useMemo"
-        // reports by ESLint's wording, which oxlint's version does not use. The React Compiler gate also
-        // only works on JS plugin rules.
+        // ESLint's own rule, not oxlint's: the React Compiler gate spots the "wrap it in useCallback/useMemo"
+        // reports by ESLint's wording, which oxlint's version does not use, and it only works on JS plugin rules.
         'hosted/exhaustive-deps': 'error',
         // Same React Compiler checks as ESLint's react-hooks/* rules, reported under those ids, but run through
         // oxc's Rust port of the compiler (config/oxlint/reactCompilerRust.mjs) instead of the JavaScript one in

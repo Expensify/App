@@ -358,11 +358,7 @@ class OxlintLinter extends Linter {
     }
 
     private runOxlint(args: string[]) {
-        return $`${OXLINT_BIN} ${args}`
-            .cwd(this.options.projectRoot)
-            .env({...process.env, LINT_PIPELINE: '1'})
-            .nothrow()
-            .quiet();
+        return $`${OXLINT_BIN} ${args}`.cwd(this.options.projectRoot).nothrow().quiet();
     }
 
     private async writeLegConfigs(): Promise<{
