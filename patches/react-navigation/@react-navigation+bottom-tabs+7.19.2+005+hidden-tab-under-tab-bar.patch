@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index d2d69fe..ff92664 100644
+index 8f34943..ef22d0e 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -32,13 +32,12 @@ export function NativeBottomTabView({
@@ -20,16 +20,21 @@ index d2d69fe..ff92664 100644
    // Native tabs are identified by route name, which survives a route getting a new key. Keyed by route key, a re-keyed
    // route replaces its native tab, and Android never removes the old one, so the bar shows the tab twice.
    const getRouteForScreenKey = screenKey => state.routes.find(route => route.name === screenKey);
-@@ -130,7 +129,7 @@ export function NativeBottomTabView({
-       console.error(`Received 'tabSelectionRejected' for route that doesn't exist: ${selectedScreenKey}`);
-       return;
+@@ -104,9 +103,10 @@ export function NativeBottomTabView({
+         target: route.key
+       });
      }
--    if (focusedRouteKey === route.key) {
-+    if (nativeSelectedRouteKey === route.key) {
+-    // While a hidden route is focused, native keeps the tab underneath it selected, so native reporting that tab is
+-    // not a request to leave the hidden route.
+-    if (actionOrigin === 'programmatic-js' || nativeSelectedRouteKey === route.key) {
++    // While a hidden route is focused, native keeps the tab it is drawn in selected. Native reporting that tab is not a
++    // request to leave the hidden route, but the user tapping it is.
++    const isUserLeavingHiddenRoute = isFocusedRouteHidden && actionOrigin === 'user';
++    if (actionOrigin === 'programmatic-js' || (nativeSelectedRouteKey === route.key && !isUserLeavingHiddenRoute)) {
        dispatch({
          type: 'CONFIRM_STATE',
          confirmed
-@@ -215,7 +214,8 @@ export function NativeBottomTabView({
+@@ -219,7 +219,8 @@ export function NativeBottomTabView({
        onTabSelected: onTabSelected,
        onTabSelectionRejected: onTabSelectionRejected,
        onTabSelectionPrevented: onTabSelectionPrevented,
@@ -39,7 +44,7 @@ index d2d69fe..ff92664 100644
        colorScheme: dark ? 'dark' : 'light',
        nativeContainerStyle: {
          backgroundColor: colors.background
-@@ -287,7 +287,7 @@ export function NativeBottomTabView({
+@@ -291,7 +292,7 @@ export function NativeBottomTabView({
            focused: false
          })) : tabBarIcon != null ? getPlatformIcon(tabBarIcon) : undefined;
          const selectedIcon = typeof tabBarIcon === 'function' ? getPlatformIcon(tabBarIcon({
@@ -48,7 +53,7 @@ index d2d69fe..ff92664 100644
          })) : undefined;
          return /*#__PURE__*/_jsx(Tabs.Screen, {
            onWillDisappear: () => onTransitionStart({
-@@ -316,8 +316,8 @@ export function NativeBottomTabView({
+@@ -320,8 +321,8 @@ export function NativeBottomTabView({
            },
            specialEffects: {
              repeatedTabSelection: {
@@ -59,7 +64,7 @@ index d2d69fe..ff92664 100644
              }
            },
            android: {
-@@ -328,8 +328,8 @@ export function NativeBottomTabView({
+@@ -332,8 +333,8 @@ export function NativeBottomTabView({
                tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
                tabBarItemLabelVisibilityMode: currentOptions?.tabBarLabelVisibilityMode,
                normal: normalTabItemAppearance,
@@ -70,7 +75,7 @@ index d2d69fe..ff92664 100644
                tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
                tabBarItemTitleFontFamily: fontFamily,
                tabBarItemTitleFontWeight: fontWeight,
-@@ -375,7 +375,7 @@ export function NativeBottomTabView({
+@@ -379,7 +380,7 @@ export function NativeBottomTabView({
              overrideScrollViewContentInsetAdjustmentBehavior
            },
            // Keyed by route key, so a re-keyed route still remounts its content inside the same native tab.
@@ -79,7 +84,7 @@ index d2d69fe..ff92664 100644
              lazy: lazy,
              visible: isFocused || isPreloaded,
              children: /*#__PURE__*/_jsx(ScreenWithHeader, {
-@@ -388,10 +388,13 @@ export function NativeBottomTabView({
+@@ -392,10 +393,13 @@ export function NativeBottomTabView({
                  children: render()
                })
              })
@@ -95,7 +100,7 @@ index d2d69fe..ff92664 100644
        if (!isRouteHidden(route) || !visitedHiddenRouteKeysRef.current.has(route.key)) {
          return null;
        }
-@@ -417,8 +420,8 @@ export function NativeBottomTabView({
+@@ -421,8 +425,8 @@ export function NativeBottomTabView({
            })
          })
        }, route.key);
@@ -106,3 +111,18 @@ index d2d69fe..ff92664 100644
  }
  const styles = StyleSheet.create({
    hiddenRoute: {
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+index c05b04b..27f0df5 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
++++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+@@ -79,8 +79,8 @@ type IconIOSSfSymbol = {
+ export type NativeBottomTabIcon = IconIOSSfSymbol | IconImage;
+ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+     /**
+-     * Whether the tab gets no item in the native tab bar. While a hidden tab is focused, it is drawn over the
+-     * native tabs and the tab bar is hidden.
++     * Whether the tab gets no item in the native tab bar. While a hidden tab is focused, it is drawn inside the first
++     * visible tab and the tab bar shows no item as selected.
+      */
+     tabBarItemHidden?: boolean;
+     /**
