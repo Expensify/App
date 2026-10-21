@@ -459,11 +459,69 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToIndex).not.toHaveBeenCalled();
         });
 
-        it('repositions the linked parent message when returning from a thread', async () => {
-            // Given the linked parent report stays mounted while its thread is open.
+        it.each([false, true])('preserves the previous viewport after returning from child screens, reader scrolled away: %s', async (didScrollAway) => {
+            // Given a linked parent stays mounted after its initial positioning, with or without a later manual scroll.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
             const actions = [makeAction(LINKED_ACTION_ID), makeAction('999')];
             const params = buildParams({sortedVisibleReportActions: actions.toReversed(), renderedVisibleReportActions: actions});
+            const {result, rerender} = await renderScroll(params);
+            act(() => result.current.onLoad());
+            flushTransitions();
+            expect(mockScrollToIndex).toHaveBeenCalled();
+            if (didScrollAway) {
+                act(() => result.current.stopLinkedMessagePositioning());
+            }
+            mockScrollToIndex.mockClear();
+
+            // When the reader opens a thread, returns, then opens an attachment and returns again.
+            for (let visit = 0; visit < 2; visit++) {
+                mockIsFocused = false;
+                rerender(params);
+                mockIsFocused = true;
+                rerender(params);
+                flushTransitions();
+                act(() => {
+                    result.current.onItemSizeChanged({index: 0, previous: 80, size: 350});
+                    result.current.trackLinkedMessageScroll(
+                        createMock<Parameters<typeof result.current.trackLinkedMessageScroll>[0]>({
+                            nativeEvent: {contentOffset: {x: 0, y: 900}, contentSize: {width: 300, height: 2000}, layoutMeasurement: {width: 300, height: 600}},
+                        }),
+                    );
+                });
+                flushTransitions();
+
+                // Then neither focus nor late measurements reclaim the viewport from the reader.
+                expect(mockScrollToIndex).not.toHaveBeenCalled();
+            }
+        });
+
+        it('positions a new link when an initially unfocused report first becomes active', async () => {
+            // Given a linked report has loaded behind another screen without ever taking focus.
+            mockIsFocused = false;
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const params = buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID), makeAction('999')]});
+            const {result, rerender} = await renderScroll(params);
+            act(() => result.current.onLoad());
+            flushTransitions();
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+            // When the report becomes visible for the first time.
+            mockIsFocused = true;
+            rerender(params);
+            flushTransitions();
+
+            // Then the initial link still receives its first positioning pass.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {
+                animated: false,
+                viewPosition: 0,
+                viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET,
+            });
+        });
+
+        it('positions a different link opened while the report is behind a child screen', async () => {
+            // Given a previously positioned linked report has lost focus to a child screen.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const params = buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID), makeAction(UNREAD_ACTION_ID), makeAction('999')]});
             const {result, rerender} = await renderScroll(params);
             act(() => result.current.onLoad());
             flushTransitions();
@@ -471,17 +529,17 @@ describe('useReportActionsScroll', () => {
             rerender(params);
             mockScrollToIndex.mockClear();
 
-            // When the parent link returns to that same report and the navigation transition finishes.
+            // When another message link targets the same report before it regains focus.
+            mockRouteParams = {reportActionID: UNREAD_ACTION_ID};
+            rerender(params);
+            flushTransitions();
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
             mockIsFocused = true;
             rerender(params);
             flushTransitions();
 
-            // Then the linked parent is positioned again instead of keeping the thread's stale offset.
-            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {
-                animated: false,
-                viewPosition: 0,
-                viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET,
-            });
+            // Then the new navigation request still positions its own highlighted message.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(1, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
 
         it('repositions a linked PDF after its preview or preceding rows change height', async () => {

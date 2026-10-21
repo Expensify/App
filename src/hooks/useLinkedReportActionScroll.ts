@@ -36,13 +36,25 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     };
 
     useEffect(() => {
-        shouldPositionRef.current = isFocused && !!linkedReportActionID;
+        shouldPositionRef.current = !!linkedReportActionID;
         wasLastActionRef.current = false;
         return () => {
             shouldPositionRef.current = false;
             cancelPositionRef.current?.();
         };
-    }, [isFocused, linkedReportActionID, listID]);
+    }, [linkedReportActionID, listID]);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
+        // Returning from a child screen must keep the reader's viewport, not reopen the old link.
+        return () => {
+            shouldPositionRef.current = false;
+            cancelPositionRef.current?.();
+        };
+    }, [isFocused]);
 
     const positionLinkedAction = useEffectEvent(() => {
         if (!shouldPositionRef.current || targetIndex < 0) {
