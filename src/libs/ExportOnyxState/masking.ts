@@ -562,7 +562,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.WALLET_STATEMENT,
     ONYXKEYS.WALLET_TERMS,
     ONYXKEYS.WALLET_TRANSFER,
-    ONYXKEYS.WISE_KYC_REQUIREMENTS,
 ]);
 
 // ============================================================
