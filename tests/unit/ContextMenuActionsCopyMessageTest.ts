@@ -10,13 +10,9 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import createMock from '../utils/createMock';
 import {formatPhoneNumber} from '../utils/TestHelper';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
