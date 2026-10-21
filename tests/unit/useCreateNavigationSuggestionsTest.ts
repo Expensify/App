@@ -75,7 +75,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        formatPhoneNumber,
         translate: (key: string) => {
             const translations = new Map([
                 ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
