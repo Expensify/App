@@ -12,6 +12,6 @@
     the view when it has not begun yet.
     ```
 
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: https://github.com/software-mansion/react-native-gesture-handler/pull/4624
 - E/App issue: https://github.com/Expensify/App/issues/102782
 - PR introducing patch: https://github.com/Expensify/App/pull/103457
