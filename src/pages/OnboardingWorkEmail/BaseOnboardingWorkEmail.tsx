@@ -13,6 +13,8 @@ import TextInput from '@components/TextInput';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,8 +35,8 @@ import {AddWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
-    clearOnboardingShouldValidate,
     clearWorkEmailFormErrors,
+    resetOnboardingWorkEmailValidation,
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
@@ -90,6 +92,23 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const delegateAccountID = useDelegateAccountID();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding({
+        session,
+        loginList,
+        onboardingValues,
+        onboardingPersonalDetails,
+        introSelected,
+        conciergeReportID,
+        conciergeChat,
+        reportNameValuePairs,
+        delegateAccountID,
+    });
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -243,12 +262,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
 
             // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
             if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
+                setHasSubmittedWorkEmail(true);
                 setOnboardingShouldValidate(false);
                 return;
             }
 
             // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
-            clearOnboardingShouldValidate(onboardingValues).then(() => {
+            resetOnboardingWorkEmailValidation(onboardingValues).then(() => {
                 setHasSubmittedWorkEmail(true);
                 AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
             });
@@ -456,7 +476,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                                     // The user already picked an intent, so skipping continues to the last onboarding
                                     // step rather than returning them to the intent list they came from.
                                     if (isJoiningCompanyWorkspace) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+                                        continueJoinWorkspaceOnboarding();
                                     }
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
