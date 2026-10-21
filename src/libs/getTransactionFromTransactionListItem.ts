@@ -79,7 +79,7 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES = Object.keys(SEARCH_TRANSACTION_R
  * Returns the transaction without the display-only fields a Search row adds on top of it, so they never end up in the
  * transactions collection, where they would shadow the real values (e.g. a stale `formattedMerchant` hiding an edited merchant).
  */
-function getTransactionFromSearchItem(item: Transaction | TransactionListItemType): Transaction {
+function getTransactionFromTransactionListItem(item: Transaction | TransactionListItemType): Transaction {
     const transaction: Transaction = {...item};
     for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
         Reflect.deleteProperty(transaction, fieldName);
@@ -89,4 +89,4 @@ function getTransactionFromSearchItem(item: Transaction | TransactionListItemTyp
 
 export {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES};
 
-export default getTransactionFromSearchItem;
+export default getTransactionFromTransactionListItem;

@@ -1,4 +1,4 @@
-import {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@libs/getTransactionFromSearchItem';
+import {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@libs/getTransactionFromTransactionListItem';
 import Log from '@libs/Log';
 
 import ONYXKEYS from '@src/ONYXKEYS';

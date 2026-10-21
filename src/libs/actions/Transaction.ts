@@ -13,7 +13,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import getTransactionFromSearchItem from '@libs/getTransactionFromSearchItem';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -1182,7 +1182,7 @@ function getChangeTransactionsReportOnyxData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 // Callers can pass Search row items, whose display-only fields must not be saved on the real transaction
-                ...getTransactionFromSearchItem(transaction),
+                ...getTransactionFromTransactionListItem(transaction),
                 reportID,
                 comment,
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,

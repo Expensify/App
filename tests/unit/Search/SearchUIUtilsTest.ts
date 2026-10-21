@@ -33,7 +33,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import getTransactionFromSearchItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromSearchItem';
+import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -13551,13 +13551,13 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('getTransactionFromSearchItem', () => {
+    describe('getTransactionFromTransactionListItem', () => {
         it('removes the display-only fields of a Search row and keeps the transaction fields', () => {
             // Given a Search row, which carries display-only fields on top of the transaction
             const transactionListItem = getTransactionListItem(0);
 
             // When it is turned back into a transaction
-            const transaction = getTransactionFromSearchItem(transactionListItem);
+            const transaction = getTransactionFromTransactionListItem(transactionListItem);
 
             // Then the row-only fields are gone and the real transaction fields are untouched
             for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {

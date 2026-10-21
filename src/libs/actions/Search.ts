@@ -32,7 +32,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
-import getTransactionFromSearchItem from '@libs/getTransactionFromSearchItem';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
@@ -2687,7 +2687,7 @@ function setOptimisticDataForTransactionThreadPreview(
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: getTransactionFromSearchItem(item),
+            value: getTransactionFromTransactionListItem(item),
         });
     }
 
