@@ -188,7 +188,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     });
 
     const receiptFilename = transaction?.receipt?.filename;
-    const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
+    // Odometer photos are stitched into the receipt only while the expense is a draft, so a created expense's receipt can be replaced like any other
+    const isStitchedOdometerReceipt = isDraftTransaction && isOdometerDistanceRequest(transaction) && !imageType;
 
     const canEditReceiptButtons = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
     const shouldShowReplaceReceiptButton = canEditReceiptButtons && !isStitchedOdometerReceipt;
