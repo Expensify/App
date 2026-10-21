@@ -203,21 +203,37 @@ describe('Issue card shipping steps', () => {
             expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
         });
 
-        it('rejects a legal name with invalid characters or over the length limit', async () => {
-            // Given an admin entering a first name with digits and a last name over the limit
+        it('rejects a legal name with a comma or over the length limit', async () => {
+            // Given an admin entering a first name with a comma and a last name over the limit
             await setFlow(physicalCardFlow);
             renderStep(ShippingAddressStep);
             await waitForBatchedUpdatesWithAct();
             const tooLongName = 'a'.repeat(CONST.LEGAL_NAME.MAX_LENGTH + 1);
-            await enterUSAddress({firstName: 'Zany2', lastName: tooLongName});
+            await enterUSAddress({firstName: 'Zany,', lastName: tooLongName});
 
             // When they try to continue
             await pressNext();
 
-            // Then both names show an error and the step doesn't change
-            expect(screen.getByText(TestHelper.translateLocal('privatePersonalDetails.error.hasInvalidCharacter'))).toBeOnTheScreen();
+            // Then both names show the same errors as the legal name in the profile, and the step doesn't change
+            expect(screen.getByText(TestHelper.translateLocal('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon'))).toBeOnTheScreen();
             expect(screen.getByText(TestHelper.translateLocal('common.error.characterLimitExceedCounter', tooLongName.length, CONST.LEGAL_NAME.MAX_LENGTH))).toBeOnTheScreen();
             expect((await getIssueNewCard())?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS);
+        });
+
+        it('accepts legal names with hyphens and apostrophes', async () => {
+            // Given an admin entering a cardholder named Anne-Marie O'Connor
+            await setFlow(physicalCardFlow);
+            renderStep(ShippingAddressStep);
+            await waitForBatchedUpdatesWithAct();
+            await enterUSAddress({firstName: 'Anne-Marie', lastName: "O'Connor"});
+
+            // When they continue
+            await pressNext();
+
+            // Then the name is saved and the admin moves on to the phone number
+            const issueNewCard = await getIssueNewCard();
+            expect(issueNewCard?.currentStep).toBe(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER);
+            expect(issueNewCard?.data?.shippingAddress).toEqual(expect.objectContaining({legalFirstName: 'Anne-Marie', legalLastName: "O'Connor"}));
         });
 
         it('clears the state, city and zip when the country changes', async () => {
