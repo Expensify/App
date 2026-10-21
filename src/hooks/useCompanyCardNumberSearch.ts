@@ -43,7 +43,7 @@ type UseCompanyCardNumberSearch = {
  * the returned cards are matched by cardID (assigned) or encryptedCardNumber (unassigned). Results are
  * scoped to the given feed and belong to the exact number typed, so a stale response never leaks in.
  */
-function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyCardFeedWithNumber | undefined, domainAccountID?: number): UseCompanyCardNumberSearch {
+function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyCardFeedWithNumber | undefined, domainAccountID: number | undefined): UseCompanyCardNumberSearch {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [searchResult] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}`, {canBeMissing: true});
 
@@ -63,7 +63,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
             clearCompanyCardNumberSearch(policyID);
             return;
         }
-        if (!isFullNumberQuery) {
+        if (!isFullNumberQuery || !feed || !domainAccountID) {
             return;
         }
         searchCompanyCardByNumber(policyID, debouncedNormalized, feed, domainAccountID);

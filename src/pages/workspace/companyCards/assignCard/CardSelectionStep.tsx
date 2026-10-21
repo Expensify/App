@@ -22,7 +22,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -55,8 +55,9 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
-    // getCompanyCardFeed strips the domain suffix so the plain feed id matches the server results.
-    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, getCompanyCardFeed(feed));
+    // Split the route's domain-suffixed feed id into (plain feed, domainID) for the server-side number search.
+    const feedWithDomain = splitCardFeedWithDomainID(feed);
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, feedWithDomain?.feedName, feedWithDomain?.domainID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);

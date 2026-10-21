@@ -1489,11 +1489,11 @@ function getExpensifyCardStatementPDF(policyID: string | undefined, feedCountry:
 }
 
 /**
- * Searches a policy's company card feeds for a typed full card number. New Expensify never has the full
+ * Searches a policy's company card feed for a typed full card number. New Expensify never has the full
  * number, so the backend does the match. Results go to a RAM-only Onyx key keyed by policyID, so the
- * "this number is card X" mapping is never written to disk; the typed number stays in component state.
+ * "this number is card X" mapping is never written to disk. The typed number stays in component state.
  */
-function searchCompanyCardByNumber(policyID: string, cardNumber: string, feed?: CompanyCardFeedWithNumber, domainAccountID?: number) {
+function searchCompanyCardByNumber(policyID: string, cardNumber: string, feed: CompanyCardFeedWithNumber, domainAccountID: number) {
     const searchKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}` as const;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH>> = [
@@ -1507,8 +1507,8 @@ function searchCompanyCardByNumber(policyID: string, cardNumber: string, feed?: 
     const params: SearchCompanyCardByNumberParams = {
         policyID,
         cardNumber,
-        ...(feed ? {feed} : {}),
-        ...(domainAccountID ? {domainAccountID} : {}),
+        feed,
+        domainAccountID,
     };
 
     // makeRequestWithSideEffects is used so we can read the matching cards from the response and store them.

@@ -26,7 +26,9 @@ const SEARCH_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${
 
 const seedResults = (query: string, cards: CompanyCardNumberSearchResult[]) => Onyx.set(SEARCH_KEY, {isLoading: false, query, cards});
 
-const renderSearch = async (feed: CompanyCardFeedWithNumber | undefined = FEED, domainAccountID?: number) => {
+const DOMAIN_ACCOUNT_ID = 1;
+
+const renderSearch = async (feed: CompanyCardFeedWithNumber | undefined = FEED, domainAccountID: number | undefined = DOMAIN_ACCOUNT_ID) => {
     const hook = renderHook(() => useCompanyCardNumberSearch(POLICY_ID, feed, domainAccountID));
     await act(async () => {
         await waitForBatchedUpdates();
@@ -63,7 +65,7 @@ describe('useCompanyCardNumberSearch', () => {
         expect(mockSearchCompanyCardByNumber).not.toHaveBeenCalled();
 
         await typeNumber(hook, '4111-1111 1111-1111');
-        expect(mockSearchCompanyCardByNumber).toHaveBeenCalledWith(POLICY_ID, FULL_NUMBER, FEED, undefined);
+        expect(mockSearchCompanyCardByNumber).toHaveBeenCalledWith(POLICY_ID, FULL_NUMBER, FEED, DOMAIN_ACCOUNT_ID);
     });
 
     it('derives matched cardIDs and encrypted numbers for the current query, scoped to the feed', async () => {
