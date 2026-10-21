@@ -106,9 +106,9 @@ Use this guide to understand:
 **Cancel payment** is offered to anyone who could have paid the report:
 
 - The **Payer** listed in the **Payments** section of **Workflows**
-- On a workspace that tracks payments made elsewhere, any member with edit access to the **Payments** section of **Workflows**, such as the workspace owner, a **Workspace admin**, or a **Payments admin**
+- Any member with edit access to the **Payments** section of **Workflows**, such as the workspace owner, a **Workspace admin**, or a **Payments admin**
 
-You do not have to be a **Workspace admin** to cancel a payment. On a workspace that pays through a business bank account, you must be the **Payer** — no other role can cancel that payment.
+You do not have to be a **Workspace admin** to cancel a payment. If the report was paid from a business bank account, only someone with access to that bank account can cancel the payment.
 
 How long **Cancel payment** stays available depends on how the report was paid:
 
