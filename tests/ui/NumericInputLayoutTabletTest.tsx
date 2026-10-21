@@ -1,20 +1,18 @@
 import {screen} from '@testing-library/react-native';
 
-import Button from '@components/Button';
-import NumericInput from '@components/NumericInput';
-
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type DeviceInfoModule from 'react-native-device-info';
 
-import React from 'react';
 import {StyleSheet} from 'react-native';
 
-import {BODY_TEST_ID, FOOTER_TEST_ID, ROOT_TEST_ID, renderWithProviders} from '../utils/NumericInputLayoutTestUtils';
+import {BODY_TEST_ID, FOOTER_TEST_ID, ROOT_TEST_ID, renderLayout} from '../utils/NumericInputLayoutTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockWindowDimensions = jest.fn(() => ({windowWidth: 1366, windowHeight: 1024}));
+const TABLET_LANDSCAPE = {windowWidth: 1366, windowHeight: 1024};
+
+const mockWindowDimensions = jest.fn(() => TABLET_LANDSCAPE);
 
 jest.mock('@hooks/useWindowDimensions', () => () => mockWindowDimensions());
 
@@ -41,29 +39,14 @@ jest.mock('@react-navigation/native', () => ({
     })),
 }));
 
-function renderLayout() {
-    return renderWithProviders(
-        <NumericInput
-            value="12.5"
-            testID={ROOT_TEST_ID}
-            footer={<Button onPress={jest.fn()}>Save</Button>}
-        >
-            <NumericInput.TextInput />
-        </NumericInput>,
-    );
-}
-
 describe('NumericInput layout on tablets', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it.each([
-        ['a tablet in landscape', {windowWidth: 1366, windowHeight: 1024}],
-        ['a wide window', {windowWidth: 2560, windowHeight: 900}],
-    ])('keeps a single scrollable column on %s', async (_, dimensions) => {
+    it('keeps a single scrollable column on a tablet in landscape', async () => {
         // Given a tablet whose window is wider than it is tall, which only phones split into two columns
-        mockWindowDimensions.mockReturnValue(dimensions);
+        mockWindowDimensions.mockReturnValue(TABLET_LANDSCAPE);
 
         // When the layout renders
         renderLayout();

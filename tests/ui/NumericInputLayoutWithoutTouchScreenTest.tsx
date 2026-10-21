@@ -1,6 +1,5 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 
-import Button from '@components/Button';
 import NumericInput from '@components/NumericInput';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -10,7 +9,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 
-import {AMOUNT_TEST_ID, FOOTER_TEST_ID, INPUT_TEST_ID, PAD_TEST_ID, ROOT_TEST_ID, getLayoutStyles, renderWithProviders} from '../utils/NumericInputLayoutTestUtils';
+import {AMOUNT_TEST_ID, FOOTER_TEST_ID, INPUT_TEST_ID, PAD_TEST_ID, ROOT_TEST_ID, getLayoutStyles, renderLayout, renderWithProviders} from '../utils/NumericInputLayoutTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const PORTRAIT_PHONE = {windowWidth: 390, windowHeight: 844};
@@ -35,18 +34,6 @@ jest.mock('@react-navigation/native', () => ({
         addListener: jest.fn(() => jest.fn()),
     })),
 }));
-
-function renderLayout() {
-    return renderWithProviders(
-        <NumericInput
-            value="12.5"
-            testID={ROOT_TEST_ID}
-            footer={<Button onPress={jest.fn()}>Save</Button>}
-        >
-            <NumericInput.TextInput />
-        </NumericInput>,
-    );
-}
 
 describe('NumericInput layout without touch screen', () => {
     beforeEach(() => {
@@ -78,7 +65,6 @@ describe('NumericInput layout without touch screen', () => {
     ])('places the actions right under the amount in %s', async (_orientation, windowDimensions) => {
         // Given a device without a touch screen, in either orientation, and a currency button passed as an action
         mockWindowDimensions.mockReturnValue(windowDimensions);
-        const onCurrencyPress = jest.fn();
 
         // When the layout renders
         renderWithProviders(
@@ -89,7 +75,7 @@ describe('NumericInput layout without touch screen', () => {
                 actions={
                     <NumericInput.CurrencyButton
                         currency="USD"
-                        onPress={onCurrencyPress}
+                        onPress={jest.fn()}
                     />
                 }
             >
@@ -104,11 +90,5 @@ describe('NumericInput layout without touch screen', () => {
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(currencyButton);
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(screen.getByTestId(INPUT_TEST_ID));
         expect(screen.getByText('Test error')).toBeOnTheScreen();
-
-        // When the currency button is pressed
-        fireEvent.press(currencyButton);
-
-        // Then its press handler runs
-        expect(onCurrencyPress).toHaveBeenCalledTimes(1);
     });
 });

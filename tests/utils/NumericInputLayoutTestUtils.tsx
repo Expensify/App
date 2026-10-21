@@ -1,7 +1,9 @@
 import {render, renderHook} from '@testing-library/react-native';
 
+import Button from '@components/Button';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import NumericInput from '@components/NumericInput';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,4 +34,17 @@ function renderWithProviders(children: React.ReactElement) {
     return render(children, {wrapper: Providers});
 }
 
-export {AMOUNT_TEST_ID, BODY_TEST_ID, FLIP_TEST_ID, FOOTER_TEST_ID, INPUT_TEST_ID, MAIN_TEST_ID, PAD_TEST_ID, ROOT_TEST_ID, getLayoutStyles, renderWithProviders};
+/** Renders a standard single-column NumericInput with a footer button and basic text input */
+function renderLayout() {
+    return renderWithProviders(
+        <NumericInput
+            value="12.5"
+            testID={ROOT_TEST_ID}
+            footer={<Button onPress={jest.fn()}>Save</Button>}
+        >
+            <NumericInput.TextInput />
+        </NumericInput>,
+    );
+}
+
+export {AMOUNT_TEST_ID, BODY_TEST_ID, FLIP_TEST_ID, FOOTER_TEST_ID, INPUT_TEST_ID, MAIN_TEST_ID, PAD_TEST_ID, ROOT_TEST_ID, getLayoutStyles, renderLayout, renderWithProviders};
