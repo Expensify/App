@@ -364,8 +364,7 @@ export default defineConfig({
         // OFF here, ON for src/**/*.ts(x): ESLint's copy needs the type checker, so oxlint runs a
         // type-free rewrite (config/oxlint/preferLocaleCompareFromContext.mjs) instead.
         'rulesdir/prefer-locale-compare-from-context': 'off',
-        // Dropped in files both React Compilers memoize: by ReactCompilerFilter under scripts/lint, and
-        // by config/oxlint/reactCompilerGate.mjs in the editor and raw oxlint runs.
+        // Dropped by config/oxlint/reactCompilerGate.mjs in files both React Compilers memoize.
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'no-array-constructor': 'error',
         'no-bitwise': 'error',
@@ -582,7 +581,7 @@ export default defineConfig({
             {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
         ],
         // NOT oxlint's native react/exhaustive-deps: its message lacks the "useCallback() Hook" text that
-        // ReactCompilerFilter matches, and the editor's React Compiler gate can only wrap a JS plugin rule.
+        // the React Compiler gate matches, and the gate can only wrap a JS plugin rule.
         'hosted/exhaustive-deps': 'error',
         // The Rust React Compiler, not native react/*: oxc-project/oxc#26277, a react/exhaustive-deps or
         // react/rules-of-hooks disable silences every native compiler diagnostic in the component. Not
