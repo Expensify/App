@@ -50,11 +50,14 @@ type ValueSelectorModalProps = {
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
+
+    /** Whether to show a search input when the list has CONST.STANDARD_LIST_ITEM_LIMIT or more items */
+    shouldShowSearchInput?: boolean;
 };
 
 type ValueSelectionListProps = Pick<
     ValueSelectorModalProps,
-    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
+    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines' | 'shouldShowSearchInput'
 > & {
     /** Whether the parent modal is visible */
     isVisible?: boolean;
@@ -90,6 +93,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
+
+    /** Whether to show a search input when the list has CONST.STANDARD_LIST_ITEM_LIMIT or more items */
+    shouldShowSearchInput?: boolean;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

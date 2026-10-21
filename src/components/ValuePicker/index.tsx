@@ -28,6 +28,7 @@ function ValuePicker({
     addBottomSafeAreaPadding = true,
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
+    shouldShowSearchInput = false,
 }: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -77,6 +78,7 @@ function ValuePicker({
                         shouldEnableKeyboardAvoidingView={false}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
+                        shouldShowSearchInput={shouldShowSearchInput}
                     />
                 </>
             ) : (
@@ -88,6 +90,7 @@ function ValuePicker({
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     disableKeyboardShortcuts={disableKeyboardShortcuts}
                     alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
+                    shouldShowSearchInput={shouldShowSearchInput}
                 />
             )}
         </View>
