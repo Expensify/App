@@ -2,7 +2,7 @@
  * Web column resizing by dragging a column's right edge. Widths live in CSS custom properties so React doesn't render
  * mid-drag, and the layout is saved to Onyx when the drag ends.
  */
-import {SCROLL_EXTENT_FLOOR_VARIABLE} from '@components/Table/columnResize/columnWidthExpressions';
+import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,7 +104,7 @@ function useColumnResize({
         revealIndicator(event.currentTarget);
 
         // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
-        const scroller = event.currentTarget.closest<HTMLElement>('[data-table-column-scroller="true"]');
+        const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
         if (scroller) {
             scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
         }

@@ -26,6 +26,11 @@ const TABLE_ROW_DATA_SET = {tableRow: true};
 
 const TABLE_ROW_SELECTOR = '[data-table-row]';
 
+/** Marks the scroller a table with a pinned filter bar scrolls its columns in. `web/index.html` matches it too. */
+const TABLE_COLUMN_SCROLLER_DATA_SET = {tableColumnScroller: true};
+
+const TABLE_COLUMN_SCROLLER_SELECTOR = '[data-table-column-scroller="true"]';
+
 /** Column keys may hold characters a CSS custom property name can't, so those are replaced. */
 function getColumnWidthVariableName(columnKey: string): string {
     return `${COLUMN_WIDTH_VARIABLE_PREFIX}${columnKey.replaceAll(/[^\w-]/g, '_')}`;
@@ -57,6 +62,8 @@ export {
     RESIZE_INDICATOR_OPACITY_VARIABLE,
     RESIZE_INDICATOR_TOP_VARIABLE,
     SCROLL_EXTENT_FLOOR_VARIABLE,
+    TABLE_COLUMN_SCROLLER_DATA_SET,
+    TABLE_COLUMN_SCROLLER_SELECTOR,
     TABLE_ROW_DATA_SET,
     TABLE_ROW_SELECTOR,
     getColumnWidthValue,
