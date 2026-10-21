@@ -22,6 +22,7 @@ import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+import isTablet from '@libs/isTablet';
 
 import variables from '@styles/variables';
 
@@ -129,7 +130,7 @@ function CategoryPickerModal({
     // A list with a search input makes room for the keyboard inside the sheet, frame by frame with it, in both orientations:
     // flipping `avoidKeyboard` on rotation would swap the modal's wrapper and remount the sheet, replaying its entry animation
     // and dropping the input's focus. On mobile web the keyboard shrinks the window instead, which the sheet's height follows.
-    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable;
+    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable && !isTablet();
     // In portrait that list opens as tall as a sheet may be and its top edge stays put when the keyboard comes up, so the gap
     // above it is sized off the screen, which the keyboard leaves alone.
     const shouldKeepTopEdge = shouldPadForKeyboard && !isInLandscapeMode;

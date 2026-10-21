@@ -1,7 +1,9 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import CategoryPickerModal, {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type * as Browser from '@libs/Browser';
 import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
@@ -43,6 +45,10 @@ jest.mock('@hooks/useViewportOffsetTop', () => jest.fn(() => mockViewportOffsetT
 let mockKeyboardHeight = 0;
 jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: mockKeyboardHeight > 0, keyboardActiveHeight: mockKeyboardHeight})));
 
+// A phone by default. A test can make it a tablet, which keeps the regular sheet.
+let mockIsTablet = false;
+jest.mock('@libs/isTablet', () => jest.fn(() => mockIsTablet));
+
 // The home indicator area the sheet pads itself above, and no top inset, as the test harness reports it.
 const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
@@ -67,19 +73,27 @@ describe('CategoryPickerModal', () => {
         mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
         mockWindowHeight = WINDOW_HEIGHT;
+        mockIsTablet = false;
     });
 
-    const renderSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean} = {}) =>
-        render(
-            <CategoryPickerModal
-                isVisible
-                onClose={onClose}
-                policyID={POLICY_ID}
-                anchorPosition={{horizontal: 0, vertical: 0}}
-                onAddCategory={onAddCategory}
-                shouldFitContentHeight={shouldFitContentHeight}
-            />,
-        );
+    type SheetProps = {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean};
+
+    const getSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: SheetProps) => (
+        <CategoryPickerModal
+            isVisible
+            onClose={onClose}
+            policyID={POLICY_ID}
+            anchorPosition={{horizontal: 0, vertical: 0}}
+            onAddCategory={onAddCategory}
+            shouldFitContentHeight={shouldFitContentHeight}
+        />
+    );
+
+    // `rerenderSheet` renders the same props again, e.g. after a test changes the keyboard or window it reads.
+    const renderSheet = (props: SheetProps = {}) => {
+        const result = render(getSheet(props));
+        return {...result, rerenderSheet: () => result.rerender(getSheet(props))};
+    };
 
     it('shows an add button that adds a category for users who can create one', () => {
         // Given a user who can add categories to the workspace, as the full-page selector's "+" allows
@@ -241,7 +255,8 @@ describe('CategoryPickerModal', () => {
             await waitForBatchedUpdates();
 
             // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - 16 + SAFE_AREA_PADDING_BOTTOM);
+            const {result: styles} = renderHook(() => useThemeStyles());
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
         });
 
         it('keeps the list top padding above the header in the wide pop-over', async () => {
@@ -334,19 +349,11 @@ describe('CategoryPickerModal', () => {
         it('opens as tall as a sheet may be on a phone, so opening the keyboard does not push the list up', async () => {
             // Given a phone in portrait and enough categories that the list shows its search input
             // When the expense form's category list opens, and then the search input brings up the keyboard
-            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            const {rerenderSheet} = renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
             const closedHeight = mockPopoverProps?.popoverDimensions?.height;
             mockKeyboardHeight = 200;
-            rerender(
-                <CategoryPickerModal
-                    isVisible
-                    onClose={jest.fn()}
-                    policyID={POLICY_ID}
-                    anchorPosition={{horizontal: 0, vertical: 0}}
-                    shouldFitContentHeight
-                />,
-            );
+            rerenderSheet();
 
             // Then the sheet opens tall, leaving a gap above it rather than filling the window, and neither shrinks nor is lifted
             // when the keyboard opens, so its top edge and the list under it stay where they were. The room for the keyboard is
@@ -359,22 +366,14 @@ describe('CategoryPickerModal', () => {
 
         it('loses only the keyboard height on mobile web, where the keyboard shrinks the window, so its top does not move', async () => {
             // Given a mobile browser in portrait, with enough categories that the list shows its search input
-            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            const {rerenderSheet} = renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
             const closedHeight = mockPopoverProps?.popoverDimensions?.height ?? 0;
 
             // When the search input brings up the keyboard, which on mobile web shrinks the window by its height
             const keyboardHeight = 200;
             mockWindowHeight = WINDOW_HEIGHT - keyboardHeight;
-            rerender(
-                <CategoryPickerModal
-                    isVisible
-                    onClose={jest.fn()}
-                    policyID={POLICY_ID}
-                    anchorPosition={{horizontal: 0, vertical: 0}}
-                    shouldFitContentHeight
-                />,
-            );
+            rerenderSheet();
 
             // Then the sheet, docked to the bottom of that window, is shorter by exactly the keyboard, so its top edge stays where it was
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(closedHeight - keyboardHeight);
@@ -383,26 +382,38 @@ describe('CategoryPickerModal', () => {
         it('keeps the same keyboard handling when the phone turns, so the sheet is not remounted', async () => {
             // Given a phone in portrait with the searchable list open and the keyboard up for its search input
             mockKeyboardHeight = 200;
-            const {rerender} = renderSheet({shouldFitContentHeight: true});
+            const {rerenderSheet} = renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
             expect(mockPopoverProps?.avoidKeyboard).toBe(false);
 
             // When the phone turns to landscape
             mockIsInLandscapeMode = true;
-            rerender(
-                <CategoryPickerModal
-                    isVisible
-                    onClose={jest.fn()}
-                    policyID={POLICY_ID}
-                    anchorPosition={{horizontal: 0, vertical: 0}}
-                    shouldFitContentHeight
-                />,
-            );
+            rerenderSheet();
 
             // Then `avoidKeyboard` stays off, as flipping it swaps the modal's wrapper, which replays the sheet's entry animation and
             // drops the input's focus. The sheet fills the window and still makes the room for the keyboard inside itself
             expect(mockPopoverProps?.avoidKeyboard).toBe(false);
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
+        });
+
+        it('keeps the regular sheet on a tablet, which never needs the phone keyboard handling', async () => {
+            // Given a tablet, which shows the list as a bottom sheet natively but never turns into landscape mode here
+            mockIsTablet = true;
+
+            // When the expense form's category list opens
+            renderSheet({shouldFitContentHeight: true});
+            await waitForBatchedUpdates();
+
+            // Then the sheet keeps the dropdown cap rather than taking most of the screen, and rises above the keyboard like other sheets
+            const regularSheetHeight = getBottomSheetHeight({
+                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+                windowHeight: mockWindowHeight,
+                keyboardHeight: 0,
+                topSafeAreaInset: 0,
+                minHeight: getSelectionListPopoverContentHeight({optionCount: 1}),
+            });
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(regularSheetHeight);
+            expect(mockPopoverProps?.avoidKeyboard).toBe(true);
         });
 
         it('keeps the wide pop-over at its own height', async () => {
