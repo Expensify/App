@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {isKeyupOfPressThatShowedModal, markModalShown, setupEscapeKeyPress} from '@libs/escapeKeyPress';
+import {markModalShown, shouldIgnoreEscapeRelease} from '@libs/escapeKeyPress';
 import getPlatform from '@libs/getPlatform';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
@@ -26,10 +26,6 @@ import type ReanimatedModalProps from './types';
 
 import Backdrop from './Backdrop';
 import Container from './Container';
-
-if (getPlatform() === CONST.PLATFORM.WEB) {
-    setupEscapeKeyPress();
-}
 
 function ReanimatedModal({
     testID,
@@ -80,7 +76,7 @@ function ReanimatedModal({
 
     const onBackButtonPressHandler = useCallback(() => {
         // Both Escape paths on web land here: our `keyup` listener and react-native-web's `Modal` `onRequestClose`.
-        if (isKeyupOfPressThatShowedModal()) {
+        if (shouldIgnoreEscapeRelease()) {
             return false;
         }
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
