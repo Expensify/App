@@ -124,7 +124,6 @@ function ReportActionAvatars({
         ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
     // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to reportProp while the data is being fetched.

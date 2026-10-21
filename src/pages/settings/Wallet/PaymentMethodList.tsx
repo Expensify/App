@@ -479,7 +479,6 @@ function PaymentMethodList({
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
                         ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
                         : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const cardTitle = card?.nameValuePairs?.cardTitle || card.bank;
 
                 let itemDescription = cardDescription;
@@ -602,7 +601,6 @@ function PaymentMethodList({
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
             // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
             const bankConnectionStatus =
                 shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;

@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -18,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,13 +35,14 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
+import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -159,6 +162,7 @@ function Search({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -181,6 +185,7 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -226,6 +231,8 @@ function Search({
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    // Live to-do pages load without totals. A response with totals restarts the counted reports, so a later page would drop page 1's.
+    const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
@@ -752,7 +759,10 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                // A single-expense report in the table view opens at the same width as a multi-expense report.
+                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
+                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
+                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -840,6 +850,7 @@ function Search({
             getCurrencyDecimals,
             conciergeChat,
             delegateAccountID,
+            shouldUseTableViewForSingleExpense,
         ],
     );
 
@@ -1015,7 +1026,14 @@ function Search({
             // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
             if (isLivePageAdopted && !isOffline) {
                 setIsLivePageAdopted(false);
-                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+                handleSearch({
+                    queryJSON,
+                    searchKey: currentSearchKey,
+                    offset: nextOffset,
+                    shouldCalculateTotals: shouldCalculateNextPageTotals,
+                    prevReportsLength: filteredDataLength,
+                    isLoading: false,
+                });
             }
             return;
         }
@@ -1038,7 +1056,7 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset: nextOffset,
-            shouldCalculateTotals,
+            shouldCalculateTotals: shouldCalculateNextPageTotals,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
@@ -1065,7 +1083,7 @@ function Search({
         handleSearch,
         queryJSON,
         currentSearchKey,
-        shouldCalculateTotals,
+        shouldCalculateNextPageTotals,
         filteredDataLength,
     ]);
 
@@ -1424,7 +1442,7 @@ function Search({
             <SearchScopeProvider>
                 <Animated.ScrollView
                     style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
+                    {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
