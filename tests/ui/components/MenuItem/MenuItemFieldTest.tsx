@@ -87,6 +87,19 @@ describe('MenuItemField', () => {
             expect(await screen.findByLabelText(`${NAME}, ${VALUE}`)).toBeOnTheScreen();
         });
 
+        it('announces all parts of a combined value', async () => {
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={`${VALUE}, Main office`}
+                    />
+                </Wrapper>,
+            );
+
+            expect(await screen.findByLabelText(`${NAME}, ${VALUE}, Main office`)).toBeOnTheScreen();
+        });
+
         it('marks only the value as copyable when value selection is enabled', () => {
             // Given a field value that is allowed to start native text selection
             // When the field is rendered
@@ -235,7 +248,7 @@ describe('MenuItemField', () => {
     });
 
     describe('empty shape', () => {
-        it('keeps the placeholder label nonselectable when web value selection is enabled', () => {
+        it('keeps the placeholder label not selectable when web value selection is enabled', () => {
             // Given a field without a value to select
             // When its row opts into browser value selection
             render(

@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     findSelfDMReportID,
     generateReportID,
+    getChatReportFromMoneyRequestReport,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -173,7 +174,7 @@ function usePerDiemSubmission({
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingChatReport = report;
         if (isExpenseReport) {
-            existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
+            existingChatReport = getChatReportFromMoneyRequestReport(report, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
         } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
             existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
         }

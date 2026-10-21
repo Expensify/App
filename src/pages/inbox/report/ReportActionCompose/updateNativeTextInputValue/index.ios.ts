@@ -8,7 +8,7 @@ const updateNativeTextInputValue: UpdateNativeTextInputValue = ({text, shouldFor
         return;
     }
 
-    composerRef.current?.setNativeProps({text});
+    composerRef.current?.setNativeProps?.({text});
 };
 
 export default updateNativeTextInputValue;
