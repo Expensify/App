@@ -23,10 +23,12 @@ import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/Company
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import {fontScale} from '@styles/typography';
@@ -248,6 +250,8 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
@@ -303,7 +307,7 @@ function WorkspaceCompanyCardsTable({
                           if (!bankName || cardID === undefined) {
                               return;
                           }
-                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName);
+                          showInlineEditError(renameCompanyCardInline(translate, domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName));
                       },
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
@@ -484,6 +488,12 @@ function WorkspaceCompanyCardsTable({
             isSelectionModeEnabled={isSelectionModeEnabled}
         />
     ) : undefined;
+    const balanceLabelsComponent = showCards ? (
+        <WorkspaceCompanyCardsBalanceLabels
+            selectedFeed={selectedFeed}
+            feedName={feedName}
+        />
+    ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
 
     return (
@@ -498,6 +508,7 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
@@ -505,7 +516,7 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, balanceLabelsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}

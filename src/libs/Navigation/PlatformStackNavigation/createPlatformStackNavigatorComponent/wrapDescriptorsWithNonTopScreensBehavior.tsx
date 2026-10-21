@@ -1,3 +1,6 @@
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
+
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ParamListBase} from '@react-navigation/native';
@@ -40,16 +43,30 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     let result: Record<string, T> | undefined;
     for (const [key, descriptor] of Object.entries(descriptors)) {
         const behavior = persistentScreens?.includes(descriptor.route.name) ? 'none' : (descriptor.options.nonTopScreenBehavior ?? 'none');
+        // Pre-mounts only land in split stacks, which always set a behavior, so stacks skipped here never need the hidden flag.
         if (behavior === 'none') {
             continue;
         }
         result ??= {...descriptors};
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
         // The state always carries a top route, but a missing key must leave every screen visible instead of blurring the whole stack.
-        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey;
+        const isCovered = topRouteKey !== undefined && key !== topRouteKey;
+
+        // A wide submit pre-mount keeps its wrapper, so the reveal does not remount it, but must render while covered.
+        const isLivePreMount = isLiveWideTabPreMountRouteKey(key);
+        const isScreenBlurred = isCovered && !isLivePreMount;
+
+        // Only covers a pre-mount under the focused tab's top screen. In another tab it is the top route, and the
+        // preloaded-tab flag holds it instead.
+        const isHiddenPreMount = isCovered && isLivePreMount;
         result[key] = {
             ...descriptor,
-            render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,
+            render: () => (
+                <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>
+                    {/* Always rendered, so the reveal keeps the same tree and does not remount the pre-mount */}
+                    <IsHiddenWideTabPreMountContext.Provider value={isHiddenPreMount}>{descriptor.render()}</IsHiddenWideTabPreMountContext.Provider>
+                </NonTopScreenWrapper>
+            ),
         };
     }
     return result ?? descriptors;
