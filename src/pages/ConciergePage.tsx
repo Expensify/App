@@ -108,7 +108,7 @@ function ConciergePage() {
             conciergePersonalDetails,
             isWaitingForOnboarding,
             isOnboardingSkipped,
-            delegateAccountID
+            delegateAccountID,
         ]),
     );
 

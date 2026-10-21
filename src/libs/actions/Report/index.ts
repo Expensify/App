@@ -4607,10 +4607,6 @@ type NavigateToConciergeChatParams = {
      */
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
-    /** The accountID of the copilot acting on behalf of the current user, if any */
-    // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
-    delegateAccountID?: number;
-
     /** Whether to dismiss the current modal instead of navigating on top of it. */
     shouldDismissModal?: boolean;
 
@@ -4647,7 +4643,6 @@ function navigateToConciergeChat({
     isSelfTourViewed,
     delegateAccountID,
     hasCompletedGuidedSetupFlow,
-    delegateAccountID,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions,
@@ -5251,7 +5246,6 @@ function navigateToConciergeChatAndDeleteReport(
         delegateAccountID,
         // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
         hasCompletedGuidedSetupFlow: undefined,
-        delegateAccountID,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
         conciergePersonalDetails: personalDetails,
@@ -5579,7 +5573,6 @@ function navigateToMostRecentReport(
             isSelfTourViewed,
             delegateAccountID,
             hasCompletedGuidedSetupFlow: undefined,
-            delegateAccountID,
             conciergePersonalDetails: personalDetails,
             shouldDismissModal: false,
             linkToOptions: {forceReplace: true},
