@@ -143,7 +143,6 @@ function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>):
 function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined, bankCurrency?: string): boolean {
     return (
         // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
         accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !accountData.additionalData?.verifications?.corpay &&
