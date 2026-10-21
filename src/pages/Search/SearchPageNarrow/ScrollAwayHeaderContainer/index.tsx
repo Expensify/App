@@ -25,9 +25,14 @@ type ScrollSample = {
     velocity: number;
 };
 
+// With a fractional pixel ratio (common on Android) fractional layout heights, e.g. while the selection footer shows,
+// leave the outer scroller's end short of the header height: the browser rounds the scroll range to whole pixels and
+// snaps offsets to device pixels. Without this the rows would stay locked under a header that is already gone.
+const SCROLLED_AWAY_TOLERANCE = 2;
+
 /** Whether the outer scroller, at this offset, has scrolled the whole header off screen. */
 function isHeaderScrolledAway(offset: number, headerHeight: number): boolean {
-    return headerHeight > 0 && offset >= headerHeight;
+    return headerHeight > 0 && offset >= headerHeight - SCROLLED_AWAY_TOLERANCE;
 }
 
 // Scroll events further apart than this belong to separate gestures.
