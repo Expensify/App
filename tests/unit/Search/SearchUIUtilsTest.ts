@@ -8510,6 +8510,7 @@ describe('SearchUIUtils', () => {
         it.each([
             {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
             {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
+            {columnName: 'Held', sortBy: CONST.SEARCH.TABLE_COLUMNS.HELD, boolOverride: {comment: {hold: '123'}}},
         ])('should still tie-break tied $columnName rows by inserted honoring sortOrder', ({sortBy, boolOverride}) => {
             // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
             // ties on the primary comparison but is NOT empty — the inserted/transactionID tie breaker must still run and
@@ -8545,6 +8546,43 @@ describe('SearchUIUtils', () => {
 
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-jan', 'bool-feb', 'bool-mar']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
+        });
+
+        it('should sort the held column by whether the expense is on hold, with expenses not on hold first when ascending', () => {
+            // Given one expense on hold, one that was unheld (its hold is an empty string), and one that was never held
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'held', keyForList: 'held', inserted: '2024-01-01', comment: {hold: '123'}},
+                {...baseTransaction, transactionID: 'unheld', keyForList: 'unheld', inserted: '2024-02-02', comment: {hold: ''}},
+                {...baseTransaction, transactionID: 'never-held', keyForList: 'never-held', inserted: '2024-03-03', comment: {}},
+            ];
+
+            // When the expenses are sorted by the held column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the expense on hold comes last ascending and first descending, and the unheld expense counts as not held
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unheld', 'never-held', 'held']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['held', 'never-held', 'unheld']);
         });
 
         it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
@@ -10906,6 +10944,32 @@ describe('SearchUIUtils', () => {
             // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
             const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
             expect(withReport.visibility.approve).toBe(true);
+        });
+
+        test('Should not throw when employeeList contains a null entry', () => {
+            // Given an approval-enabled policy whose employeeList holds a null entry, which Onyx can leave behind when
+            // several policy updates are applied in one batch
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                        'removed@policy.com': null as unknown as OnyxTypes.PolicyEmployee,
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: adminEmail},
+                    },
+                },
+            };
+
+            // When the suggested searches visibility is computed
+            const getVisibility = () => SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            // Then it skips the null entry instead of crashing, and still finds the member who submits to the user
+            expect(getVisibility).not.toThrow();
+            expect(getVisibility().visibility.approve).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {

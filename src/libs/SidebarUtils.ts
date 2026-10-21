@@ -6,6 +6,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -764,6 +765,7 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
+    bankAccountList,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -794,6 +796,9 @@ function getOptionData({
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -835,7 +840,7 @@ function getOptionData({
         isConciergeChat: false,
     };
     const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
@@ -946,6 +951,7 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
+        bankAccountList,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
