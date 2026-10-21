@@ -4002,10 +4002,11 @@ describe('getSecondaryAction', () => {
     });
 
     it.each([
-        ['includes SPLIT for a $0 distance expense on a $0 rate', 0, true],
-        ['does not include SPLIT for a $0 distance expense on a rate above $0', 67, false],
-        ['includes SPLIT for a $0 distance expense on a rate owned by another workspace', undefined, true],
-    ])('%s', async (_caseName, rateValue: number | undefined, expected) => {
+        ['includes SPLIT for a $0 distance expense on a $0 rate', 0, 12, true],
+        ['includes SPLIT for a $0 distance expense whose rate was changed from $0 to above $0', 67, 12, true],
+        ['does not include SPLIT for a $0 distance expense whose amount rounded down to $0 on a rate above $0', 1, 0.4, false],
+        ['includes SPLIT for a $0 distance expense on a rate owned by another workspace', undefined, 12, true],
+    ])('%s', async (_caseName, rateValue: number | undefined, quantity: number, expected) => {
         // Given a $0 distance expense with a positive distance, and a workspace that holds its rate at the case's value (or doesn't hold it at all)
         const customUnitID = 'distance-unit';
         const customUnitRateID = 'distance-rate';
@@ -4033,7 +4034,7 @@ describe('getSecondaryAction', () => {
                     customUnitID,
                     customUnitRateID,
                     distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                    quantity: 12,
+                    quantity,
                 },
             },
         });
@@ -4075,7 +4076,7 @@ describe('getSecondaryAction', () => {
             cardList: undefined,
         });
 
-        // Then SPLIT is offered unless the workspace holds the rate at a value above $0
+        // Then SPLIT is offered unless the workspace's rate above $0 is what made the expense $0
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(expected);
     });
 

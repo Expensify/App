@@ -282,6 +282,16 @@ describe('resolveSplitMileageRate', () => {
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
         });
 
+        it('uses the rate an edited expense was calculated with, from its edited amount', () => {
+            // Given a $10, 10 mile expense edited to $20, 20 miles, whose rate is now $0
+            const transaction = {...buildDistanceTransaction(ACTIVE_RATE_ID, {amount: -1000, quantity: 20}), modifiedAmount: -2000};
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            // Then its splits are calculated with $1/mi rather than the original $10 over the edited 20 miles
+            expect(result.rate).toBe(100);
+        });
+
         it('keeps the $0 rate for a $0 expense', () => {
             const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0, quantity: 10});
 
@@ -308,6 +318,35 @@ describe('resolveSplitMileageRate', () => {
             const result = resolveSplitMileageRate({transaction: splitDraft, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined, expenseTransaction});
 
             expect(result.rate).toBe(0);
+        });
+    });
+
+    describe('rate changed from $0 after the expense was created', () => {
+        const policy = buildPolicyWithRates({
+            [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 100}),
+        });
+
+        it('uses the $0 rate a $0 expense was calculated with', () => {
+            // Given a $0, 10 mile expense whose rate is now $1/mi
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0, quantity: 10});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            // Then its splits stay on $0 rather than $1/mi
+            expect(result.rate).toBe(0);
+            expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
+
+        it('keeps the current rate for a $0 expense whose amount rounded down to $0 on it', () => {
+            // Given a 0.4 mile expense on a $0.01/mi rate, which rounds down to $0
+            const roundingPolicy = buildPolicyWithRates({
+                [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 1}),
+            });
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0, quantity: 0.4});
+
+            const result = resolveSplitMileageRate({transaction, policy: roundingPolicy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            expect(result.rate).toBe(1);
         });
     });
 });

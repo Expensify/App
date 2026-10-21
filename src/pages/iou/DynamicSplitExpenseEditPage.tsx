@@ -32,13 +32,7 @@ import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 
-import {
-    getHistoricalDistanceRate,
-    initDraftSplitExpenseDataForEdit,
-    removeSplitExpenseField,
-    updateSplitExpenseDraftField,
-    updateSplitExpenseField,
-} from '@libs/actions/IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
@@ -291,8 +285,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
-    // A split still on the expense's rate, changed to $0 after the expense was created, is calculated with the rate the expense was
-    const amountRate = rate === 0 && currentRateID === getRateID(transaction) ? (getHistoricalDistanceRate(transaction) ?? rate) : rate;
+    // A split still on the expense's rate, changed to or from $0 after the expense was created, is calculated with the rate the expense was
+    const amountRate = currentRateID === getRateID(transaction) ? (DistanceRequestUtils.getRateBeforeZeroRateChange(transaction, rate) ?? rate) : rate;
     const currentAmount =
         isDistance && distance && amountRate !== undefined
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, amountRate) * originalSign

@@ -268,10 +268,10 @@ describe('computeSplitSaveErrorMessage', () => {
         });
 
         // Then the $0 split is rejected, since its amount doesn't match its distance
-        expect(result).toBe('iou.splitExpenseZeroAmount');
+        expect(result).toBe('iou.splitExpenseZeroDistance');
     });
 
-    it('still rejects a $0 distance split without any distance', () => {
+    it('rejects a $0 distance split without any distance with the distance error', () => {
         const result = computeSplitSaveErrorMessage({
             ...baseParams,
             transactionDetailsAmount: 0,
@@ -281,7 +281,7 @@ describe('computeSplitSaveErrorMessage', () => {
                 {...makeSplit(0, 'b'), customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 0}},
             ],
         });
-        expect(result).toBe('iou.splitExpenseZeroAmount');
+        expect(result).toBe('iou.splitExpenseZeroDistance');
     });
 
     describe('invalidSplit errors (one split exceeds total)', () => {

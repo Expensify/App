@@ -52,11 +52,12 @@ function isUsableSplitRate(rate: number | undefined): rate is number {
  */
 function getHistoricalDistanceRate(transaction: OnyxEntry<OnyxTypes.Transaction>): number | undefined {
     const quantity = transaction?.comment?.customUnit?.quantity;
-    const transactionAmount = transaction?.amount;
-    if (typeof quantity !== 'number' || quantity <= 0 || typeof transactionAmount !== 'number' || transactionAmount === 0) {
+    // The edited amount, when there is one, is the amount the current distance was calculated with
+    const transactionAmount = getAmount(transaction);
+    if (typeof quantity !== 'number' || quantity <= 0 || transactionAmount === 0) {
         return undefined;
     }
-    return Math.abs(transactionAmount) / quantity;
+    return transactionAmount / quantity;
 }
 
 /**
@@ -201,16 +202,18 @@ function resolveSplitMileageRate({
     const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, personalPolicyOutputCurrency});
     const historicalRate = getHistoricalDistanceRate(transaction);
 
-    // A $0 rate can't have produced a nonzero amount: the rate was changed to $0 after the expense was created.
-    // Split with the rate the expense was calculated with, so its amount and distance are divided consistently.
-    // A split draft's amount was calculated before its distance or rate was edited, so the expense's rate is used,
-    // and only while the split is still on the expense's rate.
-    let expenseHistoricalRate = historicalRate;
+    // When the rate was changed to or from $0 after the expense was created, split with the rate the expense was calculated
+    // with, so its amount and distance are divided consistently. A split draft's amount was calculated before its distance or
+    // rate was edited, so the expense's rate is used, and only while the split is still on the expense's rate.
+    let rateBeforeZeroRateChange = DistanceRequestUtils.getRateBeforeZeroRateChange(transaction, baseMileageRate.rate);
     if (expenseTransaction) {
-        expenseHistoricalRate = expenseTransaction.comment?.customUnit?.customUnitRateID === customUnitRateID ? getHistoricalDistanceRate(expenseTransaction) : undefined;
+        rateBeforeZeroRateChange =
+            expenseTransaction.comment?.customUnit?.customUnitRateID === customUnitRateID
+                ? DistanceRequestUtils.getRateBeforeZeroRateChange(expenseTransaction, baseMileageRate.rate)
+                : undefined;
     }
-    if (baseMileageRate.rate === 0 && expenseHistoricalRate !== undefined && !isOriginalRateDeleted) {
-        return {...baseMileageRate, rate: expenseHistoricalRate};
+    if (rateBeforeZeroRateChange !== undefined && !isOriginalRateDeleted) {
+        return {...baseMileageRate, rate: rateBeforeZeroRateChange};
     }
     if (baseMileageRate.rate !== undefined && !isOriginalRateDeleted) {
         return baseMileageRate;
@@ -269,9 +272,10 @@ function resolveSplitItemRate({
         return {rate: fallbackMileageRate.rate, unit};
     }
 
-    // The split is still on the expense's own rate, which `resolveSplitMileageRate` replaced with the historical rate
-    // because it was changed to $0 after the expense was created
-    if (selectedRate.rate === 0 && customUnitRateID === fallbackMileageRate.customUnitRateID && isUsableSplitRate(fallbackMileageRate.rate)) {
+    // The split is still on the expense's own rate, which `resolveSplitMileageRate` replaced with the rate the expense was
+    // calculated with because it was changed to or from $0 after the expense was created
+    const isRateBeforeZeroRateChange = selectedRate.rate !== fallbackMileageRate.rate && (selectedRate.rate === 0 || fallbackMileageRate.rate === 0);
+    if (isRateBeforeZeroRateChange && customUnitRateID === fallbackMileageRate.customUnitRateID && isUsableSplitRate(fallbackMileageRate.rate)) {
         return {rate: fallbackMileageRate.rate, unit};
     }
 
@@ -1165,7 +1169,6 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 
 export {
     getEvenSplitQuantity,
-    getHistoricalDistanceRate,
     isUsableSplitRate,
     isZeroRateDistanceSplit,
     updateSplitExpenseDistanceFromAmount,

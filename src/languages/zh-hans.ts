@@ -1337,6 +1337,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountGreaterThanOriginal: (amount: string) => `总金额比原始报销多出 ${amount}。`,
         totalAmountLessThanOriginal: (amount: string) => `总金额比原始报销少 ${amount}。`,
         splitExpenseZeroAmount: '请在继续之前输入有效金额。',
+        splitExpenseZeroDistance: '请在继续之前输入有效距离。',
         splitExpenseZeroTotalAmountNotEditable: (amount: string) => `原始总额为 ${amount} 时，无法编辑金额。`,
         splitExpenseOneMoreSplit: '尚未添加拆分。请至少添加一项以保存。',
         splitExpenseEditTitle: (amount: string, merchant: string) => `编辑 ${merchant} 的 ${amount}`,
