@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -70,18 +70,20 @@ function IOURequestStepVendor({
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
-    const fetchVendorsIfMissing = useCallback(() => {
+    const fetchVendorsIfMissing = () => {
         if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policy.id);
-    }, [isFeatureAvailable, policy?.id, policyVendors]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchVendorsIfMissing});
 
     useEffect(() => {
         fetchVendorsIfMissing();
-    }, [fetchVendorsIfMissing]);
+        // Re-run when the policy loads or the collection is cleared, so a missing fetch retries.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFeatureAvailable, policy?.id, policyVendors]);
     const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
