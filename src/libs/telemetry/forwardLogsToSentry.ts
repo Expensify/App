@@ -32,7 +32,16 @@ const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[MFA]', '[OnyxUpdateManagerError]', '[Receipt]', '[PDFStall]', '[OpenReportStall]', '[withNavigationFallback]'] as const;
+const FORWARDED_LOG_PREFIXES = [
+    '[MFA]',
+    '[OnyxUpdateManagerError]',
+    '[Receipt]',
+    '[PDFStall]',
+    '[OpenReportStall]',
+    '[withNavigationFallback]',
+    '[createDynamicRoute]',
+    '[UpdateRequired]',
+] as const;
 
 type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
 
@@ -61,11 +70,17 @@ const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyA
             'isSourceInDurableFolder',
             'msSinceEnqueued',
             'pendingReceiptCount',
+            'isOffline',
+            'receiptsFolderExists',
+            'receiptsFolderEntryCount',
         ],
     ],
     ['[PDFStall]', ['reportID']],
     ['[OpenReportStall]', ['reportID']],
     ['[withNavigationFallback]', ['method', 'stack']],
+    // The colliding values are never logged in the first place (see `mergeQueryStrings`) because a query param
+    // value can carry private data. The param name and the stack are enough to locate the collision.
+    ['[createDynamicRoute]', ['key', 'stack']],
 ]);
 
 /**

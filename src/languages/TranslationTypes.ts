@@ -17,6 +17,11 @@ type OnboardingTaskLinks = Partial<{
     workspaceConfirmationLink: string;
     testDriveURL: string;
     corporateCardLink: string;
+    companyDomain: string;
+    workEmail: string;
+    workEmailLink: string;
+    validateEmailLink: string;
+    joinWorkspaceLink: string;
 }>;
 
 type OnboardingTask = {
@@ -68,7 +73,8 @@ type PersonalRulesModifiedFields = PolicyRulesModifiedFields & {
     reportName?: string;
 };
 
-type ConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+// Exact Online only has a waitlist until its connector is released.
+type ConnectionName = Exclude<ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>, typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE>;
 type AllConnectionName = ConnectionName;
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
