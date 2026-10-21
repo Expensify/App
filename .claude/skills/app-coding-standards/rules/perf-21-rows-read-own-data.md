@@ -70,10 +70,10 @@ const reportIDs = getSortedReportIDs(reports);
 **DO NOT flag if:**
 
 - The list uses the collection only for its own work, such as sorting or filtering, and passes rows only IDs.
-- The value is small, shared by all rows and rarely written (`SESSION`, `BETAS`, `CARD_LIST`).
+- The value is shared data that every row needs, not the row's own item. See [PERF-3](perf-3-onyx-list-item-provider.md).
 - The list is not virtualized and renders only a few fixed items.
 
-**Related:** [PERF-3](perf-3-single-member-subscriptions.md) for what the row itself subscribes to.
+**Related:** [PERF-22](perf-22-row-single-member-subscriptions.md) for what the row itself subscribes to.
 
 **Search Patterns** (hints for reviewers):
 - `extraData`

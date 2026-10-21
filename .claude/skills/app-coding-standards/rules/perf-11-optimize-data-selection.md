@@ -14,7 +14,7 @@ title: Optimize data selection and handling
 
 This means selectors are a double-edged sword. A well-written selector that returns a primitive or a small object is highly effective — it skips re-renders when unrelated data changes, and `deepEqual` on a small value is trivial. But a poorly-written selector that returns a large object, a full collection, or a non-plain type like `Set`/`Map` makes things worse — it forces an expensive `deepEqual` on every Onyx update with no re-render savings.
 
-**Prefer a member key:** when the component needs one or a few members of a collection and knows their IDs, subscribe to `${ONYXKEYS.COLLECTION.X}${id}` instead of the collection. It needs no selector and wakes only for that member. In list rows this is required, see [PERF-3](perf-3-single-member-subscriptions.md).
+**Prefer a member key:** when the component needs one or a few members of a collection and knows their IDs, subscribe to `${ONYXKEYS.COLLECTION.X}${id}` instead of the collection. It needs no selector and wakes only for that member. In list rows this is required, see [PERF-22](perf-22-row-single-member-subscriptions.md).
 
 **When to use a selector:**
 - To pick a few fields from a single Onyx key (reduces re-renders from unrelated field changes)
@@ -145,7 +145,7 @@ Flag ONLY when ANY of these are true:
 - The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself — the `deepEqual` cost on a small result is negligible
 - The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
 - The data structure is static or the function requires the entire object for valid operations
-- The code is a list row reading a broad key. Report [PERF-3](perf-3-single-member-subscriptions.md) instead
+- The code is a list row reading a broad key. Report [PERF-22](perf-22-row-single-member-subscriptions.md) instead
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`

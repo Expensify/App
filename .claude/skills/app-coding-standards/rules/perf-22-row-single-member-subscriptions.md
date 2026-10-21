@@ -1,9 +1,9 @@
 ---
-ruleId: PERF-3
+ruleId: PERF-22
 title: List rows subscribe to single collection members
 ---
 
-## [PERF-3] List rows subscribe to single collection members
+## [PERF-22] List rows subscribe to single collection members
 
 ### Reasoning
 
@@ -31,14 +31,6 @@ function ReportRow({reportID}: ReportRowProps) {
 }
 ```
 
-### Not a violation
-
-```tsx
-// Small key that every row needs and that is rarely written. Reading it whole is fine.
-const session = useSession();
-const cardList = useCardList();
-```
-
 ---
 
 ### Review Metadata
@@ -46,20 +38,17 @@ const cardList = useCardList();
 **Flag when ALL of these are true:**
 
 - The code is a list row component, or code that `renderItem` calls.
-- The row subscribes to a whole collection (`ONYXKEYS.COLLECTION.*` without a member ID), or to another key that holds data for every record, such as `PERSONAL_DETAILS_LIST` or `REPORT_ATTRIBUTES`.
+- The row subscribes to a whole collection (`ONYXKEYS.COLLECTION.*` without a member ID), or to a derived map with an entry per record, such as `REPORT_ATTRIBUTES`.
 - The row uses only a few members of it, and their IDs come from the row's props or its own data.
 
 **DO NOT flag if:**
 
 - The row subscribes to a member key (`${ONYXKEYS.COLLECTION.X}${id}`), or uses a selector that returns only its own data.
-- The key is small, shared by all rows and rarely written (`SESSION`, `BETAS`, `CARD_LIST`).
 - The row needs the whole collection, for example to search across all members.
 - The code is not part of a list row.
 
-**Related:** [PERF-21](perf-21-rows-read-own-data.md) when the list reads the data for its rows, [PERF-11](perf-11-optimize-data-selection.md) for selector cost.
+**Related:** [PERF-3](perf-3-onyx-list-item-provider.md) for shared data such as personal details, [PERF-21](perf-21-rows-read-own-data.md) when the list reads the data for its rows, [PERF-11](perf-11-optimize-data-selection.md) for selector cost.
 
 **Search Patterns** (hints for reviewers):
 - `renderItem`
 - `useOnyx\(ONYXKEYS\.COLLECTION\.[A-Z_]+\)`
-- `usePersonalDetails\(\)`
-- `useAllPersonalDetails`
