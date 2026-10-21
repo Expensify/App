@@ -963,6 +963,7 @@ const SCREENS = {
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
+        MEMBERS_ROLE: 'Workspace_Members_Role',
         MEMBER_WORK_ARRANGEMENT: 'Workspace_Member_Work_Arrangement',
         INVITE_WORK_ARRANGEMENT: 'Workspace_Invite_Work_Arrangement',
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
