@@ -166,6 +166,13 @@ describe('HeaderView', () => {
 
         // Then the user is taken back to the Concierge chat to ask another question
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
+
+        // When the report under the Concierge chat is a task, such as an onboarding task
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, {type: CONST.REPORT.TYPE.TASK});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there is no New chat button, since a task is not a question thread
+        expect(screen.queryByText(translateLocal('common.concierge.newChat'))).toBeNull();
     });
 
     it('should display join button', async () => {
