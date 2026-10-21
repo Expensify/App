@@ -4859,8 +4859,6 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
  *
  */
 function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField, currentUserAccountID: number): OptimisticChangeFieldAction {
-    // A field that was never saved on the report shows its workspace default, so that is the value the user changed
-    const previousValue = previousReportField.value ?? previousReportField.defaultValue;
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         actorAccountID: currentUserAccountID,
@@ -4883,7 +4881,7 @@ function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previo
             {
                 type: 'TEXT',
                 style: 'normal',
-                text: ` (previously '${previousValue}').`,
+                text: ` (previously '${previousReportField.value}').`,
             },
         ],
         originalMessage: {
@@ -4891,7 +4889,7 @@ function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previo
             newType: reportField.type,
             newValue: reportField.value,
             oldType: previousReportField.type,
-            oldValue: previousValue,
+            oldValue: previousReportField.value,
         },
         person: [
             {

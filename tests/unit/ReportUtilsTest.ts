@@ -24718,15 +24718,16 @@ describe('ReportUtils', () => {
             isTax: false,
         };
 
-        it('should use the default value as the old value when the field was never saved on the report', () => {
+        it('should not use the default value as the old value when the field was never saved on the report', () => {
             // Given a text field that has no saved value on the report, so the user sees its workspace default
             const previousReportField = {...textField, value: undefined};
 
             // When the user clears it
             const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
 
-            // Then the action records the default as the old value, so the message says what was removed
-            expect(action).toMatchObject({originalMessage: {oldValue: 'Initial', newValue: ''}});
+            // Then the action leaves the old value empty, matching the server's action so the message doesn't change when it arrives
+            expect(action.originalMessage?.oldValue).toBeUndefined();
+            expect(action.originalMessage?.newValue).toBe('');
         });
 
         it('should use the saved value as the old value when the field has one', () => {
