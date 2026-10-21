@@ -615,7 +615,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
-                {isResizableSingleRHP && <RHPResizeHandle sidePanelOffset={sidePanelOffset.current} />}
+                {isResizableSingleRHP && <RHPResizeHandle />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

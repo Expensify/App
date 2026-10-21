@@ -15,14 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React, {useLayoutEffect, useRef, useState} from 'react';
-// The handle rides the Side Panel offset, which is a react-native Animated value.
-// eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
-
-type RHPResizeHandleProps = {
-    /** How far the Side Panel pushes the RHP card in from the window's right edge. */
-    sidePanelOffset: Animated.Value;
-};
+import {View} from 'react-native';
 
 type Drag = {
     /** Where the pointer went down. */
@@ -53,7 +46,7 @@ const LINE_STYLE: React.CSSProperties = {
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle({sidePanelOffset}: RHPResizeHandleProps) {
+function RHPResizeHandle() {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
@@ -75,31 +68,28 @@ function RHPResizeHandle({sidePanelOffset}: RHPResizeHandleProps) {
     useLayoutEffect(() => clampSingleRHPWidth(min, max), [min, max]);
 
     return (
-        // Anchored to the card's right edge, which only the Side Panel moves, then shifted the card's width further left.
-        <Animated.View style={styles.rhpResizeHandleAnchor(Animated.add(sidePanelOffset, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth))}>
-            <View style={styles.rhpResizeHandleHitArea}>
-                {/* A plain `div` because it relies on DOM pointer capture. */}
-                <div
-                    style={{...HANDLE_STYLE, ...styles.cursorColResize}}
-                    onPointerEnter={() => setIsHovered(true)}
-                    onPointerLeave={() => setIsHovered(false)}
-                    onPointerDown={(event) => {
-                        if (!pointerDrag.startDrag(event, {startClientX: event.clientX, startWidth: getSingleRHPWidth()})) {
-                            return;
-                        }
-                        setIsDragging(true);
-                    }}
-                    {...pointerDrag.handlers}
-                >
-                    {(isHovered || isDragging) && (
-                        <div
-                            aria-hidden
-                            style={{...LINE_STYLE, ...styles.resizeIndicator}}
-                        />
-                    )}
-                </div>
-            </View>
-        </Animated.View>
+        <View style={styles.rhpResizeHandle}>
+            {/* A plain `div` because it relies on DOM pointer capture. */}
+            <div
+                style={{...HANDLE_STYLE, ...styles.cursorColResize}}
+                onPointerEnter={() => setIsHovered(true)}
+                onPointerLeave={() => setIsHovered(false)}
+                onPointerDown={(event) => {
+                    if (!pointerDrag.startDrag(event, {startClientX: event.clientX, startWidth: getSingleRHPWidth()})) {
+                        return;
+                    }
+                    setIsDragging(true);
+                }}
+                {...pointerDrag.handlers}
+            >
+                {(isHovered || isDragging) && (
+                    <div
+                        aria-hidden
+                        style={{...LINE_STYLE, ...styles.resizeIndicator}}
+                    />
+                )}
+            </div>
+        </View>
     );
 }
 

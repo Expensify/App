@@ -6803,13 +6803,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
-        // Straddles the single RHP card's left edge.
-        rhpResizeHandleHitArea: {
+        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        rhpResizeHandle: {
             ...positioning.pAbsolute,
-            top: 0,
-            bottom: 0,
+            top: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
             width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-            right: getSingleRHPWidthStyleValue(-CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+            right: getSingleRHPWidthStyleValue(variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
         },
 
         flexibleHeight: {
@@ -7152,16 +7152,6 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        // Anchored to the single RHP card's right edge, so its child can sit a card's width further left.
-        rhpResizeHandleAnchor: (right: Animated.AnimatedAddition<number>) =>
-            ({
-                ...positioning.pFixed,
-                top: variables.rhpFloatingCardMargin,
-                bottom: variables.rhpFloatingCardMargin,
-                width: 0,
-                right,
-            }) satisfies ViewStyle,
-
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
