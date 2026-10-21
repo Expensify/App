@@ -1,0 +1,22 @@
+{
+    "overrides": [
+        {
+            "files": ["**/unicornNativeBatch.ts"],
+            "plugins": ["unicorn"],
+            "rules": {
+                "unicorn/no-array-for-each": "error",
+                "unicorn/prefer-array-find": "error",
+                "unicorn/prefer-set-has": "error",
+                "unicorn/prefer-set-size": "error",
+                "unicorn/prefer-string-replace-all": "error"
+            }
+        },
+        {
+            "files": ["**/unicornPreferAt.ts"],
+            "plugins": ["unicorn"],
+            "rules": {
+                "unicorn/prefer-at": "error"
+            }
+        }
+    ]
+}
