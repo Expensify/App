@@ -36,6 +36,8 @@ import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy} from '@libs/Polic
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
+import WorkspaceWiseGlobalReimbursementsBanner from '@pages/workspace/workflows/WorkspaceWiseGlobalReimbursementsBanner';
+
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -155,7 +157,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
 
     const hasReimburserError = !!policy?.errorFields?.reimburser;
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
     const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
@@ -418,6 +419,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             </View>
                         </OfflineWithFeedback>
                     )}
+                    <WorkspaceWiseGlobalReimbursementsBanner policyID={policyID} />
                 </>
             }
             isActive={getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

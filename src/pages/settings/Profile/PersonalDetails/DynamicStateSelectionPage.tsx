@@ -64,7 +64,6 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const textInputOptions = {
         headerMessage,
         // Label can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         label: label || translate('common.state'),
         value: searchValue,
         onChangeText: setSearchValue,
@@ -77,7 +76,6 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
         >
             <HeaderWithBackButton
                 // Label can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 title={label || translate('common.state')}
                 shouldShowBackButton
                 onBackButtonPress={() => {

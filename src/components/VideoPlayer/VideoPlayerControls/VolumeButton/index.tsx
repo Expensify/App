@@ -12,11 +12,11 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import type {PanGestureEvent} from 'react-native-gesture-handler';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -51,22 +51,23 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
         setSliderHeight(event.nativeEvent.layout.height);
     };
 
-    const changeVolumeOnPan = (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+    const changeVolumeOnPan = (event: PanGestureEvent) => {
         const val = roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
         volume.set(clamp(val, 0, 1));
     };
 
-    const pan = Gesture.Pan()
-        .onBegin((event) => {
+    const pan = usePanGesture({
+        onBegin: (event) => {
             scheduleOnRN(setIsSliderBeingUsed, true);
             changeVolumeOnPan(event);
-        })
-        .onChange((event) => {
+        },
+        onUpdate: (event) => {
             changeVolumeOnPan(event);
-        })
-        .onFinalize(() => {
+        },
+        onFinalize: () => {
             scheduleOnRN(setIsSliderBeingUsed, false);
-        });
+        },
+    });
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.get() * 100}%`}));
 

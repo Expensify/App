@@ -34,7 +34,6 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {currentReportID} = useCurrentReportIDState();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentReportIDValue = currentReportIDContext || currentReportID;
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
 

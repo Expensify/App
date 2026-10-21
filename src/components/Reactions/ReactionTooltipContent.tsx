@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +10,7 @@ import {getDisplayNameOrYou, getPersonalDetailsByIDs} from '@libs/PersonalDetail
 
 import type {PersonalDetailsList} from '@src/types/onyx';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -32,18 +33,19 @@ type ReactionTooltipContentProps = {
     currentUserAccountID: number;
 };
 
-function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate) {
+function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     return (personalDetails: PersonalDetailsList) =>
         getPersonalDetailsByIDs(accountIDs, personalDetails)
             .map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
+            .map((name) => (Str.isSMSLogin(name) ? formatPhoneNumber(name) : name))
             .filter((name) => name)
             .join(', ');
 }
 
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
-    const [namesString] = usePersonalDetailsByIDs(accountIDs, userNamesStringSelector(accountIDs, currentUserAccountID, translate));
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
+    const [namesString] = usePersonalDetailsByIDs(accountIDs, userNamesStringSelector(accountIDs, currentUserAccountID, translate, formatPhoneNumber));
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (

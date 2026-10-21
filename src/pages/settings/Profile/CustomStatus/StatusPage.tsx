@@ -70,17 +70,13 @@ function StatusPage() {
     const draftEmojiCode = draftStatus?.emojiCode;
     const draftText = draftStatus?.text;
     const draftClearAfter = draftStatus?.clearAfter;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultText = draftText || currentUserStatusText;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const dataToShow = draftClearAfter || currentUserClearAfter;
     const customClearAfter = DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
 
     const isValidClearAfterDate = () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
         if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER || clearAfterTime === '') {
             return true;
@@ -90,7 +86,6 @@ function StatusPage() {
     };
 
     const updateStatus = ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
         const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
         if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {

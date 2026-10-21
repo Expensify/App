@@ -72,7 +72,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());

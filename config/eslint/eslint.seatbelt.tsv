@@ -94,14 +94,8 @@
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Hover"	2
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Race"	2
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Tap"	2
 "../../src/components/Charts/hooks/useChartLabelFormats.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/hooks/useChartLabelMeasurements.ts"	"rulesdir/no-raw-typography"	1
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Hover"	2
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Race"	2
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Tap"	2
 "../../src/components/Charts/utils/chartFontAssets.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/components/Charts/utils/chartFontAssets.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/components/Charts/utils/chartFontsCache.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -180,7 +174,6 @@
 "../../src/components/HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/EditedRenderer.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
 "../../src/components/HTMLEngineProvider/HTMLRenderers/EmojiRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/HTMLEngineProvider/HTMLRenderers/HTMLTableScroll/index.native.tsx"	"@typescript-eslint/no-deprecated/Gesture.Pan"	2
 "../../src/components/HTMLEngineProvider/HTMLRenderers/MentionHereRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -221,8 +214,6 @@
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Modal/Global/ModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/Modal/ReanimatedModal/Container/GestureHandler.tsx"	"@typescript-eslint/no-deprecated/Gesture.Pan"	2
-"../../src/components/Modal/ReanimatedModal/Container/GestureHandler.tsx"	"@typescript-eslint/no-deprecated/GestureType"	1
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/MoneyReportHeader.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderActions/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -461,10 +452,6 @@
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/VideoPlayer/useHandleNativeVideoControls/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/VideoPlayer/VideoPlayerControls/ProgressBar/index.tsx"	"@typescript-eslint/no-deprecated/Gesture.Pan"	2
-"../../src/components/VideoPlayer/VideoPlayerControls/ProgressBar/index.tsx"	"@typescript-eslint/no-deprecated/PanGestureChangeEventPayload"	1
-"../../src/components/VideoPlayer/VideoPlayerControls/VolumeButton/index.tsx"	"@typescript-eslint/no-deprecated/Gesture.Pan"	2
-"../../src/components/VideoPlayer/VideoPlayerControls/VolumeButton/index.tsx"	"@typescript-eslint/no-deprecated/PanGestureChangeEventPayload"	1
 "../../src/components/VideoPlayerContexts/PlaybackContext/playbackContextReportIDUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/WalletStatementModal/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/WideRHPContextProvider/useShouldRenderOverlay.ts"	"react-hooks/set-state-in-effect"	1
@@ -506,7 +493,6 @@
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
-"../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useHydrateReportsFromSnapshot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -807,6 +793,7 @@
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/getDynamicRouteAdaptedState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/getDynamicRouteQueryParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/getAdaptedStateFromPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/helpers/getOnboardingRouteFromScreen.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/helpers/getParamsFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1085,7 +1072,6 @@
 "../../src/pages/iou/request/step/IOURequestStepCurrencyModal.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/Waypoints/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepGPSTripEdit/Slider.tsx"	"@typescript-eslint/no-deprecated/Gesture.Pan"	2
 "../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/ScanEditReceipt.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

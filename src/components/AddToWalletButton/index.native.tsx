@@ -1,8 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationMainContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,11 +28,16 @@ const isIOS = getPlatform() === CONST.PLATFORM.IOS;
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
+    const {executeScenario} = useMultifactorAuthentication();
     const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
     const handleOnPress = () => {
+        if (isUkEuExpensifyCard(card)) {
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, {card, cardHolderName, cardDescription});
+            return;
+        }
         setIsLoading(true);
-        handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false))
+        handleAddCardToWallet(card, cardHolderName, cardDescription)
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');

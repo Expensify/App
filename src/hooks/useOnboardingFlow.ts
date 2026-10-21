@@ -113,7 +113,6 @@ function useOnboardingFlowRouter() {
                 }
 
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
                     return;

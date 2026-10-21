@@ -425,7 +425,6 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}

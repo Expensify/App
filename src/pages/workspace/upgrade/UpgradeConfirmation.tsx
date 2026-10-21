@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
@@ -61,14 +62,19 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
     const heading = isCategorizing || isReporting ? translate('workspace.upgrade.completed.createdWorkspace') : translate('workspace.upgrade.completed.headline');
 
     return (
-        <ConfirmationPage
-            heading={heading}
-            descriptionComponent={description}
-            shouldShowButton
-            onButtonPress={afterUpgradeAcknowledged}
-            buttonText={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
-            containerStyle={styles.h100}
-        />
+        <ConfirmationPage>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration />
+                <ConfirmationPage.Heading>{heading}</ConfirmationPage.Heading>
+                {description}
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
+                    onPress={afterUpgradeAcknowledged}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

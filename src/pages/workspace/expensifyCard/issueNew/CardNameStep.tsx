@@ -44,7 +44,6 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const userName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
     });
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;

@@ -55,7 +55,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     const data = issueNewCard?.data;
     const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
     });
     const isSuccessful = issueNewCard?.isSuccessful;

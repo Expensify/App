@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Modifica',
         category: 'Categoria',
         vendor: 'Fornitore',
-        supplier: 'Fornitore',
         report: 'Report',
         billable: 'Fatturabile',
         nonBillable: 'Non fatturabile',
@@ -5460,8 +5459,8 @@ ${amount} per ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: 'Aggiungi l’account in Xero e sincronizza nuovamente la connessione',
-            noSuppliersFound: 'Nessun fornitore trovato',
-            noSuppliersFoundDescription: 'Aggiungi il fornitore in Xero e sincronizza di nuovo la connessione.',
+            noVendorsFound: 'Nessun fornitore trovato',
+            noVendorsFoundDescription: 'Aggiungi fornitori in Xero e sincronizza di nuovo la connessione',
             accountingMethods: {
                 label: 'Quando esportare',
                 description: 'Scegli quando esportare le spese:',
@@ -7023,6 +7022,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptySubtitle: 'I fornitori verranno visualizzati qui al termine della sincronizzazione contabile.',
             findVendor: 'Trova fornitore',
             managedInAccountingSoftware: 'I fornitori sono gestiti nel tuo',
+            enableVendor: 'Abilita fornitore',
+            enableVendors: 'Abilita fornitori',
+            disableVendor: 'Disabilita fornitore',
+            disableVendors: 'Disattiva fornitori',
+            updateFailureMessage: "Si è verificato un errore durante l'aggiornamento del fornitore, riprova per favore",
         },
         tags: {
             tagName: 'Nome tag',
@@ -7331,6 +7335,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     'Il membro lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole relative al tragitto casa-lavoro non si applicano.',
                 futureOnlyNote: 'Le modifiche si applicano solo ai calcoli chilometrici futuri. Le spese chilometriche esistenti non vengono ricalcolate.',
             },
+            changeRole: 'Cambia ruolo',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -8516,7 +8521,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 ifAnyExpenseMatches: 'Se una qualsiasi spesa corrisponde a:',
                 thenApplyFollowingDefaults: 'Quindi applica le seguenti impostazioni predefinite:',
                 vendorUnavailable: 'Fornitore non disponibile',
-                supplierUnavailable: 'Fornitore non disponibile',
                 confirmErrorCategory: 'Seleziona una categoria',
                 confirmErrorCategoryTax: "Seleziona un'aliquota fiscale",
                 confirmErrorCondition: 'Inserisci un esercente',
@@ -8757,6 +8761,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 createRule: 'Crea regola',
                 fallbackBanner:
                     'Questa non è una regola standard, quindi l’abbiamo creata come regola agente. Le regole agente agiscono dopo che una spesa o un report vengono modificati, ad esempio bloccando la spesa o rifiutando il report.',
+                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi l’abbiamo formulata come regola dell’agente. ${explanation}`,
             },
             tabs: {
                 general: 'Generale',
@@ -8842,6 +8847,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
                     multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
                     categoryHasRule: "Questa categoria ha già una regola. Modifica la regola esistente o descrivi una regola per un'altra categoria.",
+                },
+                impossible: {
+                    noTrigger: 'Le regole non possono iniziare da quell’evento.',
+                    noCapability: 'Le regole non possono farlo.',
+                    missingData: 'Expensify non ha queste informazioni.',
+                    retroactive: 'Le regole si applicano solo alla nuova attività.',
+                    historyLimit: 'Le regole non possono risalire così indietro.',
+                    tryThisInstead: 'Prova questo invece',
                 },
             },
             expenseDefaultsTable: {
@@ -9030,7 +9043,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             dontSeeYourATS: `<muted-text-label>Non vedi il tuo ATS qui? <a href="#">Chiedi a Concierge</a> e possiamo aggiungerlo.</muted-text-label>`,
             importSettings: 'Impostazioni di importazione',
             defaultApprover: 'Approvatore predefinito',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting', hiringManager: 'Responsabile delle assunzioni'},
             filters: {
                 description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base alle fasi lavorative, ai tag e alle sedi.`,
                 stages: {
@@ -9064,8 +9077,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             finalApprover: `Approvatore finale`,
             finalApproverOptional: 'Approvatore finale (facoltativo)',
             approvalModeDescription: (providerName: string) => `Imposta il responsabile delle approvazioni per i nuovi membri importati da ${providerName} in Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Scegli il primo approvatore per i tuoi candidati: il loro Recruiter oppure il loro Coordinator assegnato in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `il loro ${fieldNames.slice(0, -1).join(', ')} o ${lastFieldName}` : `o il loro ${fieldNames.join('o il loro')}`;
+                return `Scegli il primo approvatore per i tuoi candidati: ${fieldList} assegnato in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Scegli un solo approvatore',
                 advanced: `Il recruiter o il coordinatore del candidato diventa il suo approvatore di spese`,
@@ -9205,6 +9222,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     return `${customAccountsCount} carte con conti personalizzati`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Organizzazione Zoho Books',
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
@@ -10236,6 +10256,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 },
                 customDay: 'Giorno personalizzato',
             },
+            describeSearch: {
+                title: 'Descrivi la tua ricerca',
+                description: 'Descrivi in inglese semplice quali spese vuoi vedere e applicheremo automaticamente i filtri giusti.',
+                inputLabel: 'Descrivi la tua ricerca',
+                buttonText: 'Applica',
+            },
             status: 'Stato',
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
@@ -10281,6 +10307,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             withdrawn: 'Ritirata',
             billable: 'Fatturabile',
             rejected: 'Rifiutato',
+            held: 'In sospeso',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
             sortOrder: {
@@ -10477,6 +10504,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
+        switchToTableView: 'Passa alla vista tabella',
+        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {
@@ -10500,6 +10529,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `ha modificato ${fieldName} in "${newValue}" (in precedenza "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `imposta ${fieldName} su "${newValue}"`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `ha rimosso ${fieldName} (in precedenza "${oldValue}")`,
+                changeFieldCleared: (fieldName: string) => `ha rimosso ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ha modificato il workspace${fromPolicyName ? `(precedentemente ${fromPolicyName})` : ''}`;
@@ -10984,7 +11014,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         duplicatedTransaction: 'Duplice potenziale',
         fieldRequired: 'I campi del report sono obbligatori',
         futureDate: 'Data futura non consentita',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Fornitore non più valido' : 'Fornitore non più valido'),
+        inactiveVendor: 'Fornitore non più valido',
         invoiceMarkup: (invoiceMarkup: number) => `Maggiorato del ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Data precedente a ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
@@ -12145,5 +12175,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         mobileRenewPrompt: 'Visita Expensify nel browser web per rinnovare in anticipo.',
         mobileClaimPrompt: 'Visita Expensify nel tuo browser web per richiedere lo sconto di rinnovo.',
     },
+    bulkActionBar: {label: 'Azioni collettive', clearSelection: 'Cancella selezione', loadingSelection: 'Caricamento selezione'},
 };
 export default translations;

@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +40,9 @@ type BillingBannerProps = {
     onRightIconPress?: () => void;
     rightIconAccessibilityLabel?: string;
 
+    /** Text of the tooltip shown on hover of the right icon button. No tooltip is shown when omitted. */
+    rightIconTooltipText?: string;
+
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
     rightIconSentryLabel?: string;
 
@@ -57,6 +61,7 @@ function BillingBanner({
     rightIcon,
     onRightIconPress,
     rightIconAccessibilityLabel,
+    rightIconTooltipText,
     rightIconSentryLabel,
     rightComponent,
 }: BillingBannerProps) {
@@ -67,8 +72,8 @@ function BillingBanner({
 
     let rightIconComponent;
     if (rightIcon) {
-        rightIconComponent =
-            onRightIconPress && rightIconAccessibilityLabel ? (
+        if (onRightIconPress && rightIconAccessibilityLabel) {
+            const rightIconButton = (
                 <PressableWithoutFeedback
                     onPress={onRightIconPress}
                     style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
@@ -81,12 +86,16 @@ function BillingBanner({
                         fill={theme.icon}
                     />
                 </PressableWithoutFeedback>
-            ) : (
+            );
+            rightIconComponent = rightIconTooltipText ? <Tooltip text={rightIconTooltipText}>{rightIconButton}</Tooltip> : rightIconButton;
+        } else {
+            rightIconComponent = (
                 <Icon
                     src={rightIcon}
                     fill={theme.icon}
                 />
             );
+        }
     } else {
         rightIconComponent = !!brickRoadIndicator && (
             <Icon

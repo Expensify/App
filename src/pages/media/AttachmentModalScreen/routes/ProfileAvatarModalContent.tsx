@@ -43,9 +43,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     }, [accountID]);
 
     // Temp variables are coming as '' therefore || is needed
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID, defaultAvatars});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
 
     const shouldShowNotFoundPage = !avatarURL;

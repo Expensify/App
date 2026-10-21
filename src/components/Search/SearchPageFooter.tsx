@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFooterTotalItems} from '@libs/SearchUIUtils';
+import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -227,7 +227,7 @@ function SearchPageFooter({
         />
     );
 
-    const countLabel = translate(countType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses');
+    const countLabel = getFooterCountItems(translate).find((item) => item.value === (countType ?? CONST.SEARCH.FOOTER_COUNT.EXPENSES))?.text;
 
     // The default reads as "Total spend" in the footer but as plain "Spend" inside the menu, where the row it sits in is
     // already labelled Total.

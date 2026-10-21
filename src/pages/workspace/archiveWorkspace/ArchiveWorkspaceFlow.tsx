@@ -62,7 +62,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
+        // both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
 
