@@ -12,7 +12,9 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -23,19 +25,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import {openInitialSettingsPage} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable';
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {CommonActions, findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -56,6 +62,38 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const navigation = useNavigation();
+    const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+
+    // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
+    // With nothing behind it, as after a deep link or a relaunch, the tab history is reset to Home alone so that going
+    // back does not reopen Account. The tab router drops REPLACE, so `navigate(HOME, {forceReplace: true})` can't do it.
+    const goBackFromAccount = () => {
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            return;
+        }
+
+        const tabNavigation = navigation.getParent<NativeBottomTabNavigationProp<TabNavigatorParamList>>();
+        const tabState = tabNavigation?.getState();
+        const homeRoute = tabState?.routes.find((tabRoute) => tabRoute.name === SCREENS.HOME);
+        if (!tabNavigation || !tabState || !homeRoute) {
+            Navigation.navigate(ROUTES.HOME);
+            return;
+        }
+
+        tabNavigation.dispatch(CommonActions.reset({...tabState, index: tabState.routes.indexOf(homeRoute), history: [{type: 'route', key: homeRoute.key}]}));
+    };
+
+    useAndroidBackButtonHandler(() => {
+        if (!isDrawnOverTabs) {
+            return false;
+        }
+
+        goBackFromAccount();
+        return true;
+    });
+
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);

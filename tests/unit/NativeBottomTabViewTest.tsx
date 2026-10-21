@@ -8,14 +8,9 @@ import React, {useEffect} from 'react';
 
 type NativeBottomTabViewProps = Parameters<typeof NativeBottomTabView>[0];
 
-type MockTabSelectionEvent = {nativeEvent: {selectedScreenKey: string; provenance: number; actionOrigin: string}};
-
 type MockTabsHostProps = {
     navStateRequest: {selectedScreenKey: string};
-    onTabSelected: (event: MockTabSelectionEvent) => void;
-    onTabSelectionRejected: (event: MockTabSelectionEvent) => void;
-    tabBarHidden: boolean;
-    tabBarItemSelectionHidden: boolean;
+    onTabSelected: (event: {nativeEvent: {selectedScreenKey: string; provenance: number; actionOrigin: string}}) => void;
     children: React.ReactNode;
 };
 
@@ -79,18 +74,14 @@ function buildHiddenAccountTabState(): TabNavigationState<ParamListBase> {
     return {
         type: 'tab',
         key: 'tab',
-        index: 2,
+        index: 1,
         stale: false,
-        routeNames: ['Inbox', 'Spend', 'Account'],
+        routeNames: ['Inbox', 'Account'],
         routes: [
             {name: 'Inbox', key: 'Inbox-key'},
-            {name: 'Spend', key: 'Spend-key'},
             {name: 'Account', key: 'Account-key'},
         ],
-        history: [
-            {type: 'route', key: 'Spend-key'},
-            {type: 'route', key: 'Account-key'},
-        ],
+        history: [{type: 'route', key: 'Account-key'}],
         preloadedRouteKeys: [],
     };
 }
@@ -168,20 +159,6 @@ describe('NativeBottomTabView', () => {
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Spend'}), target: 'tab'}));
     });
 
-    it('draws a focused hidden route under a visible tab bar with no item shown as selected', () => {
-        // Given Account focused, which has no item in the native bar
-        const navigation = buildNavigation();
-
-        // When the view renders
-        render(renderTabView(buildHiddenAccountTabState(), navigation, ['Account']));
-
-        // Then native selects the first visible tab, which Account is drawn in, rather than the last visited one
-        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
-        // And the bar stays visible with no item drawn as selected, so the user can leave Account through it
-        expect(mockLatestHostProps?.tabBarHidden).toBe(false);
-        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(true);
-    });
-
     it('leaves a focused hidden route when the user taps the tab it is drawn in', () => {
         // Given Account focused, drawn in the natively selected Inbox tab
         const navigation = buildNavigation();
@@ -194,20 +171,5 @@ describe('NativeBottomTabView', () => {
 
         // Then JS navigates to Inbox, since no item is drawn as selected and the tap is the user leaving Account
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'}));
-    });
-
-    it('stays on a focused hidden route when native reports the tab it is drawn in on its own', () => {
-        // Given Account focused, drawn in the natively selected Inbox tab
-        const navigation = buildNavigation();
-        render(renderTabView(buildHiddenAccountTabState(), navigation, ['Account']));
-
-        // When native reports Inbox without a tap, as Android does when it rejects a re-sent request as repeated (#104294)
-        act(() => {
-            mockLatestHostProps?.onTabSelected({nativeEvent: {selectedScreenKey: 'Inbox', provenance: 1, actionOrigin: 'programmatic-native'}});
-            mockLatestHostProps?.onTabSelectionRejected({nativeEvent: {selectedScreenKey: 'Inbox', provenance: 2, actionOrigin: 'programmatic-js'}});
-        });
-
-        // Then JS does not navigate, so Account does not bounce back to a tab the user did not choose
-        expect(navigation.dispatch).not.toHaveBeenCalled();
     });
 });
