@@ -1030,15 +1030,22 @@ function processReport(
     };
 }
 
+/** Whether the report belongs to the default workspace (activePolicyID) and is owned by the current user. Combine with a workspace chat check. */
+function isOwnDefaultWorkspaceChat(report: Pick<Report, 'policyID' | 'ownerAccountID'>, currentUserAccountID: number, activePolicyID: string | undefined): boolean {
+    return !!activePolicyID && report.policyID === activePolicyID && report.ownerAccountID === currentUserAccountID;
+}
+
 /**
- * Sort Report objects by self-DM status, archived status, and last visible action.
+ * Sort Report objects by self-DM / default workspace chat status, archived status, and last visible action.
  * Mirrors recentReportComparator's isSelfDM priority so the raw top-N cap in createFilteredOptionList
  * can't exclude the self-DM report before recentReportComparator gets a chance to keep it.
+ * The user's own expense chat in the default workspace gets the same priority, so it is kept even when it has no recent activity.
  */
-const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap): string => {
+const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap, currentUserAccountID: number, activePolicyID: string | undefined): string => {
     const isArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     const isSelfDM = report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    return `${isSelfDM ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
+    const isDefaultWorkspaceChat = report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
+    return `${isSelfDM || isDefaultWorkspaceChat ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
 };
 
 /** Builds an option list with pre-filtered reports and lazy contact shells. */
@@ -1231,6 +1238,8 @@ function createFilteredOptionList(
          */
         pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+        /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
+        activePolicyID?: string;
     },
     rules: OnyxCollection<Rule>,
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1252,6 +1261,7 @@ function createFilteredOptionList(
         locale,
         pendingDeleteMemberAccountIDsByReportID,
         formatPhoneNumber,
+        activePolicyID,
     } = options;
 
     // Use the cache-key locale for translated contact fields.
@@ -1294,6 +1304,7 @@ function createFilteredOptionList(
         currentUserAccountID,
         pendingDeleteMemberAccountIDsByReportID,
         currentUserLogin,
+        activePolicyID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1311,9 +1322,11 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
+    // Step 2: Select the top N reports by priority (self-DM and default workspace chat, then non-archived, then most recent).
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
+    const sortedReports = isSearching
+        ? reportsArray
+        : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap, currentUserAccountID, activePolicyID), maxRecentReports).options;
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
@@ -2383,6 +2396,7 @@ function getValidOptions(
         localeCompare,
         isTrackIntentUser,
         isOffline,
+        activePolicyID,
         ...config
     }: GetOptionsConfig,
     localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
@@ -2487,8 +2501,12 @@ function getValidOptions(
             );
         };
 
+        // Rank the user's default workspace chat first among workspace chats, so the per-group limit keeps it even when it has no recent activity
+        const isDefaultWorkspaceChat = (report: SearchOption<Report>) => isWorkspaceChat(report) && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
+        const comparator = activePolicyID ? (report: SearchOption<Report>) => `${isDefaultWorkspaceChat(report) ? 1 : 0}_${recentReportComparator(report)}` : recentReportComparator;
+
         let selfDMChats: Array<SearchOption<Report>>;
-        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, comparator, maxElements, filteringFunction);
         [selfDMChats, workspaceChats, recentReportOptions] = groupedOptions.options;
 
         hasMore = hasMore || groupedOptions.hasMore;
