@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Alterar',
         category: 'Categoria',
         vendor: 'Fornecedor',
-        supplier: 'Fornecedor',
         report: 'Relatório',
         billable: 'Faturável',
         nonBillable: 'Não faturável',
@@ -5453,8 +5452,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no Xero e sincronize a conexão novamente',
-            noSuppliersFound: 'Nenhum fornecedor encontrado',
-            noSuppliersFoundDescription: 'Adicione o fornecedor no Xero e sincronize a conexão novamente.',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no Xero e sincronize a conexão novamente',
             accountingMethods: {
                 label: 'Quando Exportar',
                 description: 'Escolha quando exportar as despesas:',
@@ -8498,7 +8497,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 ifAnyExpenseMatches: 'Se alguma despesa corresponder:',
                 thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
                 vendorUnavailable: 'Fornecedor indisponível',
-                supplierUnavailable: 'Fornecedor indisponível',
                 confirmErrorCategory: 'Selecione uma categoria',
                 confirmErrorCategoryTax: 'Selecione uma alíquota de imposto',
                 confirmErrorCondition: 'Insira um estabelecimento',
@@ -8738,6 +8736,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 createRule: 'Criar regra',
                 fallbackBanner:
                     'Esta não é uma regra padrão, então a criamos como uma regra de agente. As regras de agente entram em ação depois que uma despesa ou um relatório é alterado, por exemplo, ao reter a despesa ou rejeitar o relatório.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então nós a elaboramos como uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
@@ -8823,6 +8822,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     unintelligible: 'Tente formular sua regra assim: se a despesa for maior que $100, exija um recibo.',
                     multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear compras no varejo em todos os cartões.',
                     categoryHasRule: 'Essa categoria já tem uma regra. Edite a regra existente ou descreva uma regra para outra categoria.',
+                },
+                impossible: {
+                    noTrigger: 'Regras não podem começar a partir desse evento.',
+                    noCapability: 'Regras não podem fazer isso.',
+                    missingData: 'A Expensify não tem essa informação.',
+                    retroactive: 'As regras se aplicam apenas à nova atividade.',
+                    historyLimit: 'As regras não conseguem olhar tão para trás.',
+                    tryThisInstead: 'Tente isto em vez disso',
                 },
             },
             expenseDefaultsTable: {
@@ -9011,7 +9018,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             dontSeeYourATS: `<muted-text-label>Não está vendo seu ATS aqui? <a href="#">Pergunte ao Concierge</a> e podemos adicioná-lo.</muted-text-label>`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
-            approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento', hiringManager: 'Gerente de contratação'},
             filters: {
                 description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
                 stages: {
@@ -9045,7 +9052,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             finalApprover: `Aprovador final`,
             finalApproverOptional: 'Aprovador final (opcional)',
             approvalModeDescription: (providerName: string) => `Defina o aprovador para novos membros importados de ${providerName} para o Expensify.`,
-            approverFieldDescription: (providerName: string) => `Escolha o primeiro aprovador para seus candidatos: o recrutador ou o coordenador atribuídos a eles em ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `seu(s) ${fieldNames.slice(0, -1).join(', ')} ou ${lastFieldName}` : `ou sua ${fieldNames.join('ou de seus')}`;
+                return `Escolha o primeiro aprovador para seus candidatos: ${fieldList} atribuídos em ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Escolha um único aprovador',
                 advanced: `O recrutador ou coordenador da pessoa candidata se torna o aprovador de despesas dela`,
@@ -10248,6 +10260,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawn: 'Retirado',
             billable: 'Faturável',
             rejected: 'Rejeitado',
+            held: 'Em espera',
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda de compra',
             sortOrder: {
@@ -10444,6 +10457,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             category: 'Categoria',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Mudar para visualização em tabela',
+        switchToExpenseView: 'Mudar para visualização de despesa',
     },
     report: {
         newReport: {
@@ -10467,6 +10482,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `alterou ${fieldName} para "${newValue}" (antes "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `definir ${fieldName} como "${newValue}"`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `removeu ${fieldName} (antes "${oldValue}")`,
+                changeFieldCleared: (fieldName: string) => `removeu ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `alterou o espaço de trabalho${fromPolicyName ? `(antes ${fromPolicyName})` : ''}`;
@@ -10947,7 +10963,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         duplicatedTransaction: 'Possível duplicata',
         fieldRequired: 'Os campos do relatório são obrigatórios',
         futureDate: 'Data futura não permitida',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Fornecedor não é mais válido' : 'Fornecedor não é mais válido'),
+        inactiveVendor: 'Fornecedor não é mais válido',
         invoiceMarkup: (invoiceMarkup: number) => `Reajustado em ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Data anterior a ${maxAge} dias`,
         missingCategory: 'Categoria ausente',

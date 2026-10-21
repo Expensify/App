@@ -103,7 +103,7 @@ function buildInsightsJsonQuery(
     shouldIncludeComparisons: boolean,
 ): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
-    const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
+    const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
     if (!queryJSON) {
         return undefined;
