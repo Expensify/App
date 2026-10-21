@@ -10467,6 +10467,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `zmieniono ${fieldName} na „${newValue}” (wcześniej „${oldValue}”)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `ustaw ${fieldName} na „${newValue}”`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `usunięto ${fieldName} (wcześniej „${oldValue}”)`,
+                changeFieldCleared: (fieldName: string) => `usunięto ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `zmieniono przestrzeń roboczą${fromPolicyName ? `(wcześniej ${fromPolicyName})` : ''}`;
