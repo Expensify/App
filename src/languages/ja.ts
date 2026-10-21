@@ -3955,6 +3955,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: '銀行口座を利用できません',
+        youCantPayWithDeletedBankAccount: 'この銀行口座に問題があるため、この経費の支払いには使用できません。別の銀行口座を選択するか、Conciergeにお問い合わせください。',
         bankInfo: '銀行情報',
         confirmBankInfo: '銀行情報を確認',
         manuallyAdd: '銀行口座を手動で追加',

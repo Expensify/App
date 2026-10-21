@@ -4013,6 +4013,9 @@ ${amount} pour ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: 'Compte bancaire indisponible',
+        youCantPayWithDeletedBankAccount:
+            'Un problème avec ce compte bancaire empêche son utilisation pour payer cette dépense. Veuillez choisir un autre compte bancaire ou contacter Concierge pour obtenir de l’aide.',
         bankInfo: 'Infos bancaires',
         confirmBankInfo: 'Confirmer les informations bancaires',
         manuallyAdd: 'Ajouter manuellement votre compte bancaire',

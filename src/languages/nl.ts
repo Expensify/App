@@ -3988,6 +3988,9 @@ ${amount} voor ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
+        bankAccountUnavailable: 'Bankrekening niet beschikbaar',
+        youCantPayWithDeletedBankAccount:
+            'Er is een probleem met deze bankrekening, waardoor deze niet kan worden gebruikt om deze uitgave te betalen. Kies een andere bankrekening of neem contact op met Concierge voor hulp.',
         bankInfo: 'Bankgegevens',
         confirmBankInfo: 'Bankgegevens bevestigen',
         manuallyAdd: 'Voeg je bankrekening handmatig toe',

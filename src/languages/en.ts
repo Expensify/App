@@ -4208,6 +4208,9 @@ const translations = {
         bbaAdded: 'Business bank account added!',
         bbaAddedDescription: "It's ready to be used for payments.",
         lockedBankAccount: 'Locked bank account',
+        bankAccountUnavailable: 'Bank account unavailable',
+        youCantPayWithDeletedBankAccount:
+            'There is an issue with this bank account, so it can not be used to pay this expense. Please choose another bank account or contact Concierge for help.',
         unlockBankAccount: 'Unlock bank account',
         youCantPayThis: `You can't pay this report because you have a <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">locked bank account</a>. Tap below and Concierge will help with the next steps to unlock it.`,
         unlockAlreadyRequestedTitle: 'Request already submitted',

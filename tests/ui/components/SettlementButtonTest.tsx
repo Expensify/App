@@ -24,8 +24,13 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type mockUseConfirmModal from '../../utils/mockUseConfirmModal';
+
+import {mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../../utils/mockUseConfirmModal';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@hooks/useConfirmModal', () => jest.requireActual<{default: typeof mockUseConfirmModal}>('../../utils/mockUseConfirmModal').default);
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -286,12 +291,62 @@ describe('SettlementButton', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        resetMockConfirmModal();
     });
 
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it('blocks expense payment with a deleted bank account even after acknowledging the modal', async () => {
+        // Given a workspace whose bank account was deleted while a payment option remains available.
+        const expenseReport = createExpenseReport();
+        await setupOnyxState({
+            report: expenseReport,
+            chatReport: createChatReport(),
+            policy: createTestPolicy({
+                achAccount: {
+                    bankAccountID: BANK_ACCOUNT_ID,
+                    accountNumber: '1234',
+                    routingNumber: '123456789',
+                    addressName: 'Test Business',
+                    bankName: 'Test Bank',
+                    reimburser: ACCOUNT_LOGIN,
+                    state: CONST.BANK_ACCOUNT.STATE.DELETED,
+                },
+            }),
+            bankAccountList: createBankAccountList(),
+        });
+
+        render(
+            <SettlementButtonWrapper>
+                <SettlementButton
+                    {...defaultProps}
+                    iouReport={expenseReport}
+                />
+            </SettlementButtonWrapper>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user selects the bank account to pay the expense.
+        fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+        await waitForBatchedUpdatesWithAct();
+        const bankAccountOption = screen.getByTestId('PopoverMenuItem-Test Bank Account');
+        fireEvent.press(bankAccountOption, {nativeEvent: {}, type: 'press', target: bankAccountOption, currentTarget: bankAccountOption});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal explains the issue and acknowledging it never starts payment.
+        expect(mockShowConfirmModal).toHaveBeenCalledWith({
+            title: translateLocal('bankAccount.bankAccountUnavailable'),
+            prompt: translateLocal('bankAccount.youCantPayWithDeletedBankAccount'),
+            confirmText: translateLocal('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+        expect(defaultProps.onPress).not.toHaveBeenCalled();
+        await act(async () => resolveShowConfirmModal());
+        expect(defaultProps.onPress).not.toHaveBeenCalled();
     });
 
     describe('customText', () => {
