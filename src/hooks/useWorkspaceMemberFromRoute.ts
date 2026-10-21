@@ -1,4 +1,4 @@
-import {getMemberLoginByOptimisticAccountID} from '@libs/PolicyUtils';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
@@ -23,7 +23,7 @@ type WorkspaceMemberFromRoute = {
  * is resolved by login instead.
  */
 function useWorkspaceMemberFromRoute(policy: OnyxEntry<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>, routeAccountID: number): WorkspaceMemberFromRoute {
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
 

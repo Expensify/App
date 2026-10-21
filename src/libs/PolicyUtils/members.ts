@@ -216,23 +216,6 @@ function getAccountIDForSubmitManagerEmail(
 }
 
 /**
- * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
- * personal details once the invite request finishes and the backend supplies the real accountID. A member page opened
- * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
- * so the page keeps resolving the member across that swap.
- */
-function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
-    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
-    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
-    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
-    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
-    if (primaryLoginOfInvitedSecondary) {
-        return primaryLoginOfInvitedSecondary;
-    }
-    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
-}
-
-/**
  * Get login list that we should not show in the workspace invite options
  */
 function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
@@ -408,7 +391,6 @@ export {
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
-    getMemberLoginByOptimisticAccountID,
     getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
