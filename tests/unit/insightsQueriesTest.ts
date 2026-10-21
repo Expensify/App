@@ -2,6 +2,7 @@ import type {SearchCompareMode} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
+import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
@@ -223,7 +224,7 @@ describe('insightsQueries', () => {
 
         it('groups a chart that declares no group-by the way the page filters do', () => {
             // Given the headline chart, which declares no group-by of its own
-            const {headlineChart} = SPEND_SPEC;
+            const headlineChart: InsightsChartSpec = SPEND_SPEC.headlineChart;
             expect(headlineChart.groupBy).toBeUndefined();
 
             // When the page filters group by quarter

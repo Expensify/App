@@ -6,9 +6,11 @@ import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {canViewAllPolicyData} from './insightsAccess';
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -30,6 +32,15 @@ type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
     searchKey: InsightsSearchKey;
 
+    /** Label of the dashboard's tab in the segmented control */
+    labelKey: TranslationPaths;
+
+    /** The dashboard is hidden unless this beta is enabled */
+    beta?: Beta;
+
+    /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
+    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
 
@@ -37,9 +48,10 @@ type InsightsDashboardSpec = {
     supportingCharts: InsightsChartSpec[];
 };
 
-const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
+const INSIGHTS_DASHBOARD_SPECS = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
+        labelKey: 'common.spend',
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -77,14 +89,44 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
         ],
     },
-};
+    [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
+        searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
+        labelKey: 'insightsPage.compliance',
+        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
+        isPolicyEligible: canViewAllPolicyData,
+        // Placeholder until the Compliance charts land, when violationsOverTime replaces it (added for type compatibility)
+        headlineChart: {
+            graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
+            titleKey: 'search.spendOverTime',
+            view: CONST.SEARCH.VIEW.LINE,
+        },
+        supportingCharts: [],
+    },
+} satisfies Record<InsightsDashboardID, InsightsDashboardSpec>;
 
-/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
+/** Returns the workspaces the dashboard is scoped to. No selected workspaces means every workspace is in scope. */
+function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for. */
 function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+    const policiesInScope = getPoliciesInScope(policies, policyIDs);
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 
-export {getVisibleCharts};
-export type {InsightsChartSpec};
+/**
+ * Returns the dashboards whose beta is enabled and that at least one of the user's workspaces is eligible for, in the order their tabs are shown.
+ * The workspace filter only scopes a dashboard's data, so it doesn't decide which dashboards the user can open.
+ */
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+    const allPolicies = Object.values(policies ?? {});
+    return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
+        const {beta, isPolicyEligible}: InsightsDashboardSpec = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    });
+}
+
+export {getAccessibleDashboards, getVisibleCharts};
+export type {InsightsChartSpec, InsightsDashboardSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

@@ -22,11 +22,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -38,8 +41,9 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
+import InsightsTabSelector from './InsightsTabSelector';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -181,21 +185,26 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 }
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+    const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
+    const accessibleDashboards = getAccessibleDashboards(policies, login, isBetaEnabled);
+    const isAccessible = accessibleDashboards.includes(dashboardID);
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
     const jsonQuery = query?.jsonQuery;
     const hash = query?.hash;
 
     const requestDashboard = () => {
-        if (!query || !jsonQuery || hash === undefined || isOffline) {
+        if (!query || !jsonQuery || hash === undefined || isOffline || !isAccessible) {
             return;
         }
         getInsights(dashboardID, hash, jsonQuery, query.snapshotHashes);
@@ -210,7 +219,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
+    }, [dashboardID, jsonQuery, hash, isFocused, isOffline, isAccessible]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
@@ -233,6 +242,27 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
 
+    if (isResolved && !isLoadingOnyxValue(policiesMetadata) && !isAccessible) {
+        return <NotFoundPage />;
+    }
+
+    const tabSelector =
+        accessibleDashboards.length > 1 ? (
+            <InsightsTabSelector
+                activeDashboardID={dashboardID}
+                dashboardIDs={accessibleDashboards}
+            />
+        ) : null;
+
+    const pageControls =
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+            <InsightsPageControls
+                filters={filters}
+                defaultFilters={defaultFilters}
+                onChange={setFilters}
+            />
+        ) : null;
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
@@ -244,12 +274,20 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
-                />
+            {shouldUseNarrowLayout ? (
+                <>
+                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                    {pageControls}
+                </>
+            ) : (
+                (!!tabSelector || !!pageControls) && (
+                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {tabSelector}
+                            {pageControls}
+                        </View>
+                    </View>
+                )
             )}
             <InsightsDashboardContent
                 state={state}

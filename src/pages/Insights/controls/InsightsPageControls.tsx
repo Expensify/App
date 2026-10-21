@@ -71,11 +71,7 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
         );
     }
 
-    return (
-        <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-            <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>{controls}</View>
-        </View>
-    );
+    return <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>{controls}</View>;
 }
 
 export default InsightsPageControls;
