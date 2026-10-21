@@ -1702,44 +1702,31 @@ function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
             const presetRange = getDateRangeForPreset(equalToValue);
             start = presetRange.start;
             end = presetRange.end;
-        } else if (isValidDate(equalToValue)) {
-            start = equalToValue;
-            end = equalToValue;
+        } else {
+            start = getInclusiveRangeBoundary(equalToValue);
+            end = start;
         }
     }
 
+    // Typed dates can drop leading zeros, like 2026-1-5, so each boundary is zero-padded before it is compared with other dates
     const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
     if (greaterThanOrEqualToFilter) {
-        const filterValue = greaterThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            start = getLaterDate(start, filterValue);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanOrEqualToFilter.value.toString()));
     }
 
     const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (greaterThanFilter) {
-        const filterValue = greaterThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const nextDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), 1), 'yyyy-MM-dd');
-            start = getLaterDate(start, nextDay);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanFilter.value.toString(), 1));
     }
 
     const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     if (lowerThanOrEqualToFilter) {
-        const filterValue = lowerThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            end = getEarlierDate(end, filterValue);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanOrEqualToFilter.value.toString()));
     }
 
     const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
     if (lowerThanFilter) {
-        const filterValue = lowerThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const previousDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd');
-            end = getEarlierDate(end, previousDay);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanFilter.value.toString(), -1));
     }
 
     return {start, end};
