@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {Scheduler} from '@libs/Scheduler';
 
-import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
+import SubmitDetailsPage, {getDestinationKey} from '@pages/Share/SubmitDetailsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -306,6 +306,34 @@ function resetNavigationMocksForSubmitDetailsPageTests() {
 }
 
 describe('SubmitDetailsPage', () => {
+    it('keys personal destinations with a fake policy by report ID', () => {
+        // Given a self-DM and P2P destination that both use the fake policy sentinel
+        const selfDMReportID = 'self-dm-report';
+        const p2pReportID = 'p2p-report';
+
+        // When their destination keys are resolved
+        const selfDMDestinationKey = getDestinationKey(CONST.POLICY.ID_FAKE, selfDMReportID);
+        const p2pDestinationKey = getDestinationKey(CONST.POLICY.ID_FAKE, p2pReportID);
+
+        // Then each personal destination is distinguished by its report ID
+        expect(selfDMDestinationKey).toBe(`report:${selfDMReportID}`);
+        expect(p2pDestinationKey).toBe(`report:${p2pReportID}`);
+        expect(selfDMDestinationKey).not.toBe(p2pDestinationKey);
+    });
+
+    it('keys reports from the same real workspace by policy ID', () => {
+        // Given two reports belonging to the same real workspace
+        const policyID = 'workspace-policy';
+
+        // When their destination keys are resolved
+        const firstDestinationKey = getDestinationKey(policyID, 'first-report');
+        const secondDestinationKey = getDestinationKey(policyID, 'second-report');
+
+        // Then both reports retain the shared workspace destination key
+        expect(firstDestinationKey).toBe(`policy:${policyID}`);
+        expect(secondDestinationKey).toBe(firstDestinationKey);
+    });
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
     });

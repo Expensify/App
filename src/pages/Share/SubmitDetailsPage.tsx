@@ -82,7 +82,7 @@ import useShareFileSizeValidation from './useShareFileSizeValidation';
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 
 function getDestinationKey(policyID: string | undefined, reportID: string | undefined): string | undefined {
-    if (policyID) {
+    if (policyID && policyID !== CONST.POLICY.ID_FAKE) {
         return `policy:${policyID}`;
     }
     if (reportID) {
@@ -794,3 +794,5 @@ function SubmitDetailsPage({
 }
 
 export default SubmitDetailsPage;
+
+export {getDestinationKey};
