@@ -14,6 +14,12 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
+  # Deliberately absent from confirmPassingBuild's `needs`: the Oxlint run is a shadow gate, here
+  # only so the post-merge job can auto-tighten its own baseline.
+  oxlint:
+    uses: ./.github/workflows/oxlint.yml
+    secrets: inherit
+
   oxfmt:
     uses: ./.github/workflows/oxfmt.yml
 
