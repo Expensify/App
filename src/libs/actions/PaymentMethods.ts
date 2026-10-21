@@ -12,19 +12,20 @@ import type {
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
-import {isPolicyUser} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, isPolicyAdmin, isPolicyUser} from '@libs/PolicyUtils';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
-import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
+import type {BankAccountList, CardList, FundList, PolicyMemberBankAccounts} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type Policy from '@src/types/onyx/Policy';
 import type Session from '@src/types/onyx/Session';
@@ -35,6 +36,8 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
+
+import getMakeDefaultPaymentOnyxData from './getMakeDefaultPaymentOnyxData';
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
@@ -87,76 +90,49 @@ function getPaymentMethods(params?: OpenPaymentsPageParams) {
     );
 }
 
-function getMakeDefaultPaymentOnyxData(
-    bankAccountID: number,
-    fundID?: number,
-    previousPaymentMethod?: PaymentMethod,
-    currentPaymentMethod?: PaymentMethod,
-    isOptimisticData = true,
-): Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> {
-    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> = [
-        isOptimisticData
-            ? {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.USER_WALLET,
-                  value: {
-                      walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                      // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
-                      errors: null,
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.USER_WALLET,
-                  value: {
-                      walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                  },
-              },
-    ];
-
-    if (previousPaymentMethod?.methodID) {
-        onyxData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
-            value: {
-                [previousPaymentMethod.methodID]: {
-                    isDefault: !isOptimisticData,
-                },
-            },
-        });
-    }
-
-    if (currentPaymentMethod?.methodID) {
-        onyxData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
-            value: {
-                [currentPaymentMethod.methodID]: {
-                    isDefault: isOptimisticData,
-                },
-            },
-        });
-    }
-
-    return onyxData;
-}
-
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  */
-function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod?: PaymentMethod, currentPaymentMethod?: PaymentMethod) {
+function makeDefaultPaymentMethod(
+    bankAccountID: number,
+    fundID: number,
+    previousPaymentMethod?: PaymentMethod,
+    currentPaymentMethod?: PaymentMethod,
+    policies?: OnyxCollection<Policy>,
+    policyMemberBankAccounts?: OnyxCollection<PolicyMemberBankAccounts>,
+    accountID?: number,
+) {
     const parameters: MakeDefaultPaymentMethodParams = {
         bankAccountID,
         fundID,
     };
 
-    API.write(WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD, parameters, {
-        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
-        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
-    });
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST | typeof ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS>
+    > = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true);
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST | typeof ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS>
+    > = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false);
+
+    // Admins see their own default bank account on the Members page of workspaces with payments on
+    const accountData = currentPaymentMethod?.accountData;
+    if (bankAccountID && accountID) {
+        const memberBankAccount = {
+            bankName: accountData?.additionalData?.bankName,
+            bankAccountLastFour: getLastFourDigits(accountData && 'accountNumber' in accountData ? (accountData.accountNumber ?? '') : ''),
+        };
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy?.id || !isPolicyAdmin(policy) || !arePaymentsEnabled(policy)) {
+                continue;
+            }
+            const key = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policy.id}` as const;
+            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {[accountID]: memberBankAccount}});
+            failureData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {[accountID]: policyMemberBankAccounts?.[key]?.[accountID] ?? null}});
+        }
+    }
+
+    API.write(WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD, parameters, {optimisticData, failureData});
 }
 
 function buildAddPaymentCardFormLoadingOnyxData() {
@@ -639,7 +615,6 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
-    getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
     clearAddPaymentCardDraftCurrency,

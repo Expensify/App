@@ -279,7 +279,7 @@ function ToggleSettingOptionRow({
                             styles.flexRow,
                             shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.mnh40,
                             toggleContainerStyles,
                         ]}
                     >
