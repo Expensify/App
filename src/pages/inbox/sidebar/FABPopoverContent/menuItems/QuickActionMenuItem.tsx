@@ -20,7 +20,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {canCreateRequest, getDisplayNameForParticipant, getFirstWorkspaceChat, getIcons, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {canCreateRequest, getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
@@ -32,6 +32,7 @@ import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaDa
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -52,8 +53,8 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const firstWorkspaceChatSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getFirstWorkspaceChat(activePolicyID, [currentUserPersonalDetails.accountID], reports);
-    const [firstPolicyChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: firstWorkspaceChatSelector});
+    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [currentUserPersonalDetails.accountID], reports);
+    const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
     const [personalDetails] = useAllPersonalDetails();
@@ -72,7 +73,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
-    const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) ? firstPolicyChat : undefined;
+    const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
     const isPolicyChatForActivePolicyArchived = useReportIsArchived(policyChatForActivePolicy?.reportID);
 
     const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);

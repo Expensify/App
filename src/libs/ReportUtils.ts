@@ -1116,46 +1116,35 @@ Onyx.connect({
 });
 
 let deprecatedAllReports: OnyxCollection<Report>;
-let deprecatedReportsByPolicyID: ReportByPolicyMap | undefined;
-let deprecatedReportsByPolicyIDSource: OnyxCollection<Report>;
-let deprecatedReportsByPolicyIDAccountID: number | undefined;
+let deprecatedReportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
         deprecatedAllReports = value;
+
+        if (!value) {
+            return;
+        }
+
+        deprecatedReportsByPolicyID = {};
+        for (const reportID of Object.keys(value)) {
+            const report = value[reportID];
+            if (!report) {
+                continue;
+            }
+
+            // Get all reports, which are the ones that are:
+            // - Owned by the same user
+            // - Are either open or submitted
+            // - Belong to the same workspace
+            if (report.policyID && report.ownerAccountID === deprecatedCurrentUserAccountID && (report.stateNum ?? 0) <= 1) {
+                const reportsForPolicy = deprecatedReportsByPolicyID[report.policyID] ?? {};
+                reportsForPolicy[reportID] = report;
+                deprecatedReportsByPolicyID[report.policyID] = reportsForPolicy;
+            }
+        }
     },
 });
-
-/** Groups the current user's open/submitted reports by policy when needed, instead of on every report write. */
-function getDeprecatedReportsByPolicyID(): ReportByPolicyMap | undefined {
-    if (!deprecatedAllReports) {
-        return deprecatedReportsByPolicyID;
-    }
-    if (deprecatedReportsByPolicyIDSource === deprecatedAllReports && deprecatedReportsByPolicyIDAccountID === deprecatedCurrentUserAccountID) {
-        return deprecatedReportsByPolicyID;
-    }
-    deprecatedReportsByPolicyIDSource = deprecatedAllReports;
-    deprecatedReportsByPolicyIDAccountID = deprecatedCurrentUserAccountID;
-    const reportsByPolicyID: ReportByPolicyMap = {};
-    for (const reportID of Object.keys(deprecatedAllReports)) {
-        const report = deprecatedAllReports[reportID];
-        if (!report) {
-            continue;
-        }
-
-        // Get all reports, which are the ones that are:
-        // - Owned by the same user
-        // - Are either open or submitted
-        // - Belong to the same workspace
-        if (report.policyID && report.ownerAccountID === deprecatedCurrentUserAccountID && (report.stateNum ?? 0) <= 1) {
-            const reportsForPolicy = reportsByPolicyID[report.policyID] ?? {};
-            reportsForPolicy[reportID] = report;
-            reportsByPolicyID[report.policyID] = reportsForPolicy;
-        }
-    }
-    deprecatedReportsByPolicyID = reportsByPolicyID;
-    return deprecatedReportsByPolicyID;
-}
 
 let deprecatedAllTransactions: OnyxCollection<Transaction> = {};
 let deprecatedReportsTransactions: Record<string, Transaction[]> = {};
@@ -10682,13 +10671,12 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
     if (!isCurrentUserSubmitter(report)) {
         return null;
     }
-    const reportsByPolicyID = getDeprecatedReportsByPolicyID();
-    if (!report.policyID || !reportsByPolicyID) {
+    if (!report.policyID || !deprecatedReportsByPolicyID) {
         return null;
     }
 
     // If any report has a violation, then it should have a RBR
-    const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
+    const potentialReports = Object.values(deprecatedReportsByPolicyID[report.policyID] ?? {}) ?? [];
     const violatingReport = potentialReports
         // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
         .sort((a, b) => (a?.created ?? '').localeCompare(b?.created ?? ''))
@@ -12008,20 +11996,10 @@ function canCreateRequest(
     return requestOptions.includes(iouType);
 }
 
-function isWorkspaceChatOf(report: OnyxEntry<Report>, policyID: string | undefined, accountIDs: number[]): boolean {
-    return isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && !!report?.ownerAccountID && accountIDs.includes(report.ownerAccountID);
-}
-
 function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = deprecatedAllReports): Array<OnyxEntry<Report>> {
-    return Object.values(reports ?? {}).filter((report) => isWorkspaceChatOf(report, policyID, accountIDs));
-}
-
-/** Same match as getWorkspaceChats, but stops at the first chat for callers that only need one. */
-function getFirstWorkspaceChat(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report>): OnyxEntry<Report> {
-    if (!policyID) {
-        return undefined;
-    }
-    return Object.values(reports ?? {}).find((report) => isWorkspaceChatOf(report, policyID, accountIDs));
+    return Object.values(reports ?? {}).filter(
+        (report) => isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
+    );
 }
 
 /**
@@ -15450,7 +15428,6 @@ export {
     getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWhisperDisplayNames,
-    getFirstWorkspaceChat,
     getWorkspaceChats,
     getWorkspaceIcon,
     goBackToDetailsPage,
