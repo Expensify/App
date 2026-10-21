@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsCard, InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -36,6 +36,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
@@ -47,6 +48,7 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
+    aiInsights: InsightsCard[] | undefined;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -62,7 +64,7 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, aiInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
@@ -139,6 +141,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                <InsightsAICardRow cards={aiInsights} />
                 <InsightsChartWidget
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
@@ -253,6 +256,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             )}
             <InsightsDashboardContent
                 state={state}
+                aiInsights={dashboard?.aiInsights}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}
                 filters={filters}
