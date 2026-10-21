@@ -10,12 +10,12 @@ type SingleRHPWidthBounds = {
     max: number;
 };
 
-/** The widest bound stays narrower than the wide RHP and leaves the content beside the card some room, but never drops below the narrowest one. */
 function getSingleRHPWidthBounds(windowWidth: number, sidePanelWidth: number): SingleRHPWidthBounds {
     const min = CONST.RHP_RESIZE.MIN_WIDTH;
+    const widthBelowWideRHP = calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET;
     const widthLeftForCard = windowWidth - variables.rhpFloatingCardMargin - 2 * variables.rhpFloatingCardBorderWidth - sidePanelWidth - CONST.RHP_RESIZE.CONTENT_RESERVE_WIDTH;
 
-    return {min, max: Math.max(min, Math.min(calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET, widthLeftForCard))};
+    return {min, max: Math.max(min, Math.min(widthBelowWideRHP, widthLeftForCard))};
 }
 
 export default getSingleRHPWidthBounds;

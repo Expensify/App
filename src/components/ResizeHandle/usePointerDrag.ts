@@ -45,7 +45,6 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
         event.preventDefault();
         event.stopPropagation();
 
-        // Keeps the drag on this handle once the pointer moves off it.
         event.currentTarget.setPointerCapture(event.pointerId);
 
         setDrag(drag);

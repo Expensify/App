@@ -18,7 +18,6 @@ jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Re
 
 const RHP_WIDTH = 375;
 
-/** A width the user dragged the single RHP to and that got saved. */
 const SAVED_SINGLE_RHP_WIDTH = 600;
 
 /** The live width a drag writes to CSS, falling back to the saved width, with the card's border added. */

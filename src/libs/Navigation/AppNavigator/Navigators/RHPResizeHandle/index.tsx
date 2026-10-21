@@ -1,4 +1,3 @@
-/** The draggable left edge of the single RHP card on web, which resizes the card. */
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 
@@ -21,10 +20,8 @@ type RHPResizeHandleProps = {
 };
 
 type Drag = {
-    /** Where the pointer went down. */
     startClientX: number;
 
-    /** The RHP's width when the drag started. */
     startWidth: number;
 
     /** Last width painted into CSS, `undefined` until the pointer moves. */
