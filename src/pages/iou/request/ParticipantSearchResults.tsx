@@ -200,11 +200,13 @@ function ParticipantSearchResults({
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
 
+    const includeOwnedWorkspaceChats =
+        !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK);
+
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats:
-            !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK),
+        includeOwnedWorkspaceChats,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -219,6 +221,8 @@ function ParticipantSearchResults({
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        // Only boost the default workspace chat when workspace chats can be shown, so it doesn't take a slot in the recent-reports limit
+        activePolicyID: includeOwnedWorkspaceChats ? activePolicyID : undefined,
     };
 
     /**

@@ -10,6 +10,7 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -131,6 +132,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -193,7 +195,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
         report,
-        transactionThreadReport,
+        // The table view doesn't show the expense thread's actions, so a new one there shouldn't mark the report as read
+        transactionThreadReport: shouldUseTableViewForSingleExpense ? undefined : transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
         sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
@@ -365,7 +368,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
+                        // 20px between the report header and the first row of content, which is the report field inputs when the report has fields.
+                        contentContainerStyle={[styles.pt5, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
                            the same position the indicator occupies in the inverted ReportActionsList. */

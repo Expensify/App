@@ -145,6 +145,7 @@ import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
 import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
+import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
@@ -506,6 +507,7 @@ const Expensicons = {
     ReceiptMultiple,
     RilletSquare,
     DualEntrySquare,
+    ExactOnlineSquare,
     Rotate,
     RotateLeft,
     Scan,
