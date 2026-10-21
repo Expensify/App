@@ -810,7 +810,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     data-testid={Platform.OS === 'web' ? 'report-actions-list' : undefined}
                     testID={Platform.OS === 'web' ? undefined : 'report-actions-list'}
                     ref={legendListRef}
-                    style={styles.overscrollBehaviorContain}
+                    style={[styles.flex1, styles.overscrollBehaviorContain]}
                     data={listData}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
