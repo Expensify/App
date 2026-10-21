@@ -383,5 +383,32 @@ describe('TotalCell', () => {
             // Then the input starts empty instead of showing the placeholder amount
             expect(input.props.value).toBe('');
         });
+
+        it('saves the amount and closes the editor when the user submits with Enter', async () => {
+            // Given a tracked expense of $10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+
+            // When the user enters a new amount and submits with Enter
+            fireEvent.changeText(input, '15.00');
+            fireEvent(input, 'submitEditing');
+
+            // Then the new amount is saved and the cell exits edit mode
+            expect(onSave).toHaveBeenCalledWith(1500);
+            expect(screen.queryByLabelText('Amount (USD)')).not.toBeOnTheScreen();
+        });
+
+        it('does not save when the cell is opened and submitted with Enter without changes', async () => {
+            // Given a tracked expense of $10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+
+            // When the user submits with Enter without editing
+            fireEvent(input, 'submitEditing');
+
+            // Then nothing is saved and the cell exits edit mode
+            expect(onSave).not.toHaveBeenCalled();
+            expect(screen.queryByLabelText('Amount (USD)')).not.toBeOnTheScreen();
+        });
     });
 });

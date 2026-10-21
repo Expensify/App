@@ -156,6 +156,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                     hasSymbolSpaceInPreview={hasSymbolSpaceInPreview}
                     accessibilityLabel={`${translate('iou.amount')} (${currency})`}
                     onBlur={save}
+                    onSubmitEditing={save}
                 />
             }
         >

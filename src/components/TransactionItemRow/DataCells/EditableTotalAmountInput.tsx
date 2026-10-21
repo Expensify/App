@@ -42,6 +42,9 @@ type EditableTotalAmountInputProps = {
     /** Called when the input loses focus. */
     onBlur: () => void;
 
+    /** Called when the input is submitted (e.g. Enter is pressed). */
+    onSubmitEditing?: () => void;
+
     /** Reference to the underlying text input. */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
@@ -60,6 +63,7 @@ function EditableTotalAmountInput({
     hasSymbolSpaceInPreview,
     accessibilityLabel,
     onBlur,
+    onSubmitEditing,
     ref,
 }: EditableTotalAmountInputProps) {
     const styles = useThemeStyles();
@@ -123,6 +127,7 @@ function EditableTotalAmountInput({
                 // EditableCell owns the cell's border and background, so the input draws neither
                 inputStyle={[styles.textAlignRight, styles.pr0]}
                 onBlur={onBlur}
+                onSubmitEditing={onSubmitEditing}
                 onChangeText={controller.setNumber}
                 onKeyPress={controller.handleKeyPress}
                 onMouseDown={handleMouseDown}
@@ -137,7 +142,7 @@ function EditableTotalAmountInput({
                 shouldInterceptSwipe
                 shouldUseFullInputHeight
                 spellCheck={false}
-                submitBehavior="submit"
+                submitBehavior="blurAndSubmit"
                 textInputContainerStyles={styles.editableCellInputStyle}
                 touchableInputWrapperStyle={styles.editableCellInputStyle}
                 value={controller.formattedNumber}
