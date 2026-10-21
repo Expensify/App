@@ -113,14 +113,8 @@
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Hover"	2
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Race"	2
-"../../src/components/Charts/hooks/useChartInteractions.ts"	"@typescript-eslint/no-deprecated/Gesture.Tap"	2
 "../../src/components/Charts/hooks/useChartLabelFormats.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/hooks/useChartLabelMeasurements.ts"	"rulesdir/no-raw-typography"	1
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Hover"	2
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Race"	2
-"../../src/components/Charts/PieChart/PieChartContent.tsx"	"@typescript-eslint/no-deprecated/Gesture.Tap"	2
 "../../src/components/Charts/utils/chartFontAssets.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/components/Charts/utils/chartFontAssets.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/components/Charts/utils/chartFontsCache.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -318,8 +312,6 @@
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/components/NumericInput/primitives/NumericInputContainer.tsx"	"@typescript-eslint/no-unsafe-assignment"	1
-"../../src/components/NumericInput/primitives/NumericSymbolButton.tsx"	"@typescript-eslint/no-unsafe-assignment"	2
 "../../src/components/OfflineWithFeedback.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/OfflineWithFeedback.tsx"	"import/no-cycle"	1
 "../../src/components/Onfido/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -505,10 +497,6 @@
 "../../src/components/SubStepForms/RegistrationNumberStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SwipeableView/index.native.tsx"	"react-hooks/refs"	2
 "../../src/components/SymbolButton.tsx"	"no-restricted-syntax"	1
-"../../src/components/Table/columnResize/applyColumnWidthOverrides.ts"	"@typescript-eslint/no-redundant-type-constituents"	1
-"../../src/components/Table/columnResize/applyColumnWidthOverrides.ts"	"@typescript-eslint/no-unsafe-argument"	1
-"../../src/components/Table/columnResize/applyColumnWidthOverrides.ts"	"@typescript-eslint/no-unsafe-assignment"	1
-"../../src/components/Table/columnResize/applyColumnWidthOverrides.ts"	"@typescript-eslint/no-unsafe-member-access"	1
 "../../src/components/Table/middlewares/filtering.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Table/Table.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Table/TableBody.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -2285,6 +2273,8 @@
 "../../tests/ui/components/MoneyReportHeaderFocusSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/MoneyReportHeaderSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/MoneyRequestHeaderSecondaryActionsTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
+"../../tests/ui/components/SelectionToolbarSubmitToPopoverTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/ui/components/SelectionToolbarSubmitToPopoverTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/components/SettlementButtonTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	7
 "../../tests/ui/ComposerImperativeRefTest.tsx"	"@typescript-eslint/no-deprecated/keyCode"	1
 "../../tests/ui/ComposerTest.tsx"	"rulesdir/no-raw-typography"	1
@@ -2415,6 +2405,8 @@
 "../../tests/unit/hooks/useDeleteTransactionsInvoiceOfflineTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/hooks/useDismissOnMoneyRequestReportRemoval.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/hooks/useExpenseActionsInvoiceDeleteTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/unit/hooks/useExpenseActionsSingleExpenseTableViewDeleteTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
+"../../tests/unit/hooks/useExpenseActionsSingleExpenseTableViewDeleteTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useExpenseSubmission.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/unit/hooks/useFeedKeysWithAssignedCards.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/hooks/useFilesValidation.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
@@ -2434,6 +2426,7 @@
 "../../tests/unit/hooks/useSeedMyExpensesSearch.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useSelectedTransactionsActions.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/hooks/useSelectionModeReportActions.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
+"../../tests/unit/hooks/useSingleExpenseReportView.test.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/hooks/useSplitEffectivePolicy.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useSplitParticipants.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useTimeSensitiveAddBankAccount.test.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
@@ -2539,6 +2532,7 @@
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"no-restricted-imports"	1
 "../../tests/unit/SearchEditMultipleUtilsTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/SequentialQueueTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
+"../../tests/unit/shouldShowPushNotificationTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/showReportActionNotificationTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/SidebarLinksTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/SidebarLinksTest.tsx"	"react/button-has-type"	1
