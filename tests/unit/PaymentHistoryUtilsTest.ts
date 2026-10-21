@@ -445,7 +445,7 @@ describe('getActiveUserAccountIDs', () => {
     it('returns no users when the details have not loaded or nobody was billed', () => {
         // Given a missing purchase, a purchase without active users, and a purchase with an empty list
         // When the active users are read
-        // Then the list is empty, so the page renders the empty state instead of a blank section
+        // Then the list is empty, so the page hides the Activity section
         expect(getActiveUserAccountIDs(undefined)).toEqual([]);
         expect(getActiveUserAccountIDs(createPurchase(1, '2026-02-01'))).toEqual([]);
         expect(getActiveUserAccountIDs({...createPurchase(1, '2026-02-01'), activeUsers: []})).toEqual([]);
