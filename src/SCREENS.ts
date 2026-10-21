@@ -56,6 +56,7 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
+        SEARCH_CHANGE_WORKSPACE_RHP: 'Search_Change_Workspace_RHP',
         EDIT_MULTIPLE_TRANSACTIONS_RHP: 'Search_Edit_Multiple_Transactions_RHP',
         EDIT_MULTIPLE_AMOUNT_RHP: 'Search_Edit_Multiple_Amount_RHP',
         EDIT_MULTIPLE_DESCRIPTION_RHP: 'Search_Edit_Multiple_Description_RHP',

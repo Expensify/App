@@ -12171,6 +12171,67 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         errorTitle: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut',
         errorPrompt: 'Anscheinend hat etwas nicht funktioniert. Bitte versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich bitte an Concierge.',
     },
+    bulkAction: {
+        approvingTitle: 'Berichte werden genehmigt …',
+        submittingTitle: 'Berichte werden eingereicht …',
+        payingTitle: 'Berichte werden als bezahlt markiert …',
+        holdingTitle: 'Ausgaben werden zurückgehalten …',
+        unholdingTitle: 'Zurückhalten von Ausgaben wird aufgehoben …',
+        rejectingTitle: 'Ausgaben werden abgelehnt …',
+        deletingTitle: 'Berichte werden gelöscht …',
+        deletingExpensesTitle: 'Ausgaben werden gelöscht …',
+        changingWorkspaceTitle: 'Berichte werden verschoben …',
+        runningBody: 'Dies kann einige Minuten dauern. Sie können hier warten, oder Concierge kann Ihnen eine Nachricht senden, wenn es fertig ist.',
+        sendFromConcierge: 'Mir eine Nachricht senden, wenn es fertig ist',
+        conciergeTitle: 'Auf jeden Fall!',
+        conciergeBody: 'Concierge wird Ihnen eine Nachricht senden, sobald es fertig ist.',
+        goToConcierge: 'Zu Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht genehmigt`,
+            other: `${doneCount} von ${count} Berichte genehmigt`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht eingereicht`,
+            other: `${doneCount} von ${count} Berichte eingereicht`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht als bezahlt markiert`,
+            other: `${doneCount} von ${count} Berichte als bezahlt markiert`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht zurückgehalten`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten zurückgehalten`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Zurückhalten von Ausgaben in ${doneCount} von ${count} Bericht aufgehoben`,
+            other: `Zurückhalten von Ausgaben in ${doneCount} von ${count} Berichten aufgehoben`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht abgelehnt`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten abgelehnt`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht gelöscht`,
+            other: `${doneCount} von ${count} Berichte gelöscht`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht gelöscht`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten gelöscht`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht verschoben`,
+            other: `${doneCount} von ${count} Berichte verschoben`,
+        }),
+        noReportsTitle: 'Keine übereinstimmenden Berichte',
+        noReportsBody: 'Keiner der von Ihnen ausgewählten Berichte benötigte diese Aktion.',
+        failedReportsBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht aktualisiert werden.',
+            other: `${count} Berichte konnten nicht aktualisiert werden.`,
+        }),
+        viewFailedReports: 'Berichte anzeigen',
+        failedTitle: 'Es ist ein Fehler aufgetreten',
+        failedBody: 'Diese Aktion konnte nicht gestartet werden. Bitte versuchen Sie es später noch einmal.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
             `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,
