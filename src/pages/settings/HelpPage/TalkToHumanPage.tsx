@@ -4,6 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import ROUTES from '@src/ROUTES';
 
@@ -33,7 +34,10 @@ function TalkToHumanPage() {
 
         // Leave this route before creating the ticket. The ticket stores the route it was opened from as its back target,
         // so opening it from here would make Back return to this loader instead of the chat the link was pressed in.
-        Navigation.goBack(undefined, {afterTransition: openSupportTicketOrConcierge});
+        // A direct link has nothing behind it to return to and goBack would then skip afterTransition, so it falls back
+        // to the Help page and opens the ticket from there.
+        const fallbackRoute = navigationRef.current?.canGoBack() ? undefined : ROUTES.SETTINGS_HELP;
+        Navigation.goBack(fallbackRoute, {afterTransition: openSupportTicketOrConcierge});
 
         // openSupportTicketOrConcierge is a new function on every render and hasRequestedTicket already stops a second
         // request, so this effect only needs to react to the connection changing.
