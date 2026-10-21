@@ -112,7 +112,7 @@ const createReportAttributesSelector =
 /**
  * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
  * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
- * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` evicts the whole-list one.
+ * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` or `agentsWhitelist` evicts the whole-list one.
  */
 const memoizedCreateOptionList = memoize(createOptionList, {
     maxSize: 1,
