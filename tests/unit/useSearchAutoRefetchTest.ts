@@ -6,9 +6,9 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyEmployee, Transaction} from '@src/types/onyx';
+import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
+import type {Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -65,8 +65,8 @@ describe('useSearchAutoRefetch', () => {
         previousTransactions: {},
         reportActions: {},
         previousReportActions: {},
-        policies: {},
-        previousPolicies: {},
+        memberCustomFields: {},
+        previousMemberCustomFields: {},
         queryJSON: {
             type: 'expense',
             sortBy: 'date',
@@ -620,73 +620,80 @@ describe('useSearchAutoRefetch', () => {
     describe('member custom field changes', () => {
         const transactions = {transactions_1: createMock<Transaction>({transactionID: '1'})};
         const reportActions = {};
-        const policyWithMember = (employee: Partial<PolicyEmployee>) => createMock<Policy>({id: '1', employeeList: {'a@b.com': employee}});
+        const memberWithUserID = (employeeUserID: string): MemberCustomFieldsByPolicyID => ({'1': {'a@b.com': {employeeUserID}}});
 
-        const buildProps = (policy: Policy, previousPolicy: Policy, policyKey = 'policy_1') =>
+        const buildProps = (memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined) =>
             createMock<UseSearchAutoRefetch>({
                 ...baseProps,
-                searchResults: {
-                    ...baseProps.searchResults,
-                    data: {
-                        transactions_1: {transactionID: '1'},
-                        policy_1: {id: '1'},
-                    },
-                },
                 transactions,
                 previousTransactions: transactions,
                 reportActions,
                 previousReportActions: reportActions,
-                policies: {[policyKey]: policy},
-                previousPolicies: {[policyKey]: previousPolicy},
+                memberCustomFields,
+                previousMemberCustomFields,
             });
 
         it('should trigger search when a member custom field changes on a policy the results display', () => {
-            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
+            // Given results whose member custom fields have loaded once
+            const oldFields = memberWithUserID('OLD');
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: buildProps(oldPolicy, oldPolicy),
+                initialProps: buildProps(oldFields, oldFields),
             });
 
-            rerender(buildProps(policyWithMember({employeeUserID: 'NEW'}), oldPolicy));
+            // When a member's custom field value changes
+            rerender(buildProps(memberWithUserID('NEW'), oldFields));
+
+            // Then one search is sent so the snapshot picks up the new value
             expect(search).toHaveBeenCalledTimes(1);
             expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
         });
 
         it('should defer the search for a member custom field change until Search is focused again', () => {
-            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
-            const newPolicy = policyWithMember({employeeUserID: 'NEW'});
+            // Given Search is not the focused screen
+            const oldFields = memberWithUserID('OLD');
+            const newFields = memberWithUserID('NEW');
             mockUseIsFocused.mockReturnValue(false);
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: buildProps(oldPolicy, oldPolicy),
+                initialProps: buildProps(oldFields, oldFields),
             });
 
-            rerender(buildProps(newPolicy, oldPolicy));
+            // When a member's custom field changes while Search is blurred
+            rerender(buildProps(newFields, oldFields));
             expect(search).not.toHaveBeenCalled();
 
-            rerender(buildProps(newPolicy, newPolicy));
+            rerender(buildProps(newFields, newFields));
             expect(search).not.toHaveBeenCalled();
 
+            // Then the search fires once Search regains focus
             mockUseIsFocused.mockReturnValue(true);
-            rerender(buildProps(newPolicy, newPolicy));
+            rerender(buildProps(newFields, newFields));
             expect(search).toHaveBeenCalledTimes(1);
         });
 
-        it('should not trigger search when only a member pendingFields entry changes', () => {
-            const oldPolicy = policyWithMember({employeeUserID: 'OLD', pendingFields: {employeeUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
+        it('should not trigger search when the custom fields are rewritten with the same values', () => {
+            // Given a member whose custom fields have loaded
+            const oldFields = memberWithUserID('OLD');
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: buildProps(oldPolicy, oldPolicy),
+                initialProps: buildProps(oldFields, oldFields),
             });
 
-            rerender(buildProps(policyWithMember({employeeUserID: 'OLD'}), oldPolicy));
+            // When the projection is replaced by an equal one
+            rerender(buildProps(memberWithUserID('OLD'), oldFields));
+
+            // Then no search is sent
             expect(search).not.toHaveBeenCalled();
         });
 
-        it('should not trigger search when a member custom field changes on a policy absent from the results', () => {
-            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
+        it('should not trigger search when a policy or member first appears in the custom fields', () => {
+            // Given no custom fields have loaded for the results yet
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: buildProps(oldPolicy, oldPolicy, 'policy_2'),
+                initialProps: buildProps({}, {}),
             });
 
-            rerender(buildProps(policyWithMember({employeeUserID: 'NEW'}), oldPolicy, 'policy_2'));
+            // When a policy and its member arrive for the first time
+            rerender(buildProps(memberWithUserID('NEW'), {}));
+
+            // Then no search is sent, since nothing the results already show has changed
             expect(search).not.toHaveBeenCalled();
         });
     });

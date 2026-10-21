@@ -9,7 +9,8 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
+import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -34,11 +35,11 @@ type UseSearchAutoRefetch = {
     /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
 
-    /** Current policies collection */
-    policies: OnyxCollection<Policy>;
+    /** Member custom fields of the policies the results display, keyed by policy ID then member login */
+    memberCustomFields: MemberCustomFieldsByPolicyID | undefined;
 
-    /** Previous policies collection, compared against `policies` to detect member custom field edits */
-    previousPolicies: OnyxCollection<Policy>;
+    /** Previous member custom fields, compared against `memberCustomFields` to detect edits */
+    previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined;
 
     /** Parsed search query the refetch is issued for */
     queryJSON: SearchQueryJSON;
@@ -63,8 +64,8 @@ function useSearchAutoRefetch({
     previousTransactions,
     reportActions,
     previousReportActions,
-    policies,
-    previousPolicies,
+    memberCustomFields,
+    previousMemberCustomFields,
     queryJSON,
     searchKey,
     offset,
@@ -92,7 +93,7 @@ function useSearchAutoRefetch({
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && policies === previousPolicies && !hasPendingSearchRef.current) {
+        if (transactions === previousTransactions && reportActions === previousReportActions && memberCustomFields === previousMemberCustomFields && !hasPendingSearchRef.current) {
             return;
         }
 
@@ -120,7 +121,7 @@ function useSearchAutoRefetch({
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
-        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomFieldInSearchResults(policies, previousPolicies, searchResultsData);
+        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Check if there is a change in the transactions or report actions list
         if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
@@ -189,8 +190,8 @@ function useSearchAutoRefetch({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        policies,
-        previousPolicies,
+        memberCustomFields,
+        previousMemberCustomFields,
         isChat,
         searchResultsData,
         isOffline,
@@ -227,6 +228,12 @@ function hasNestedTransactions(entry: unknown): entry is {transactions: Array<Pa
 /**
  * Helper function to extract transaction IDs from search results data.
  */
+function getPolicyIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']> | undefined): string[] {
+    return Object.keys(searchResultsData ?? {})
+        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY))
+        .map((key) => key.slice(ONYXKEYS.COLLECTION.POLICY.length));
+}
+
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
@@ -307,29 +314,20 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
-// Compares custom field values rather than employee identity, so clearing `pendingFields` after the save does not refetch a second time.
-function hasChangedMemberCustomFieldInSearchResults(
-    policies: OnyxCollection<Policy>,
-    previousPolicies: OnyxCollection<Policy>,
-    searchResultsData: Partial<SearchResults['data']> | undefined,
-): boolean {
-    if (!searchResultsData || !policies || !previousPolicies) {
+function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {
+    if (!memberCustomFields || !previousMemberCustomFields) {
         return false;
     }
 
     const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
-    for (const key of Object.keys(searchResultsData)) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
+    for (const [policyID, customFieldsByLogin] of Object.entries(memberCustomFields)) {
+        const previousCustomFieldsByLogin = previousMemberCustomFields[policyID];
+        if (!previousCustomFieldsByLogin) {
             continue;
         }
-        const policy = policies[key];
-        const previousPolicy = previousPolicies[key];
-        if (!policy || !previousPolicy || policy === previousPolicy) {
-            continue;
-        }
-        for (const [login, employee] of Object.entries(policy.employeeList ?? {})) {
-            const previousEmployee = previousPolicy.employeeList?.[login];
-            if (previousEmployee && customFieldKeys.some((customFieldKey) => employee[customFieldKey] !== previousEmployee[customFieldKey])) {
+        for (const [login, customFields] of Object.entries(customFieldsByLogin)) {
+            const previousCustomFields = previousCustomFieldsByLogin[login];
+            if (previousCustomFields && customFieldKeys.some((key) => customFields[key] !== previousCustomFields[key])) {
                 return true;
             }
         }
@@ -339,4 +337,5 @@ function hasChangedMemberCustomFieldInSearchResults(
 }
 
 export default useSearchAutoRefetch;
+export {getPolicyIDsFromSearchResults};
 export type {UseSearchAutoRefetch};
