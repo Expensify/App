@@ -303,7 +303,11 @@ type WiseBusinessOnboarding = {
     /** Uploaded file keys, by requirement then by field */
     documents?: Record<string, Record<string, string[]>>;
 
-    /** What the application needs right now, one entry per Wise requirement type. Built by the server on every send, never stored: before Submit the pages the intake pre-collects, after it Wise's live review list */
+    /**
+     * What the application still needs, one entry per Wise requirement type.
+     * Built by the server on every send and never stored. Before Submit it lists what the
+     * intake pre-collects; after Submit it is Wise's live review list.
+     */
     kycRequirements?: WiseKYCRequirement[];
 };
 
