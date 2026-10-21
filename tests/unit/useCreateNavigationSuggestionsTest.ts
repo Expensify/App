@@ -43,6 +43,7 @@ const mockHasAcceptedTravelTerms = jest.fn(() => false);
 const mockIsPaidGroupPolicy = jest.fn(() => false);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
+const mockFormatPhoneNumber = jest.fn(formatPhoneNumber);
 let mockIsRestrictedPolicyCreation = false;
 let mockOnyxValues = new Map<string, unknown>();
 const mockIcon = () => null;
@@ -75,6 +76,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
+        formatPhoneNumber: mockFormatPhoneNumber,
         translate: (key: string) => {
             const translations = new Map([
                 ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
@@ -422,7 +424,7 @@ describe('useCreateNavigationSuggestions', () => {
         act(() => onCreateReport?.(submitPolicy, true));
 
         // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, formatPhoneNumber, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, mockFormatPhoneNumber, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
