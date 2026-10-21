@@ -136,6 +136,7 @@ function LHNOptionsList({
 
     // Kept in a ref rather than state: onScroll is the only reader, and the header's height must never trigger a re-render.
     const listHeaderHeightRef = useRef(0);
+    const hasListHeader = !!listHeaderComponent;
     const onListHeaderLayout = useCallback((event: LayoutChangeEvent) => {
         listHeaderHeightRef.current = event.nativeEvent.layout.height;
     }, []);
@@ -150,13 +151,16 @@ function LHNOptionsList({
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
             if (isWeb) {
                 // The list header is part of the content, so discount its height before converting the offset to a
-                // row index — otherwise the restored index overshoots by however many rows the header covers.
-                const rowsOffset = Math.max(e.nativeEvent.contentOffset.y - listHeaderHeightRef.current, 0);
+                // row index — otherwise the restored index overshoots by however many rows the header covers. The header
+                // can be removed without a remount (e.g. on rotation), which leaves its last height in the ref, so only
+                // discount it while a header is rendered.
+                const listHeaderHeight = hasListHeader ? listHeaderHeightRef.current : 0;
+                const rowsOffset = Math.max(e.nativeEvent.contentOffset.y - listHeaderHeight, 0);
                 saveScrollIndex(route, Math.floor(rowsOffset / estimatedItemSize));
             }
             triggerScrollEvent();
         },
-        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
+        [estimatedItemSize, hasListHeader, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {

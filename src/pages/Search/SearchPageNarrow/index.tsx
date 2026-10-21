@@ -159,13 +159,13 @@ function SearchPageNarrow({
             onScroll: (event) => {
                 scheduleOnRN(triggerScrollEvent);
                 const {contentOffset, layoutMeasurement, contentSize} = event;
-                if (windowHeight > contentSize.height) {
-                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                    return;
-                }
                 const currentOffset = contentOffset.y;
                 if (shouldScrollMainHeader) {
                     scheduleOnRN(onListScrollForScrollAwayHeader, currentOffset);
+                }
+                if (windowHeight > contentSize.height) {
+                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                    return;
                 }
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
