@@ -126,7 +126,7 @@ function ReportOrNotFoundGuard({reportID, shouldRequireReportID = true, children
     }
 
     if (decision === 'loading') {
-        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullscreenLoadingIndicator />;
     }
 
     if (decision === 'notFound') {

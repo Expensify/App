@@ -1,5 +1,4 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -100,7 +99,7 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const inputRef = useRef<BaseTextInputRef>(null);
     const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
@@ -134,8 +133,9 @@ function SearchAutocompleteInput({
         return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
     });
     const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => (typeof color === 'string' ? color : defaultBorderColor));
         return {
-            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], borderColors, 'RGB'),
         };
     });
 
@@ -242,7 +242,7 @@ function SearchAutocompleteInput({
                             return;
                         }
 
-                        inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element;
 
                         if (typeof ref === 'function') {
                             ref(element);

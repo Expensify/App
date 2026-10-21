@@ -4,8 +4,6 @@
  * list's commit, and cancels it on supersede, clear, close, unmount, or timeout. Records only privacy-preserving attributes,
  * never the raw query text.
  */
-import type {SearchAutocompleteQueryRange} from '@components/Search/types';
-
 import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import {parse as parseSearchQuery} from '@libs/SearchParser/searchParser';
 
@@ -58,11 +56,13 @@ function getSearchRouterQueryLengthBucket(length: number): SearchRouterQueryLeng
     return length <= LONG_QUERY_MAX_LENGTH ? buckets.LONG : buckets.VERY_LONG;
 }
 
+type AutocompleteRange = NonNullable<ReturnType<typeof parseForAutocomplete>>['autocomplete'];
+
 /**
  * Returns `query` without a trailing filter that has no value yet (`taxi from:`). The router already treats it as a
  * filter, while the search parser reads a key without a value as free text.
  */
-function getQueryWithoutEmptyAutocompleteFilter(query: string, autocomplete: SearchAutocompleteQueryRange | null | undefined): string {
+function getQueryWithoutEmptyAutocompleteFilter(query: string, autocomplete: AutocompleteRange | undefined): string {
     if (!autocomplete || autocomplete.value) {
         return query;
     }
