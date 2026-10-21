@@ -35,6 +35,7 @@ import {
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
+    buildOptimisticChangeFieldAction,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
@@ -97,6 +98,7 @@ import {
     getBillableAndTaxTotal,
     getChatByParticipants,
     getChatListItemReportName,
+    getChatReportFromMoneyRequestReport,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultGroupAvatar,
@@ -609,11 +611,16 @@ describe('ReportUtils', () => {
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
         const policyID = 332;
+        const reimburserEmail = 'reimburser@example.com';
+        const reimburserAccountID = 332001;
 
+        // The workspace account is only a valid fallback for a payment made by the designated payer, so the pay action
+        // has to come from the reimburser for these messages to name it.
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             reportID: iouReportID,
+            actorAccountID: reimburserAccountID,
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
@@ -627,9 +634,17 @@ describe('ReportUtils', () => {
                 routingNumber: '011401533',
                 addressName: 'Bank Workspace',
                 bankName: 'Test Bank',
-                reimburser: 'reimburser@example.com',
+                reimburser: reimburserEmail,
             },
         };
+
+        beforeAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
+        });
+
+        afterAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+        });
 
         it('should return the right message when payment type is ACH', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
@@ -639,16 +654,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
-        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
-            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
+        it('should use the passed policy (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given a policy passed explicitly, with no matching policy read from Onyx
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            // Then the ACH last 4 digits are resolved from the passed account number alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
+            // Then the ACH last 4 digits are resolved from the passed policy alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -664,9 +679,7 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                paidSystemMessage,
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -690,7 +703,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -705,7 +718,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translateLocal('iou.receivedPaymentReportAction'),
             );
         });
@@ -721,9 +734,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                translateLocal('iou.paidElsewhere'),
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(translateLocal('iou.paidElsewhere'));
         });
 
         it('should return an empty string for a non-money-request action', () => {
@@ -732,10 +743,10 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
         });
 
-        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
+        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
             // Given an automatically-paid VBBA action with no accountNumber on the action itself
             const automaticVBBAAction = {
                 ...reportAction,
@@ -744,8 +755,8 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
-            // Then the workspace-rules message resolves the last 4 digits from the passed account number
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expected);
+            // Then the workspace-rules message resolves the last 4 digits from the passed policy
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -754,8 +765,29 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
+            );
+        });
+
+        it('should not attribute a non-payer admin VBBA payment to the workspace bank account', () => {
+            // Given a VBBA pay action with no account on it, made by an admin who is not the designated payer
+            const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
+
+            // Then the message does not guess the workspace account, since the admin paid from an account of their own
+            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined, undefined, reimburserAccountID)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
+            );
+        });
+
+        it('should keep the workspace bank account when the reimburser is not in personal details', () => {
+            // Given a policy whose reimburser this viewer has never interacted with (no personal details loaded)
+            const policyWithUnknownReimburser: Policy = {...policyWithBank, reimburser: 'unknown-reimburser@example.com'};
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+
+            // Then the payer can't be ruled out, so the message keeps the workspace account instead of blanking the digits
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits),
             );
         });
 
@@ -5131,6 +5163,40 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                     expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
+            });
+
+            it('it is an empty open expense report the user owns that has no link to its workspace chat', async () => {
+                // Given a paid group policy
+                const paidPolicy: Policy = {
+                    ...createRandomPolicy(97769),
+                    id: 'emptyExpenseReportWithoutChatPolicy',
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy);
+
+                // And an empty open expense report the current user owns, as received from another session: its only participant is the owner and it
+                // carries neither parentReportID nor chatReportID, so its workspace chat can't be resolved from the report itself
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: paidPolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+                    parentReportID: undefined,
+                    chatReportID: undefined,
+                };
+
+                // When getting the money request options with only the current user as a participant
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID], undefined);
+
+                // Then the user can still add an expense, matching the "Add expense" button rendered on the report, instead of hitting the Not here page
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, null);
             });
 
             it('it is an IOU report in submitted state', () => {
@@ -10875,6 +10941,76 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getChatReportFromMoneyRequestReport', () => {
+        const ownerAccountID = 97769;
+        const policyID = 'getChatReportFromMoneyRequestReportPolicy';
+        const policyExpenseChat: Report = {
+            ...createRandomReport(97769001, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+            type: CONST.REPORT.TYPE.CHAT,
+            ownerAccountID,
+            policyID,
+        };
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+        });
+
+        afterAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, null);
+        });
+
+        it('should return the report itself when it is not a money request report', () => {
+            // Given a chat report, which is already the destination of any expense created from it
+            // When resolving its chat report
+            // Then the report itself is returned
+            expect(getChatReportFromMoneyRequestReport(policyExpenseChat)).toBe(policyExpenseChat);
+        });
+
+        it('should return the linked chat when the expense report has a chatReportID', () => {
+            // Given an expense report that carries its link to the workspace chat
+            const expenseReport: Report = {
+                ...createRandomReport(97769002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: policyExpenseChat.reportID,
+            };
+
+            // When resolving its chat report
+            // Then the linked chat is returned
+            expect(getChatReportFromMoneyRequestReport(expenseReport)?.reportID).toBe(policyExpenseChat.reportID);
+        });
+
+        it("should fall back to the owner's policy expense chat when the expense report has no chatReportID", () => {
+            // Given an expense report received from another session, which arrives without chatReportID and parentReportID
+            const expenseReport: Report = {
+                ...createRandomReport(97769003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: undefined,
+                parentReportID: undefined,
+                ownerAccountID,
+                policyID,
+            };
+
+            // When resolving its chat report
+            // Then its workspace chat is recovered from its own owner and policy, so the expense is not sent anywhere else
+            expect(getChatReportFromMoneyRequestReport(expenseReport)?.reportID).toBe(policyExpenseChat.reportID);
+        });
+
+        it('should return undefined when an IOU report has no chatReportID', () => {
+            // Given an IOU report without chatReportID, whose DM cannot be recovered from a policy
+            const iouReport: Report = {
+                ...createRandomReport(97769004, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID: undefined,
+                ownerAccountID,
+                policyID,
+            };
+
+            // When resolving its chat report
+            // Then nothing is returned instead of guessing a workspace chat
+            expect(getChatReportFromMoneyRequestReport(iouReport)).toBeUndefined();
+        });
+    });
+
     describe('findLastAccessedReport', () => {
         let archivedReport: Report;
         let normalReport: Report;
@@ -15388,6 +15524,7 @@ describe('ReportUtils', () => {
         });
 
         it('should respect workspace membership for restricted visibility rooms', async () => {
+            // Given a workspace and reports with restricted and public visibility
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
@@ -15401,6 +15538,13 @@ describe('ReportUtils', () => {
                 ...createRandomPolicy(2),
                 id: policyID,
                 role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
+            };
+
+            const policyWithGuestUser: Policy = {
+                ...createRandomPolicy(3),
+                id: policyID,
+                role: CONST.POLICY.ROLE.GUEST,
                 employeeList: {},
             };
 
@@ -15423,9 +15567,16 @@ describe('ReportUtils', () => {
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
+            // When checking whether a user can join restricted rooms
+            // Then regular workspace members can join, but non-members and guests cannot
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
+
+            // When checking whether a user can join public rooms
+            // Then non-members and guests can both join
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
         });
     });
 
@@ -17161,56 +17312,106 @@ describe('ReportUtils', () => {
 
     describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
         test('should return false when not a policy employee', () => {
+            // Given a restricted policy expense chat and a user who is not a policy employee
             const report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
                 isOwnPolicyExpenseChat: true,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, false, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
 
         test('should return true for restricted room when policy employee', () => {
+            // Given a restricted room and a user who is a policy employee
             const report = {
                 ...createRandomReport(2, undefined),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return true for policy expense chat when own chat and policy employee', () => {
+            // Given a public policy expense chat owned by the user who is a policy employee
             const report = {
                 ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: true,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return true for policy expense chat when policy admin and policy employee', () => {
+            // Given a public policy expense chat not owned by the user, but the user is a policy admin and employee
             const report = {
                 ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, true);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return false for non-restricted, non-policy expense chat', () => {
+            // Given a public group chat
             const report = {
                 ...createRandomReport(5, CONST.REPORT.CHAT_TYPE.GROUP),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
 
         test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            // Given a public policy expense chat not owned by the user and the user is not an admin
             const report = {
                 ...createRandomReport(6, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        test('should return false for restricted room when user is a policy guest', () => {
+            // Given a restricted room and a user who is a policy guest
+            const report = {
+                ...createRandomReport(7, undefined),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+
+            // When checking if the guest member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 
@@ -21250,6 +21451,8 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
+            const reimburserEmail = 'reimburser@example.com';
+            const reimburserAccountID = 445001;
             const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
@@ -21259,7 +21462,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011401533',
                     addressName: 'Settled Workspace',
                     bankName: 'Test Bank',
-                    reimburser: 'reimburser@example.com',
+                    reimburser: reimburserEmail,
                 },
             };
             const settledReport: Report = {
@@ -21276,15 +21479,23 @@ describe('ReportUtils', () => {
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
             };
+            // The workspace account is only a valid fallback for a payment made by the designated payer, so the
+            // action has to come from the reimburser for these previews to name it.
             const payReportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+                ...LHNTestUtils.getFakeReportAction(reimburserEmail),
+                actorAccountID: reimburserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: payOriginalMessage,
             };
 
             beforeEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -21310,6 +21521,57 @@ describe('ReportUtils', () => {
                 );
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
+            });
+
+            describe('when the payment names the bank account it came from', () => {
+                // A paying admin picks the account to pay from, so a workspace payment now carries a bankAccountID the
+                // same way an invoice payment does. That must not turn the preview into the invoice wording
+                // ("paid $100.00 with personal account 6281"). It is a workspace payment and reads "paid with bank
+                // account 6281", which is also what PaymentContent renders on the action itself.
+                const actionNamingAccount: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, bankAccountID: 6281001, accountNumber: 'XXXXXX6281'},
+                };
+
+                it('keeps the bank account wording in the localized preview', () => {
+                    // Given a workspace payment that records the selected account ID and masked number.
+                    // When the localized preview is generated.
+                    // Then it uses workspace payment wording and the selected account’s digits.
+                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                        reportOrID: settledReport,
+                        iouReportAction: actionNamingAccount,
+                        originalReportAction: actionNamingAccount,
+                        policy: settledPolicy,
+                    });
+
+                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
+                });
+
+                it('keeps the bank account wording in the stored report action message', () => {
+                    // Given a workspace payment that names the admin’s selected bank account.
+                    // When the stored English report action message is generated.
+                    // Then it retains workspace payment wording rather than invoice wording.
+                    const result = getReportPreviewReportActionMessage(
+                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
+                        getCurrencyDecimalsLocal,
+                    );
+
+                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
+                });
+
+                it('resolves the account through bankAccountList when the action only carries its ID', () => {
+                    // Given the payer paid from an account other than the workspace one, and the action recorded only its ID
+                    const actionNamingAccountID: ReportAction = {...payReportAction, originalMessage: {...payOriginalMessage, bankAccountID: 5678001}};
+                    const bankAccountList = createMock<BankAccountList>({5678001: {accountData: {accountNumber: 'XXXXXX5678'}}});
+                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                    const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
+
+                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                });
             });
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
@@ -24607,6 +24869,45 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticChangeFieldAction', () => {
+        const textField: PolicyReportField = {
+            name: 'text',
+            fieldID: 'text_field',
+            defaultValue: 'Initial',
+            orderWeight: 1,
+            type: 'text',
+            deletable: true,
+            target: CONST.REPORT.TYPE.EXPENSE,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            isTax: false,
+        };
+
+        it('should not use the default value as the old value when the field was never saved on the report', () => {
+            // Given a text field that has no saved value on the report, so the user sees its workspace default
+            const previousReportField = {...textField, value: undefined};
+
+            // When the user clears it
+            const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
+
+            // Then the action leaves the old value empty, matching the server's action so the message doesn't change when it arrives
+            expect(action).toMatchObject({originalMessage: {oldValue: undefined, newValue: ''}});
+        });
+
+        it('should use the saved value as the old value when the field has one', () => {
+            // Given a text field whose saved value differs from its default
+            const previousReportField = {...textField, value: 'Saved'};
+
+            // When the user clears it
+            const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
+
+            // Then the action records the saved value, not the default
+            expect(action).toMatchObject({originalMessage: {oldValue: 'Saved', newValue: ''}});
+        });
+    });
+
     describe('hasVisibleReportFieldViolations', () => {
         const policyID = 'policy-field-violations';
 
@@ -25302,6 +25603,20 @@ describe('ReportUtils', () => {
             const nonBillable = createMockTransaction({billable: false});
             expect(getTransactionSortValue(billable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(1);
             expect(getTransactionSortValue(nonBillable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(0);
+        });
+
+        it('should return 1 for an expense on hold and 0 for one that is not', () => {
+            // Given an expense on hold and an expense whose hold was removed, which leaves an empty hold
+            const held = createMockTransaction({comment: {hold: '123'}});
+            const unheld = createMockTransaction({comment: {hold: ''}});
+
+            // When their held sort values are read
+            const heldSortValue = getTransactionSortValue(held, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
+            const unheldSortValue = getTransactionSortValue(unheld, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
+
+            // Then only the expense on hold sorts as held
+            expect(heldSortValue).toBe(1);
+            expect(unheldSortValue).toBe(0);
         });
 
         it('should return amount for TOTAL_AMOUNT column', () => {

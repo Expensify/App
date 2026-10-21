@@ -301,7 +301,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Cambio',
         category: 'Categoría',
         vendor: 'Proveedor',
-        supplier: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -1022,6 +1021,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Gestionar',
             },
             emailDeliveryFailure: {title: 'No podemos enviarte notificaciones por correo electrónico', subtitle: 'Cuenta'},
+            upgradeNetSuiteConnection: {title: 'Mejora tu conexión con NetSuite'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1176,6 +1176,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Comparar',
             previousPeriod: 'Periodo anterior',
             average: 'Promedio',
+            dayLabel: (day?: number) => (day === undefined ? 'Día' : `Día ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semana' : `Semana ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mes' : `Mes ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Año' : `Año ${year}`),
             increase: (percentage: string) => `Sube ${percentage}`,
             decrease: (percentage: string) => `Baja ${percentage}`,
         },
@@ -2113,6 +2118,13 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` para el ${eta}` : ` ${eta}`;
                 }
                 return `Esperando a que se complete el pago${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (_actor, _actorType, eta, etaType) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` para el ${eta}` : ` ${eta}`;
+                }
+                return `Esperando a que termine de procesarse el pago cancelado${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_actor, _actorType, _eta, _etaType) =>
                 `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
@@ -5399,8 +5411,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
-            noSuppliersFound: 'No se encontraron proveedores',
-            noSuppliersFoundDescription: 'Por favor, añade el proveedor en Xero y sincroniza de nuevo la conexión.',
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Xero y sincroniza la conexión de nuevo',
             accountingMethods: {
                 label: 'Cuándo Exportar',
                 description: 'Elige cuándo exportar los gastos:',
@@ -7266,6 +7278,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             errorODIntegration: (oldDotPolicyConnectionsURL) =>
                 `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
+            exactOnline: {
+                comingSoon: 'Próximamente',
+                joinWaitlist: 'Unirse a la lista de espera',
+                onWaitlist: 'Estás en la lista de espera',
+                waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
+            },
             setup: 'Configurar',
             connectToSandbox: 'Conectar con Sandbox',
             lastSync: (relativeDate) => `Recién sincronizado ${relativeDate}`,
@@ -7549,6 +7567,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caduca el ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caducó el ${date}.`,
+            netSuiteOAuthMigrationRequired: 'Actualiza tu conexión con NetSuite a OAuth 2.0 antes de febrero de 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Tu conexión con NetSuite requiere una actualización inmediata a OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Mejorar ahora',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -7692,7 +7713,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             dontSeeYourATS: `<muted-text-label>¿No ves tu ATS aquí? <a href="#">Pregunta a Concierge</a> y podremos añadirlo.</muted-text-label>`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
-            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección', hiringManager: 'responsable de contratación'},
             filters: {
                 description: (providerName: string) => `Selecciona qué miembros se importan desde ${providerName}. Puedes elegir entre etapas de trabajo, etiquetas y oficinas.`,
                 stages: {
@@ -7726,7 +7747,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             finalApprover: `Aprobador final`,
             finalApproverOptional: 'Aprobador final (opcional)',
             approvalModeDescription: (providerName: string) => `Establece el aprobador para los nuevos miembros que se importen desde ${providerName} a Expensify.`,
-            approverFieldDescription: (providerName: string) => `Elige el primer aprobador para tus candidatos: puede ser su reclutador o su coordinador asignado en ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `su ${fieldNames.slice(0, -1).join(', ')}, o ${lastFieldName}` : `ya sea su ${fieldNames.join('o su')}`;
+                return `Elige al primer aprobador para tus candidatos: ${fieldList} asignado en ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Elige un único aprobador',
                 advanced: `El reclutador o coordinador del candidato se convierte en su aprobador de gastos`,
@@ -8558,7 +8584,6 @@ ${reportName}`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsable' : 'no reembolsable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'facturable' : 'no facturable'}"`,
                 vendorUnavailable: 'Proveedor no disponible',
-                supplierUnavailable: 'Proveedor no disponible',
                 matchType: 'Tipo de coincidencia',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Coincide exactamente',
@@ -8782,6 +8807,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
+                fallbackBanner:
+                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -8844,16 +8872,21 @@ ${reportName}`,
             newRule: {
                 title: 'Nueva regla',
                 subtitle: '¿Qué quieres hacer?',
+                startWithTemplate: 'Empieza con una plantilla',
                 restrictCardSpend: 'Restringir gasto con la tarjeta',
                 restrictCardSpendDescription: 'Bloquea o limita el gasto en el punto de venta',
                 applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
-                applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
+                applyExpenseDefaultsDescription: 'Actualizar campos automáticamente',
                 flagForReview: 'Marcar para revisión',
-                flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
+                flagForReviewDescription: 'Notificar cuando se cumplan tus condiciones',
                 requireFields: 'Configurar requisitos de campos',
-                requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
+                requireFieldsShort: 'Exigir campos',
+                requireFieldsDescription: 'Recibos, categorías, etc.',
                 createAgentRule: 'Describir regla de agente',
                 createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
+                describeItBelow: 'O simplemente descríbela abajo',
+                describeRulePlaceholder: 'Bloquear todos los gastos superiores a $2,000',
+                selectTemplateOrDescribe: 'Selecciona una plantilla o describe una regla para continuar',
                 describe: 'Describir',
                 describeRule: 'Describe tu regla con tus propias palabras y Concierge la creará por ti',
                 describeRuleInputLabel: 'Describe la regla',
@@ -8862,6 +8895,14 @@ ${reportName}`,
                     unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
                     multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
                     categoryHasRule: 'Esa categoría ya tiene una regla. Edita la regla existente o describe una regla para otra categoría.',
+                },
+                impossible: {
+                    noTrigger: 'Las reglas no pueden comenzar desde ese evento.',
+                    noCapability: 'Las reglas no pueden hacer eso.',
+                    missingData: 'Expensify no tiene esa información.',
+                    retroactive: 'Las reglas solo se aplican a la actividad nueva.',
+                    historyLimit: 'Las reglas no pueden mirar tan atrás.',
+                    tryThisInstead: 'Prueba esto en su lugar',
                 },
             },
             expenseDefaultsTable: {
@@ -9140,11 +9181,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
                 exportToNextOpenPeriodDescription: 'Cuando la fecha de un informe cae en un período cerrado de Dynamics 365 Business Central, se exporta al siguiente período abierto.',
                 syncReimbursedReports: 'Sincronizar informes reembolsados',
-                syncReimbursedReportsDescription: 'Cuando un informe se paga mediante ACH, se generará un pago de factura en esta cuenta.',
-                reimbursementBankAccount: {
-                    label: 'Cuenta de pago de facturas',
-                    description: 'Elige desde dónde pagar las facturas y crearemos el pago en Dynamics 365 Business Central.',
-                },
+                syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un asiento de diario general en esta cuenta.',
+                reimbursementBankAccount: {label: 'Cuenta bancaria de pago', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Dynamics 365 Business Central.'},
                 syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
                 settlementsBankAccount: {
                     label: 'Cuenta de liquidación de la Tarjeta Expensify',
@@ -9778,6 +9816,7 @@ ${reportName}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, con ${taxReclaimableAmount} de impuesto recuperable en "${taxRateName}"`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `actualizó la tasa de distancia «${rateName}» para aplicar ${newDateRange} (previamente ${oldDateRange})`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -10142,6 +10181,7 @@ ${reportName}`,
             withdrawn: 'Retirada',
             billable: 'Facturable',
             rejected: 'Rechazado',
+            held: 'Retenido',
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             sortOrder: {
@@ -10304,6 +10344,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Cambiar a vista de tabla',
+        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {
@@ -10326,6 +10368,8 @@ ${reportName}`,
             type: {
                 changeField: (oldValue, newValue, fieldName) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: (newValue, fieldName) => `estableció ${fieldName} a ${newValue}`,
+                changeFieldRemoved: (oldValue, fieldName) => `eliminó ${fieldName} (previamente "${oldValue}")`,
+                changeFieldCleared: (fieldName) => `eliminó ${fieldName}`,
                 changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
@@ -11193,7 +11237,7 @@ ${reportName}`,
         duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'El proveedor ya no es válido' : 'El proveedor ya no es válido'),
+        inactiveVendor: 'El proveedor ya no es válido',
         invoiceMarkup: (invoiceMarkup) => `Incrementado un ${invoiceMarkup}%`,
         maxAge: (maxAge) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
