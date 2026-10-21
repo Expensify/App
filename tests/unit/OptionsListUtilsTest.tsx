@@ -819,6 +819,7 @@ describe('OptionsListUtils', () => {
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             },
             undefined,
         );
@@ -828,7 +829,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             undefined,
         );
         OPTIONS_WITH_CHRONOS = createFilteredOptionList(
@@ -837,7 +838,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             undefined,
         );
         OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
@@ -846,7 +847,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             undefined,
         );
         OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
@@ -855,7 +856,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             undefined,
         );
     });
@@ -901,6 +902,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -939,7 +941,7 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
                 undefined,
             );
 
@@ -961,6 +963,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the member's workspace chat should still be included in the search results
@@ -993,6 +996,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the current user should be included in personalDetails
@@ -1030,6 +1034,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the current user should not be included in personalDetails
@@ -1065,6 +1070,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then recent reports should include the workspace room
@@ -1100,6 +1106,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then it should still return personal details
@@ -1134,6 +1141,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then it should still return personal details
@@ -1164,6 +1172,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
                 conciergeReportID,
                 sortedActions: undefined,
+                formatPhoneNumber,
             });
 
             // Then the Concierge report should be included in recent reports
@@ -1193,6 +1202,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
                 conciergeReportID: undefined,
                 sortedActions: undefined,
+                formatPhoneNumber,
             });
 
             // Then the function should complete without errors
@@ -1225,6 +1235,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
                 conciergeReportID,
                 sortedActions: undefined,
+                formatPhoneNumber,
             });
 
             // Then the Concierge report should be in recent reports
@@ -1254,7 +1265,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1301,7 +1312,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1344,7 +1355,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1376,7 +1387,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1427,6 +1438,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -1447,7 +1459,7 @@ describe('OptionsListUtils', () => {
                     personalDetails,
                     searchString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1468,6 +1480,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -1496,7 +1509,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1526,7 +1539,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1558,7 +1571,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1589,7 +1602,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1649,7 +1662,7 @@ describe('OptionsListUtils', () => {
                     includeMultipleParticipantReports: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1710,7 +1723,7 @@ describe('OptionsListUtils', () => {
                     showRBR: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -1768,7 +1781,7 @@ describe('OptionsListUtils', () => {
                     showRBR: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1831,7 +1844,7 @@ describe('OptionsListUtils', () => {
                     includeMultipleParticipantReports: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1870,7 +1883,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: customPersonalDetails,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1901,7 +1914,7 @@ describe('OptionsListUtils', () => {
                     includeSelectedOptions: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1930,7 +1943,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxElements: 1,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1952,7 +1965,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxElements: 100,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1973,6 +1986,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -1994,7 +2008,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: 'me',
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2028,6 +2042,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2057,8 +2072,30 @@ describe('OptionsListUtils', () => {
                 maxElements: 3,
                 personalDetails: PERSONAL_DETAILS,
             };
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
 
             // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
@@ -2079,8 +2116,30 @@ describe('OptionsListUtils', () => {
                 searchString: 'spider',
                 personalDetails: PERSONAL_DETAILS,
             };
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
 
             // Then filtering and ordering are unchanged and the hydrated results match
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
@@ -2152,7 +2211,7 @@ describe('OptionsListUtils', () => {
                     searchString,
                     includeP2P: true,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const filteredOptions = filterAndOrderOptions({
@@ -2169,6 +2228,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -2240,8 +2300,30 @@ describe('OptionsListUtils', () => {
                 excludeLogins: {'peterparker@expensify.com': true},
                 personalDetails: PERSONAL_DETAILS,
             };
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
 
             // Then the excluded contact is dropped from both and the remaining results match
             expect(lazyResults.personalDetails.some((option) => option.login === 'peterparker@expensify.com')).toBe(false);
@@ -2262,6 +2344,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2280,7 +2363,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2308,7 +2391,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     personalDetails: PERSONAL_DETAILS,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2340,8 +2423,30 @@ describe('OptionsListUtils', () => {
                 maxElements: 3,
                 personalDetails: PERSONAL_DETAILS,
             };
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
 
             // Then filtering, ranking, and hydration match the eager path
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
@@ -2364,6 +2469,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2378,6 +2484,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2415,7 +2522,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: cachedResults} = getValidOptions(
@@ -2427,10 +2534,21 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
 
             // Then hydration from the cached clone matches the fresh lazy build and the eager path
             expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
@@ -2453,8 +2571,24 @@ describe('OptionsListUtils', () => {
             clearFilteredOptionListCache();
 
             // When the warm-up builds the list and the first open builds it again from the same Onyx snapshots
-            const warmed = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options, undefined);
-            const opened = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options, undefined);
+            const warmed = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS,
+                MOCK_REPORT_ATTRIBUTES_DERIVED,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {...options, formatPhoneNumber},
+                undefined,
+            );
+            const opened = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS,
+                MOCK_REPORT_ATTRIBUTES_DERIVED,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {...options, formatPhoneNumber},
+                undefined,
+            );
 
             // Then the open gets a clone of the warm build instead of rebuilding it, contacts stay deferred,
             // and typing is a separate entry that still builds them
@@ -2462,8 +2596,15 @@ describe('OptionsListUtils', () => {
             expect(opened.reports.at(0)?.icons).toBe(warmed.reports.at(0)?.icons);
             expect(warmed.personalDetails).toHaveLength(0);
             expect(
-                createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {...options, isSearching: true}, undefined)
-                    .personalDetails.length,
+                createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    REPORTS,
+                    MOCK_REPORT_ATTRIBUTES_DERIVED,
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    allPolicies,
+                    {...options, isSearching: true, formatPhoneNumber},
+                    undefined,
+                ).personalDetails.length,
             ).toBeGreaterThan(0);
         });
 
@@ -2491,6 +2632,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2597,7 +2739,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -2609,7 +2751,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2681,6 +2823,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2721,6 +2864,7 @@ describe('OptionsListUtils', () => {
                     reportAttributesDerived: PARITY_ATTRIBUTES,
                     policyTags: undefined,
                     visibleReportActionsData: {},
+                    formatPhoneNumber,
                 }),
                 isHydrated: true,
             };
@@ -2765,6 +2909,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: PARITY_REPORT_ID,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2792,6 +2937,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: PARITY_ATTRIBUTES,
                 policyTags: undefined,
                 visibleReportActionsData: {},
+                formatPhoneNumber,
             });
 
             expect(hydrated).toEqual({item: PARITY_PERSONAL_DETAIL, ...withConcierge, isHydrated: true});
@@ -2818,6 +2964,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2832,6 +2979,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2846,8 +2994,30 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
             };
             const firstBuilds = first.personalDetails.map(buildIdentity);
-            const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
-            const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
+            const {options: firstResults} = getValidOptions(
+                first,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
+            const {options: secondResults} = getValidOptions(
+                second,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                {translate: translateLocal, formatPhoneNumber},
+                undefined,
+            );
             const secondBuilds = second.personalDetails.map(buildIdentity);
 
             // Then every contact on the second pass reused the first pass's build.
@@ -2878,6 +3048,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2926,6 +3097,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2971,7 +3143,7 @@ describe('OptionsListUtils', () => {
                     includeOwnedWorkspaceChats: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3020,7 +3192,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: customPersonalDetails,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3053,7 +3225,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: undefined,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3085,7 +3257,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: {},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3117,7 +3289,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: {},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3144,7 +3316,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
@@ -3174,7 +3346,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {'peterparker@expensify.com': true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3202,7 +3374,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3233,7 +3405,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3265,7 +3437,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3297,7 +3469,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3327,7 +3499,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportElements: maxRecentReports,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3351,7 +3523,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -3369,7 +3541,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportElements: 2,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3393,7 +3565,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -3411,7 +3583,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportElements: 2,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3440,7 +3612,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportElements: maxRecentReports,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3495,7 +3667,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3545,7 +3717,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3595,6 +3767,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions({
@@ -3611,6 +3784,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3640,6 +3814,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions({
@@ -3657,6 +3832,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3693,6 +3869,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -3709,6 +3886,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3737,6 +3915,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -3758,6 +3937,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -3774,6 +3954,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3800,6 +3981,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -3820,6 +4002,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions({
@@ -3837,6 +4020,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3867,6 +4051,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -3883,6 +4068,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3913,6 +4099,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -3929,6 +4116,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -3949,7 +4137,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
                 undefined,
             );
             // When we call getSearchOptions with the default rooms beta enabled
@@ -3969,6 +4157,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions({
@@ -3985,6 +4174,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4015,6 +4205,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -4031,6 +4222,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4063,6 +4255,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -4079,6 +4272,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4105,7 +4299,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
@@ -4124,6 +4318,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4152,6 +4347,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions({
@@ -4169,6 +4365,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4197,6 +4394,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions({
@@ -4214,6 +4412,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 2,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4238,6 +4437,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 0,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4266,6 +4466,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -4282,6 +4483,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4328,7 +4530,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -4346,6 +4548,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4395,7 +4598,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
@@ -4413,6 +4616,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4462,7 +4666,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -4480,6 +4684,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4503,7 +4708,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
@@ -4521,6 +4726,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4570,6 +4776,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -4592,6 +4799,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then one report should be returned
@@ -4637,6 +4845,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -4659,6 +4868,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then one report should be returned
@@ -4704,6 +4914,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -4726,6 +4937,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then one report should be returned
@@ -4771,6 +4983,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -4793,6 +5006,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then no reports should be returned
@@ -4827,7 +5041,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
                 undefined,
             );
 
@@ -4848,6 +5062,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -4865,6 +5080,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4889,7 +5105,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -4907,6 +5123,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4933,7 +5150,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -4951,6 +5168,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -4977,7 +5195,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -4995,6 +5213,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5020,7 +5239,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
@@ -5038,6 +5257,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5061,7 +5281,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -5079,6 +5299,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5107,7 +5328,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -5125,6 +5346,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5153,7 +5375,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -5171,6 +5393,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5199,7 +5422,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -5217,6 +5440,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5245,7 +5469,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -5265,6 +5489,7 @@ describe('OptionsListUtils', () => {
                     shouldAcceptName: false,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5290,7 +5515,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -5310,6 +5535,7 @@ describe('OptionsListUtils', () => {
                     shouldAcceptName: true,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5333,7 +5559,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
@@ -5351,6 +5577,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5374,7 +5601,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
@@ -5393,6 +5620,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5420,7 +5648,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
@@ -5439,6 +5667,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 5,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5472,6 +5701,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions({
@@ -5488,6 +5718,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5516,6 +5747,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions({
@@ -5532,6 +5764,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5559,6 +5792,7 @@ describe('OptionsListUtils', () => {
                             convertToDisplayString,
                             conciergeReportID: undefined,
                             isSearching: true,
+                            formatPhoneNumber,
                         },
                         undefined,
                     );
@@ -5578,6 +5812,7 @@ describe('OptionsListUtils', () => {
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
                         sortedActions: undefined,
                         conciergeReportID: undefined,
+                        formatPhoneNumber,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions({
@@ -5590,6 +5825,7 @@ describe('OptionsListUtils', () => {
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
                         config: {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                         translate: translateLocal,
+                        formatPhoneNumber,
                         rules: undefined,
                         activePolicyID,
                     });
@@ -5625,6 +5861,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions({
@@ -5641,6 +5878,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5666,6 +5904,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -5687,6 +5926,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({
@@ -5703,6 +5943,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5725,6 +5966,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -5744,6 +5986,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // When we call filterAndOrderOptions with the localized word the current user uses to refer to themselves
@@ -5761,6 +6004,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5787,6 +6031,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             const multiSpaceQueryResults = filterAndOrderOptions({
@@ -5803,6 +6048,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5820,6 +6066,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -5886,6 +6133,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ).reports;
@@ -5910,6 +6158,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ).reports;
@@ -6008,6 +6257,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ).reports;
@@ -6114,6 +6364,7 @@ describe('OptionsListUtils', () => {
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             rules: undefined,
             ...overrides,
+            formatPhoneNumber,
         });
 
         const seedActions = async (reportID: string, ...actions: ReportAction[]) => {
@@ -6563,6 +6814,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6583,7 +6835,7 @@ describe('OptionsListUtils', () => {
                     includeMultipleParticipantReports: true,
                     personalDetails: PERSONAL_DETAILS,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -6817,6 +7069,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6845,6 +7098,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6875,6 +7129,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6909,6 +7164,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6941,6 +7197,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -6975,6 +7232,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -7016,6 +7274,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 20,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -7889,6 +8148,7 @@ describe('OptionsListUtils', () => {
                 privateIsArchived: undefined,
                 rules: undefined,
                 config: {showChatPreviewLine: true},
+                formatPhoneNumber,
             });
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
@@ -7931,6 +8191,7 @@ describe('OptionsListUtils', () => {
                 report,
                 privateIsArchived: undefined,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             expect(result.reportID).toBe(reportID);
@@ -7964,6 +8225,7 @@ describe('OptionsListUtils', () => {
                 report,
                 privateIsArchived: undefined,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             expect(result.reportID).toBe(report.reportID);
@@ -8170,6 +8432,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8203,6 +8466,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8238,6 +8502,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8272,6 +8537,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8314,6 +8580,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8344,6 +8611,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8369,6 +8637,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -8409,7 +8678,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -8433,7 +8702,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -8457,7 +8726,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -8500,7 +8769,7 @@ describe('OptionsListUtils', () => {
                     includeRecentReports: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -8556,7 +8825,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8599,7 +8868,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: ownerAccountID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8665,7 +8934,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8700,7 +8969,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: report,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8753,7 +9022,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8800,7 +9069,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8854,7 +9123,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8909,7 +9178,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: {},
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8940,7 +9209,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -8968,7 +9237,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9000,7 +9269,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9037,6 +9306,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -9073,6 +9343,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -9106,6 +9377,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -9143,6 +9415,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -9180,6 +9453,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -9213,7 +9487,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9246,7 +9520,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9280,7 +9554,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9328,7 +9602,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9402,7 +9676,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9439,7 +9713,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9473,7 +9747,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9535,7 +9809,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9569,7 +9843,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9600,7 +9874,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9649,7 +9923,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9681,7 +9955,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9694,7 +9968,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 rules: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
             });
@@ -9760,7 +10034,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9796,7 +10070,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateWithMarker, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateWithMarker, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9867,7 +10141,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9921,7 +10195,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9975,7 +10249,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10037,7 +10311,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10049,7 +10323,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10096,7 +10370,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10106,7 +10380,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 9999,
                 undefined,
             );
@@ -10172,7 +10446,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10226,7 +10500,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10336,6 +10610,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getFormatReportByID,
                 undefined,
                 formatPersonalDetails,
@@ -10374,6 +10649,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByIDFromOnyx,
                 undefined,
                 formatPersonalDetails,
@@ -10427,6 +10703,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getFormatReportByID,
                 undefined,
                 formatPersonalDetails,
@@ -10473,6 +10750,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByIDFromOnyx,
                 undefined,
                 formatPersonalDetails,
@@ -10516,6 +10794,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getFormatReportByID,
                 undefined,
                 formatPersonalDetails,
@@ -10559,6 +10838,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByIDFromOnyx,
                 undefined,
                 formatPersonalDetails,
@@ -10586,6 +10866,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByIDFromOnyx,
                 undefined,
                 formatPersonalDetails,
@@ -10640,6 +10921,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByID,
                 undefined,
                 formatPersonalDetails,
@@ -10664,6 +10946,7 @@ describe('OptionsListUtils', () => {
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
                 rules: undefined,
+                formatPhoneNumber,
             });
             expect(result).toBeNull();
         });
@@ -10679,6 +10962,7 @@ describe('OptionsListUtils', () => {
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
                 rules: undefined,
+                formatPhoneNumber,
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
@@ -10694,6 +10978,7 @@ describe('OptionsListUtils', () => {
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).not.toBeNull();
@@ -10711,6 +10996,7 @@ describe('OptionsListUtils', () => {
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeNull();
@@ -10726,6 +11012,7 @@ describe('OptionsListUtils', () => {
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeNull();
@@ -10743,7 +11030,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10761,6 +11048,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -10780,7 +11068,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10798,6 +11086,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -10816,7 +11105,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10834,6 +11123,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -10940,7 +11230,7 @@ describe('OptionsListUtils', () => {
                     isOffline: false,
                     getReportByID,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             ).options;
 
@@ -10988,7 +11278,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11013,7 +11303,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11032,6 +11322,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 translate: translateLocal,
+                formatPhoneNumber,
                 rules: undefined,
                 activePolicyID,
             });
@@ -11059,6 +11350,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the function should complete without errors and return valid results
@@ -11084,6 +11376,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             expect(options).toBeDefined();
@@ -11102,6 +11395,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             // Then the function should return a user to invite
@@ -11124,7 +11418,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11149,7 +11443,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11201,6 +11495,7 @@ describe('OptionsListUtils', () => {
                 report: expenseReport,
                 privateIsArchived: undefined,
                 rules: undefined,
+                formatPhoneNumber,
             });
 
             // Then the option should be created successfully
@@ -11245,6 +11540,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11292,7 +11588,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -11332,6 +11628,7 @@ describe('OptionsListUtils', () => {
                 sortedActions: undefined,
                 conciergeReportID: report.reportID,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
             expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
 
@@ -11348,6 +11645,7 @@ describe('OptionsListUtils', () => {
                 sortedActions: undefined,
                 conciergeReportID: 'a-different-report-id',
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
             expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
         });
@@ -11381,6 +11679,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeDefined();
@@ -11417,6 +11716,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeDefined();
@@ -11452,6 +11752,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeDefined();
@@ -11487,6 +11788,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeDefined();
@@ -11524,6 +11826,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 config,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(result).toBeDefined();
@@ -11564,6 +11867,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
@@ -11578,6 +11882,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
 
             expect(roomOption.text).toBe('#admins');
@@ -11642,8 +11947,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID, formatPhoneNumber});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
 
                 // Then the wording follows the passed currentUserAccountID
                 expect(ownOption.alternateText).toContain('your bank account ending in 1111');
@@ -11660,8 +11965,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID, formatPhoneNumber});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
 
                 // Then the wording follows the passed currentUserAccountID
                 expect(ownOption.alternateText).toContain('your bank account ending in 2222');
@@ -11677,7 +11982,7 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for a different account than the one in the session
-                const option = createOptionFromReport({...params, currentUserAccountID: 999});
+                const option = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
 
                 // Then the passed account wins over the module-level session value, so the owner is named explicitly
                 expect(option.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 3333`);
@@ -11693,8 +11998,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42, formatPhoneNumber});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
 
                 // Then both previews are identical
                 expect(ownOption.alternateText).toBe(otherOption.alternateText);
@@ -11738,6 +12043,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     maxRecentReports: 2,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11761,11 +12067,137 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     maxRecentReports: 1,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('prioritizes the default workspace chat over newer reports', () => {
+            // Given a recent chat and an older expense chat that the current user owns in their default workspace
+            const defaultWorkspaceChat: Report = {
+                ...createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: 'defaultPolicy',
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            };
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), defaultWorkspaceChat];
+
+            // When the option list is capped to one report and the default workspace is passed
+            const result = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    maxRecentReports: 1,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                    activePolicyID: 'defaultPolicy',
+                },
+                undefined,
+            );
+
+            // Then the default workspace chat is kept, so a quiet default workspace still reaches the participant picker
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('does not prioritize an expense chat in the default workspace owned by another member', () => {
+            // Given a recent chat and an older expense chat in the default workspace that another member owns
+            const otherMemberWorkspaceChat: Report = {
+                ...createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: 'defaultPolicy',
+                ownerAccountID: 1,
+            };
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), otherMemberWorkspaceChat];
+
+            // When the option list is capped to one report and the default workspace is passed
+            const result = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    maxRecentReports: 1,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                    activePolicyID: 'defaultPolicy',
+                },
+                undefined,
+            );
+
+            // Then only the user's own default workspace chat is boosted, so recency decides here
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101']);
+        });
+
+        it('returns the default workspace chat first in the workspace chats of getValidOptions', () => {
+            // Given three workspace chats the current user owns, where the default workspace's chat is the least recent
+            const policies: Record<string, Policy> = {};
+            const reports = ['1', '2', '3'].map((index) => {
+                policies[`${ONYXKEYS.COLLECTION.POLICY}policy${index}`] = {...POLICY, id: `policy${index}`, name: `Workspace ${index}`};
+                return {
+                    ...createChatReport(`20${index}`, `202${index}-01-01 00:00:00`, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                    policyID: `policy${index}`,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    isOwnPolicyExpenseChat: true,
+                };
+            });
+            const optionList = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                policies,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                },
+                undefined,
+            );
+
+            // When the workspace chats are separated and capped to two results with policy1 as the default workspace
+            const getWorkspaceChatIDs = (defaultPolicyID: string | undefined) =>
+                getValidOptions(
+                    optionList,
+                    policies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        includeOwnedWorkspaceChats: true,
+                        shouldSeparateWorkspaceChat: true,
+                        includeP2P: false,
+                        maxElements: 2,
+                        activePolicyID: defaultPolicyID,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                ).options.workspaceChats?.map((option) => option.reportID);
+
+            // Then without a default workspace the two most recent chats are returned
+            expect(getWorkspaceChatIDs(undefined)).toEqual(['203', '202']);
+            // And with a default workspace its chat is kept and listed first, ahead of more recent ones
+            expect(getWorkspaceChatIDs('policy1')).toEqual(['201', '203']);
         });
 
         it('prioritizes non-archived reports over newer archived reports', () => {
@@ -11787,6 +12219,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     maxRecentReports: 1,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11811,6 +12244,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReports: 1,
                     isSearching: true,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11834,6 +12268,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     maxRecentReports: 0,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11853,6 +12288,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 5,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11920,6 +12356,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReports: 3,
                     includeP2P: false,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11940,6 +12377,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     includeP2P: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11962,6 +12400,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     includeP2P: false,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11982,6 +12421,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12002,6 +12442,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12046,6 +12487,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 10,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12066,6 +12508,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12081,7 +12524,15 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {},
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2},
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                    maxRecentReports: 2,
+                    formatPhoneNumber,
+                },
                 undefined,
             );
 
@@ -12101,6 +12552,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12125,6 +12577,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     deferContactsUntilSearch: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12147,6 +12600,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     deferContactsUntilSearch: true,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12166,6 +12620,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12186,6 +12641,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12213,6 +12669,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12227,6 +12684,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: '1',
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12252,6 +12710,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12276,6 +12735,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12321,7 +12781,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportElements: 5,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12349,7 +12809,7 @@ describe('OptionsListUtils', () => {
                     searchString: 'john',
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12371,6 +12831,7 @@ describe('OptionsListUtils', () => {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -12409,6 +12870,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 pendingDeleteMemberAccountIDs: undefined,
+                formatPhoneNumber,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -12442,6 +12904,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
@@ -12478,7 +12941,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 POLICY,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString, formatPhoneNumber},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -12498,6 +12961,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                formatPhoneNumber,
                 getReportByIDFromOnyx,
                 undefined,
                 PERSONAL_DETAILS,
@@ -12585,7 +13049,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12652,7 +13116,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12716,7 +13180,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions: undefined,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12807,7 +13271,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12889,7 +13353,7 @@ describe('OptionsListUtils', () => {
                     includeRecentReports: true,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12962,7 +13426,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -13088,7 +13552,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -13157,7 +13621,7 @@ describe('OptionsListUtils', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     sortedActions: {[reportID]: [commentAction]},
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -13221,6 +13685,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             expect(results.recentReports.length).toBe(1);
@@ -13293,6 +13758,7 @@ describe('OptionsListUtils', () => {
                 shouldUnreadBeBold: true,
                 sortedActions,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
 
             expect(results.recentReports.length).toBe(1);
@@ -13334,6 +13800,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     isSearching,
                     pendingDeleteMemberAccountIDsByReportID,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -13388,6 +13855,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 pendingDeleteMemberAccountIDs: ['4'],
+                formatPhoneNumber,
             });
 
             // Then the avatar label names only the members that are staying

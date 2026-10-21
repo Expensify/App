@@ -15,14 +15,7 @@ import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isOneOnOneChat,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, isInvoiceRoom, isOneOnOneChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -291,6 +284,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getMoneyRequestParticipantOptions({
@@ -306,6 +300,7 @@ function getMoneyRequestParticipantOptions({
     translate,
     convertToDisplayString,
     dateFnsLocale,
+    formatPhoneNumber,
 }: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
@@ -325,6 +320,7 @@ function getMoneyRequestParticipantOptions({
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
@@ -601,7 +597,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
@@ -647,7 +643,7 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, curren
  * account, even when the confirmation page only opens after the sync.
  */
 function getMoneyRequestDraftParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isOneOnOneChatReport = isOneOnOneChat(chatReport, currentUserAccountID);
     return getMoneyRequestParticipantsFromReport(report, currentUserAccountID).map((participant) => {
         const personalDetail = getPersonalDetail(participant.accountID);
