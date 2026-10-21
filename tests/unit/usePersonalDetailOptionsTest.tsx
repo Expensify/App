@@ -40,8 +40,8 @@ function Wrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-const renderOptions = async (includeLoginsOnly?: Set<string>, includeAgentsOnly?: Set<number>) => {
-    const {result} = renderHook(() => usePersonalDetailOptions({includeLoginsOnly, includeAgentsOnly}), {wrapper: Wrapper});
+const renderOptions = async (includeLoginsOnly?: Set<string>, agentsWhitelist?: Set<number>) => {
+    const {result} = renderHook(() => usePersonalDetailOptions({includeLoginsOnly, agentsWhitelist}), {wrapper: Wrapper});
     await waitForBatchedUpdatesWithAct();
     return result;
 };

@@ -147,7 +147,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
             initialSelected,
             initialExtraOptions,
             shouldKeepSelectedInAvailableOptions: true,
-            includeAgentsOnly: managedAgentsAccountIDs,
+            agentsWhitelist: managedAgentsAccountIDs,
         });
 
     const sections: Array<Section<OptionData>> = useMemo(() => {

@@ -25,9 +25,8 @@ type UseFilteredOptionsConfig = {
     includeLoginsOnly?: Set<string>;
     /**
      * When set, only the agents in this set are turned into options.
-     * This only applies to agents, other regular accounts are still returned. If you want the list to only contain agents then you should use includeLoginsOnly
      */
-    includeAgentsOnly?: Set<number>;
+    agentsWhitelist?: Set<number>;
     /* Whether to include report errors in the option data (default: false) */
     shouldStoreReportErrors?: boolean;
     /* Whether to include brick road indicator status in the option data (default: false) */
@@ -133,7 +132,7 @@ type BuildOptionsDataParams = {
     accountID: number;
     allPersonalDetails: OnyxEntry<PersonalDetailsList>;
     includeLoginsOnly: Set<string> | undefined;
-    includeAgentsOnly: Set<number> | undefined;
+    agentsWhitelist: Set<number> | undefined;
     reports: OnyxCollection<Report>;
     reportAttributes: FilteredReportAttributes | undefined;
     reportNameValuePairs: PrivateIsArchivedMap | undefined;
@@ -148,7 +147,7 @@ function buildOptionsData({
     accountID,
     allPersonalDetails,
     includeLoginsOnly,
-    includeAgentsOnly,
+    agentsWhitelist,
     reports,
     reportAttributes,
     reportNameValuePairs,
@@ -161,13 +160,13 @@ function buildOptionsData({
     if (includeLoginsOnly) {
         personalDetails = filterPersonalDetailsByLogins(personalDetails, includeLoginsOnly);
     }
-    if (includeAgentsOnly) {
+    if (agentsWhitelist) {
         personalDetails = Object.fromEntries(
             Object.entries(personalDetails ?? {}).filter(([, details]) => {
                 if (!details?.isCustomAgent) {
                     return true;
                 }
-                return includeAgentsOnly.has(details.accountID);
+                return agentsWhitelist.has(details.accountID);
             }),
         );
     }
@@ -198,7 +197,7 @@ function buildOptionsData({
  * />
  */
 function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {enabled = true, includeLoginsOnly, includeAgentsOnly, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
+    const {enabled = true, includeLoginsOnly, agentsWhitelist, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const reportAttributesSelector = createReportAttributesSelector(shouldStoreReportErrors, shouldShowBrickRoadIndicator);
 
@@ -219,7 +218,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
               accountID,
               allPersonalDetails,
               includeLoginsOnly,
-              includeAgentsOnly,
+              agentsWhitelist,
               reports,
               reportAttributes,
               reportNameValuePairs,
