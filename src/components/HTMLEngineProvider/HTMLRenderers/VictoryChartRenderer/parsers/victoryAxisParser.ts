@@ -1,6 +1,7 @@
 import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartProps, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
+import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics';
 import {
     parseAttributeAsNumber,
     parseAttributeAsNumberArray,
@@ -16,13 +17,16 @@ import type {XAxisSide, YAxisSide} from 'victory-native';
 import {Skia} from '@shopify/react-native-skia';
 
 /**
- * The widest rendered label on a left-side y-axis, plus its offset from the axis line —
- * i.e. how much horizontal space the axis actually needs for its labels. Used to shrink
- * the chart's `padding.left` when the configured value is more than the content needs.
+ * For y-axis this returns the widest rendered label plus its offset from the axis line
+ * For x-axis this returns the label line height plus plus its offset from the axis line
  */
-function computeLeftAxisLabelPadding(axisSide: 'left' | 'right', labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
-    if (axisSide !== 'left' || !font || !labels?.length) {
+function computeAxisSize(axisSide: XAxisSide | YAxisSide, labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
+    if (!font || !labels?.length) {
         return undefined;
+    }
+    if (axisSide === 'bottom' || axisSide === 'top') {
+        const lineHeight = getSkiaLineMetrics(font).lineHeight;
+        return 2 * lineHeight + (labelOffset ?? 0);
     }
     const maxLabelWidth = Math.max(...labels.map((label) => getFontGlyphWidth(String(label), font)));
     return maxLabelWidth + (labelOffset ?? 0);
@@ -56,11 +60,13 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     let yAxis: CartesianChartProps['yAxis'] | undefined;
     let axisSide: XAxisSide | YAxisSide | undefined;
     let labelOffset: number | undefined;
+    let axisSize: number | undefined;
     let leftAxisLabelPadding: number | undefined;
 
     if (isDependentAxis && isHorizontal) {
         axisSide = orientation === 'right' ? 'top' : 'bottom';
         labelOffset = rawLabelOffset;
+        axisSize = computeAxisSize(axisSide, labelsForMeasurement, font, labelOffset);
         xAxis = {
             tickCount,
             tickValues,
@@ -75,6 +81,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     } else if (isDependentAxis && !isHorizontal) {
         axisSide = orientation === 'right' ? 'right' : 'left';
         labelOffset = rawLabelOffset;
+        axisSize = computeAxisSize(axisSide, labelsForMeasurement, font, labelOffset);
         yAxis = [
             {
                 tickCount,
@@ -91,6 +98,8 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     } else if (!isDependentAxis && isHorizontal) {
         axisSide = orientation === 'top' ? 'right' : 'left';
         labelOffset = axisSide === 'left' && rawLabelOffset !== undefined ? Math.min(rawLabelOffset, LEFT_AXIS_LABEL_OFFSET_MAX) : rawLabelOffset;
+        axisSize = computeAxisSize(axisSide, labelsForMeasurement, font, labelOffset);
+        leftAxisLabelPadding = axisSide === 'left' ? axisSize : undefined;
         yAxis = [
             {
                 tickCount,
@@ -104,10 +113,10 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
                 font,
             },
         ];
-        leftAxisLabelPadding = computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, labelOffset);
     } else if (!isDependentAxis && !isHorizontal) {
         axisSide = orientation === 'top' ? 'top' : 'bottom';
         labelOffset = rawLabelOffset;
+        axisSize = computeAxisSize(axisSide, labelsForMeasurement, font, labelOffset);
         xAxis = {
             tickCount,
             tickValues,
@@ -119,6 +128,43 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
             labelOffset,
             font,
         };
+    }
+
+    // The axis size is used to reduce the size of the padding since the axis labels consume part of the drawing window
+    // and we need to compensate for that otherwise the chart will look smaller
+    if (rootProcessedResult && axisSize) {
+        if (!rootProcessedResult.padding || typeof rootProcessedResult.padding === 'number') {
+            rootProcessedResult.padding = {
+                left: rootProcessedResult.padding,
+                right: rootProcessedResult.padding,
+                top: rootProcessedResult.padding,
+                bottom: rootProcessedResult.padding,
+            };
+        }
+        switch (axisSide) {
+            case 'bottom':
+                if (rootProcessedResult.padding.bottom) {
+                    rootProcessedResult.padding.bottom -= axisSize;
+                }
+                break;
+            case 'top':
+                if (rootProcessedResult.padding.top) {
+                    rootProcessedResult.padding.top -= axisSize;
+                }
+                break;
+            case 'left':
+                if (rootProcessedResult.padding.left) {
+                    rootProcessedResult.padding.left -= axisSize;
+                }
+                break;
+            case 'right':
+                if (rootProcessedResult.padding.right) {
+                    rootProcessedResult.padding.right -= axisSize;
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     return {
