@@ -39,6 +39,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -329,13 +330,13 @@ function PolicyDistanceRatesPage({
                         if (!customUnit) {
                             return;
                         }
-                        renameDistanceRateInline(policyID, customUnit, rate, newName);
+                        showInlineEditError(renameDistanceRateInline(translate, policyID, customUnit, rate, newName));
                     },
                     onChangeRate: (newRate: string) => {
                         if (!customUnit) {
                             return;
                         }
-                        updateDistanceRateValueInline(policyID, customUnit, rate, newRate, toLocaleDigit);
+                        showInlineEditError(updateDistanceRateValueInline(translate, policyID, customUnit, rate, newRate, toLocaleDigit));
                     },
                 };
             }),
@@ -349,6 +350,7 @@ function PolicyDistanceRatesPage({
             isSelectionModeActive,
             policyID,
             toLocaleDigit,
+            translate,
             openRateDetailsByID,
             dismissErrorByID,
             updateDistanceRateEnabled,
