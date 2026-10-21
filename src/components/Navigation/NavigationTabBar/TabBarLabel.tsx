@@ -20,7 +20,7 @@ function TabBarLabel({label, isSelected, numberOfLines, style}: TabBarLabelProps
     const textStyle = [styles.textSmall, styles.textAlignCenter, styles.navigationTabBarLabel];
 
     return (
-        <View style={style}>
+        <View style={[styles.flexShrink1, style]}>
             <Text
                 numberOfLines={numberOfLines}
                 style={[textStyle, isSelected ? styles.textBold : styles.textSupporting]}
