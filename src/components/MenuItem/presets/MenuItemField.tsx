@@ -104,6 +104,7 @@ function MenuItemFieldPreset({
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
             shouldAllowTextSelection={shouldAllowTextSelection}
         >
             <MenuItemFieldRow

@@ -1,4 +1,6 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +23,8 @@ import {
     isSystemChat as isSystemChatUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
 } from '@libs/ReportUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,34 +88,40 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
         activeChatMembers.length > 0
     ) {
         return (
-            <MenuItem
-                title={translate('common.members')}
-                subtitle={activeChatMembers.length}
-                icon={expensifyIcons.Users}
-                onPress={() => {
+            <MenuItem.Root
+                onPress={callFunctionIfActionIsAllowed(() => {
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                     }
-                }}
-                isAnonymousAction={false}
-                shouldShowRightIcon
-                subtitleStyle={[styles.ph2]}
-            />
+                })}
+                accessibilityLabel={translate('common.members')}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={expensifyIcons.Users} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('common.members')}</MenuItem.Title>
+                    </MenuItem.Content>
+                    <MenuItem.Trailing>
+                        <Text style={[styles.textLabelSupporting, styles.mr1]}>{activeChatMembers.length}</Text>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
     }
 
     if (!isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))) {
         return (
-            <MenuItem
+            <MenuItemNavigation
                 title={translate('common.invite')}
                 icon={expensifyIcons.Users}
                 onPress={() => {
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
                 }}
-                isAnonymousAction={false}
-                shouldShowRightIcon
             />
         );
     }

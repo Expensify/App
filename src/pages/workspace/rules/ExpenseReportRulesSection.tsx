@@ -1,4 +1,6 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -15,11 +17,13 @@ import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoPayApprovedRe
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventPayoutNonReimbursableReports, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -130,14 +134,21 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
                     key="autoApproveReportsUnder"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWriteApprovals}
-                        style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWriteApprovals}
-                    />
+                    <View style={[styles.mt6, styles.mbn3]}>
+                        <MenuItemSectionRoot
+                            onPress={canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))) : undefined}
+                        >
+                            <MenuItemField.Row
+                                name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
+                                value={convertToDisplayString(
+                                    policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
+                                    policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                                )}
+                            >
+                                {canWriteApprovals && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>,
                 <OfflineWithFeedback
                     pendingAction={
@@ -145,14 +156,18 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     }
                     key="randomReportAuditTitle"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                        title={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
-                        shouldShowRightIcon={canWriteApprovals}
-                        style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
-                        interactive={canWriteApprovals}
-                    />
+                    <View style={[styles.mt6, styles.mbn3]}>
+                        <MenuItemSectionRoot
+                            onPress={canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))) : undefined}
+                        >
+                            <MenuItemField.Row
+                                name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
+                                value={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
+                            >
+                                {canWriteApprovals && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>,
             ],
         },
@@ -190,14 +205,21 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     }
                     key="autoPayReportsUnder"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWritePayments}
-                        style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWritePayments}
-                    />
+                    <View style={[styles.mt6, styles.mbn3]}>
+                        <MenuItemSectionRoot
+                            onPress={canWritePayments ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))) : undefined}
+                        >
+                            <MenuItemField.Row
+                                name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
+                                value={convertToDisplayString(
+                                    policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
+                                    policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                                )}
+                            >
+                                {canWritePayments && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>,
             ],
         },

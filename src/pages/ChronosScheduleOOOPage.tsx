@@ -4,7 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -317,13 +317,13 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                     </View>
                 )}
                 <View style={styles.mb4}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        outerWrapperStyle={styles.mhn5}
-                        title={selectedLeaveTypeItem?.label ?? ''}
-                        description={translate('chronos.leaveType')}
-                        onPress={() => setIsLeaveTypeModalVisible(true)}
-                    />
+                    <View style={styles.mhn5}>
+                        <MenuItemField
+                            name={translate('chronos.leaveType')}
+                            value={selectedLeaveTypeItem?.label ?? ''}
+                            onPress={() => setIsLeaveTypeModalVisible(true)}
+                        />
+                    </View>
                     <ValueSelectorModal
                         isVisible={isLeaveTypeModalVisible}
                         label={translate('chronos.leaveType')}
