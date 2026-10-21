@@ -198,7 +198,7 @@ function IOURequestStepConfirmationContent({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
     // moved to SubmitExpenseOrchestrator.
@@ -288,7 +288,7 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
-                          localize: {translate, dateFnsLocale, convertToDisplayString},
+                          localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                           rules,
                           // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
                           pendingDeleteMemberAccountIDs: undefined,
@@ -308,6 +308,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            formatPhoneNumber,
             rules,
         ],
     );
@@ -516,6 +517,12 @@ function IOURequestStepConfirmationContent({
             Navigation.goBack(backTo);
             return;
         }
+        // If the transaction was seeded by reusing a previous route, go back to the previous screen in the stack
+        // (e.g. the reuse route list) instead of navigating to the start money request step.
+        if (transaction?.isReusedRoute) {
+            Navigation.goBack();
+            return;
+        }
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -569,6 +576,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
+        transaction?.isReusedRoute,
         transaction?.receipt?.isTestReceipt,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
