@@ -1,19 +1,15 @@
 /** Probe the public HTTPS listener without disabling certificate verification. */
-import https from 'node:https';
-
-function checkWebServer(origin: string, ca: Buffer, useWorker: boolean, signal: AbortSignal): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-        const request = https.get(origin, {ca, timeout: 2000, signal}, (response) => {
-            response.resume();
-            resolve(response.statusCode === 200 && (!useWorker || !!response.headers['content-security-policy']));
+async function checkWebServer(origin: string, ca: string, useWorker: boolean, signal: AbortSignal): Promise<boolean> {
+    try {
+        const response = await fetch(origin, {
+            tls: {ca},
+            signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]),
         });
-        request.on('timeout', () => {
-            // Bun's ClientRequest.destroy() need not emit an error after a timeout.
-            resolve(false);
-            request.destroy();
-        });
-        request.on('error', () => resolve(false));
-    });
+        await response.body?.cancel();
+        return response.status === 200 && (!useWorker || response.headers.has('Content-Security-Policy'));
+    } catch {
+        return false;
+    }
 }
 
 export default checkWebServer;

@@ -1,46 +1,61 @@
+/** Readiness probes must time out or cancel without blocking the development launcher. */
 import {afterEach, describe, expect, mock, spyOn, test} from 'bun:test';
-
-/** A timed-out probe must not prevent the launcher from retrying or shutting down. */
-import type {ClientRequest} from 'node:http';
-
-import {EventEmitter} from 'node:events';
-import {IncomingMessage} from 'node:http';
-import https from 'node:https';
-import {Socket} from 'node:net';
 
 import checkWebServer from '../../scripts/utils/checkWebServer';
 
 describe('public web server readiness', () => {
     afterEach(() => mock.restore());
 
-    test('settles a timeout even when destroy emits no error', async () => {
-        // Given Bun can destroy a timed-out request without emitting an error
-        const request = Object.assign(new EventEmitter(), {destroy: mock(() => {})});
-        // This fixture implements only the request events the readiness probe uses, without a real TLS connection.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const get = spyOn(https, 'get').mockReturnValue(request as unknown as ClientRequest);
-        const ca = Buffer.from('test CA');
-        const signal = new AbortController().signal;
-        const result = checkWebServer('https://dev.new.expensify.com:8082', ca, true, signal);
-        // When the first compilation takes longer than the probe timeout
-        request.emit('timeout');
-        // Then the launcher can retry and does not disable certificate checks
+    test.each([new DOMException('Probe timed out', 'TimeoutError'), new TypeError('Connection refused'), new Error('Certificate verification failed')])(
+        'treats fetch failures as an unsuccessful probe: %s',
+        async (error) => {
+            // Given a listener that is starting up, unresponsive, or has an untrusted certificate
+            const get = spyOn(globalThis, 'fetch').mockRejectedValue(error);
+            const signal = new AbortController().signal;
+            // When the launcher probes the public origin
+            const ready = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, signal);
+            // Then it can retry without disabling TLS verification
+            expect(ready).toBe(false);
+            const [url, init] = get.mock.calls.at(0) ?? [];
+            expect(url).toBe('https://dev.new.expensify.com:8082');
+            expect(init).toMatchObject({tls: {ca: 'test CA'}});
+            expect(init?.signal).toBeInstanceOf(AbortSignal);
+        },
+    );
+
+    test('cancels an outstanding probe when the launcher stops', async () => {
+        // Given a probe waiting for its response
+        const waitingFetch = Object.assign(
+            (_url: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+                new Promise<Response>((_resolve, reject) => {
+                    init?.signal?.addEventListener('abort', () => reject(init.signal?.reason), {once: true});
+                }),
+            {preconnect: fetch.preconnect},
+        );
+        spyOn(globalThis, 'fetch').mockImplementation(waitingFetch);
+        const controller = new AbortController();
+        const result = checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, controller.signal);
+        // When the session is stopped
+        controller.abort();
+        // Then readiness finishes without waiting for the timeout
         await expect(result).resolves.toBe(false);
-        expect(request.destroy).toHaveBeenCalledTimes(1);
-        expect(get).toHaveBeenCalledWith('https://dev.new.expensify.com:8082', {ca, timeout: 2000, signal}, expect.any(Function));
     });
 
-    test('settles connection errors so startup can retry or cancel', async () => {
-        // Given a request created before the Worker starts listening
-        const request = Object.assign(new EventEmitter(), {destroy: mock(() => {})});
-        // This fixture deliberately contains only the event API used by the probe.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        spyOn(https, 'get').mockReturnValue(request as unknown as ClientRequest);
-        const result = checkWebServer('https://dev.new.expensify.com:8082', Buffer.from('CA'), false, new AbortController().signal);
-        // When the connection fails
-        request.emit('error', new Error('Connection refused'));
-        // Then it is a failed readiness probe, not an unhandled rejection or a pending promise
-        await expect(result).resolves.toBe(false);
+    test('times out a real listener that does not return response headers', async () => {
+        // Given a real local server that cannot finish its first response yet
+        const server = Bun.serve({
+            hostname: '127.0.0.1',
+            port: 0,
+            fetch: () => new Promise<Response>(() => {}),
+        });
+        try {
+            // When the launcher probes it without an external cancellation
+            const result = checkWebServer(server.url.href, 'test CA', false, new AbortController().signal);
+            // Then the built-in request timeout releases the probe rather than hanging startup
+            await expect(result).resolves.toBe(false);
+        } finally {
+            await server.stop(true);
+        }
     });
 
     test.each([
@@ -50,25 +65,16 @@ describe('public web server readiness', () => {
         {status: 200, csp: false, worker: false, ready: true},
     ])('requires a usable response from the selected public listener: %j', async ({status, csp, worker, ready}) => {
         // Given either the direct server or the Worker listener
-        const request = Object.assign(new EventEmitter(), {destroy: mock(() => {})});
-        // Only the client request event API is needed by this fixture.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const get = spyOn(https, 'get').mockReturnValue(request as unknown as ClientRequest);
-        const result = checkWebServer('https://dev.new.expensify.com:8082', Buffer.from('CA'), worker, new AbortController().signal);
-        const onResponse = get.mock.calls.at(0)?.[2];
-        if (!onResponse) {
-            throw new Error('Expected an HTTPS response callback');
-        }
-        const response = new IncomingMessage(new Socket());
-        response.statusCode = status;
-        response.headers = {};
+        const headers = new Headers();
         if (csp) {
-            response.headers['content-security-policy'] = "default-src 'self'";
+            headers.set('Content-Security-Policy', "default-src 'self'");
         }
+        const response = new Response('app shell', {status, headers});
+        spyOn(globalThis, 'fetch').mockResolvedValue(response);
         // When the listener returns its response
-        onResponse(response);
-        response.push(null);
+        const result = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', worker, new AbortController().signal);
         // Then only a successful response with the expected Worker headers can open the browser
-        await expect(result).resolves.toBe(ready);
+        expect(result).toBe(ready);
+        expect(response.bodyUsed).toBe(true);
     });
 });

@@ -1,8 +1,6 @@
 /** Keep local Worker/API opt-outs and coordinated port selection independent. */
 import {describe, expect, test} from 'bun:test';
 
-import net from 'node:net';
-
 import {getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from '../../scripts/utils/webDevConfig';
 
 describe('web development configuration', () => {
@@ -27,34 +25,61 @@ describe('web development configuration', () => {
         expect(() => getDevelopmentConnectOrigins({EXPENSIFY_URL: 'https://user:pass@example.test'})).toThrow();
     });
 
-    test('rejects invalid and overlapping ports before starting children', async () => {
+    test('rejects invalid and overlapping ports before starting children', () => {
         // Given invalid coordinated ports
         // When the launcher checks them
         // Then startup fails instead of changing the upstream port behind the Worker's back
-        await expect(getWebDevPorts({WEB_PORT: 'invalid'}, true)).rejects.toThrow();
-        await expect(getWebDevPorts({WEB_PORT: '1023'}, true)).rejects.toThrow();
-        await expect(getWebDevPorts({WEB_PORT: '65536'}, true)).rejects.toThrow();
-        await expect(getWebDevPorts({WEB_PORT: '11000', WEB_INTERNAL_PORT: '11000'}, true)).rejects.toThrow('must differ');
+        expect(() => getWebDevPorts({WEB_PORT: 'invalid'}, true)).toThrow();
+        expect(() => getWebDevPorts({WEB_PORT: '1023'}, true)).toThrow();
+        expect(() => getWebDevPorts({WEB_PORT: '65536'}, true)).toThrow();
+        expect(() => getWebDevPorts({WEB_PORT: '11000', WEB_INTERNAL_PORT: '11000'}, true)).toThrow('must differ');
     });
 
-    test('fails clearly rather than reusing an occupied worktree origin', async () => {
+    test('fails clearly rather than reusing an occupied worktree origin', () => {
         // Given another server owns a port
-        const server = net.createServer();
-        await new Promise<void>((resolve) => {
-            server.listen(0, '127.0.0.1', resolve);
+        const listener = Bun.listen({
+            hostname: '127.0.0.1',
+            port: 0,
+            socket: {
+                data: (socket) => {
+                    socket.end();
+                },
+            },
         });
-        const address = server.address();
-        if (!address || typeof address === 'string') {
-            throw new Error('Missing test port');
-        }
         try {
             // When this session tries to use it
             // Then no child is started against that unrelated listener
-            await expect(getWebDevPorts({WEB_PORT: String(address.port)}, false)).rejects.toThrow('in use');
+            expect(() => getWebDevPorts({WEB_PORT: String(listener.port)}, false)).toThrow('in use');
         } finally {
-            await new Promise<void>((resolve) => {
-                server.close(() => resolve());
-            });
+            listener.stop(true);
         }
+    });
+
+    test('releases the availability probe so the selected port can be bound', () => {
+        // Given an available local port
+        const initial = Bun.listen({
+            hostname: '127.0.0.1',
+            port: 0,
+            socket: {
+                data: (socket) => {
+                    socket.end();
+                },
+            },
+        });
+        const port = initial.port;
+        initial.stop(true);
+        // When a session resolves and probes that port
+        expect(getWebDevPorts({WEB_PORT: String(port)}, false).publicPort).toBe(port);
+        // Then its actual server can bind the port immediately
+        const listener = Bun.listen({
+            hostname: '127.0.0.1',
+            port,
+            socket: {
+                data: (socket) => {
+                    socket.end();
+                },
+            },
+        });
+        listener.stop(true);
     });
 });

@@ -1,38 +1,35 @@
 /** Start the live Worker and Rsbuild together, keeping browser-facing URLs independent of the upstream. */
+import {$} from 'bun';
 import concurrently from 'concurrently';
-import dotenv from 'dotenv';
-import {execFileSync, spawn} from 'node:child_process';
-import {existsSync, readFileSync} from 'node:fs';
-import path from 'node:path';
-import {setTimeout as delay} from 'node:timers/promises';
 
 import checkWebServer from './utils/checkWebServer';
 import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
 
 async function startWeb() {
-    dotenv.config();
-    const {useWorker, useProxy, openBrowser} = getWebDevFlags(process.env);
-    const {publicPort, internalPort} = await getWebDevPorts(process.env, useWorker);
+    // Bun loads .env automatically, preserving explicit shell overrides.
+    const {useWorker, useProxy, openBrowser} = getWebDevFlags(Bun.env);
+    const {publicPort, internalPort} = getWebDevPorts(Bun.env, useWorker);
     if (useProxy) {
-        await assertWebPortAvailable(9000, '::');
+        assertWebPortAvailable(9000, '::');
     }
     for (const file of ['key.pem', 'certificate.pem']) {
-        if (!existsSync(`config/rsbuild/${file}`)) {
+        if (!(await Bun.file(`config/rsbuild/${file}`).exists())) {
             throw new Error('Missing local HTTPS certificate. Run npm run setup-https first.');
         }
     }
-    if (useWorker && !existsSync('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js')) {
+    if (useWorker && !(await Bun.file('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js').exists())) {
         throw new Error('Missing Worker dependencies. Run npm install to finish App setup.');
     }
     const origin = `https://dev.new.expensify.com:${publicPort}`;
-    process.env.WEB_PORT = String(publicPort);
-    process.env.WEB_INTERNAL_PORT = String(internalPort);
-    process.env.USE_CLOUDFLARE_WORKER = String(useWorker);
-    process.env.USE_WEB_PROXY = String(useProxy);
-    const workerDir = path.resolve('web/cloudflare-worker');
-    const ca = readFileSync(path.join(execFileSync('mkcert', ['-CAROOT'], {encoding: 'utf8'}).trim(), 'rootCA.pem'));
-    // Values include local paths and JSON; neither should be expanded by the child shell.
-    const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
+    Bun.env.WEB_PORT = String(publicPort);
+    Bun.env.WEB_INTERNAL_PORT = String(internalPort);
+    Bun.env.USE_CLOUDFLARE_WORKER = String(useWorker);
+    Bun.env.USE_WEB_PROXY = String(useProxy);
+    const root = process.cwd();
+    const workerDir = `${root}/web/cloudflare-worker`;
+    const caRoot = (await $`mkcert -CAROOT`.text()).trim();
+    const ca = await Bun.file(`${caRoot}/rootCA.pem`).text();
+    // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
     const commands = [
         ...(useProxy ? [{name: 'api', command: 'npm run web-proxy'}] : []),
         {name: 'rsbuild', command: 'node node_modules/@rsbuild/core/bin/rsbuild.js dev --config config/rsbuild/rsbuild.config.ts'},
@@ -44,10 +41,10 @@ async function startWeb() {
                       command: [
                           'node node_modules/wrangler/bin/wrangler.js dev --local --config wrangler.dev.jsonc',
                           `--ip 127.0.0.1 --port ${publicPort} --inspector-port 0 --local-protocol https`,
-                          `--https-key-path ${quote(path.resolve('config/rsbuild/key.pem'))}`,
-                          `--https-cert-path ${quote(path.resolve('config/rsbuild/certificate.pem'))}`,
-                          `--var ${quote(`DEV_UPSTREAM:http://127.0.0.1:${internalPort}`)}`,
-                          `--var ${quote(`DEV_CONNECT_ORIGINS:${JSON.stringify(getDevelopmentConnectOrigins(process.env))}`)}`,
+                          `--https-key-path ${$.escape(`${root}/config/rsbuild/key.pem`)}`,
+                          `--https-cert-path ${$.escape(`${root}/config/rsbuild/certificate.pem`)}`,
+                          `--var ${$.escape(`DEV_UPSTREAM:http://127.0.0.1:${internalPort}`)}`,
+                          `--var ${$.escape(`DEV_CONNECT_ORIGINS:${JSON.stringify(getDevelopmentConnectOrigins(Bun.env))}`)}`,
                       ].join(' '),
                   },
               ]
@@ -75,8 +72,9 @@ async function startWeb() {
                         const browserCommands: Partial<Record<NodeJS.Platform, string>> = {darwin: 'open', win32: 'cmd'};
                         const command = browserCommands[process.platform] ?? 'xdg-open';
                         const args = process.platform === 'win32' ? ['/c', 'start', '', `${origin}/`] : [`${origin}/`];
-                        const browser = spawn(command, args, {stdio: 'ignore'});
-                        browser.on('error', (error) => console.error(`Open ${origin}/ in your browser: ${error.message}`));
+                        $`${command} ${args}`.quiet().catch((error: unknown) => {
+                            console.error(`Open ${origin}/ in your browser:`, error);
+                        });
                     }
                     return;
                 }
@@ -86,7 +84,7 @@ async function startWeb() {
             if (Date.now() > deadline) {
                 throw new Error(`Timed out waiting for ${origin}. Check the dev server output.`);
             }
-            await delay(250, undefined, {signal: controller.signal});
+            await Bun.sleep(250);
         }
     })();
     try {
