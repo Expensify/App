@@ -1,3 +1,4 @@
+import type {WebComposerRef} from '@components/Composer/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ComponentRef} from 'react';
@@ -12,6 +13,6 @@ type Selection = {
 
 type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => Promise<void>;
 
-type InputType = BaseTextInputRef | ComponentRef<typeof TextInput> | HTMLTextAreaElement;
+type InputType = BaseTextInputRef | ComponentRef<typeof TextInput> | HTMLTextAreaElement | WebComposerRef;
 
 export type {Selection, FocusComposerWithDelay, InputType};

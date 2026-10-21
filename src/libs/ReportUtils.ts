@@ -108,7 +108,6 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
-import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
@@ -297,6 +296,7 @@ import {
     isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest,
+    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -2571,9 +2571,9 @@ function hasExpensifyGuidesEmails(accountIDs: number[], guideAccountIDs: GuideAc
     return accountIDs.some((accountID) => Str.extractEmailDomain(getPersonalDetail(accountID)?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>, isAnonymousUser: boolean): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUserSession())) {
+        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUser)) {
             return false;
         }
         return !!report?.reportID && !!(lastVisitTimes?.[report.reportID] ?? report?.lastReadTime);
@@ -2600,6 +2600,7 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
+    isAnonymousUser: boolean,
     openOnAdminRoom = false,
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
@@ -2631,7 +2632,7 @@ function findLastAccessedReport(
         // and it prompts the user to use the Concierge chat instead.
         return !isSystemChat(report) && !isArchivedReport(reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     };
-    const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession());
+    const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUser);
 
     // Any visited report outranks every unvisited one, so pick the newest eligible visit instead of scanning all reports.
     let newestVisitTime = '';
@@ -2663,7 +2664,7 @@ function findLastAccessedReport(
         }
         return toLastAccessedReport(lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? ''));
     }
-    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes));
+    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes, isAnonymousUser));
 }
 
 /**
@@ -3344,7 +3345,7 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport)) {
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
         return false;
     }
 
@@ -6157,7 +6158,7 @@ function canEditFieldOfMoneyRequest({
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
-            (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
+            (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequest(transaction)) &&
             canEditExpense &&
             (isDeleteAction ? isRequestor : true)
         );
@@ -11356,6 +11357,29 @@ function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: stri
     });
 }
 
+/**
+ * Returns the chat an expense created from the given report should go to. For IOU and expense reports that is their linked chat,
+ * for any other report it is the report itself.
+ * An expense report received from another session can arrive without chatReportID, so we recover its workspace chat from its own policy and owner.
+ */
+function getChatReportFromMoneyRequestReport(report: OnyxEntry<Report>, chatReportDraft?: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> {
+    if (!isMoneyRequestReport(report)) {
+        return report;
+    }
+
+    const chatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, chatReportDraft);
+    if (chatReport) {
+        return chatReport;
+    }
+
+    // Only expense reports can be recovered this way: an IOU report's chat is a DM that no policy points at
+    if (!isExpenseReport(report)) {
+        return undefined;
+    }
+
+    return getPolicyExpenseChat(report?.ownerAccountID, report?.policyID);
+}
+
 function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
     return Object.values(deprecatedAllReports ?? {}).filter((report) => report?.policyID === policyID);
 }
@@ -11552,13 +11576,12 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
-    let isOwnPolicyExpenseChat = report?.isOwnPolicyExpenseChat ?? false;
-    if (isExpenseReport(report) && getParentReport(report)) {
-        isOwnPolicyExpenseChat = !!getParentReport(report)?.isOwnPolicyExpenseChat;
-    }
+    const isOwnPolicyExpenseChat = report?.isOwnPolicyExpenseChat ?? false;
 
-    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report
-    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
+    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report.
+    // Expense reports are exempt because they are gated by canAddTransaction below, the same check the "Add expense" button uses. An empty expense report
+    // only ever has its owner as a participant, so applying this rule to it would hide the page behind a button that is still rendered.
+    if (!isExpenseReport(report) && otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
@@ -12983,7 +13006,7 @@ function canJoinChat(
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isReportArchived = false): boolean {
+function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isAnonymousUser: boolean, isReportArchived = false): boolean {
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -12992,7 +13015,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
         return true;
     }
 
-    if (isPublicRoom(report) && isAnonymousUserSession()) {
+    if (isPublicRoom(report) && isAnonymousUser) {
         return false;
     }
 
@@ -14589,6 +14612,11 @@ function isPayBlockedByArchivedState(report: OnyxInputOrEntry<Report>, policy: O
     return isExpenseReport(report) ? isArchivedOrPendingDeletePolicy(policy) : isReportOrChatArchived;
 }
 
+/** Whether Pay is blocked, either by archived state or by a cancelled payment that is still going back to the payer. */
+function isPayBlocked(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, isReportOrChatArchived: boolean): boolean {
+    return isPayBlockedByArchivedState(report, policy, isReportOrChatArchived) || !!report?.isWaitingForCancelledReimbursement;
+}
+
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     if (report?.hasReportBeenReopened !== undefined) {
         return report.hasReportBeenReopened;
@@ -15393,6 +15421,7 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
+    getChatReportFromMoneyRequestReport,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
@@ -15641,7 +15670,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
     hasReportBeenRetracted,

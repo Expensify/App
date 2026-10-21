@@ -992,6 +992,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: '管理',
             },
             emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
+            upgradeNetSuiteConnection: {title: '升级您的 NetSuite 连接'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1130,7 +1131,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
-        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
+        compare: {
+            label: '比较',
+            previousPeriod: '上一期',
+            average: '平均',
+            dayLabel: (day?: number) => (day === undefined ? '天' : `第 ${day} 天`),
+            weekLabel: (week?: number) => (week === undefined ? '周' : `第 ${week} 周`),
+            monthLabel: (month?: number) => (month === undefined ? '月' : `第 ${month} 个月`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? '季度' : `第 ${quarter} 季度`),
+            yearLabel: (year?: number) => (year === undefined ? '年份' : `第 ${year} 年`),
+            increase: (percentage: string) => `上升 ${percentage}`,
+            decrease: (percentage: string) => `下降 ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2102,6 +2114,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
+                }
+                return `正在等待已取消的付款完成处理${formattedETA}。`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2722,7 +2746,8 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
         },
-        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用'},
+        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用', headerTitle: '全球报销'},
+        wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,
@@ -4948,6 +4973,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             editPerDiemRates: '编辑每日津贴费率',
             editDestinationSubtitle: (destination: string) => `更新此目的地将会更改所有 ${destination} 按日津贴子费率的设置。`,
             editCurrencySubtitle: (destination: string) => `更新此货币将会更改所有 ${destination} 的每日津贴子费率。`,
+            missingPerDiemUnit: '此工作区的每日津贴设置不正确。请联系 Concierge 获取帮助。',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '设置自掏腰包报销如何导出到 QuickBooks Desktop。',
@@ -7140,6 +7166,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
+            exactOnline: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入候补名单',
+                onWaitlist: '您在候补名单中',
+                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
@@ -7416,6 +7448,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
             qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
+            netSuiteOAuthMigrationRequired: '请在 2027 年 2 月前将您的 NetSuite 连接升级到 OAuth 2.0。',
+            netSuiteOAuthMigrationRequiredUrgent: '您的 NetSuite 连接需要立即升级到 OAuth 2.0。',
+            netSuiteOAuthUpgradeNow: '立即升级',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -8393,6 +8428,7 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
+                fallbackBanner: '这不是一条标准规则，所以我们将其制定为代理规则。代理规则会在报销或报表发生变更后生效，例如暂扣该报销或驳回该报表。',
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
@@ -8448,16 +8484,21 @@ ${reportName}`,
             newRule: {
                 title: '新规则',
                 subtitle: '你想要做什么？',
+                startWithTemplate: '从模板开始',
                 restrictCardSpend: '限制卡片支出',
                 restrictCardSpendDescription: '在销售点阻止或限制支出',
                 applyExpenseDefaults: '应用报销默认设置',
-                applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
+                applyExpenseDefaultsDescription: '自动更新字段',
                 flagForReview: '标记以供审核',
-                flagForReviewDescription: '当费用超出类别限额时通知审批人',
+                flagForReviewDescription: '满足你的条件时发送通知',
                 requireFields: '设置字段要求',
-                requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
+                requireFieldsShort: '必填字段',
+                requireFieldsDescription: '收据、类别等',
                 createAgentRule: '描述代理规则',
                 createAgentRuleDescription: '创建可按需运行的灵活规则。',
+                describeItBelow: '或者直接在下方描述',
+                describeRulePlaceholder: '阻止所有超过 2,000 美元的支出',
+                selectTemplateOrDescribe: '请选择模板或描述规则以继续',
                 describe: '描述',
                 describeRule: '用通俗的语言描述你的规则，Concierge 会为你创建规则',
                 describeRuleInputLabel: '描述规则',
@@ -8465,6 +8506,7 @@ ${reportName}`,
                     unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
                     unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
                     multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                    categoryHasRule: '该类别已有规则。请编辑现有规则，或为其他类别描述规则。',
                 },
             },
             expenseDefaultsTable: {
@@ -8885,11 +8927,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: '导出到下一个未结会计期间',
                 exportToNextOpenPeriodDescription: '当报告日期位于 Dynamics 365 Business Central 的已关闭期间时，将其导出到下一个未关闭期间。',
                 syncReimbursedReports: '同步已报销报表',
-                syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
-                reimbursementBankAccount: {
-                    label: '账单支付账户',
-                    description: '选择从哪里支付账单，我们会在 Dynamics 365 Business Central 中创建付款。',
-                },
+                syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此科目中生成一条普通日记账分录。',
+                reimbursementBankAccount: {label: '付款银行账户', description: '选择从哪里支付账单，我们会在 Dynamics 365 Business Central 中创建付款。'},
                 syncExpensifyCardSettlements: '同步 Expensify 卡结算',
                 settlementsBankAccount: {
                     label: 'Expensify 卡结算账户',
@@ -9497,6 +9536,7 @@ ${reportName}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `已添加“${rateName}”费率 ${rateValue}，有效期至 ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `已添加“${rateName}”费率 ${rateValue}，有效期为 ${startDate} - ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `，其中 ${taxReclaimableAmount} 可按“${taxRateName}”退税`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) => `已将距离费率“${rateName}”更新为适用于 ${newDateRange}（此前为 ${oldDateRange}）`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
         customUnitRateDateRangeFrom: (date: string) => `自 ${date} 起`,
@@ -10024,6 +10064,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `将${fieldName}更改为“${newValue}”（先前为“${oldValue}”）`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `将 ${fieldName} 设置为“${newValue}”`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `已移除${fieldName}（先前为“${oldValue}”）`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（原为 ${fromPolicyName}）` : ''}`;

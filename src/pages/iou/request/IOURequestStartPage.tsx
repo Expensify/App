@@ -25,7 +25,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import isNavigationStatePayload from '@libs/Navigation/helpers/isNavigationStatePayload';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
 import {isRecord} from '@libs/ObjectUtils';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
@@ -44,6 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
+import type {TupleToUnion} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -61,8 +62,11 @@ import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 import useRestoreFocusAfterDiscard from './useRestoreFocusAfterDiscard';
 
+const tabNames = [CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN, CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.PER_DIEM, CONST.TAB_REQUEST.TIME] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 // Tab indices for IOURequestStartPage
@@ -123,7 +127,10 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const iouRequestStartPoliciesSelector = createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE);
+    const iouRequestStartPoliciesSelector = useMemo(
+        () => createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        [currentUserPersonalDetails.login, iouType],
+    );
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: iouRequestStartPoliciesSelector,
     });
