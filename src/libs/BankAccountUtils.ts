@@ -167,7 +167,7 @@ function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEnt
             return accountData;
         }
 
-        // `created` is a DB timestamp, so string compare works. Same second → higher ID wins
+        // `created` is a DB timestamp, so string comparison orders accounts chronologically. When two accounts share the same second, the higher bank account ID wins.
         const created = accountData.created ?? '';
         const latestCreated = latest.created ?? '';
         const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
