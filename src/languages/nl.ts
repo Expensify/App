@@ -7313,6 +7313,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 optionNoRegularWorkspaceHelp: 'Lid werkt thuis of reist tussen locaties zonder vaste kantoorlocatie, waardoor woon-werkregels niet van toepassing zijn.',
                 futureOnlyNote: 'Wijzigingen zijn alleen van toepassing op toekomstige kilometerberekeningen. Bestaande kilometerdeclaraties worden niet opnieuw berekend.',
             },
+            changeRole: 'Rol wijzigen',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -9191,6 +9192,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     return `${customAccountsCount} kaarten met aangepaste rekeningen`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Zoho Books-organisatie',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
@@ -12125,5 +12129,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileRenewPrompt: 'Bezoek Expensify in je webbrowser om vroegtijdig te verlengen.',
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
+    bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
 };
 export default translations;

@@ -7315,6 +7315,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 optionNoRegularWorkspaceHelp: 'O membro trabalha em casa ou viaja entre locais sem um escritório fixo, portanto as regras de deslocamento não se aplicam.',
                 futureOnlyNote: 'As alterações se aplicam apenas aos cálculos de quilometragem futuros. As despesas de quilometragem existentes não são recalculadas.',
             },
+            changeRole: 'Alterar função',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -9197,6 +9198,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     return `${customAccountsCount} cartões com contas personalizadas`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Organização Zoho Books',
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
@@ -12116,5 +12120,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         mobileRenewPrompt: 'Visite o Expensify no seu navegador para renovar antecipadamente.',
         mobileClaimPrompt: 'Visite o Expensify no seu navegador para resgatar seu desconto de renovação.',
     },
+    bulkActionBar: {label: 'Ações em massa', clearSelection: 'Limpar seleção', loadingSelection: 'Carregando seleção'},
 };
 export default translations;

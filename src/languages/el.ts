@@ -7506,6 +7506,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
                 futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
             },
+            changeRole: 'Αλλαγή ρόλου',
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -9437,6 +9438,9 @@ ${reportName}`,
                     return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Οργανισμός Zoho Books',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -12451,5 +12455,6 @@ ${reportName}`,
         mobileRenewPrompt: 'Επισκεφθείτε το Expensify στον περιηγητή ιστού σας για να ανανεώσετε νωρίτερα.',
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
+    bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
 };
 export default translations;

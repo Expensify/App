@@ -254,6 +254,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
 export type {
     FileObject,
@@ -427,6 +428,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceMembersSelectedForRoleChange,
     SupportalPermissionDenied,
     PurchaseList,
     Purchases,
