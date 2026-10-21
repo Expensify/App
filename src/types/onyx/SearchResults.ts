@@ -90,6 +90,9 @@ type SearchResultsInfo = {
      * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
     reportCount?: number;
 
+    /** Expense reports a to-do search's responses held since its count. Those this device listed and no longer does come off `reportCount`. */
+    countedReportIDs?: Record<string, boolean>;
+
     /** The total spend */
     total?: number;
 
