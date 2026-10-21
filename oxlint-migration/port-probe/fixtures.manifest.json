@@ -1,9 +1,9 @@
 {
     "no-unreachable-loop": {
         "fixture": "fixtures/unreachableLoop.ts",
-        "oxlintRule": "core/no-unreachable-loop",
+        "oxlintRule": "eslint/no-unreachable-loop",
         "expected": 1,
-        "why": "WIRED 2026-08-10 as core/no-unreachable-loop; oxlint's native port false-positives, so ESLint's core rule is hosted instead"
+        "why": "native since 2026-10-21; the false positives that made it hosted (oxc#24251 switch, oxc#25048 catch) are fixed in oxlint 1.89.0"
     },
     "react/jsx-no-bind": {
         "fixture": "fixtures/jsxNoBind.tsx",

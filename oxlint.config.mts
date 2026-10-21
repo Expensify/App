@@ -128,7 +128,6 @@ export default defineConfig({
     settings: {
         react: {version: '19.2.3'},
         propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze'],
-        progress: {hide: false},
         // `eslint-seatbelt/configure` is off: eslint-seatbelt suppresses through an ESLint processor,
         // which oxlint has no concept of.
     },
@@ -365,8 +364,8 @@ export default defineConfig({
         // OFF here, ON for src/**/*.ts(x): ESLint's copy needs the type checker, so oxlint runs a
         // type-free rewrite (config/oxlint/preferLocaleCompareFromContext.mjs) instead.
         'rulesdir/prefer-locale-compare-from-context': 'off',
-        // Hosted behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs): ESLint's
-        // processor drops this rule's messages in a dual-memoized file, and the gate mirrors that.
+        // Dropped in files both React Compilers memoize: by ReactCompilerFilter under scripts/lint, and
+        // by config/oxlint/reactCompilerGate.mjs in the editor and raw oxlint runs.
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'no-array-constructor': 'error',
         'no-bitwise': 'error',
@@ -486,9 +485,9 @@ export default defineConfig({
         // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
         // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
         'react/function-component-definition': 'off',
-        // OFF, ESLint's own rule runs as `hosted/jsx-no-constructed-context-values` behind the React
-        // Compiler gate, which a native Rust rule cannot have. The native port diverges too: it
-        // anchors on the JSX provider rather than the declaration.
+        // OFF, ESLint's own rule runs as `hosted/jsx-no-constructed-context-values`: the native port
+        // anchors on the JSX provider rather than the declaration, and the editor's React Compiler
+        // gate can only wrap a JS plugin rule.
         'react/jsx-no-constructed-context-values': 'off',
         'react/no-unstable-nested-components': 'error',
         'react/no-namespace': 'error',
@@ -582,9 +581,13 @@ export default defineConfig({
             {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
             {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
         ],
-        // NOT oxlint's native react/exhaustive-deps: it is a Rust rule, and the React Compiler
-        // message gate can only wrap a JS plugin. See config/oxlint/plugins/hosted-rules.mjs.
+        // NOT oxlint's native react/exhaustive-deps: its message lacks the "useCallback() Hook" text that
+        // ReactCompilerFilter matches, and the editor's React Compiler gate can only wrap a JS plugin rule.
         'hosted/exhaustive-deps': 'error',
+        // The Rust React Compiler, not native react/*: oxc-project/oxc#26277, a react/exhaustive-deps or
+        // react/rules-of-hooks disable silences every native compiler diagnostic in the component. Not
+        // eslint-plugin-react-hooks as a jsPlugin either: its JS compiler took 52 s of a 121 s whole-repo
+        // run, against 5.2 s for the Rust one (measured August 2026).
         'rc/refs': 'error',
         'rc/set-state-in-effect': 'error',
         'rc/set-state-in-render': 'error',
@@ -600,7 +603,7 @@ export default defineConfig({
         'no-restricted-exports': ['error', {restrictedNamedExports: ['default', 'then']}],
         'import/export': 'error',
         'react/require-render-return': 'error',
-        'core/no-unreachable-loop': ['error', {ignore: []}],
+        'no-unreachable-loop': ['error', {ignore: []}],
         'hosted/jsx-no-bind': ['error', {ignoreRefs: true, allowArrowFunctions: true, allowFunctions: false, allowBind: false, ignoreDOMComponents: true}],
         'hosted/function-component-definition': ['error', {namedComponents: 'function-declaration', unnamedComponents: 'arrow-function'}],
         'hosted/jsx-no-constructed-context-values': 'error',
@@ -700,7 +703,8 @@ export default defineConfig({
                 // Stands in for ESLint's `no-new-symbol`, deprecated in 9.x for this rule. Same
                 // rename mechanism as no-new-object -> no-object-constructor, see OXLINT_RENAMES.
                 'no-new-native-nonconstructor': 'error',
-                // No native oxlint rule of any name; hosted from ESLint core through `core/`.
+                // typescript/dot-notation needs type information and is off for JS files, so ESLint's
+                // core rule is hosted through `core/` here.
                 'core/dot-notation': ['error', {allowKeywords: true, allowPattern: ''}],
                 'core/no-dupe-args': 'error',
                 'core/no-return-await': 'error',
@@ -1262,14 +1266,6 @@ export default defineConfig({
                 'typescript/no-unsafe-member-access': 'off',
                 'rulesdir/no-default-props': 'off',
                 'hosted/no-types': 'off',
-            },
-        },
-        {
-            files: ['**/*.d.{ts,tsx}'],
-            rules: {
-                // ESLint's code-path analyzer throws on declaration files under oxlint's plugin bridge
-                // (`Cannot read properties of undefined (reading 'parent')`), and a thrown plugin fails the run.
-                'core/no-unreachable-loop': 'off',
             },
         },
         {

@@ -24,7 +24,7 @@
         "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze", {"property": "exact", "exact": true}]
     },
     "rules": {
-        "core/no-unreachable-loop": ["error", {"ignore": []}],
+        "no-unreachable-loop": ["error", {"ignore": []}],
         "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
         "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
         "hosted/prefer-default-export": "error",

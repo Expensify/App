@@ -157,12 +157,16 @@ function deriveLegConfigs(config: OxlintConfig): {
         }),
     };
     delete typeAware.jsPlugins;
+    // typeAware: false also disables typed native rules (e.g. typescript/no-unsafe-assignment), so only the
+    // type-aware leg reports them.
     return {
         jsPlugins: {...config, options: {...config.options, typeAware: false}},
         typeAware,
     };
 }
 
+// Both legs run the native rules, so the type-aware leg repeats the shards' native findings; this key drops
+// the second copy per file.
 function messageKey(message: LintMessage): string {
     return [message.ruleID, message.severity, message.line, message.column, message.message].join('\u0000');
 }
@@ -373,6 +377,7 @@ class OxlintLinter extends Linter {
         remove: () => void;
     }> {
         const {jsPlugins, typeAware} = deriveLegConfigs(await loadOxlintConfig(this.options.projectRoot));
+        // Written beside oxlint.config.mts because oxlint resolves jsPlugin specifiers relative to the config file.
         const jsPluginsConfig = `.oxlintrc.js-plugins.${process.pid}.json`;
         const typeAwareConfig = `.oxlintrc.type-aware.${process.pid}.json`;
         fs.writeFileSync(path.join(this.options.projectRoot, jsPluginsConfig), JSON.stringify(jsPlugins));
@@ -393,6 +398,7 @@ class OxlintLinter extends Linter {
 
     private async runLegs(legs: OxlintLeg[], notes: string[]): Promise<LinterResult> {
         const outputs = [];
+        // The type-aware leg covers every shard's files, so concurrent --fix runs would write the same file at once.
         if (this.options.fix) {
             for (const leg of legs) {
                 outputs.push(await this.runOxlint(leg.args));

@@ -5,18 +5,7 @@ import {builtinRules} from 'eslint/use-at-your-own-risk';
 
 import {withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
 
-const NAMES = [
-    'no-restricted-syntax',
-    'no-unreachable-loop',
-    'lines-between-class-members',
-    'no-octal',
-    'no-octal-escape',
-    'no-undef-init',
-    'strict',
-    'dot-notation',
-    'no-dupe-args',
-    'no-return-await',
-];
+const NAMES = ['no-restricted-syntax', 'lines-between-class-members', 'no-octal', 'no-octal-escape', 'no-undef-init', 'strict', 'dot-notation', 'no-dupe-args', 'no-return-await'];
 
 const plugin = {
     meta: {

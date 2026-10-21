@@ -314,7 +314,7 @@ describe('normalizeOxlintDiagnostics', () => {
             ['react(jsx-key)', 'react/jsx-key'],
             ['hosted(naming-convention)', '@typescript-eslint/naming-convention'],
             ['eslint(no-object-constructor)', 'no-new-object'],
-            ['react(exhaustive-deps)', 'react-hooks/exhaustive-deps'],
+            ['react-hooks(rules-of-hooks)', 'react-hooks/rules-of-hooks'],
         ];
         const diagnostics = expected.map(([code]) => oxlintDiagnostic({code}));
         const [file] = normalizeOxlintDiagnostics(diagnostics, '/repo', ['src/a.ts']);
