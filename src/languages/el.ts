@@ -10751,6 +10751,7 @@ ${reportName}`,
                 changeField: (oldValue, newValue, fieldName) => `άλλαξε το ${fieldName} σε «${newValue}» (προηγουμένως «${oldValue}»)`,
                 changeFieldEmpty: (newValue, fieldName) => `ορίστε το ${fieldName} σε «${newValue}»`,
                 changeFieldRemoved: (oldValue, fieldName) => `αφαίρεσε το ${fieldName} (προηγουμένως «${oldValue}»)`,
+                changeFieldCleared: (fieldName) => `αφαίρεσε το ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `άλλαξε τον χώρο εργασίας${fromPolicyName ? `(προηγουμένως ${fromPolicyName})` : ''}`;

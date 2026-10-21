@@ -10064,6 +10064,7 @@ ${reportName}`,
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `将${fieldName}更改为“${newValue}”（先前为“${oldValue}”）`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `将 ${fieldName} 设置为“${newValue}”`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `已移除${fieldName}（先前为“${oldValue}”）`,
+                changeFieldCleared: (fieldName: string) => `已移除${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（原为 ${fromPolicyName}）` : ''}`;

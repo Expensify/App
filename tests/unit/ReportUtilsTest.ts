@@ -35,6 +35,7 @@ import {
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
+    buildOptimisticChangeFieldAction,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
@@ -24698,6 +24699,45 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('buildOptimisticChangeFieldAction', () => {
+        const textField: PolicyReportField = {
+            name: 'text',
+            fieldID: 'text_field',
+            defaultValue: 'Initial',
+            orderWeight: 1,
+            type: 'text',
+            deletable: true,
+            target: CONST.REPORT.TYPE.EXPENSE,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            isTax: false,
+        };
+
+        it('should not use the default value as the old value when the field was never saved on the report', () => {
+            // Given a text field that has no saved value on the report, so the user sees its workspace default
+            const previousReportField = {...textField, value: undefined};
+
+            // When the user clears it
+            const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
+
+            // Then the action leaves the old value empty, matching the server's action so the message doesn't change when it arrives
+            expect(action).toMatchObject({originalMessage: {oldValue: undefined, newValue: ''}});
+        });
+
+        it('should use the saved value as the old value when the field has one', () => {
+            // Given a text field whose saved value differs from its default
+            const previousReportField = {...textField, value: 'Saved'};
+
+            // When the user clears it
+            const action = buildOptimisticChangeFieldAction({...textField, value: ''}, previousReportField, 1);
+
+            // Then the action records the saved value, not the default
+            expect(action).toMatchObject({originalMessage: {oldValue: 'Saved', newValue: ''}});
         });
     });
 
