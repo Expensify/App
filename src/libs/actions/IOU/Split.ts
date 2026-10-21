@@ -29,11 +29,10 @@ import {
     buildOptimisticReportPreview,
     generateReportID,
     getChatByParticipants,
+    getChatReportFromMoneyRequestReport,
     getParsedComment,
     getReimbursableTotal,
     getReportNotificationPreference,
-    getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -165,6 +164,7 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
@@ -2084,6 +2084,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        moneyRequestReportTransactions,
         reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2121,7 +2122,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
@@ -2402,7 +2403,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions)) {
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 
