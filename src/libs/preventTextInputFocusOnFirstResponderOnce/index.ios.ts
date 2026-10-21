@@ -5,7 +5,7 @@ import type {PreventTextInputFocusOnFirstResponderOnce} from './types';
  * first responder in the UIResponder chain. (iOS only, no-op on Android and web)
  */
 const preventTextInputFocusOnFirstResponderOnce: PreventTextInputFocusOnFirstResponderOnce = (composerRef) => {
-    composerRef.current?.preventFocusOnFirstResponderOnce();
+    composerRef.current?.preventFocusOnFirstResponderOnce?.();
 };
 
 export default preventTextInputFocusOnFirstResponderOnce;
