@@ -5,6 +5,7 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Rule} from '@src/types/onyx';
 import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
@@ -15,6 +16,7 @@ import type {
     ExpenseDefaultTaxValue,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -222,8 +224,8 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
 }
 
 /**
- * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores, and what the
- * legacy `codingRuleValue` is derived from until writes move to `SetRule`.
+ * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores and what is sent
+ * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
@@ -451,13 +453,19 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {BuiltMerchantRule, MerchantRuleFormValues};
+/** Returns the merchant rule draft for generated values */
+function getMerchantRuleDraftFromGeneratedValues(values: GeneratedRuleValues): Partial<MerchantRuleForm> {
+    return {...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT};
+}
+
+export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
     canEditMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
+    getMerchantRuleDraftFromGeneratedValues,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleMerchantMatchSummary,
