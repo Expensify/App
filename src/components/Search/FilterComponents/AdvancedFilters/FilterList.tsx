@@ -3,10 +3,12 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,11 +19,12 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ItemCallback = (filter: SearchFilter['key']) => void;
@@ -36,6 +39,9 @@ type FilterListProps = FilterItemCallbacks & {
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to show a search input above the list that narrows the filters by their label. */
+    shouldShowSearchInput?: boolean;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
@@ -98,7 +104,12 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
                     </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
+                        fill={StyleUtils.getIconFillColor({
+                            buttonState: getButtonState({
+                                isActive: isSelected,
+                                isPressed: pressed,
+                            }),
+                        })}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
@@ -108,19 +119,32 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
     );
 }
 
-function FilterList({type, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
+function FilterList({type, selectedFilter, style, contentContainerStyle, shouldShowSearchInput, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const typeFiltersKeys = useAdvancedSearchFilters(type);
+    const [searchValue, setSearchValue] = useState('');
 
-    return (
+    const normalizedSearchValue = searchValue.trim().toLowerCase();
+    const filteredSections = normalizedSearchValue
+        ? typeFiltersKeys
+              .map((section) => section.filter((item) => translate(getFilterViewLabelKey(item, type)).toLowerCase().includes(normalizedSearchValue)))
+              .filter((section) => section.length > 0)
+        : typeFiltersKeys;
+
+    const list = (
         <ScrollView
-            style={[style]}
+            style={shouldShowSearchInput ? [styles.flex1] : [style]}
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
             onMouseMove={onPointerMove}
             onMouseLeave={onPointerLeave}
         >
-            {typeFiltersKeys.map((section, index) => (
+            {filteredSections.length === 0 && <Text style={[styles.textLabel, styles.colorMuted, styles.ph5, styles.pv3]}>{translate('common.noResultsFound')}</Text>}
+            {filteredSections.map((section, index) => (
                 <View key={`${section.at(0)}`}>
                     {index !== 0 && (
                         <SpacerView
@@ -142,6 +166,33 @@ function FilterList({type, selectedFilter, style, contentContainerStyle, onHover
                 </View>
             ))}
         </ScrollView>
+    );
+
+    if (!shouldShowSearchInput) {
+        return list;
+    }
+
+    return (
+        <View style={[style]}>
+            <View style={[styles.ph5, styles.pt2, styles.pb2]}>
+                <TextInput
+                    accessibilityLabel={translate('common.search')}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={searchValue}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
+                    onChangeText={setSearchValue}
+                    spellCheck={false}
+                    shouldHideClearButton={false}
+                    clearButtonStyle={styles.mr0}
+                    clearButtonIconSize={variables.iconSizeSmall}
+                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
+                />
+            </View>
+            {list}
+        </View>
     );
 }
 

@@ -201,6 +201,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
                     selectedFilter={activeFilter}
+                    shouldShowSearchInput
                     onHoverIn={hoverFilter}
                     onPointerMove={trackPointerMovement}
                     onPointerLeave={stopTrackingPointer}
