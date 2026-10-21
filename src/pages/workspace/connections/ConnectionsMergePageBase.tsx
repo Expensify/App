@@ -152,10 +152,7 @@ function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: 
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isFetchingConnections ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ConnectionsMergePageBaseContent
                     policyID={policyID}

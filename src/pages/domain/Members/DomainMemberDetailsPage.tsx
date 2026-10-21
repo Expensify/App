@@ -22,6 +22,7 @@ import {
     closeUserAccount,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 
@@ -165,10 +166,14 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+                    timezone={personalDetails?.timezone?.selected}
+                    onPress={() => {
+                        clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+                        Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+                    }}
                     pendingAction={domainPendingActions?.member?.[memberLogin]?.vacationDelegate}
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.vacationDelegateErrors)}
-                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate)}
+                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
                 />
                 {!!domainSettings?.twoFactorAuthRequired && (
                     <ToggleSettingOptionRow
