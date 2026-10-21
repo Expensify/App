@@ -578,6 +578,18 @@ describe('DistanceRate', () => {
                 }
             });
 
+            it('should copy the standard rate when the workspace tracks distance tax but no fuel bands are published', async () => {
+                // Given a GBP workspace with tax tracking and distance tax on, and reference rates with only the standard rate
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [ukStandardRate]);
+
+                // Then the standard rate is copied, since the server copies it to every workspace until it publishes fuel bands
+                expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID)).toEqual(['GB_2011-04-06']);
+                expect(rates.at(0)?.attributes?.taxClaimablePercentage).toBeUndefined();
+            });
+
             it('should still copy the rates of other countries when the workspace tracks distance tax', async () => {
                 // Given a USD workspace with tax tracking and distance tax on
                 const usPolicy = {...buildUKPolicy(true, true), outputCurrency: 'USD'};

@@ -417,7 +417,8 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  * The distance custom unit can be missing when the server-created custom unit isn't in Onyx yet. The rate copying and unit
  * correction are skipped then, and the server response fills them in.
  *
- * A UK workspace tracking distance tax gets the fuel-band rates instead of the standard rate, and every copied rate keeps
+ * A UK workspace tracking distance tax gets the fuel-band rates instead of the standard rate when the reference list has
+ * fuel bands, and the standard rate otherwise. Every copied rate keeps
  * the enabled state of the previous rate in its series, matching the server's copy.
  *
  * The previous enabled state and country describe the policy before the change, so a failed request restores exactly
@@ -444,7 +445,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
 
     if (shouldAutoUpdateGovernmentDistanceRates && customUnit) {
         const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
-        const shouldUseFuelBandRates = isTaxTrackingEnabled(true, policy, true);
+        // Until the server publishes fuel bands, it copies the standard UK rate to every workspace, so only use bands when there are some
+        const shouldUseFuelBandRates = isTaxTrackingEnabled(true, policy, true) && governmentMileageRates.some((rate) => isFuelBandGovernmentRate(rate.sourceRateID));
 
         // Rates already in each series, so a copied rate can take the enabled state of the one before it. Rates copied in
         // this request are added as they go, so a second rate of the same series inherits from the first.
@@ -497,8 +499,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 continue;
             }
 
-            // The UK publishes fuel-band rates alongside its standard rate. Workspaces tracking distance tax get only the
-            // bands, and every other workspace gets only the standard rate.
+            // The UK publishes fuel-band rates alongside its standard rate. Workspaces using fuel bands get only the bands,
+            // and every other workspace gets only the standard rate.
             if (rateCountry === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY && isFuelBandGovernmentRate(governmentMileageRate.sourceRateID) !== shouldUseFuelBandRates) {
                 continue;
             }
