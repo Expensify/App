@@ -103,6 +103,8 @@ function availableMemoryBytes(): number {
 }
 
 function defaultShardCount(cpus = os.availableParallelism(), availableBytes = availableMemoryBytes()): number {
+    // Half the cores for single-threaded shards leaves the rest to the multi-threaded type-aware leg.
+    // Measured on 14 cores: 7 shards 40-41 s, 4 shards 44 s, 10 shards 46-47 s, 14 shards 49-50 s.
     const byCpu = Math.floor(cpus / 2);
     const byMem = Math.floor((availableBytes / GIB - TYPE_AWARE_MEM_GB) / JS_SHARD_MEM_GB);
     return Math.max(1, Math.min(byCpu, byMem));
@@ -157,12 +159,14 @@ function deriveLegConfigs(config: OxlintConfig): {
         }),
     };
     delete typeAware.jsPlugins;
+    // With typeAware off, oxlint skips the type-aware rules in the shards, so only the type-aware process reports them.
     return {
         jsPlugins: {...config, options: {...config.options, typeAware: false}},
         typeAware,
     };
 }
 
+// Native rules run in both the shards and the type-aware process; mergeShardResults uses this key to report each finding once.
 function messageKey(message: LintMessage): string {
     return [message.ruleID, message.severity, message.line, message.column, message.message].join('\u0000');
 }
@@ -367,6 +371,7 @@ class OxlintLinter extends Linter {
         remove: () => void;
     }> {
         const {jsPlugins, typeAware} = deriveLegConfigs(await loadOxlintConfig(this.options.projectRoot));
+        // Written to the repo root: oxlint resolves the `./config/oxlint/...` plugin paths relative to the config file.
         const jsPluginsConfig = `.oxlintrc.js-plugins.${process.pid}.json`;
         const typeAwareConfig = `.oxlintrc.type-aware.${process.pid}.json`;
         fs.writeFileSync(path.join(this.options.projectRoot, jsPluginsConfig), JSON.stringify(jsPlugins));
@@ -387,6 +392,7 @@ class OxlintLinter extends Linter {
 
     private async runLegs(legs: OxlintLeg[], notes: string[]): Promise<LinterResult> {
         const outputs = [];
+        // One process at a time under --fix: the type-aware process lints every file the shards do, so parallel runs would write the same files.
         if (this.options.fix) {
             for (const leg of legs) {
                 outputs.push(await this.runOxlint(leg.args));
@@ -450,6 +456,7 @@ class OxlintLinter extends Linter {
                     }));
                     legs.push({
                         label: 'type-aware process',
+                        // Same files and findings as passing lintedFiles (measured), with a far shorter argv.
                         args: ['-c', configs.typeAwareConfig, ...baseArgs, ...targets],
                         lintedFiles,
                     });

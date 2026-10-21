@@ -53,8 +53,6 @@ const HOSTED_RULE_ESLINT_ID = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
-const REACT_HOOKS_RULES_UNDER_REACT = new Set(['exhaustive-deps', 'rules-of-hooks']);
-
 const OXLINT_DIAGNOSTIC_CODE = /^([\w@/.-]+)\((.+)\)$/;
 
 function hostedRuleNames(eslintPrefix) {
@@ -73,7 +71,7 @@ function oxlintCodeToESLintRuleID(code) {
     if (plugin === 'typescript') {
         return `@typescript-eslint/${rule}`;
     }
-    if (plugin === 'rc' || (plugin === 'react' && REACT_HOOKS_RULES_UNDER_REACT.has(rule))) {
+    if (plugin === 'rc') {
         return `react-hooks/${rule}`;
     }
     if (plugin === 'hosted') {
