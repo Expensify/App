@@ -55,7 +55,7 @@ describe('PGO emulator workflow', () => {
         // Then neither platform requests a self-hosted physical runner.
         expect(platforms).toEqual(platform === 'both' ? ['android', 'ios'] : [platform]);
         expect(runInNewContext(expression(job['runs-on']), {matrix: {platform: 'android'}})).toBe('ubuntu-24.04');
-        expect(runInNewContext(expression(job['runs-on']), {matrix: {platform: 'ios'}})).toBe('macos-26');
+        expect(runInNewContext(expression(job['runs-on']), {matrix: {platform: 'ios'}})).toBe('blacksmith-12vcpu-macos-latest');
     });
 
     it('uses only the existing checkout and SDK secrets and preserves failure artifacts', () => {

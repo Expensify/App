@@ -29,7 +29,7 @@ jobs:
   verify:
     # Only the copied, reviewed branch in App receives private dependency access.
     if: github.repository == 'Expensify/App' && github.ref == 'refs/heads/@chrispader/perf/pgo-ci-verification'
-    runs-on: ${{ matrix.platform == 'android' && 'ubuntu-24.04' || 'macos-26' }}
+    runs-on: ${{ matrix.platform == 'android' && 'ubuntu-24.04' || 'blacksmith-12vcpu-macos-latest' }}
     timeout-minutes: 360
     strategy:
       fail-fast: false
@@ -53,6 +53,9 @@ jobs:
         run: |
           test "$(git -C Mobile-Expensify rev-parse HEAD)" = "$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')"
           test "$(./scripts/is-hybrid-app.sh)" = true
+      - name: Free space for Android source builds
+        if: matrix.platform == 'android'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /usr/local/share/powershell
       - name: Setup HybridApp dependencies
         uses: ./.github/actions/composite/setupNode
         with:
