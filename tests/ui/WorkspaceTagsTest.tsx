@@ -250,7 +250,7 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
+        fireEvent.press(screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll'))[0]);
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
