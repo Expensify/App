@@ -1,4 +1,4 @@
-import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/buildChartSeries';
+import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/comparisonBuckets';
 
 import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
 
@@ -16,7 +16,7 @@ function formatPeriod(start: Date, end: Date): ChartPeriod {
     };
 }
 
-/** Resolves the period the Date filter covers and the one before it, which name the compared series. The backend picks the compared rows itself. */
+/** Resolves the period the Date filter covers and the one before it, which decide how buckets pair up and what each series is named. The backend picks the compared rows itself. */
 function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartComparisonPeriods | undefined {
     let primary;
     if ('preset' in dateFilter) {
@@ -33,13 +33,17 @@ function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartCom
     // The year so far compares against the same days of the year before.
     if ('preset' in dateFilter && dateFilter.preset === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE) {
         const sameDayLastYear = subYears(end, 1);
-        return {primary, comparison: formatPeriod(startOfYear(sameDayLastYear), sameDayLastYear)};
+        return {primary, comparison: formatPeriod(startOfYear(sameDayLastYear), sameDayLastYear), monthsApart: 12};
     }
 
-    // The other presets cover whole months and compare month for month, while a custom range compares against the same number of days just before.
-    const previousStart = 'preset' in dateFilter ? subMonths(start, differenceInCalendarMonths(end, start) + 1) : subDays(start, differenceInCalendarDays(end, start) + 1);
+    // The other presets cover whole months and compare month for month.
+    if ('preset' in dateFilter) {
+        const monthsApart = differenceInCalendarMonths(end, start) + 1;
+        return {primary, comparison: formatPeriod(subMonths(start, monthsApart), subDays(start, 1)), monthsApart};
+    }
 
-    return {primary, comparison: formatPeriod(previousStart, subDays(start, 1))};
+    // A custom range compares against the same number of days just before.
+    return {primary, comparison: formatPeriod(subDays(start, differenceInCalendarDays(end, start) + 1), subDays(start, 1))};
 }
 
 export default resolveComparisonPeriods;

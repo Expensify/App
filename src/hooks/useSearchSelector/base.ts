@@ -234,6 +234,7 @@ function useSearchSelectorBase({
         isSearching: isSearchingOptions,
         includeP2P,
         batchSize: maxResultsPerPage,
+        activePolicyID: appliesGetValidOptionsConfig ? getValidOptionsConfig.activePolicyID : undefined,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;
