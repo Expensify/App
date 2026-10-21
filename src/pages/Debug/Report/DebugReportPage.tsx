@@ -40,7 +40,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -84,9 +84,11 @@ function DebugReportPage({
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
     });
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
@@ -220,6 +222,7 @@ function DebugReportPage({
                         currentUserAccountID,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         reportOwnerPersonalDetail,
                         currentUserPersonalDetail,
                         conciergePersonalDetail,
@@ -291,6 +294,7 @@ function DebugReportPage({
             conciergeReportID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
