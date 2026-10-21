@@ -397,3 +397,9 @@
 - E/App issue: https://github.com/Expensify/App/issues/103369
 - PR introducing patch: https://github.com/Expensify/App/pull/103447
 - 0.86.0 migration note: the adopted release containing `3f553d7` is not enough to drop this patch. `0.87.0` still throws here and already has `checkNotNull(parentView)` right before this check. `0.88` soft-fails a non-`ViewGroup` parent but keeps that `checkNotNull`, so a null `parentView` (the placeholder `ViewState` from [react-native#58526](https://github.com/react/react-native/issues/58526)) still crashes. On the 0.88 upgrade, reduce it to soft-failing the `checkNotNull` only. Drop it once upstream handles a null `parentView` in `removeViewAt`.
+
+### [react-native+0.86.0+048+pgo-emulator-abi.patch](react-native+0.86.0+048+pgo-emulator-abi.patch)
+
+- Reason: Select the profiling runtime for the configured Android ABI so the PGO build switches also work on x86_64 emulators. ARM64 device builds retain the aarch64 runtime.
+- E/App issue: https://github.com/Expensify/App/issues/98008
+- PR introducing patch: https://github.com/margelo/Expensify/pull/34

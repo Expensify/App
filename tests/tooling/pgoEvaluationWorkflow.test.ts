@@ -1,5 +1,4 @@
 // cspell:ignore chrispader
-/* eslint-disable @typescript-eslint/naming-convention -- Fixtures reproduce GitHub's event schema. */
 import {describe, expect, it} from 'bun:test';
 
 import {isRecord} from '@scripts/pgo/evaluationSchema';
@@ -7,124 +6,73 @@ import {isRecord} from '@scripts/pgo/evaluationSchema';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
-describe('PGO evaluation workflow contract', () => {
+const input: unknown = Bun.YAML.parse(readFileSync('.github/workflows/pgoEvaluation.yml', 'utf8'));
+if (!isRecord(input) || !isRecord(input.jobs) || !isRecord(input.jobs.verify)) {
+    throw new Error('Missing emulator verification workflow.');
+}
+const workflow = input;
+const job = input.jobs.verify;
+
+describe('PGO emulator workflow', () => {
     it.each([
-        ['Expensify/App', '@chrispader/perf/pgo-ci-verification', true],
-        ['margelo/Expensify', '@chrispader/perf/pgo-ci-verification', false],
-        ['Expensify/App', 'other-preview', false],
-    ])('gates physical-device access for %s on %s', (repository, branch, eligible) => {
-        // Given the actual prepare-job condition and a pull-request head.
-        const job = workflowJob('.github/workflows/pgoEvaluation.yml', 'prepare');
+        ['Expensify/App', 'refs/heads/@chrispader/perf/pgo-ci-verification', true],
+        ['margelo/Expensify', 'refs/heads/@chrispader/perf/pgo-ci-verification', false],
+        ['Expensify/App', 'refs/heads/main', false],
+        ['Expensify/App', 'refs/pull/34/merge', false],
+    ])('limits private dependency access for %s at %s', (repository, ref, expected) => {
+        // Given the workflow's actual authorization expression.
         if (typeof job.if !== 'string') {
-            throw new Error('Missing preview authorization condition.');
+            throw new Error('Missing authorization condition.');
         }
-        const github = {repository: 'Expensify/App', event_name: 'pull_request', event: {pull_request: {head: {repo: {full_name: repository}, ref: branch}}}};
-        // When the condition runs with the event metadata available to Actions.
-        const actual: unknown = runInNewContext(job.if, {github});
-        // Then only the named upstream branch can request credential devices.
-        expect(actual).toBe(eligible);
+        // When Actions evaluates a repository and branch.
+        const result: unknown = runInNewContext(job.if, {github: {repository, ref}});
+        // Then only the reviewed upstream preview branch receives credentials.
+        expect(result).toBe(expected);
     });
 
-    it('keeps producer metadata failures outside canonical deployment eligibility', () => {
-        // Given the ordinary deploy workflow and its evaluation metadata additions.
-        const job = workflowJob('.github/workflows/deploy.yml', 'prep');
-        // When both metadata steps are inspected.
-        const capture = workflowStep(job, 'Record native evaluation candidate');
-        const upload = workflowStep(job, 'Upload native evaluation candidate metadata');
-        // Then either failure is non-blocking and reruns retain separate attempt artifacts.
-        expect(capture?.['continue-on-error']).toBe(true);
-        expect(upload?.['continue-on-error']).toBe(true);
-        expect(isRecord(upload.with) && upload.with.name).toBe(expression('pgo-native-candidate-', 'github.run_attempt'));
+    it('starts on branch copy without requiring a deployment or a default-branch merge', () => {
+        // Given the verification workflow's event configuration.
+        const events = workflow.on;
+        // When its push trigger is inspected.
+        if (!isRecord(events) || !isRecord(events.push)) {
+            throw new Error('Missing push trigger.');
+        }
+        // Then copying the branch starts verification and no deployment starts it.
+        expect(events.push.branches).toEqual(['@chrispader/perf/pgo-ci-verification']);
+        expect(events.workflow_run).toBeUndefined();
+        expect(events.pull_request_target).toBeUndefined();
+        expect(events.workflow_dispatch).toBeDefined();
     });
 
-    it('schedules eligible platforms only and masks private device configuration', () => {
-        // Given the standalone evaluation workflow.
-        const job = workflowJob('.github/workflows/pgoEvaluation.yml', 'evaluate');
-        // When runner selection, permissions and its execution environment are read.
-        const environment = workflowStep(job, 'Evaluate pinned candidate on its physical device').env;
-        expect(isRecord(environment)).toBe(true);
-        if (!isRecord(environment) || !isRecord(job.strategy) || !isRecord(job.strategy.matrix) || !isRecord(job.permissions) || !isRecord(job.concurrency)) {
-            throw new Error('Missing workflow job contract.');
+    it.each(['both', 'android', 'ios'])('runs the requested hosted platform selection %s', (platform) => {
+        // Given the actual platform matrix expression and hosted runner expression.
+        if (!isRecord(job.strategy) || !isRecord(job.strategy.matrix) || typeof job.strategy.matrix.platform !== 'string' || typeof job['runs-on'] !== 'string') {
+            throw new Error('Missing emulator matrix.');
         }
-        // Then an ineligible platform never requests a device runner and private paths are masked.
-        expect(job.strategy.matrix.platform).toContain('fromJSON(needs.prepare.outputs.platform-matrix)');
-        expect(job.permissions.issues).toBeUndefined();
-        expect(environment.PGO_ANDROID_DEVICE_ID).toBe(expression('', 'secrets.PGO_ANDROID_DEVICE_ID'));
-        expect(environment.PGO_IOS_FIXTURE_PATH).toBe(expression('', 'secrets.PGO_IOS_FIXTURE_PATH'));
-        expect(environment.PGO_IOS_ENVFILE).toBe(expression('', 'secrets.PGO_IOS_ENVFILE'));
-        expect(environment.PGO_ANDROID_KEYSTORE_PATH).toBe(expression('', 'secrets.PGO_ANDROID_KEYSTORE_PATH'));
-        expect(environment.PGO_ANDROID_KEYSTORE_PASSWORD).toBe(expression('', 'secrets.PGO_ANDROID_KEYSTORE_PASSWORD'));
-        const checkout = workflowStep(job, 'Checkout pinned native candidate');
-        expect(isRecord(checkout.with) && checkout.with.token).toBe(expression('', 'secrets.OS_BOTIFY_TOKEN'));
-        expect(job.concurrency.queue).toBe('max');
-        const report = workflowJob('.github/workflows/pgoEvaluation.yml', 'report');
-        if (!isRecord(report.concurrency)) {
-            throw new Error('Missing report concurrency.');
-        }
-        expect(report.concurrency.group).toContain('needs.prepare.outputs.app-sha');
-        expect(report.concurrency.queue).toBe('max');
+        const expression = (value: string) => value.slice(3, -2).trim();
+        // When the selected platforms are expanded by Actions.
+        const platforms: unknown = runInNewContext(expression(job.strategy.matrix.platform), {inputs: {platform}, fromJSON: JSON.parse});
+        // Then neither platform requests a self-hosted physical runner.
+        expect(platforms).toEqual(platform === 'both' ? ['android', 'ios'] : [platform]);
+        expect(runInNewContext(expression(job['runs-on']), {matrix: {platform: 'android'}})).toBe('ubuntu-24.04');
+        expect(runInNewContext(expression(job['runs-on']), {matrix: {platform: 'ios'}})).toBe('macos-26');
     });
 
-    it.each([
-        ['9.4.94-0-staging', 1],
-        ['9.4.94-01-staging', 0],
-    ])('posts only to the exact historical checklist tag %s', async (tag, expectedPosts) => {
-        // Given the actual YAML posting script and a closed historical checklist.
-        const step = workflowStep(workflowJob('.github/workflows/pgoEvaluation.yml', 'report'), 'Attach report to its matching deploy checklist');
-        const script = isRecord(step.with) ? step.with.script : undefined;
-        expect(script).toBeDefined();
-        let posts = 0;
-        const issue = {state: 'closed', labels: [{name: 'StagingDeployCash'}], body: `**Release Version:** \`${tag}\``};
-        const github = {
-            rest: {
-                issues: {
-                    get: async () => ({data: issue}),
-                    listComments: async () => [],
-                    createComment: async () => {
-                        posts += 1;
-                    },
-                    updateComment: async () => {
-                        posts += 1;
-                    },
-                },
-            },
-            paginate: async () => [],
-        };
-        const requireFixture = () => ({readFileSync: () => JSON.stringify({targetIssueNumber: 42, marker: '<!--pgo-candidate-->', body: 'Public numeric report', version: '9.4.94-0'})});
-        // When the trusted inline script rechecks the live checklist before posting.
-        // This executes only the repository's static workflow script with mocked GitHub and filesystem inputs.
-        if (typeof script !== 'string') {
-            throw new Error('Missing posting script.');
+    it('uses only the existing checkout and SDK secrets and preserves failure artifacts', () => {
+        // Given the complete published workflow.
+        const text = readFileSync('.github/workflows/pgoEvaluation.yml', 'utf8');
+        // When private configuration references are collected.
+        const secrets = [...new Set(Array.from(text.matchAll(/secrets[.]([A-Z_]+)/g), (match) => match[1]))].sort();
+        // Then account login, device IDs and signing secrets are unnecessary.
+        expect(secrets).toEqual(['MAPBOX_SDK_DOWNLOAD_TOKEN', 'OS_BOTIFY_TOKEN']);
+        expect(text).not.toContain('PGO_ANDROID_DEVICE_ID');
+        expect(text).not.toContain('PGO_IOS_DEVICE_ID');
+        expect(text).not.toContain('issues: write');
+        if (!Array.isArray(job.steps)) {
+            throw new Error('Missing verification steps.');
         }
-        const completion: unknown = runInNewContext(`(async () => {${script}})()`, {
-            require: requireFixture,
-            core: {notice: () => undefined},
-            github,
-            context: {repo: {owner: 'Expensify', repo: 'App'}},
-        });
-        await completion;
-        // Then a closed matching issue works while a similar version cannot receive the report.
-        expect(posts).toBe(expectedPosts);
+        const upload: unknown = job.steps.find((step: unknown) => isRecord(step) && step.name === 'Upload verification profiles and report');
+        expect(isRecord(upload) && upload.if).toBe('always()');
+        expect(readFileSync('.github/workflows/deploy.yml', 'utf8')).not.toContain('pgoCandidate');
     });
 });
-
-function workflowJob(path: string, name: string): Record<string, unknown> {
-    const input: unknown = Bun.YAML.parse(readFileSync(path, 'utf8'));
-    if (!isRecord(input) || !isRecord(input.jobs) || !isRecord(input.jobs[name])) {
-        throw new Error('Missing workflow job.');
-    }
-    return input.jobs[name];
-}
-function workflowStep(job: Record<string, unknown>, name: string): Record<string, unknown> {
-    if (!Array.isArray(job.steps)) {
-        throw new Error('Missing workflow steps.');
-    }
-    const step: unknown = job.steps.find((input: unknown) => isRecord(input) && input.name === name);
-    if (!isRecord(step)) {
-        throw new Error('Missing workflow step.');
-    }
-    return step;
-}
-function expression(prefix: string, content: string): string {
-    return `${prefix}${String.fromCharCode(36)}{{ ${content} }}`;
-}

@@ -1,4 +1,4 @@
-// Apply release processing with optional dedicated CI signing, preserving the application ID.
+// Apply release processing without changing the owner's local application ID or signing configuration.
 gradle.beforeProject { application ->
     def skipFullStory = application.providers.gradleProperty('pgoSkipFullStory').getOrElse('false') == 'true'
     if (skipFullStory) {
@@ -16,22 +16,7 @@ gradle.beforeProject { application ->
             }
             release.minifyEnabled = true
             release.proguardFiles android.getDefaultProguardFile('proguard-android-optimize.txt'), application.file('proguard-rules.pro')
-            def keystorePath = System.getenv('PGO_ANDROID_KEYSTORE_PATH')
-            if (keystorePath) {
-                def storePassword = System.getenv('PGO_ANDROID_KEYSTORE_PASSWORD')
-                def keyAlias = System.getenv('PGO_ANDROID_KEY_ALIAS')
-                def keyPassword = System.getenv('PGO_ANDROID_KEY_PASSWORD')
-                if (!storePassword || !keyAlias || !keyPassword) {
-                    throw new GradleException('Dedicated PGO signing requires all Android keystore settings.')
-                }
-                def signing = android.signingConfigs.maybeCreate('pgoEvaluation')
-                signing.storeFile = application.file(keystorePath)
-                signing.storePassword = storePassword
-                signing.keyAlias = keyAlias
-                signing.keyPassword = keyPassword
-                release.signingConfig = signing
-            }
-            application.logger.lifecycle("PGO shrinking enabled; FullStory tasks ${skipFullStory ? 'disabled' : 'enabled'}; application ID preserved.")
+            application.logger.lifecycle("PGO shrinking enabled; FullStory tasks ${skipFullStory ? 'disabled' : 'enabled'}; existing signing and application ID preserved.")
         }
     }
 }

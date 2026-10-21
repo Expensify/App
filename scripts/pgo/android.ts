@@ -1,4 +1,4 @@
-// cspell:ignore sdcard profdata Ppatched Ppgo profraw Readelf readelf zipinfo libreactnative libhermesvm libjsi cnts
+// cspell:ignore Dorg jvmargs Metaspace sdcard profdata Ppatched Ppgo profraw Readelf readelf zipinfo libreactnative libhermesvm libjsi cnts
 
 /** Android-specific release builds, native profile persistence, retrieval, and instrumentation checks. */
 
@@ -18,8 +18,13 @@ const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
 const INSTRUMENTED_LIBRARIES = ['libreactnative.so', 'libhermesvm.so', 'libjsi.so', 'libExpensifyNitroUtils.so'];
 
 function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdentifier?: string): PlatformAdapter {
+    const architecture = process.env.PGO_ANDROID_ARCH ?? 'arm64-v8a';
+    if (architecture !== 'arm64-v8a' && architecture !== 'x86_64') {
+        fail('PGO_ANDROID_ARCH must be arm64-v8a or x86_64.');
+    }
+    const emulatorVerification = process.env.PGO_CI_EMULATOR === 'true';
     const releasePipeline = androidReleasePipeline(process.env.PGO_ANDROID_RELEASE_PIPELINE, process.env.PGO_ANDROID_SHRINK);
-    const profileDirectory = join(rootDirectory, '.pgo/android/arm64-v8a');
+    const profileDirectory = join(rootDirectory, '.pgo/android', architecture);
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const apkDirectory = join(profileDirectory, releasePipeline.artifactDirectory);
     const benchmarkDirectory = join(rootDirectory, '.pgo/android/benchmarks');
@@ -88,9 +93,12 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         const gradleArguments = [
             releasePipeline.task,
             '-PpatchedArtifacts.forceBuildFromSource=true',
-            '-PreactNativeArchitectures=arm64-v8a',
+            `-PreactNativeArchitectures=${architecture}`,
             `-PpgoMode=${pgoModes[kind]}`,
             ...releasePipeline.arguments,
+            ...(emulatorVerification
+                ? ['--init-script', join(rootDirectory, 'scripts/pgo/androidEmulator.init.gradle'), '--max-workers=2', '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1024m']
+                : []),
         ];
         if (releasePipeline.enabled) {
             console.log(
@@ -123,7 +131,7 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         archiveReleaseApk(artifactPaths[kind]);
         writeFileSync(
             `${artifactPaths[kind]}.build-settings.json`,
-            `${JSON.stringify({kind, releasePipeline: releasePipeline.enabled, appID: appID(), sourceBuiltRuntime: true, shrinking: releasePipeline.shrinking, fullStory: releasePipeline.enabled, signing: process.env.PGO_ANDROID_KEYSTORE_PATH ? 'dedicated-pgo-keystore' : 'existing-project-configuration', storeEquivalent: false, gradleArguments, buildEnvironment}, null, 2)}\n`,
+            `${JSON.stringify({kind, architecture, emulatorVerification, releasePipeline: releasePipeline.enabled, appID: appID(), sourceBuiltRuntime: true, shrinking: releasePipeline.shrinking, fullStory: releasePipeline.enabled, signing: emulatorVerification ? 'debug-keystore' : 'existing-project-configuration', storeEquivalent: false, gradleArguments, buildEnvironment}, null, 2)}\n`,
         );
     }
 
@@ -191,9 +199,9 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         const apkEntries = new Set(capture('zipinfo', ['-1', apkPath]).split('\n'));
         try {
             for (const library of INSTRUMENTED_LIBRARIES) {
-                const apkEntry = `lib/arm64-v8a/${library}`;
+                const apkEntry = `lib/${architecture}/${library}`;
                 if (!apkEntries.has(apkEntry)) {
-                    fail(`Missing expected arm64 library in APK: ${apkEntry}`);
+                    fail(`Missing expected ${architecture} library in APK: ${apkEntry}`);
                 }
                 const extractedLibrary = join(extractedDirectory, library);
                 writeFileSync(extractedLibrary, captureBinary('unzip', ['-p', apkPath, apkEntry]));

@@ -2,6 +2,8 @@
 
 <!-- cspell:ignore Pader chrispader profraw profdata overfit overfitting cooldown -->
 
+For the hosted emulator workflow and the Expensify engineer handoff, see [Verify native PGO in CI](./EVALUATION.md).
+
 This directory contains the local LLVM PGO workflow for Android and iOS. The `pgo.ts` command builds release, instrumented, and profile-optimized apps, retrieves native profiles, merges them, and compares startup performance. On Android, the current flags cover source-built React Native, Hermes, and ExpensifyNitroUtils libraries. On iOS, the workflow forces React Native and Hermes source builds and instruments the app and source-based CocoaPods targets. Precompiled frameworks do not participate.
 
 The command enables `ManualAppStartup` and the existing Spend/Inbox navigation spans in every app it builds. Startup profile collection waits for `ManualAppStartup` to finish, then explicitly writes the LLVM counters before the app process is stopped. Both benchmark modes use app-defined span durations rather than device-automation wall time.
@@ -142,7 +144,7 @@ A startup-only profile is useful, but it tends to overfit initialization and can
 
 The current `record-startups` command accumulates and merges the startup runs automatically. For a mixed CI profile, preserve each scenario's output independently, convert it to its own indexed profile, then combine the scenario profiles with `llvm-profdata merge --weighted-input`. Choose weights from measured production flow frequency and performance impact, not from a default startup-to-interaction ratio. A giant tour of every feature is less useful than a stable suite that reflects real traffic.
 
-## A realistic CI design
+## Collect profiles for device releases
 
 Run profile generation as a scheduled or release-candidate job, not on every pull request. Use pinned self-hosted runners or a device farm, preferably with physical arm64 devices, the production compiler versions, stable thermal and power conditions, a seeded account, and deterministic local fixtures where possible. Build one instrumented artifact per platform, run the fixed startup and interaction suites against that exact artifact, flush after every successful scenario, merge the separate outputs with documented weights, then build the optimized artifact without changing the checkout or toolchain.
 

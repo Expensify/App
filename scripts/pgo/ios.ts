@@ -11,11 +11,14 @@ import {dirname, join} from 'node:path';
 import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdapter} from './shared';
 
 import {capture, environmentString, fail, findFiles, rootDirectory, run, runAllowFailure, sleep, valueAt} from '../lib/scriptUtils';
+import {createIOSSimulatorDevice} from './iosSimulator';
 import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: string): PlatformAdapter {
-    const profileFormat = 'ios-clang-swift-ir-v3';
-    const profileDirectory = join(rootDirectory, '.pgo/ios/arm64');
+    const simulatorIdentifier = environmentString('PGO_IOS_SIMULATOR_ID');
+    const architecture = simulatorIdentifier ? process.arch : 'arm64';
+    const profileFormat = `ios-clang-swift-ir-v3${simulatorIdentifier ? `-simulator-${architecture}` : ''}`;
+    const profileDirectory = join(rootDirectory, '.pgo/ios', simulatorIdentifier ? `simulator-${architecture}` : architecture);
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const appDirectory = join(profileDirectory, 'app');
     const benchmarkDirectory = join(rootDirectory, '.pgo/ios/benchmarks');
@@ -29,7 +32,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     const profileClearNotification = 'com.expensify.pgo.clear-profiles';
     const profileOperationTimeoutSeconds = 10;
     const developmentTeam = environmentString('IOS_DEVELOPMENT_TEAM');
-    const codeSigningAllowed = !['0', 'false', 'no'].includes((environmentString('IOS_CODE_SIGNING_ALLOWED') ?? 'yes').toLowerCase());
+    const codeSigningAllowed = !simulatorIdentifier && !['0', 'false', 'no'].includes((environmentString('IOS_CODE_SIGNING_ALLOWED') ?? 'yes').toLowerCase());
     const configuredBundleIdentifier = configuredAppID ?? environmentString('IOS_BUNDLE_IDENTIFIER');
     const mergedProfilePath = join(profileDirectory, 'newdot.profdata');
 
@@ -45,6 +48,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
 
     let cachedDeviceIdentifier: string | undefined;
     let cachedBundleIdentifier: string | undefined;
+    const simulator = simulatorIdentifier ? createIOSSimulatorDevice(simulatorIdentifier, bundleIdentifier) : undefined;
 
     function bundleIdentifier(): string {
         if (cachedBundleIdentifier) {
@@ -68,6 +72,9 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     }
 
     function deviceIdentifier(): string {
+        if (simulatorIdentifier) {
+            return simulatorIdentifier;
+        }
         if (cachedDeviceIdentifier) {
             return cachedDeviceIdentifier;
         }
@@ -220,7 +227,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         }
         prepareSourcePods(mode, profilePath);
         const derivedDataDirectory = join(profileDirectory, `derived-data/${kind}`);
-        const builtAppPath = join(derivedDataDirectory, 'Build/Products/Release-iphoneos/Expensify.app');
+        const builtAppPath = join(derivedDataDirectory, `Build/Products/Release-${simulator ? 'iphonesimulator' : 'iphoneos'}/Expensify.app`);
         const signingSettings = codeSigningAllowed
             ? [
                   'CODE_SIGN_STYLE=Automatic',
@@ -230,15 +237,20 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
                   ...(developmentTeam ? [`DEVELOPMENT_TEAM=${developmentTeam}`] : []),
               ]
             : ['CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO'];
-        const rockArguments = iosRockBuildArguments(derivedDataDirectory, [
-            'build',
-            'ARCHS=arm64',
-            'ONLY_ACTIVE_ARCH=YES',
-            'COMPILER_INDEX_STORE_ENABLE=NO',
-            ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
-            ...signingSettings,
-            ...pgoBuildSettings(kind, profilePath),
-        ]);
+        const rockArguments = iosRockBuildArguments(
+            derivedDataDirectory,
+            [
+                'build',
+                `ARCHS=${architecture}`,
+                'ONLY_ACTIVE_ARCH=YES',
+                'COMPILER_INDEX_STORE_ENABLE=NO',
+                ...(simulator ? ['-sdk', 'iphonesimulator', '-jobs', '2', `ENTRY_FILE=${join(rootDirectory, 'src/PgoVerificationApp.tsx')}`] : []),
+                ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
+                ...signingSettings,
+                ...pgoBuildSettings(kind, profilePath),
+            ],
+            simulator ? 'generic/platform=iOS Simulator' : 'generic/platform=iOS',
+        );
         withLocalUploadPhasesDisabled(() =>
             run(
                 '/usr/bin/env',
@@ -260,6 +272,10 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         mkdirSync(appDirectory, {recursive: true});
         rmSync(artifactPaths[kind], {recursive: true, force: true});
         cpSync(builtAppPath, artifactPaths[kind], {recursive: true, preserveTimestamps: true});
+        if (simulator) {
+            // Hosted runners keep only the installable between the three source builds.
+            rmSync(derivedDataDirectory, {recursive: true, force: true});
+        }
         console.log(`Copied release app: ${artifactPaths[kind]}`);
     }
 
@@ -321,6 +337,10 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         if (!existsSync(appPath)) {
             fail(`Missing app at ${appPath}. Build it first.`);
         }
+        if (simulator) {
+            simulator.install(appPath);
+            return;
+        }
         if (!existsSync(join(appPath, '_CodeSignature/CodeResources'))) {
             fail(`The app at ${appPath} is unsigned. Rebuild without IOS_CODE_SIGNING_ALLOWED=NO before installing it on a device.`);
         }
@@ -329,6 +349,9 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     }
 
     function tryReadDeviceFile(remotePath: string, localName: string): string | undefined {
+        if (simulator) {
+            return simulator.readFile(remotePath);
+        }
         mkdirSync(markerDirectory, {recursive: true});
         const localPath = join(markerDirectory, localName);
         rmSync(localPath, {recursive: true, force: true});
@@ -353,6 +376,10 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     }
 
     function postNotification(name: string): void {
+        if (simulator) {
+            simulator.notify(name);
+            return;
+        }
         run('xcrun', ['devicectl', 'device', 'notification', 'post', '--device', deviceIdentifier(), '--name', name]);
     }
 
@@ -392,6 +419,13 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     function pullProfiles(): void {
         rmSync(rawProfileDirectory, {recursive: true, force: true});
         mkdirSync(dirname(rawProfileDirectory), {recursive: true});
+        if (simulator) {
+            simulator.copyDirectory(remotePgoDirectory, rawProfileDirectory);
+            if (findFiles(rawProfileDirectory, '.profraw').length === 0) {
+                fail('The simulator did not produce any native PGO profiles.');
+            }
+            return;
+        }
         run('xcrun', [
             'devicectl',
             'device',
@@ -475,7 +509,7 @@ function replaceOnce(content: string, previous: string, next: string): string {
 }
 
 /** Preserve each Xcode setting as one argument through Rock's string argument parser. */
-function iosRockBuildArguments(derivedDataDirectory: string, settings: string[]): string[] {
+function iosRockBuildArguments(derivedDataDirectory: string, settings: string[], destination = 'generic/platform=iOS'): string[] {
     return [
         'build:ios',
         '--local',
@@ -485,7 +519,7 @@ function iosRockBuildArguments(derivedDataDirectory: string, settings: string[])
         '--scheme',
         'Expensify',
         '--destination',
-        'generic/platform=iOS',
+        destination,
         '--build-folder',
         derivedDataDirectory,
         '--no-install-pods',

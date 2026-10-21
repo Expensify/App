@@ -1,0 +1,18 @@
+// Disposable verification builds use the bundled workload and the Android debug key.
+gradle.beforeProject { application ->
+    application.plugins.withId('com.facebook.react') {
+        application.extensions.getByName('react').entryFile.set(
+            application.file('../../src/PgoVerificationApp.tsx')
+        )
+    }
+    application.plugins.withId('com.android.application') {
+        application.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.buildTypes.getByName('release').signingConfig = android.signingConfigs.getByName('debug')
+        }
+    }
+    application.tasks.configureEach { task ->
+        if (task.name.toLowerCase().startsWith('fullstory')) {
+            task.enabled = false
+        }
+    }
+}
