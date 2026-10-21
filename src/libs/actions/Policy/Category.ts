@@ -2064,7 +2064,13 @@ function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string
  * queues behind the failure it is meant to repair. The next policy read reconciles, and until the API can move a rate
  * in one command that is the honest bound on this flow.
  */
-function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: string, toCategoryName: string, taxID: string) {
+function movePolicyCategoryTax(
+    policy: OnyxEntry<Policy>,
+    fromCategoryName: string,
+    toCategoryName: string,
+    taxID: string,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || !fromCategoryName || !toCategoryName || !taxID) {
         Log.warn('Invalid params for movePolicyCategoryTax');
@@ -2098,8 +2104,12 @@ function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: stri
         ],
     };
 
+    // Drained to {} after the first write so this move's optimistic task tick fires exactly once, even though it writes two commands.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const write of writes) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, ...write}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, ...write, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 

@@ -237,16 +237,22 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;
         }
 
         if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
-                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, getReviewWorkspaceSettingsTaskCompletion());
+                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;

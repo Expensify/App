@@ -314,7 +314,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
-                onRenameName: (newName: string) => showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled)),
+                onRenameName: (newName: string) =>
+                    showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion())),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -337,6 +338,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         employeePersonalDetails,
         formatPhoneNumber,
         isVendorMatchingBetaEnabled,
+        getReviewWorkspaceSettingsTaskCompletion,
     ]);
 
     const navigateToCreateCategoryPage = () => {

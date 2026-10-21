@@ -432,7 +432,7 @@ function MerchantRulePageBase({
             setIsClosing(true);
             // A move clears the old category and sets the new one as a pair, sharing one rollback.
             if (editCategoryTaxRuleFor && movedToCategory) {
-                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
+                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
             } else {
                 // The command is per-category, so a bulk selection saves one rule for each category picked.
                 setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
