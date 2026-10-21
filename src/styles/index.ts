@@ -437,6 +437,12 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
+        navigationTabBarLabelBoldPlaceholder: {
+            ...visibility.hidden,
+            height: 0,
+            overflow: 'hidden',
+        },
+
         link: link(theme),
 
         emailLink: emailLink(theme),

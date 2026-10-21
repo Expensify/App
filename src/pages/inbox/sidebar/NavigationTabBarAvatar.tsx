@@ -1,6 +1,6 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import TabBarLabel from '@components/Navigation/NavigationTabBar/TabBarLabel';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
@@ -60,18 +60,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                             size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
-                    <Text
+                    <TabBarLabel
+                        label={translate('initialSettingsPage.account')}
+                        isSelected={isSelected}
                         numberOfLines={shouldUseNarrowLayout ? 1 : 2}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            isSelected ? styles.textBold : styles.textSupporting,
-                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        {translate('initialSettingsPage.account')}
-                    </Text>
+                        style={shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half}
+                    />
                 </View>
             )}
         </PressableWithFeedback>
