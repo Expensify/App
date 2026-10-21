@@ -4,7 +4,6 @@ import type {
     BankAccountList,
     CardList,
     OutstandingReportsByPolicyIDDerivedValue,
-    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -1048,7 +1047,6 @@ function getSecondaryReportActions({
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
