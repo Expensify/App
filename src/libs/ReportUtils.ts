@@ -1437,7 +1437,6 @@ function getPolicyName(params: GetPolicyNameParams): string {
 
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.policyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
@@ -1956,7 +1955,6 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
     const participant = accountID ? report?.participants?.[accountID] : undefined;
 
     // Empty notification preference should return `hidden`
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return participant?.notificationPreference || CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
@@ -4013,7 +4011,6 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, translate: Localized
     const iconFromCache = workSpaceIconsCache.get(cacheKey);
     const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const policyAvatarURL = reportPolicy ? reportPolicy?.avatarURL : report?.policyAvatar;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyExpenseChatAvatarSource = policyAvatarURL || getDefaultWorkspaceAvatar(workspaceName);
 
     const isSameAvatarURL = iconFromCache?.icon?.source === policyExpenseChatAvatarSource;
@@ -4539,7 +4536,6 @@ function getIconsForGroupChat(
         return [];
     }
     const groupChatIcon = {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
@@ -4736,7 +4732,6 @@ function getDisplayNamesWithTooltips(
                     hiddenTranslation: hiddenText,
                     youTranslation: youText,
                 }) ||
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 user?.login ||
                 '';
             const avatar = user && 'avatar' in user ? user.avatar : undefined;
@@ -7863,7 +7858,6 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string, reportID?: string): Report {
     return {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportID: reportID || generateReportID(),
         participants: {
             [deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
@@ -12206,7 +12200,6 @@ function getTaskAssigneeChatOnyxData({
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
         const assigneePersonalDetails = getPersonalDetail(assigneeAccountID);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = assigneePersonalDetails?.displayName || assigneePersonalDetails?.login || '';
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(
             taskReportID,
@@ -14244,7 +14237,6 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
             const originalMessage = getOriginalMessage(action);
             const label = originalMessage?.label;
             // It's possible for originalMessage?.markedManually to be `false`, but the report is still has a valid automatic export.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isValidExport = originalMessage?.markedManually || (label && validExportLabels.has(label) && originalMessage?.type !== CONST.EXPORT_TEMPLATE);
             if (isValidExport && action.created > lastSuccessfulExportCreated) {
                 lastSuccessfulExportCreated = action.created;
@@ -14976,7 +14968,6 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     if (!report) {
         return false;
     }
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
