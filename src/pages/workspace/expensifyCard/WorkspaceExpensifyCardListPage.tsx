@@ -281,7 +281,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     canEditLimitType: canEditCard,
                     canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
-                    onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
+                    onRenameName: (newName: string) => showInlineEditError(renameExpensifyCardInline(translate, fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? '')),
                     onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
                     onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),

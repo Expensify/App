@@ -103,11 +103,16 @@ function renameCompanyCardInline(
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
 }
 
-function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
+function renameExpensifyCardInline(translate: LocalizedTranslate, workspaceAccountID: number, cardID: number, newName: string, currentName: string): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === currentName || getCardNameError(newName)) {
+    if (sanitized === currentName) {
         return;
+    }
+
+    const cardNameError = getCardNameError(newName);
+    if (cardNameError) {
+        return getCardNameErrorMessage(translate, cardNameError, newName);
     }
 
     updateExpensifyCardTitle(workspaceAccountID, cardID, sanitized, currentName);

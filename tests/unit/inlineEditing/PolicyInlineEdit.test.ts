@@ -182,27 +182,52 @@ describe('PolicyInlineEdit', () => {
         it('does not persist a name the user never changed', () => {
             // Given a card named "Travel"
             // When the editor closes on blur with that same name
-            renameExpensifyCardInline(1, 10, 'Travel', 'Travel');
+            const rejection = renameExpensifyCardInline(translate, 1, 10, 'Travel', 'Travel');
 
-            // Then nothing is written, so opening the editor and clicking away costs no request
+            // Then nothing is written and no toast is raised, so opening the editor and clicking away costs no request
+            expect(rejection).toBeUndefined();
             expect(mockWrite).not.toHaveBeenCalled();
         });
 
-        it('does not persist a name that sanitizes to nothing', () => {
+        it('returns the required-field error for a name that sanitizes to nothing', () => {
             // Given a card named "Travel"
             // When the editor commits whitespace only
-            renameExpensifyCardInline(1, 10, '   ', 'Travel');
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '   ', 'Travel');
 
-            // Then nothing is written, matching the RHP name form which rejects this too
+            // Then the page can toast the same required message as the card name form, and nothing is written
+            expect(rejection).toBe('common.error.fieldRequired');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the invalid-character error for a name the card form rejects', () => {
+            // Given a card named "Travel"
+            // When the editor commits a name that contains an HTML-like tag
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '</>', 'Travel');
+
+            // Then the page can toast the same invalid-character message as the card name form, and nothing is written
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the length error for a name past the card form limit', () => {
+            // Given a card named "Travel" and a name one byte past the shared length limit
+            const tooLongName = 'a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1);
+
+            // When the editor commits that name
+            const rejection = renameExpensifyCardInline(translate, 1, 10, tooLongName, 'Travel');
+
+            // Then the page can toast the same character-limit message as the card name form, and nothing is written
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${CONST.STANDARD_LENGTH_LIMIT + 1}|${CONST.STANDARD_LENGTH_LIMIT}`);
             expect(mockWrite).not.toHaveBeenCalled();
         });
 
         it('persists the sanitized name', () => {
             // Given a card named "Travel"
             // When the editor commits a new name padded with whitespace
-            renameExpensifyCardInline(1, 10, '  Travel card  ', 'Travel');
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '  Travel card  ', 'Travel');
 
-            // Then the trimmed name reaches the backend, so a padded paste cannot be stored verbatim
+            // Then the trimmed name reaches the backend and no toast is raised, so a padded paste cannot be stored verbatim
+            expect(rejection).toBeUndefined();
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE,
                 expect.objectContaining({
