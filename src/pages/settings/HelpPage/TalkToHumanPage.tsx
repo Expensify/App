@@ -30,11 +30,17 @@ function TalkToHumanPage() {
             return;
         }
         hasRequestedTicket.current = true;
-        openSupportTicketOrConcierge();
+
+        // Leave this route before creating the ticket. The ticket stores the route it was opened from as its back target,
+        // so opening it from here would make Back return to this loader instead of the chat the link was pressed in.
+        Navigation.goBack(undefined, {afterTransition: openSupportTicketOrConcierge});
+
+        // openSupportTicketOrConcierge is a new function on every render and hasRequestedTicket already stops a second
+        // request, so this effect only needs to react to the connection changing.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
-    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 TalkToHumanPage.displayName = 'TalkToHumanPage';
