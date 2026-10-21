@@ -502,7 +502,7 @@ function filterPersonalDetailsByLogins(personalDetails: OnyxEntry<PersonalDetail
 
 /**
  * Excludes the personal details of agents whom account ID is not in the whitelist `accountIDs`
- * Meant to be applied before createOptionList so that agents you do not own are not listed (e.g. when invitng members to workspace)
+ * Meant to be applied before createOptionList so that agents you do not own are not listed (e.g. when inviting members to workspace)
  */
 function filterAgentsPersonalDetailsByAccountIDs(personalDetails: OnyxEntry<PersonalDetailsList>, accountIDs: Set<number>): PersonalDetailsList {
     const filteredPersonalDetails: PersonalDetailsList = {};
