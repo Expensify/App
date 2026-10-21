@@ -407,19 +407,24 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsPageBetaEnabled: false,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
-        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
-        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
+        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Insights', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
+        expect(items.map((item) => item.keyForList)).toEqual([
+            'topLevelHome',
+            'topLevelInbox',
+            'topLevelSpend',
+            'topLevelInsights',
+            'topLevelWorkspaces',
+            'topLevelDomains',
+            'topLevelAccount',
+        ]);
     });
 
-    it('adds the Insights destination when the beta is enabled', () => {
-        // Given a user with the Insights beta
-        const isInsightsPageBetaEnabled = true;
-
+    it('includes the Insights destination for every user', () => {
+        // Given Insights is available to every user
         // When the top-level destinations are built
         const items = buildTopLevelNavigationItems({
             labels: {
@@ -440,7 +445,6 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsPageBetaEnabled,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -481,7 +485,6 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsPageBetaEnabled: false,
             getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -494,9 +497,10 @@ describe('top-level Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.INBOX);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(3, spendRoute);
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.DOMAINS_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.SETTINGS);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.WORKSPACES_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.DOMAINS_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(7, ROUTES.SETTINGS);
     });
 });
 

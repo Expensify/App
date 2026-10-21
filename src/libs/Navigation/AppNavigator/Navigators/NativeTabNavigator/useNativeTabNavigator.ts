@@ -4,19 +4,15 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
@@ -26,7 +22,6 @@ import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getActiveTabRoute from './getActiveTabRoute';
-import getTabWithoutBarItem from './getTabWithoutBarItem';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
@@ -45,11 +40,9 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
-    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
+    const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
@@ -97,17 +90,6 @@ function useNativeTabNavigator() {
         setPreservedNavigatorState(route.key, tabState);
     }, [tabState, route.key]);
 
-    // Without the beta, Insights has no bar item and its page is not found, so a restored or deep-linked Insights tab
-    // would be a full screen with no way out. Home replaces it, so going back does not return to it. Betas that are
-    // still loading are not a missing beta.
-    const isInsightsTabFocusedWithoutBeta = isBetaEnabledOrUnknown(CONST.BETAS.INSIGHTS_PAGE) === false && activeTabRoute?.name === SCREENS.INSIGHTS;
-    useEffect(() => {
-        if (!isInsightsTabFocusedWithoutBeta) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
-    }, [isInsightsTabFocusedWithoutBeta]);
-
     // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
     // state by overriding the bottom-tab router's getInitialState, the same pattern SplitRouter
@@ -121,11 +103,9 @@ function useNativeTabNavigator() {
         },
     });
 
-    const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
-
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, isAccountAvatarShown: false, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

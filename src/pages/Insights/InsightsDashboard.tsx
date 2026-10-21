@@ -15,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +24,6 @@ import {getInsights} from '@libs/actions/Insights';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -193,10 +191,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {isBetaEnabled} = usePermissions();
-
-    const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isCompareEnabled) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const hash = query?.hash;
 
     const requestDashboard = () => {
@@ -216,7 +211,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
-    }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline]);
+    }, [dashboardID, hash, filters.groupBy, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
