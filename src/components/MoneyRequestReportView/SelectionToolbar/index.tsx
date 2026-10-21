@@ -3,7 +3,6 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -196,16 +195,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
-        hasOnlyHeldExpenses,
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -325,21 +314,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
                     onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    fullAmount={fullAmount}
-                    onClose={handleHoldMenuClose}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={report}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={handleHoldMenuConfirm}
-                    transactionCount={transactions.length}
                 />
             )}
         </>
