@@ -107,7 +107,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const titleComponent = () => {
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return (
-                <View style={styles.gap1}>
+                <View style={[styles.gap1, styles.mt1]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
@@ -132,7 +132,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         }
 
         return (
-            <View style={styles.gap1}>
+            <View style={[styles.gap1, styles.mt1]}>
                 <Text
                     numberOfLines={1}
                     style={[titleTextStyle, styles.lh20]}
@@ -159,7 +159,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent()}
             accessibilityLabel={isCancelled ? descriptionWithStatus : undefined}
-            titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable
             shouldShowRightIcon

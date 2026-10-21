@@ -1273,6 +1273,19 @@ describe('formatCurrentUserToAttendee', () => {
     });
 });
 
+describe('isP2PRecipient', () => {
+    const CURRENT_USER_ACCOUNT_ID = 1;
+
+    it('returns true for another user', () => {
+        // Given a participant that is another user
+        const participant = {accountID: 2, isPolicyExpenseChat: false};
+
+        // When checking whether the expense goes 1:1 to that user
+        // Then it does, so the expense can't hold a negative amount
+        expect(IOUUtils.isP2PRecipient(participant, CURRENT_USER_ACCOUNT_ID)).toBe(true);
+    });
+});
+
 describe('isParticipantP2P', () => {
     it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
         const participant = {

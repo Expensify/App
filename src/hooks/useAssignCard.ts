@@ -1,5 +1,5 @@
 import {importPlaidAccounts} from '@libs/actions/Plaid';
-import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountry, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -146,6 +146,14 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardName,
             encryptedCardNumber: cardID,
         };
+
+        // We assume admins only put the transactions they want in a CSV file, so there's no need to limit by date.
+        // Import all of them by default.
+        // Direct feeds keep today as the default because the bank can return months of history.
+        if (isCSVUploadFeed(selectedFeed)) {
+            cardToAssign.dateOption = CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING;
+            cardToAssign.startDate = '';
+        }
 
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {

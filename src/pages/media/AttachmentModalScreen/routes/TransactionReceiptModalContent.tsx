@@ -71,7 +71,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -188,7 +188,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     });
 
     const receiptFilename = transaction?.receipt?.filename;
-    const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
+    // Odometer photos are stitched into the receipt only while the expense is a draft, so a created expense's receipt can be replaced like any other
+    const isStitchedOdometerReceipt = isDraftTransaction && isOdometerDistanceRequest(transaction) && !imageType;
 
     const canEditReceiptButtons = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
     const shouldShowReplaceReceiptButton = canEditReceiptButtons && !isStitchedOdometerReceipt;
@@ -744,6 +745,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             footerActionButtons,
             customAttachmentContent,
             attachmentViewContainerStyles: [styles.pv5, styles.ph2],
+            fallbackSource: expensifyIcons.AttachmentNotFound,
         }),
         [
             source,
@@ -763,6 +765,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             customAttachmentContent,
             styles.pv5,
             styles.ph2,
+            expensifyIcons.AttachmentNotFound,
         ],
     );
 

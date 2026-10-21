@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
@@ -8,29 +8,24 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {getDefaultChatEnabledPolicySelection, hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
@@ -50,10 +45,6 @@ function QuickCreationActionsBar() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
@@ -63,18 +54,8 @@ function QuickCreationActionsBar() {
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
-    // scalar selector keeps useOnyx from deep-comparing thousands of policy objects
-    const [defaultChatEnabledPolicySelection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, email, activePolicyID),
-    });
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID;
-    const hasMultipleChatEnabledPolicies = !!defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies;
-    const [defaultChatEnabledPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
     const travelEnabledPolicy = useMemo(
         () => Object.values(allPolicies ?? {}).find((policy) => isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAccessible(policy, email ?? '')),
@@ -94,8 +75,8 @@ function QuickCreationActionsBar() {
     }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
 
     const handleCreateWorkspaceReport = useCallback(
-        (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicy?.id) {
+        (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!policy?.id) {
                 return;
             }
 
@@ -103,7 +84,7 @@ function QuickCreationActionsBar() {
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
+                policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
@@ -117,13 +98,12 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
-    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
+    const {createReport, isVisible: isCreateReportReady} = useCreateReport({
+        onCreateReport: handleCreateWorkspaceReport,
+        onNavigateToWorkspaceSelection: navigateToCreateReportWorkspaceSelection,
         shouldHandleNavigationBack: false,
     });
 
@@ -133,63 +113,6 @@ function QuickCreationActionsBar() {
                 startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
             }),
         [draftTransactionIDs],
-    );
-
-    const handleReport = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                if (shouldNavigateToUpgradePath) {
-                    const freshReportID = generateReportID();
-                    const freshTransactionID = generateReportID();
-                    Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.CREATE,
-                                iouType: CONST.IOU.TYPE.CREATE,
-                                transactionID: freshTransactionID,
-                                reportID: freshReportID,
-                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                            }),
-                        ),
-                    );
-                    return;
-                }
-
-                const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                if (
-                    !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID) &&
-                        hasMultipleChatEnabledPolicies)
-                ) {
-                    navigateToCreateReportWorkspaceSelection();
-                    return;
-                }
-
-                if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
-                    if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
-                        openCreateReportConfirmation();
-                    } else {
-                        handleCreateWorkspaceReport(false);
-                    }
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-            }),
-        [
-            shouldNavigateToUpgradePath,
-            defaultChatEnabledPolicyID,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            amountOwed,
-            defaultChatEnabledPolicy,
-            hasMultipleChatEnabledPolicies,
-            shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
-            openCreateReportConfirmation,
-            handleCreateWorkspaceReport,
-            currentUserPersonalDetails.accountID,
-        ],
     );
 
     const handleDistance = useCallback(
@@ -229,7 +152,8 @@ function QuickCreationActionsBar() {
             </Button>
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                onPress={handleReport}
+                onPress={createReport}
+                isDisabled={!isCreateReportReady}
                 style={styles.quickCreationActionsBarButton}
                 testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT}
                 accessibilityLabel={translate('common.report')}

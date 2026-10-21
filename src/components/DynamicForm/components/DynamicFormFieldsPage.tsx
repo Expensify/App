@@ -3,6 +3,7 @@ import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
+import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
@@ -30,6 +31,8 @@ function DynamicFormFieldsPage({
     maxFileSize,
     onRefreshRequirements,
     onPageSubmit,
+    onOpenListItemEditor,
+    onListItemsChange,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -37,7 +40,12 @@ function DynamicFormFieldsPage({
     if (!page) {
         return null;
     }
-    const withInputValues = (inputValues: unknown) => ({...values, ...toDynamicFormValues(inputValues)});
+    // A sensitive list lives in memory, which the editor page and a removal update, so the form's own copy of it may be stale
+    const pageKeys = new Set(getContentFields(page.content).map((field) => field.key));
+    const memoryListValues = Object.fromEntries(
+        allFields.filter((field) => field.type === 'list' && isSensitiveField(field) && pageKeys.has(field.key)).map((field) => [field.key, values[field.key]]),
+    );
+    const withInputValues = (inputValues: unknown) => ({...values, ...toDynamicFormValues(inputValues), ...memoryListValues});
 
     return (
         <FormProvider
@@ -74,11 +82,13 @@ function DynamicFormFieldsPage({
                         <DynamicFormFields
                             content={page.content}
                             allFields={allFields}
-                            isTitledByPage={!hasOwnTitle}
+                            isLoneFieldInHeadline={!hasOwnTitle}
                             values={currentValues}
                             currency={currency}
                             maxFileSize={maxFileSize}
                             onRefreshRequirements={onRefreshRequirements}
+                            onOpenListItemEditor={onOpenListItemEditor}
+                            onListItemsChange={onListItemsChange}
                         />
                     </>
                 );

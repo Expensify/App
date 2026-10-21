@@ -52,19 +52,52 @@ function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'], n
     headers.set('Document-Policy', 'js-profiling');
 }
 
+function getPreviousBuildFileHeaders(object: R2Object): Headers {
+    const headers = new Headers({'Cache-Control': 'public, max-age=0, must-revalidate', ETag: object.httpEtag});
+    object.writeHttpMetadata(headers);
+    return headers;
+}
+
+/** A file uploaded by an earlier deploy, for tabs still running that build. Null when no build had it. */
+async function getPreviousBuildFile(env: Env, url: URL, method: string): Promise<Response | null> {
+    if (!env.PREVIOUS_BUILDS) {
+        return null;
+    }
+
+    let key: string;
+    try {
+        key = decodeURIComponent(url.pathname.slice(1));
+    } catch {
+        return null;
+    }
+
+    if (method === 'HEAD') {
+        const object = await env.PREVIOUS_BUILDS.head(key);
+        return object ? new Response(null, {headers: getPreviousBuildFileHeaders(object)}) : null;
+    }
+
+    const object = await env.PREVIOUS_BUILDS.get(key);
+    return object ? new Response(object.body, {headers: getPreviousBuildFileHeaders(object)}) : null;
+}
+
 export default {
     async fetch(request, env): Promise<Response> {
         const url = new URL(request.url);
         const nonce = generateNonce();
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';
         const isAASAPath = url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH;
-        const assetResponse = await env.ASSETS.fetch(buildAssetRequest(request, url));
+        let assetResponse = await env.ASSETS.fetch(buildAssetRequest(request, url));
 
-        // The SPA fallback answers every miss with index.html. A browser asking for a missing chunk needs a real 404.
+        // The SPA fallback answers every miss with index.html. A browser asking for a missing chunk needs the file from
+        // an earlier build, or a real 404.
         if (isHTMLResponse(assetResponse) && (isAASAPath || (!isNavigation && STATIC_FILE_PATH.test(url.pathname)))) {
-            const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-            setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce);
-            return notFound;
+            const previousBuildFile = isAASAPath ? null : await getPreviousBuildFile(env, url, request.method);
+            if (!previousBuildFile) {
+                const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
+                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce);
+                return notFound;
+            }
+            assetResponse = previousBuildFile;
         }
 
         const response = new Response(assetResponse.body, assetResponse);

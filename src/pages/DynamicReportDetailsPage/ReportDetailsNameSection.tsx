@@ -1,5 +1,8 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,6 +10,8 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import convertToLTR from '@libs/convertToLTR';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -16,17 +21,15 @@ import {
     isExpenseReport as isExpenseReportUtil,
     isGroupChat as isGroupChatUtil,
     isInvoiceRoom as isInvoiceRoomUtil,
-    isInvoiceReport as isInvoiceReportUtil,
-    isMoneyRequest as isMoneyRequestUtil,
-    isMoneyRequestReport as isMoneyRequestReportUtil,
     isPolicyExpenseChat as isPolicyExpenseChatUtil,
     isThread as isThreadUtil,
-    isTrackExpenseReportNew as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
     isWorkspaceChat as isWorkspaceChatUtil,
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
 import {clearPolicyRoomNameErrors} from '@userActions/Report';
 
@@ -34,11 +37,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
+import type {StyleProp, TextStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
-import getReportDetailsCaseID from './getReportDetailsCaseID';
-import {CASES} from './types';
 import useReportDetailsReportName from './useReportDetailsReportName';
 
 type ReportDetailsNameSectionProps = {
@@ -49,42 +52,99 @@ type ReportDetailsNameSectionContentProps = {
     report: Report;
 };
 
+type ReportNameTextProps = {
+    name: string;
+    numberOfLines?: number;
+    style?: StyleProp<TextStyle>;
+};
+
+function ReportNameText({name, numberOfLines, style}: ReportNameTextProps) {
+    const styles = useThemeStyles();
+    const textStyle = [styles.flexShrink1, styles.popoverMenuText, styles.preWrap, styles.ltr, styles.breakWord, styles.mw100, styles.newKansasLarge, style];
+    const message = convertToLTR(name);
+
+    return (
+        <Text
+            style={textStyle}
+            numberOfLines={numberOfLines}
+        >
+            {containsCustomEmoji(name) && !containsOnlyCustomEmoji(name) ? (
+                <TextWithEmojiFragment
+                    message={message}
+                    style={textStyle}
+                    alignCustomEmoji
+                />
+            ) : (
+                message
+            )}
+        </Text>
+    );
+}
+
+type CenteredReportNameContentProps = {
+    report: Report;
+
+    /** Display name of the report, with line breaks already flattened to spaces */
+    name: string;
+};
+
+/** The name as a centered header, with the chat it lives in underneath, for threads, workspace chats, trip rooms and other non-room chats */
+function CenteredReportNameContent({report, name}: CenteredReportNameContentProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isInteractive} = useMenuItemConfig();
+    const isReportArchived = useReportIsArchived(report.reportID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
+    const isWorkspaceChat = isWorkspaceChatUtil(report.chatType ?? '');
+    let subtitle = '';
+    if (!isGroupChatUtil(report)) {
+        const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived) ?? '';
+        const isSubtitleBare = isExpenseReportUtil(report) || isPolicyExpenseChatUtil(report) || isInvoiceRoomUtil(report);
+        subtitle = chatRoomSubtitle && (isSubtitleBare ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`);
+    }
+
+    return (
+        <MenuItem.Content>
+            {/* An interactive row shows a chevron, so this extends under the Row gap to center the name against the chevron's edge, not the gap's */}
+            <View style={[styles.gap1, styles.alignItemsCenter, isInteractive && styles.mrn3]}>
+                <ReportNameText
+                    name={name}
+                    numberOfLines={isThreadUtil(report) ? 2 : undefined}
+                    style={styles.textAlignCenter}
+                />
+                {!!subtitle && (
+                    <Text
+                        style={[styles.textLabelSupporting, isWorkspaceChat && [styles.textAlignCenter, styles.breakWord]]}
+                        numberOfLines={isWorkspaceChat ? 0 : 2}
+                    >
+                        {subtitle}
+                    </Text>
+                )}
+            </View>
+        </MenuItem.Content>
+    );
+}
+
 function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionContentProps) {
     const reportID = report.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const parentReportAction = useParentReportAction(report);
     const isReportArchived = useReportIsArchived(reportID);
     const {reportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
 
     const isGroupChat = isGroupChatUtil(report);
-    const isThread = isThreadUtil(report);
-    const isWorkspaceChat = isWorkspaceChatUtil(report.chatType ?? '');
-    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived, policy);
-    const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived) ?? '';
-    const additionalRoomDetails =
-        isExpenseReportUtil(report) || isPolicyExpenseChatUtil(report) || isInvoiceRoomUtil(report) ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
-    const caseID = getReportDetailsCaseID({
-        isMoneyRequestReport: isMoneyRequestReportUtil(report),
-        isInvoiceReport: isInvoiceReportUtil(report),
-        isMoneyRequest: isMoneyRequestUtil(report),
-        isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
-    });
+    const canRename = !shouldDisableRenameUtil(report, isReportArchived, policy);
+    const name = StringUtils.lineBreaksToSpaces(reportName);
 
-    let roomDescription: string | undefined;
-    if (caseID === CASES.MONEY_REQUEST) {
-        roomDescription = translate('common.name');
-    } else if (isGroupChat) {
-        roomDescription = translate('newRoomPage.groupName');
-    } else {
-        roomDescription = translate('newRoomPage.roomName');
-    }
-
-    const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoomUtil(report) || isDefaultRoomUtil(report));
+    // Group chats and rooms show their name as a labeled field, every other report as a centered header
+    const isNameField = !isThreadUtil(report) && (isGroupChat || isUserCreatedPolicyRoomUtil(report) || isDefaultRoomUtil(report));
+    const fieldName = translate(isGroupChat ? 'newRoomPage.groupName' : 'newRoomPage.roomName');
 
     return (
         <OfflineWithFeedback
@@ -93,32 +153,34 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
             errorRowStyles={[styles.ph5]}
             onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
-            <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!shouldDisableRename}
-                    interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportName)}
-                    titleStyle={[styles.newKansasLarge, !shouldDisplayGroupWorkspaceAsPushRow && styles.textAlignCenter]}
-                    titleContainerStyle={!shouldDisplayGroupWorkspaceAsPushRow && styles.alignItemsCenter}
-                    shouldCheckActionAllowedOnPress={false}
-                    description={shouldDisplayGroupWorkspaceAsPushRow ? roomDescription : ''}
-                    furtherDetails={chatRoomSubtitle && !isGroupChat && !shouldDisplayGroupWorkspaceAsPushRow ? additionalRoomDetails : ''}
-                    furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
-                    furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
-                    onPress={() => {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path));
-                    }}
-                    numberOfLinesTitle={isThread ? 2 : 0}
-                    shouldBreakWord
-                />
-                {shouldDisplayGroupWorkspaceAsPushRow && !isGroupChat && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={false}
-                        interactive={false}
-                        description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
-                        numberOfLinesTitle={2}
-                        shouldBreakWord
+            <View style={[styles.flex1, canRename && styles.mt3]}>
+                <MenuItem.Root
+                    onPress={canRename ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path)) : undefined}
+                    accessibilityLabel={isNameField ? `${fieldName}, ${name}` : name}
+                >
+                    <MenuItem.Row>
+                        {isNameField ? (
+                            <MenuItemField.Content name={fieldName}>
+                                <ReportNameText name={name} />
+                            </MenuItemField.Content>
+                        ) : (
+                            <CenteredReportNameContent
+                                report={report}
+                                name={name}
+                            />
+                        )}
+                        {canRename && (
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                {isNameField && !isGroupChat && (
+                    <MenuItemField
+                        name={translate('workspace.common.workspace')}
+                        value={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
+                        numberOfLinesValue={2}
                     />
                 )}
             </View>

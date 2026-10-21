@@ -843,6 +843,7 @@ function buildAddMembersToWorkspaceOnyxData(
     reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
+    hasOfficeWorkArrangement?: boolean,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -893,6 +894,7 @@ function buildAddMembersToWorkspaceOnyxData(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
+            ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -991,6 +993,7 @@ function addMembersToWorkspace(
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
+    hasOfficeWorkArrangement?: boolean,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1007,6 +1010,8 @@ function addMembersToWorkspace(
         currentUser,
         reportActionsList,
         approverEmail,
+        undefined,
+        hasOfficeWorkArrangement,
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1017,6 +1022,7 @@ function addMembersToWorkspace(
             shouldEscapeText: false,
         }),
         policyID: policy.id,
+        ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
@@ -1304,6 +1310,9 @@ function openPolicyMemberProfilePage(policyID: string, accountID: number) {
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
+    // A changed invitee selection starts a new invite draft. Do not carry a previous invite's
+    // arrangement choice into this one, including when the new flow is open in another tab.
+    clearWorkspaceInviteWorkArrangementDraft(policyID);
 }
 
 function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
@@ -1312,6 +1321,14 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
 
 function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
+}
+
+function setWorkspaceInviteWorkArrangementDraft(policyID: string, hasOfficeWorkArrangement: boolean) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, hasOfficeWorkArrangement);
+}
+
+function clearWorkspaceInviteWorkArrangementDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, null);
 }
 
 function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
@@ -1556,6 +1573,8 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setWorkspaceInviteWorkArrangementDraft,
+    clearWorkspaceInviteWorkArrangementDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,

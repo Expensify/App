@@ -19,6 +19,7 @@ import {isFromCreditCardImport} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -712,6 +713,93 @@ describe('MergeTransactionUtils', () => {
                 const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).toContain('attendees');
+            });
+
+            describe('attendee combinations', () => {
+                const submitter = {
+                    email: 'submitter@example.com',
+                    displayName: 'Submitter',
+                    avatarUrl: '',
+                    login: 'submitter',
+                };
+                const alice = {
+                    email: 'alice@example.com',
+                    displayName: 'Alice',
+                    avatarUrl: '',
+                    login: 'alice',
+                };
+                const bob = {
+                    email: 'bob@example.com',
+                    displayName: 'Bob',
+                    avatarUrl: '',
+                    login: 'bob',
+                };
+
+                const merge = (targetAttendees: Attendee[], sourceAttendees: Attendee[]) => {
+                    const targetTransaction = {
+                        ...createRandomTransaction(0),
+                        comment: {
+                            ...createRandomTransaction(0).comment,
+                            attendees: targetAttendees,
+                        },
+                    };
+                    const sourceTransaction = {
+                        ...createRandomTransaction(1),
+                        comment: {
+                            ...createRandomTransaction(1).comment,
+                            attendees: sourceAttendees,
+                        },
+                    };
+                    return getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                };
+
+                it('should not conflict when neither expense has attendees', () => {
+                    const result = merge([], []);
+
+                    expect(result.conflictFields).not.toContain('attendees');
+                });
+
+                it('should keep the attendee when only the source expense has one', () => {
+                    const result = merge([], [submitter]);
+
+                    expect(result.conflictFields).not.toContain('attendees');
+                    expect(result.mergeableData).toMatchObject({
+                        attendees: [submitter],
+                    });
+                });
+
+                it('should keep the attendee when only the target expense has one', () => {
+                    const result = merge([submitter], []);
+
+                    expect(result.conflictFields).not.toContain('attendees');
+                    expect(result.mergeableData).toMatchObject({
+                        attendees: [submitter],
+                    });
+                });
+
+                it('should not conflict when both expenses have the same single attendee', () => {
+                    const result = merge([submitter], [submitter]);
+
+                    expect(result.conflictFields).not.toContain('attendees');
+                });
+
+                it('should conflict when the expenses have different single attendees', () => {
+                    const result = merge([alice], [bob]);
+
+                    expect(result.conflictFields).toContain('attendees');
+                });
+
+                it('should not conflict when both expenses have the same two attendees', () => {
+                    const result = merge([alice, bob], [bob, alice]);
+
+                    expect(result.conflictFields).not.toContain('attendees');
+                });
+
+                it('should conflict when one expense has two attendees and the other has a different one', () => {
+                    const result = merge([alice, bob], [submitter]);
+
+                    expect(result.conflictFields).toContain('attendees');
+                });
             });
 
             it('should automatically merge login-only attendees', () => {

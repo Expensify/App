@@ -14,6 +14,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -95,9 +96,9 @@ function ReceiptFileValidator({
                     return Promise.resolve();
                 }
 
-                const onSuccess = (file: File) => {
+                const onSuccess = (file: FileObject) => {
                     const receipt: Receipt = file;
-                    // Rebuilding the receipt from disk makes a fresh File without the trace id from capture, so copy it
+                    // Rebuilding the receipt from disk makes a fresh file object without the trace id from capture, so copy it
                     // back from the saved draft. This keeps the capture, submit, and enqueue logs tied to one receipt.
                     receipt.receiptTraceId = item.receipt?.receiptTraceId;
                     if (item?.receipt?.isTestReceipt) {

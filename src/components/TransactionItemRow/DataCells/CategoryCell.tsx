@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
@@ -29,7 +31,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: categoryForComparison,
         onSave,
@@ -66,10 +68,14 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                 <CategoryPickerModal
                     policyID={policyID}
                     selectedCategory={categoryForComparison}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                 />
             }

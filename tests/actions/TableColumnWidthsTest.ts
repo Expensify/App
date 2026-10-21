@@ -1,0 +1,60 @@
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type TableColumnWidths from '@src/types/onyx/TableColumnWidths';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const TABLE_ID = 'workspaceTaxes';
+
+function getTableColumnWidths(): Promise<TableColumnWidths | undefined> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
+}
+
+describe('setTableColumnWidths', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('replaces the stored layout rather than merging into it', async () => {
+        // Given a layout stored while the table had a Tax code column
+        setTableColumnWidths(TABLE_ID, {
+            availableColumnsWidth: 1176,
+            columnWidths: {name: 356, taxRate: 360, taxCode: 460},
+            resizedColumnKeys: ['taxCode'],
+        });
+        await waitForBatchedUpdates();
+
+        // When a later drag is stored after the Tax code column was hidden
+        setTableColumnWidths(TABLE_ID, {
+            availableColumnsWidth: 1176,
+            columnWidths: {name: 400, taxRate: 776},
+            resizedColumnKeys: ['taxCode', 'name'],
+        });
+        await waitForBatchedUpdates();
+
+        // Then only the latest drag's columns remain, or the old Tax code width would shrink the visible columns on reload
+        const tableColumnWidths = await getTableColumnWidths();
+
+        expect(tableColumnWidths?.[TABLE_ID]).toEqual({
+            availableColumnsWidth: 1176,
+            columnWidths: {name: 400, taxRate: 776},
+            resizedColumnKeys: ['taxCode', 'name'],
+        });
+    });
+});

@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
@@ -47,8 +48,29 @@ type SummaryItem = {
     testID?: string;
 };
 
-/** One row of a group. A single kind for now, so groups can grow other row kinds without touching their callers. */
-type SummaryGroupRow = SummaryItem;
+/** A row for one entry of a repeated group, such as an owner, led by an avatar */
+type SummaryAvatarRow = {
+    /** Tells the row apart from an answer row */
+    kind: 'avatar';
+
+    /** Unique key of the row */
+    id: string;
+
+    /** The entry's name */
+    title: string;
+
+    /** The line under the name */
+    description: string;
+
+    /** The avatar shown on the left */
+    avatarSource?: string;
+
+    /** Called when the row is pressed */
+    onPress: () => void;
+};
+
+/** One row of a group: an answer, or an entry of a repeated group */
+type SummaryGroupRow = SummaryItem | SummaryAvatarRow;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
@@ -71,7 +93,7 @@ type ConfirmationStepProps = SubPageProps &
 
         summaryItems?: SummaryItem[];
 
-        /** Sections with their own heading, each holding field rows */
+        /** Sections with their own heading, each holding field rows and avatar rows for repeated entries */
         groups?: SummaryGroup[];
 
         /** Whether show additional section with Onfido terms etc. */
@@ -106,20 +128,41 @@ function ConfirmationStep({
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
-    const renderRow = ({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}: SummaryItem) => (
-        <MenuItemWithTopDescription
-            key={id}
-            pressableTestID={testID ?? id}
-            description={description}
-            title={title}
-            shouldShowRightIcon={shouldShowRightIcon}
-            onPress={onPress}
-            interactive={interactive}
-            brickRoadIndicator={brickRoadIndicator}
-            errorText={errorText}
-            forwardedFSClass={forwardedFSClass}
-        />
-    );
+    const renderRow = (row: SummaryGroupRow) => {
+        if ('kind' in row) {
+            // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
+            return (
+                <View
+                    key={row.id}
+                    fsClass={forwardedFSClass}
+                >
+                    <MenuItemAvatarNavigation
+                        testID={row.id}
+                        title={row.title}
+                        description={row.description}
+                        accountID={CONST.DEFAULT_NUMBER_ID}
+                        avatarSource={row.avatarSource}
+                        onPress={row.onPress}
+                    />
+                </View>
+            );
+        }
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID} = row;
+        return (
+            <MenuItemWithTopDescription
+                key={id}
+                pressableTestID={testID ?? id}
+                description={description}
+                title={title}
+                shouldShowRightIcon={shouldShowRightIcon}
+                onPress={onPress}
+                interactive={interactive}
+                brickRoadIndicator={brickRoadIndicator}
+                errorText={errorText}
+                forwardedFSClass={forwardedFSClass}
+            />
+        );
+    };
 
     return (
         <ScrollView
@@ -174,4 +217,4 @@ function ConfirmationStep({
 }
 
 export default ConfirmationStep;
-export type {SummaryGroup};
+export type {SummaryGroup, SummaryGroupRow};

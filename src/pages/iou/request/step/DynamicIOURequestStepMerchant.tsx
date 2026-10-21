@@ -26,7 +26,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMerchantRequired} from '@libs/MoneyRequestUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
-import {getMerchantError, isInvalidMerchantValue} from '@libs/ValidationUtils';
+import {getMerchantError, getMerchantErrorMessage, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -105,12 +105,8 @@ function DynamicIOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
             const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
-            if (merchantError?.type === 'required') {
-                errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (merchantError?.type === 'invalidValue') {
-                errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
-            } else if (merchantError?.type === 'tooLong') {
-                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', merchantError.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+            if (merchantError) {
+                errors.moneyRequestMerchant = getMerchantErrorMessage(translate, merchantError);
             }
 
             return errors;

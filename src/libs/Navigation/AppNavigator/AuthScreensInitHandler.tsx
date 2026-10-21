@@ -2,7 +2,6 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -119,7 +118,6 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
-    useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.

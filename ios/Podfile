@@ -3,6 +3,9 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 $VCDisableFrameProcessors = true
+# Compiles react-native-screens' experimental (gamma) iOS code, which ScrollViewMarker needs.
+# Without it, rendering ScrollViewMarker crashes on iOS.
+ENV['RNS_GAMMA_ENABLED'] = '1'
 
 def node_require(script)
   # Resolve script with node to allow for hoisting

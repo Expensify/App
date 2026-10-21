@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -22,11 +23,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
-import {isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPolicyExpenseChat, isThreadMemberProtectedByParentReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -62,7 +64,12 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     // Check the selected member's own role on the policy, not the viewer's, and fail closed when their login is missing.
     // Kept in sync with the members list through the shared helper.
     const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    // Select only the derived boolean so this page doesn't re-render on every unrelated change to the parent report.
+    const [isSelectedMemberProtectedByParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, accountID),
+    });
+    const shouldDisableRemoveUser =
+        (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner || !!isSelectedMemberProtectedByParentReport;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,

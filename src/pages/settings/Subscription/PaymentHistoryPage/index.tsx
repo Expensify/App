@@ -5,6 +5,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,26 +15,25 @@ import {openPaymentHistoryPage} from '@userActions/Subscription';
 
 import CONST from '@src/CONST';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useEffect} from 'react';
 
 import PaymentHistoryTable from './PaymentHistoryTable';
 
 function PaymentHistoryPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
-                return;
-            }
-            openPaymentHistoryPage();
-        }, [isBetaEnabled]),
-    );
+    useEffect(() => {
+        if (!isBetaOn || isOffline) {
+            return;
+        }
+        openPaymentHistoryPage();
+    }, [isBetaOn, isOffline]);
 
-    if (!isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
+    if (!isBetaOn) {
         return <NotFoundPage />;
     }
 

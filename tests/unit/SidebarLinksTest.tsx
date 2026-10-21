@@ -28,6 +28,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isInLandscapeMode: false}),
 }));
 
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => () => ({}));
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useStyleUtils', () => ({__esModule: true, default: () => ({getSafeAreaMargins: () => ({marginBottom: 0})})}));
 jest.mock('@hooks/useSidebarOrderedReports', () => ({useSidebarOrderedReportsActions: () => ({setStickyReportID: jest.fn()})}));

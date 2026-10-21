@@ -55,6 +55,7 @@ function PopoverWithMeasuredContentBase({
     shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
     shouldSkipRemeasurement = false,
+    windowMargin = 0,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const {currentActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewState();
@@ -70,6 +71,11 @@ function PopoverWithMeasuredContentBase({
 
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+
+    // Static dimensions skip `onLayout`, so sync height changes from the prop.
+    if (hasStaticDimensions && popoverHeight !== popoverDimensions.height) {
+        setPopoverHeight(popoverDimensions.height);
+    }
 
     useEffect(() => {
         if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
@@ -178,11 +184,18 @@ function PopoverWithMeasuredContentBase({
         if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
             const top = adjustedAnchorPosition.top + positionCalculations.verticalShift;
             const maxTop = windowHeight - popoverHeight - positionCalculations.verticalShift;
-            result.top = Math.min(Math.max(positionCalculations.verticalShift, top), maxTop);
+            let clampedTop = Math.min(Math.max(positionCalculations.verticalShift, top), maxTop);
+            if (windowMargin > 0) {
+                clampedTop = Math.min(Math.max(clampedTop, windowMargin), Math.max(windowHeight - popoverHeight - windowMargin, windowMargin));
+            }
+            result.top = clampedTop;
         }
 
         if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
-            result.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - positionCalculations.verticalShift;
+            const bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - positionCalculations.verticalShift;
+            // Keep the top edge inside the window when the popover is taller than the space above the anchor.
+            const maxBottom = windowHeight - popoverHeight - windowMargin;
+            result.bottom = windowMargin > 0 ? Math.min(Math.max(bottom, windowMargin), Math.max(maxBottom, windowMargin)) : Math.min(bottom, maxBottom);
         }
 
         return result;
@@ -195,6 +208,7 @@ function PopoverWithMeasuredContentBase({
         windowHeight,
         popoverHeight,
         shouldMeasureAnchorPositionFromTop,
+        windowMargin,
     ]);
 
     return isContentMeasured ? (

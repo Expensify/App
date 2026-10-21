@@ -31,7 +31,7 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -136,7 +136,7 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
+    if (isPayBlocked(report, policy, isReportArchived)) {
         return false;
     }
 
@@ -169,8 +169,8 @@ function canPay(
         isPaymentsEnabled &&
         isReportFinished &&
         (reimbursableSpend !== 0 ||
-            hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions) ||
-            (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions))))
     ) {
         return !didExportFail;
     }

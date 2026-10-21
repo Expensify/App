@@ -299,7 +299,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             >
                 {connectedListings.length > 0 && (
                     <View style={styles.mb4}>
-                        <ConnectionsGrid listings={connectedListings} />
+                        <ConnectionsGrid
+                            listings={connectedListings}
+                            policyID={policyID}
+                        />
                     </View>
                 )}
                 <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseSingleColumn && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
@@ -340,7 +343,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     />
                 ) : (
                     <View style={styles.mt4}>
-                        <ConnectionsGrid listings={visibleListings} />
+                        <ConnectionsGrid
+                            listings={visibleListings}
+                            policyID={policyID}
+                        />
                     </View>
                 )}
                 {!shouldShowEmptyState && (

@@ -18,10 +18,11 @@ type ReimbursementDeQueuedContentProps = {
 };
 
 function ReimbursementDeQueuedContent({action, reportOwnerAccountID}: ReimbursementDeQueuedContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const message = getReimbursementDeQueuedOrCanceledActionMessage(
         translate,
+        formatPhoneNumber,
         action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
         reportOwnerAccountID,
         convertToDisplayString,

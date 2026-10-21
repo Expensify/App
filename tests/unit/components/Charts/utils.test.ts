@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -751,6 +752,29 @@ describe('getBarLayout', () => {
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
         expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getCartesianPlotBounds', () => {
+    const PADDING_LEFT = VictoryTheme.axis.padding.left;
+
+    it('reserves the right gutter for labels and the left base padding', () => {
+        // Given a 300px container with a 30px right gutter
+        // When computing the plot bounds
+        // Then the plot spans from the left padding to the gutter, where victory-native puts it,
+        // so labels laid out before the chart mounts line up with the plot it draws
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30, width: 300 - 30 - PADDING_LEFT});
+    });
+
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the right gutter itself
+        // When computing the plot bounds
+        // Then the plot collapses to zero width at the left padding, because a negative width would break the bar and
+        // label layouts that are sized from it
+        const bounds = getCartesianPlotBounds(10, 30);
+        expect(bounds.left).toBe(PADDING_LEFT);
+        expect(bounds.right).toBe(PADDING_LEFT);
+        expect(bounds.width).toBe(0);
     });
 });
 

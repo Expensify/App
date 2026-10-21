@@ -1337,7 +1337,7 @@ function getShareDestination(
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
-    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined);
 
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(

@@ -1,5 +1,4 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
@@ -8,6 +7,7 @@ import {
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';

@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,7 +38,8 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const {translate} = useLocalize();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
+    const reportIDToName = useReportIDToNameMap();
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription'), {reportIDToName}));
 
     /**
      * @param {Object} values - form input values passed by the Form component

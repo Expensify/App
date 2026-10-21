@@ -1,7 +1,16 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import {formatDate, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
+import {
+    formatDate,
+    getBadgeText,
+    getPaymentDetailsBadge,
+    getPaymentHistoryRow,
+    getPaymentHistoryRows,
+    getReceiptFileName,
+    getReceiptSource,
+    isInvoiceBilling,
+} from '@libs/PaymentHistoryUtils';
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -276,5 +285,148 @@ describe('getBadgeText', () => {
                 date: formatDate('2026-03-01', undefined),
             }),
         );
+    });
+});
+
+describe('getReceiptSource', () => {
+    it('returns the source when the purchase has a receipt', () => {
+        // Given a purchase with a resolved receipt
+        const purchase = createPurchase(1, '2026-02-01');
+        purchase.receipt = {receiptID: 100, source: 'https://expensify.com/receipts/receipt.pdf'};
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then the source URL is returned
+        expect(source).toBe('https://expensify.com/receipts/receipt.pdf');
+    });
+
+    it('returns null when the purchase has no receipt', () => {
+        // Given a purchase without a receipt
+        const purchase = createPurchase(1, '2026-02-01');
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('returns null when the receipt source is null', () => {
+        // Given a purchase whose receipt has no source
+        const purchase = createPurchase(1, '2026-02-01');
+        purchase.receipt = {receiptID: 100, source: null};
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('follows failedPurchaseID chain for cleared bills', () => {
+        // Given a failed purchase with a receipt, cleared by a later purchase
+        const failed = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        failed.receipt = {receiptID: 200, source: 'https://expensify.com/receipts/failed-receipt.pdf'};
+        const clear = createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([failed, clear]), 20);
+
+        // Then the failed purchase's receipt source is returned
+        expect(source).toBe('https://expensify.com/receipts/failed-receipt.pdf');
+    });
+
+    it('follows a multi-hop failedPurchaseID chain', () => {
+        // Given a chain of failed purchases where the original has the receipt
+        const original = createPurchase(10, '2026-01-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        original.receipt = {receiptID: 300, source: 'https://expensify.com/receipts/original.pdf'};
+        const retry = createPurchase(20, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, failedPurchaseID: 10});
+        const clear = createPurchase(30, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 20});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([original, retry, clear]), 30);
+
+        // Then the original purchase's receipt source is found through the chain
+        expect(source).toBe('https://expensify.com/receipts/original.pdf');
+    });
+
+    it('returns null when the chain leads to a purchase without a receipt', () => {
+        // Given a clear purchase pointing to a failed purchase with no receipt
+        const failed = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        const clear = createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([failed, clear]), 20);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('returns null for an unknown purchaseID', () => {
+        // Given a purchases map that does not contain the requested ID
+        const purchases = toPurchases([createPurchase(1, '2026-02-01')]);
+
+        // When resolving a receipt source for a non-existent purchase
+        const source = getReceiptSource(purchases, 999);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+});
+
+describe('isInvoiceBilling', () => {
+    it('returns true for an invoice bill with a receipt', () => {
+        // Given an invoice purchase with a receipt source
+        const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
+
+        // When checking if the purchase is invoice billing
+        // Then it returns true
+        expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(true);
+    });
+
+    it('returns true for a cleared invoice by following the failedPurchaseID chain', () => {
+        // Given a cleared invoice bill whose original failed invoice holds the receipt
+        const failedInvoice = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        failedInvoice.receipt = {receiptID: 200, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(20, '2026-02-05', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When checking if the clear purchase is invoice billing
+        // Then it follows the chain to the failed invoice and returns true
+        expect(isInvoiceBilling(toPurchases([failedInvoice, clear]), 20)).toBe(true);
+    });
+
+    it('returns false for non-invoicing billing type', () => {
+        // Given a non-invoicing purchase with a receipt
+        const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_CLEAR});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
+
+        // When checking if the purchase is invoice billing
+        // Then it returns false
+        expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(false);
+    });
+});
+
+describe('getReceiptFileName', () => {
+    it('extracts filename from valid URL', () => {
+        // Given a receipt URL with a filename
+        // When extracting the filename
+        // Then it returns the last path segment
+        expect(getReceiptFileName('https://expensify.com/receipts/w_abc123.pdf', 42)).toBe('w_abc123.pdf');
+    });
+
+    it('falls back to receipt-purchaseID for invalid URL', () => {
+        // Given an invalid URL string
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('not-a-url', 42)).toBe('receipt-42');
+    });
+
+    it('falls back to receipt-purchaseID for empty path', () => {
+        // Given a URL with no path segments
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
     });
 });

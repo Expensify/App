@@ -1,4 +1,3 @@
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -10,6 +9,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
+
+import removeStaleExportStagingDir from './removeStaleExportStagingDir';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
@@ -124,29 +125,6 @@ function removeStaleOnyxDump(): Promise<void> {
         }
         return RNFS.unlink(dumpPath).then(() => {
             Log.info('[Migrate Onyx] MoveFilesOutOfDocuments removed a stale Onyx state dump');
-        });
-    });
-}
-
-/**
- * Older app versions staged CSV/report exports in Documents/Expensify before handing them to the
- * iOS share sheet, and cancelling the sheet leaked the staged file. Exports are internal files
- * (current versions stage them in Caches), so the whole staging directory is removed.
- *
- * This only applies to iOS. On Android the same path (filesDir/Expensify) is where the native
- * share intent handler stages files shared into the app, so removing it would lose the share.
- */
-function removeStaleExportStagingDir(): Promise<void> {
-    if (getPlatform() !== CONST.PLATFORM.IOS) {
-        return Promise.resolve();
-    }
-    const stagingDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
-    return RNFS.exists(stagingDir).then((exists) => {
-        if (!exists) {
-            return;
-        }
-        return RNFS.unlink(stagingDir).then(() => {
-            Log.info('[Migrate Onyx] MoveFilesOutOfDocuments removed the old export staging directory');
         });
     });
 }

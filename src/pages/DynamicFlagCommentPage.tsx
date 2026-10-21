@@ -124,7 +124,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
 
     const flagComment = (severity: Severity) => {
         if (reportAction && canFlagReportAction(reportAction, reportID, currentUserAccountID)) {
-            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
+            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived, currentUserAccountID);
         }
 
         if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {

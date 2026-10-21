@@ -74,10 +74,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ScreenWrapper
                     testID="ConnectionsReceiptPartnersPage"

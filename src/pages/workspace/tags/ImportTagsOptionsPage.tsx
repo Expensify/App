@@ -1,5 +1,4 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -7,12 +6,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
@@ -49,17 +48,19 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = !!backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
+    const {showDownloadErrorModal} = useAlertModals();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    // The download link lives inside a confirm modal prompt, so close that modal first. Otherwise it stays under the alert and reappears after the alert is dismissed.
+    const showDownloadErrorModalAfterClose = () => {
+        close(() => showDownloadErrorModal());
+    };
+
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const workspaceTagsImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
@@ -88,26 +89,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     <TextLink
                         onPress={() => {
                             if (isMultiLevelTags) {
-                                downloadMultiLevelTagsCSV(
-                                    policyID,
-                                    () => {
-                                        close(() => {
-                                            setIsDownloadFailureModalVisible(true);
-                                        });
-                                    },
-                                    hasDependentTags,
-                                    translate,
-                                );
+                                downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
                             } else {
-                                downloadTagsCSV(
-                                    policyID,
-                                    () => {
-                                        close(() => {
-                                            setIsDownloadFailureModalVisible(true);
-                                        });
-                                    },
-                                    translate,
-                                );
+                                downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
                             }
                         }}
                     >
@@ -117,7 +101,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 </>
             </Text>
         ),
-        [translate, isMultiLevelTags, policyID, hasDependentTags],
+        [translate, isMultiLevelTags, policyID, hasDependentTags, showDownloadErrorModalAfterClose],
     );
 
     const switchSingleToMultiLevelTagPrompt = useMemo(
@@ -128,26 +112,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
+                            downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
                         } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                translate,
-                            );
+                            downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
                         }
                     }}
                 >
@@ -158,7 +125,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
             </Text>
         ),
-        [translate, policyID, hasDependentTags, isMultiLevelTags],
+        [translate, policyID, hasDependentTags, isMultiLevelTags, showDownloadErrorModalAfterClose],
     );
 
     const startMultiLevelTagImportFlow = useCallback(async () => {
@@ -295,15 +262,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }

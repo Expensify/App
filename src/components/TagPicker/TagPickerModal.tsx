@@ -20,11 +20,6 @@ import {View} from 'react-native';
 
 import TagPicker from '.';
 
-const popoverDimensions = {
-    width: CONST.POPOVER_DROPDOWN_WIDTH,
-    height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-};
-
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -49,6 +44,9 @@ type TagPickerModalProps = {
 
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
+
+    /** Height of the picker. Defaults to the full dropdown height. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function TagPickerModal({
@@ -63,6 +61,8 @@ function TagPickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
+    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
 }: TagPickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -71,6 +71,10 @@ function TagPickerModal({
     const {isKeyboardActive} = useKeyboardState();
 
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const popoverDimensions = {
+        width: CONST.POPOVER_DROPDOWN_WIDTH,
+        height: popoverHeight,
+    };
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const tagListName = getTagList(policyTags, 0).name;
@@ -95,7 +99,7 @@ function TagPickerModal({
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
@@ -114,6 +118,7 @@ function TagPickerModal({
                     onSubmit={handleTagSelected}
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                 />
             </View>
         </PopoverWithMeasuredContent>

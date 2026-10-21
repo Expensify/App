@@ -1,6 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';

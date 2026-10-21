@@ -68,7 +68,7 @@ describe('useDetachedSignEditingController', () => {
         expect(result.current.value).toBe('-12');
     });
 
-    it('toggles the sign and deletes it before the caret through its actions', () => {
+    it('toggles the sign and removes it through deleteBackward with the caret at the start', () => {
         // Given a positive value
         const {result} = renderController({value: '5'});
 
@@ -78,15 +78,60 @@ describe('useDetachedSignEditingController', () => {
         // Then the value is negative
         expect(result.current.value).toBe('-5');
 
-        // When the caret is at the start and the sign before caret is deleted
+        // When the caret is at the start and the pad deletes backward
         act(() => result.current.handleSelectionChange(0, 0));
-        act(() => {
-            const deleted = result.current.deleteSignBeforeCaret();
-            expect(deleted).toBe(true);
-        });
+        act(() => result.current.deleteBackward());
 
-        // Then the value is positive again
+        // Then only the sign is removed, and the magnitude stays
         expect(result.current.value).toBe('5');
+    });
+
+    it('removes the sign through deleteBackward when the magnitude is empty', () => {
+        // Given a negative value with no magnitude, as after the user typed only a minus
+        const {result} = renderController({value: '-'});
+
+        // When the pad deletes backward
+        act(() => result.current.deleteBackward());
+
+        // Then the sign is removed, since there is no digit to delete
+        expect(result.current.value).toBe('');
+    });
+
+    it('deletes the digit and keeps the sign through deleteBackward with the caret mid-text', () => {
+        // Given a negative value with the caret between its digits
+        const {result} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(1, 1));
+
+        // When the pad deletes backward
+        act(() => result.current.deleteBackward());
+
+        // Then the digit before the caret is deleted, because something precedes the caret, and the sign stays
+        expect(result.current.value).toBe('-2');
+    });
+
+    it('does nothing through deleteBackward for a positive value with the caret at the start', () => {
+        // Given a positive value with the caret at the start
+        const {result, onInputChange} = renderController({value: '12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+
+        // When the pad deletes backward
+        act(() => result.current.deleteBackward());
+
+        // Then there is no sign or digit before the caret, so nothing changes
+        expect(result.current.value).toBe('12');
+        expect(onInputChange).not.toHaveBeenCalled();
+    });
+
+    it('clears only the sign on a backspace key press at the start of a negative value', () => {
+        // Given a negative value with the caret at the start
+        const {result} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+
+        // When the user presses backspace on the keyboard
+        act(() => result.current.handleKeyPress(buildKeyPressEvent('Backspace')));
+
+        // Then the sign is cleared and the magnitude is untouched, so a native deletion is not doubled by the controller
+        expect(result.current.value).toBe('12');
     });
 
     it('ignores a sign toggle when negative values are not allowed', () => {

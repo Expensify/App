@@ -58,6 +58,9 @@ type ShareCodePageOnyxProps = {
 
     /** The policy for the report currently being looked at */
     policy?: OnyxEntry<Policy>;
+
+    /** Whether to show only the QR code, without the rows under it */
+    shouldShowQRCodeOnly?: boolean;
 };
 
 type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
@@ -98,7 +101,7 @@ function createAvatarQRLogo(LocalAvatarLogo: React.FC<SvgProps>): React.FC<SvgPr
     return AvatarQRLogo;
 }
 
-function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: ShareCodePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -126,7 +129,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants; resolve the translation once, not per participant
                 const hiddenText = translate('common.hidden');
-                return getParticipantsAccountIDsForDisplay(report, true)
+                return getParticipantsAccountIDsForDisplay(report, undefined, true)
                     .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
                     .join(' & ');
             }
@@ -212,40 +215,42 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     />
                 </View>
 
-                <View style={themeStyles.mt9}>
-                    <ContextMenuItem
-                        isAnonymousAction
-                        text={translate('qrCodes.copy')}
-                        icon={icons.Copy}
-                        successIcon={icons.Checkmark}
-                        successText={translate('qrCodes.copied')}
-                        onPress={() => Clipboard.setString(url)}
-                        shouldLimitWidth={false}
-                    />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
-                    We shouldn't introduce platform specific code in our codebase.
-                    This is a temporary solution while Web is not supported for the QR code download feature */}
-                    {shouldAllowDownloadQRCode && (
-                        <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={icons.Download} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
-                                </MenuItem.Content>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    )}
+                {!shouldShowQRCodeOnly && (
+                    <View style={themeStyles.mt9}>
+                        <ContextMenuItem
+                            isAnonymousAction
+                            text={translate('qrCodes.copy')}
+                            icon={icons.Copy}
+                            successIcon={icons.Checkmark}
+                            successText={translate('qrCodes.copied')}
+                            onPress={() => Clipboard.setString(url)}
+                            shouldLimitWidth={false}
+                        />
+                        {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                        We shouldn't introduce platform specific code in our codebase.
+                        This is a temporary solution while Web is not supported for the QR code download feature */}
+                        {shouldAllowDownloadQRCode && (
+                            <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Download} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        )}
 
-                    <MenuItemNavigation
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
-                        icon={icons.Cash}
-                        onPress={() => {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
-                        }}
-                    />
-                </View>
+                        <MenuItemNavigation
+                            title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
+                            icon={icons.Cash}
+                            onPress={() => {
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
+                            }}
+                        />
+                    </View>
+                )}
             </ScrollView>
         </ScreenWrapper>
     );

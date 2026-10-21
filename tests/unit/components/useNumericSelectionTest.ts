@@ -402,4 +402,67 @@ describe('useNumericSelection', () => {
             expect(result.current.selection).toEqual({start: 1, end: 1});
         });
     });
+
+    describe('setShouldUpdateSelection', () => {
+        it('drops native selection change events while updates are paused', () => {
+            // Given selection initialized at the end of the text
+            const {result} = renderSelection('12');
+
+            // When selection updates are paused
+            act(() => {
+                result.current.setShouldUpdateSelection(false);
+            });
+
+            // And a native selection change arrives
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+
+            // Then the caret position does not change
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+        });
+
+        it('applies native selection change events after updates are resumed', () => {
+            // Given selection initialized at the end of the text and paused
+            const {result} = renderSelection('12');
+            act(() => {
+                result.current.setShouldUpdateSelection(false);
+            });
+
+            // When selection updates are resumed
+            act(() => {
+                result.current.setShouldUpdateSelection(true);
+            });
+
+            // And a native selection change arrives
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+
+            // Then the caret position updates
+            expect(result.current.selection).toEqual({start: 0, end: 0});
+        });
+
+        it('resumes native selection change events when the screen regains focus', () => {
+            // Given selection updates paused by a long press that never reported its end, because the user left the screen
+            const {result, rerender} = renderSelection('12');
+            act(() => {
+                result.current.setShouldUpdateSelection(false);
+            });
+            mockUseIsFocused.mockReturnValue(false);
+            rerender({displayText: '12'});
+
+            // When the user returns to the screen
+            mockUseIsFocused.mockReturnValue(true);
+            rerender({displayText: '12'});
+
+            // And a native selection change arrives
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+
+            // Then the caret follows it instead of staying stuck at the end
+            expect(result.current.selection).toEqual({start: 0, end: 0});
+        });
+    });
 });

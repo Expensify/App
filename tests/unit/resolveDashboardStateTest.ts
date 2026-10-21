@@ -37,6 +37,7 @@ function makeSnapshot(data: SearchResults['data']): SearchResults {
 const GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1` as const;
 const SNAPSHOT_WITH_ROWS = makeSnapshot({[GROUP_KEY]: {count: 1, total: 1000, currency: 'USD', year: 2026, month: 1}});
 const SNAPSHOT_WITHOUT_ROWS = makeSnapshot({});
+const SNAPSHOT_WITH_EMPTY_BUCKETS = makeSnapshot({[GROUP_KEY]: {count: 0, total: 0, currency: 'USD', year: 2026, month: 1}});
 const FAILED_SNAPSHOT: SearchResults = {...makeSnapshot({}), errors: ERRORS};
 
 function makeCharts(headline: SearchResults | undefined, supporting: SearchResults | undefined): InsightsDashboardChart[] {
@@ -179,6 +180,24 @@ describe('getDashboardState', () => {
         const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
 
         // Then the page points at the filters rather than the account
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
+    });
+
+    it('says the account has no expenses when every bucket came back empty', () => {
+        // Given an account with no expenses whose snapshots hold only the empty buckets GetInsights sends for the range
+        // When the page's state is resolved
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+
+        // Then the page says the user has no expenses
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
+    });
+
+    it('says the filters matched nothing when every bucket came back empty', () => {
+        // Given an account with expenses whose snapshots hold only empty buckets
+        // When the page's state is resolved
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+
+        // Then the page shows an empty state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
     });
 

@@ -107,6 +107,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
                 errors = {};
             }
         }
+        if (!perDiemCustomUnit?.customUnitID) {
+            errors.missingPerDiemUnit = translate('workspace.perDiem.missingPerDiemUnit');
+        }
         return errors;
     };
 

@@ -167,6 +167,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
+                expenseReportTransactions: transactions,
                 policy,
                 rules,
                 currentUserAccountIDParam: accountID,

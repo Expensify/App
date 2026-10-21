@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportPolicyFieldsSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportParentChainSelector, reportPolicyFieldsSelector} from '@selectors/Report';
 
 const REPORT_ID = 'report123';
 const PARENT_REPORT_ID = 'parentReport123';
@@ -102,5 +103,66 @@ describe('reportPolicyFieldsSelector', () => {
 
     it('should return undefined when the report is not in Onyx', () => {
         expect(reportPolicyFieldsSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('reportParentChainSelector', () => {
+    const GRANDPARENT_REPORT_ID = 'grandparentReport123';
+    const GRANDPARENT_REPORT_ACTION_ID = 'grandparentReportAction123';
+    const UNRELATED_REPORT_ID = 'unrelatedReport123';
+
+    const reportKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+
+    it('should return the parent links of the report and every ancestor, and nothing else', () => {
+        // Given a thread -> parent -> grandparent chain plus an unrelated report in the collection
+        const reports = {
+            [reportKey(REPORT_ID)]: createReport({...threadFields, lastMessageText: 'Hello'}),
+            [reportKey(PARENT_REPORT_ID)]: createReport({reportID: PARENT_REPORT_ID, parentReportID: GRANDPARENT_REPORT_ID, parentReportActionID: GRANDPARENT_REPORT_ACTION_ID}),
+            [reportKey(GRANDPARENT_REPORT_ID)]: createReport({reportID: GRANDPARENT_REPORT_ID}),
+            [reportKey(UNRELATED_REPORT_ID)]: createReport({reportID: UNRELATED_REPORT_ID, ...threadFields}),
+        };
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then only the chain entries are returned, projected to the parent link fields, so unrelated reports cannot affect the result
+        expect(result).toEqual({
+            [reportKey(REPORT_ID)]: threadFields,
+            [reportKey(PARENT_REPORT_ID)]: {parentReportID: GRANDPARENT_REPORT_ID, parentReportActionID: GRANDPARENT_REPORT_ACTION_ID},
+            [reportKey(GRANDPARENT_REPORT_ID)]: {parentReportID: undefined, parentReportActionID: undefined},
+        });
+    });
+
+    it('should stop at the first ancestor that is not in Onyx', () => {
+        // Given a thread whose parent report is not loaded
+        const reports = {[reportKey(REPORT_ID)]: createReport(threadFields)};
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then only the thread's own links are returned, which is all the error-clearing walk can use
+        expect(result).toEqual({[reportKey(REPORT_ID)]: threadFields});
+    });
+
+    it('should terminate when the parent links form a cycle', () => {
+        // Given two reports that list each other as parent (corrupt data must not hang the UI thread)
+        const reports = {
+            [reportKey(REPORT_ID)]: createReport(threadFields),
+            [reportKey(PARENT_REPORT_ID)]: createReport({reportID: PARENT_REPORT_ID, parentReportID: REPORT_ID, parentReportActionID: 'action1'}),
+        };
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then each report on the cycle appears once
+        expect(Object.keys(result ?? {})).toEqual([reportKey(REPORT_ID), reportKey(PARENT_REPORT_ID)]);
+    });
+
+    it('should return an empty collection when the report ID is missing or the collection is not loaded', () => {
+        // Given no report ID, or no report collection
+        // When the selector is applied
+        // Then nothing is returned, so the caller's walk does not fall back to stale data
+        expect(reportParentChainSelector(undefined)({[reportKey(REPORT_ID)]: createReport(threadFields)})).toEqual({});
+        expect(reportParentChainSelector(REPORT_ID)(undefined)).toEqual({});
     });
 });

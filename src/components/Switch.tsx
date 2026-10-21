@@ -35,6 +35,12 @@ type SwitchProps = {
 
     /** Whether the switch is nested inside another pressable */
     isNested?: boolean;
+
+    /** Animate the thumb on any `isOn` change, not only when the switch itself is pressed. */
+    shouldAnimateOnExternalChange?: boolean;
+
+    /** Whether the switch is a keyboard tab stop. */
+    focusable?: boolean;
 };
 
 const OFFSET_X = {
@@ -42,7 +48,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false, focusable}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -58,8 +64,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         if (prevIsOn.current === isOn) {
             return;
         }
-        if (hasUserToggled.current) {
-            // User just toggled - animate to new position
+        if (hasUserToggled.current || shouldAnimateOnExternalChange) {
+            // User just toggled (or the caller opted in to animate external changes) - animate to new position
             offsetX.set(withTiming(targetOffsetX, {duration: 300}));
             hasUserToggled.current = false;
         } else {
@@ -69,7 +75,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
             offsetX.set(targetOffsetX);
         }
         prevIsOn.current = isOn;
-    }, [isOn, offsetX, targetOffsetX]);
+    }, [isOn, offsetX, targetOffsetX, shouldAnimateOnExternalChange]);
 
     const handleSwitchPress = () => {
         requestAnimationFrame(() => {
@@ -114,6 +120,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         <PressableWithFeedback
             disabled={pending || (!disabledAction && disabled)}
             isNested={isNested}
+            focusable={focusable}
             onPress={handleSwitchPress}
             onMouseDown={(e) => {
                 if (!isNested) {
@@ -158,3 +165,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
 }
 
 export default Switch;
+export type {SwitchProps};

@@ -234,6 +234,7 @@ function useSearchSelectorBase({
         isSearching: isSearchingOptions,
         includeP2P,
         batchSize: maxResultsPerPage,
+        activePolicyID: appliesGetValidOptionsConfig ? getValidOptionsConfig.activePolicyID : undefined,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;
@@ -363,7 +364,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -409,7 +410,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -452,7 +453,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:

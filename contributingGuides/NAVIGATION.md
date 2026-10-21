@@ -372,7 +372,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
 };
 ```
 
-3. Define types for a new screen in `src/libs/Navigation/types.ts`.
+3. Define types for a new screen in `src/libs/Navigation/types.ts`. Screens of the Settings right-hand panel (`SettingsNavigatorParamList`) are defined in `src/libs/Navigation/paramLists/` instead: `AccountSettingsParamList.ts`, `WorkspaceSettingsParamList.ts` or `DomainSettingsParamList.ts`.
 
 ```ts
 type SettingsSplitNavigatorParamList = {

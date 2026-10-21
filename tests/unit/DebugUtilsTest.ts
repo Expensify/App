@@ -1184,7 +1184,7 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns undefined reason when report is not defined', () => {
-            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns correct reason when report has a join request', async () => {
@@ -1209,6 +1209,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasJoinRequest');
         });
@@ -1222,6 +1223,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isUnreadWithMention');
         });
@@ -1239,6 +1241,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
@@ -1251,6 +1254,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasChildReportAwaitingAction');
         });
@@ -1262,11 +1266,12 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns undefined reportAction when report is not defined', () => {
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined) ?? {};
             expect(reportAction).toBeUndefined();
         });
         it('returns the report action which is a join request', async () => {
@@ -1297,6 +1302,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
@@ -1368,7 +1374,7 @@ describe('DebugUtils', () => {
             if (!report) {
                 throw new Error('Expected the report fixture to be present');
             }
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, RORY_EMAIL, 12345) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, RORY_EMAIL, 12345, undefined) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
@@ -1379,6 +1385,7 @@ describe('DebugUtils', () => {
                     },
                     RORY_EMAIL,
                     RORY_ACCOUNT_ID,
+                    undefined,
                 ) ?? {};
             expect(reportAction).toBeUndefined();
         });
@@ -1387,7 +1394,7 @@ describe('DebugUtils', () => {
             const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
 
             // When the debug page asks why the chat shows a GBR, passing the violations like the LHN derived value does
-            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(chatReport, RORY_EMAIL, RORY_ACCOUNT_ID, false, transactionViolations) ?? {};
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(chatReport, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, transactionViolations) ?? {};
 
             // Then no GBR reason is reported, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
             expect(reason).toBeUndefined();

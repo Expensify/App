@@ -4,6 +4,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,7 @@ import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {SearchChartModel} from './buildChartSeries';
+import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries} from './buildChartSeries';
@@ -51,6 +52,9 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
+    /** Rows the chart is compared against, drawn as a second series */
+    comparison?: ChartComparison;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
@@ -71,9 +75,11 @@ function SearchChartView({
     shouldShowGroupLabels = true,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
+    comparison,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
+    const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
@@ -85,11 +91,16 @@ function SearchChartView({
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const {series, rows} = buildChartSeries({
         data,
+        comparison,
+        groupBy,
         view,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+        translate,
+        dateFnsLocale,
+        colorScheme: theme.colorScheme,
     });
     const points = rows.map((row) => row.point);
 

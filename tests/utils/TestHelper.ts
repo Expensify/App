@@ -38,7 +38,9 @@ import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 // must be registered here too. Idempotent, so this doesn't conflict with the appSetup() call inside setupApp().
 registerMiddlewares();
 
-type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
+type FetchMockParameters = [input: Parameters<typeof fetch>[0] | URL, init?: Parameters<typeof fetch>[1]];
+
+type MockFetch = jest.Mock<ReturnType<typeof fetch>, FetchMockParameters> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -61,8 +63,8 @@ type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = 
 
 type QueueItem = {
     resolve: (value: Response | PromiseLike<Response>) => void;
-    input: Parameters<typeof fetch>[0];
-    options?: RequestInit;
+    input: FetchMockParameters[0];
+    options?: FetchMockParameters[1];
 };
 
 type FormData = {
@@ -323,7 +325,7 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (input: Parameters<typeof fetch>[0], options?: RequestInit): Response =>
+    const getResponse = (input: FetchMockParameters[0], options?: FetchMockParameters[1]): Response =>
         shouldFail
             ? createMock<Response>({
                   ok: true,
@@ -347,7 +349,7 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
               });
 
     const mockFetch = Object.assign(
-        jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>().mockImplementation((input: Parameters<typeof fetch>[0], options: Parameters<typeof fetch>[1]) => {
+        jest.fn<ReturnType<typeof fetch>, FetchMockParameters>().mockImplementation((input: FetchMockParameters[0], options?: FetchMockParameters[1]) => {
             if (!isPaused) {
                 return Promise.resolve(getResponse(input, options));
             }
@@ -392,22 +394,22 @@ function getGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
 
 function setupGlobalFetchMock(): MockFetch {
     const mockFetch = getGlobalFetchMock();
-    const originalFetch = global.fetch;
+    const originalFetch = globalThis.fetch;
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     afterAll(() => {
-        global.fetch = originalFetch;
+        globalThis.fetch = originalFetch;
     });
 
     return mockFetch;
 }
 
 function getFetchMockCalls(commandName: ApiCommand) {
-    if (!jest.isMockFunction(global.fetch)) {
+    if (!jest.isMockFunction(globalThis.fetch)) {
         throw new Error('Expected global.fetch to be a Jest mock function.');
     }
-    return jest.mocked(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+    return jest.mocked(globalThis.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
 }
 
 /**
@@ -425,7 +427,14 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
     expect(call).toBeTruthy();
     const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
-    expect(params).toEqual(expect.objectContaining(expectedParams));
+
+    // FormData coerces every value to a string, so a number or boolean in the expectation could never match.
+    const expectedEntries = Object.entries((expectedParams ?? {}) as Record<string, unknown>).map(([key, value]) => [
+        key,
+        typeof value === 'number' || typeof value === 'boolean' ? String(value) : value,
+    ]);
+
+    expect(params).toEqual(expect.objectContaining(Object.fromEntries(expectedEntries)));
 }
 
 function setPersonalDetails(login: string, accountID: number) {

@@ -17,6 +17,7 @@ import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@src/libs/actions/BankAccounts', () => ({
     openPersonalBankAccountSetupView: jest.fn(),
+    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({

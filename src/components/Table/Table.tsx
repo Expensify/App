@@ -13,12 +13,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canUseCssPositionSticky} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -145,8 +146,8 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 }
 
 type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
-    /** Stored dragged widths for this table's `columnResizingID`. */
-    columnWidthOverrides?: ColumnWidthOverrides;
+    /** Layout the last drag saved for this `columnResizingID`. */
+    storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
 function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
@@ -170,7 +171,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     columnResizingID,
-    columnWidthOverrides,
+    storedTableColumnWidths,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
@@ -278,7 +279,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
-    // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
+    // The saved layout is applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
 
@@ -289,8 +290,10 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
+        getStoredTableColumnWidths,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -299,14 +302,16 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
         isColumnResizingEnabled,
-        columnWidthOverrides,
+        storedTableColumnWidths,
     });
 
     const columnResize = useColumnResize({
         columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
+        getStoredTableColumnWidths,
         columnGap: styles.gap3.gap,
     });
 
@@ -351,8 +356,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const hasColumnHeaderElement = !!tableHeaderElement;
     const hasRows = processedData.length > 0;
     const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
-    // Resizable tables always get the scroller: a drag can overflow without a render, and moving the header mid-drag would remount the handle.
-    const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
+    const canStickColumnHeaderInScroller = canUseCssPositionSticky();
 
     const tableListMetadata = useMemo(
         () =>
@@ -362,9 +366,9 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
                 hasColumnHeaderElement,
                 hasRows,
                 isColumnHeaderHiddenInNarrowLayout,
-                hasHorizontalScrollContainer,
+                canStickColumnHeaderInScroller,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, hasHorizontalScrollContainer],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller],
     );
     /**
      * Exposes table control methods through the ref.
@@ -423,7 +427,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         emptyStateElement,
         noResultsStateElement,
         listRef,
-        scrollbarWidth,
         measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
@@ -522,12 +525,12 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
     props: TableProps<DataType, ColumnKey, FilterKey> & {columnResizingID: string},
 ) {
-    const columnWidthOverrides = useStoredColumnWidths(props.columnResizingID);
+    const storedTableColumnWidths = useStoredColumnWidths(props.columnResizingID);
 
     return (
         <TableContent
             {...props}
-            columnWidthOverrides={columnWidthOverrides}
+            storedTableColumnWidths={storedTableColumnWidths}
         />
     );
 }

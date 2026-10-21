@@ -208,6 +208,17 @@ describe('ReportNameUtils', () => {
     });
 
     describe('computeReportName - support tickets', () => {
+        test('shows the support ticket title before server details arrive', () => {
+            // Given a support ticket that exists only optimistically
+            const supportTicket = {reportID: 'supportTicketReportID', type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+
+            // When its name is displayed before creation completes
+            const name = computeReportName(supportTicket);
+
+            // Then the customer sees a support ticket title without needing participant details
+            expect(name).toBe('Support ticket');
+        });
+
         test('uses the support rep login when their display name is unavailable', () => {
             const supportTicket = createMock<Report>({
                 reportID: 'supportTicketReportID',

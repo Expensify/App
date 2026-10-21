@@ -1,6 +1,5 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -9,6 +8,7 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
 import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,6 +34,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -49,7 +50,7 @@ import type {Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 type SubRateData = {
@@ -90,14 +91,12 @@ function getSubRatesData(customUnitRates: Rate[]) {
 type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM>;
 
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDownloadErrorModal} = useAlertModals();
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
@@ -204,12 +203,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         canEditSubrate: canEdit,
                         canEditAmount: canEdit,
                         action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
-                        onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
-                        onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
-                        onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
+                        onRenameDestination: (newName: string) =>
+                            showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
+                        onRenameSubrate: (newName: string) =>
+                            showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
+                        onChangeAmount: (newAmount: string) =>
+                            showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
                     };
                 }),
-        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
+        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit, translate],
     );
 
     const secondaryActions = useMemo(() => {
@@ -245,15 +247,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         showOfflineModal();
                         return;
                     }
-                    close(() =>
-                        downloadPerDiemCSV(
-                            policyID,
-                            () => {
-                                setIsDownloadFailureModalVisible(true);
-                            },
-                            translate,
-                        ),
-                    );
+                    close(() => downloadPerDiemCSV(policyID, showDownloadErrorModal, translate));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
             });
@@ -262,6 +256,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return menuItems;
     }, [
         showOfflineModal,
+        showDownloadErrorModal,
         policy?.areCategoriesEnabled,
         policyCategories,
         canWritePerDiem,
@@ -423,15 +418,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     onRowSelectionChange={setSelectedSubRateKeys}
                     headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
                     emptyState={emptyState}
-                />
-                <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={isDownloadFailureModalVisible}
-                    onClose={() => setIsDownloadFailureModalVisible(false)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

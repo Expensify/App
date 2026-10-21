@@ -84,7 +84,7 @@ import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
-import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
+import type {CreateTrackExpenseParams, TrackExpenseRetryParams} from './types/CreateTrackExpenseParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
@@ -382,7 +382,7 @@ function getReceiptError(
     isScanRequest = true,
     errorKey?: number,
     action?: IOUActionParams,
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | TrackExpenseRetryParams,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
@@ -1507,7 +1507,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = newReportTotal ? newReportTotal - (iouReport.nonReimbursableTotal ?? 0) : previousReimbursableTotal - reportAmount;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
@@ -1528,7 +1528,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal -= reportAmount;
                 }
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = newReportTotal ? newReportTotal - (iouReport.unheldNonReimbursableTotal ?? 0) : previousUnheldReimbursableTotal - reportAmount;
                 }
             }
         }

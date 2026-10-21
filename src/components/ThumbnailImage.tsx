@@ -69,6 +69,9 @@ type ThumbnailImageProps = {
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 function ThumbnailImage({
@@ -92,6 +95,7 @@ function ThumbnailImage({
     onLoad,
     resizeMode,
     previewUri,
+    recyclingKey,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -158,6 +162,7 @@ function ThumbnailImage({
                     onLoad={onLoad}
                     resizeMode={resizeMode}
                     previewUri={previewUri}
+                    recyclingKey={recyclingKey}
                 />
             </View>
         </View>

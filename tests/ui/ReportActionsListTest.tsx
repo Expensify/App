@@ -160,6 +160,7 @@ type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+    onContentSizeChange?: () => void;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -372,6 +373,35 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks the newest reply of Concierge and of each custom agent', () => {
+            // Given a custom agent that replied after Concierge
+            const agentAccountID = 4242;
+            const agentReply: OnyxTypes.ReportAction = {
+                ...conciergeReply,
+                reportActionID: 'agent-reply',
+                created: '2023-01-05',
+                actorAccountID: agentAccountID,
+                person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+            };
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+                    return [[agentAccountID], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply, agentReply],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then both replies show the prompt, because the agent reply must not take the prompt away from Concierge
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+            expect(getRenderedReportActionsListItemProps(agentReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
         it('marks nothing while a Concierge answer is still streaming', () => {
@@ -866,6 +896,22 @@ describe('ReportActionsList (body)', () => {
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
+        });
+    });
+
+    describe('Pending scroll-to-bottom', () => {
+        it('flushes a pending scroll-to-bottom when the list content size changes', () => {
+            // Given the list is rendered
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            renderReportActionsList();
+
+            // When the list content size changes, as it does once FlashList lays out a newly sent comment. In an
+            // aligned-to-top report this is the only list event that follows, because onLayout does not fire.
+            getCapturedListProps()?.onContentSizeChange?.();
+
+            // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
+            const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
+            expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
         });
     });
 

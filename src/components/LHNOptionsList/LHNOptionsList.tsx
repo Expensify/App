@@ -1,3 +1,5 @@
+import {renderTabRootScrollComponent} from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +47,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useAllPersonalDetails();
 
     const styles = useThemeStyles();
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -162,10 +165,11 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             <LHNTooltipContextProvider data={data}>
                 <FlashList
                     ref={flashListRef}
+                    contentInsetAdjustmentBehavior={tabRootScrollProps.contentInsetAdjustmentBehavior}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    contentContainerStyle={StyleSheet.flatten(tabRootScrollProps.contentContainerStyle)}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
@@ -177,6 +181,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews
+                    renderScrollComponent={renderTabRootScrollComponent}
                 />
             </LHNTooltipContextProvider>
         </View>

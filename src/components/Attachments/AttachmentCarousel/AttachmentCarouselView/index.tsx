@@ -120,21 +120,22 @@ function AttachmentCarouselView({
         [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
     );
 
-    /** Increments or decrements the index to get another selected item */
+    /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
             if (isFullScreen) {
-                return;
+                return false;
             }
 
             const nextIndex = page + deltaSlide;
             const nextItem = attachments.at(nextIndex);
 
             if (!nextItem || nextIndex < 0 || !scrollRef.current) {
-                return;
+                return false;
             }
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            return true;
         },
         [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
     );

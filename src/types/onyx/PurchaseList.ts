@@ -118,6 +118,12 @@ type Message = {
     yearlySubscriptionUserCountCost?: number;
 };
 
+/** Receipt resolved by the detail API for a purchase */
+type PurchaseReceipt = {
+    receiptID: number;
+    source: string | null;
+};
+
 /** Purchase type */
 type Purchase = {
     amount: number;
@@ -131,6 +137,18 @@ type Purchase = {
     message: Message;
 
     purchaseID: number;
+
+    /** Resolved receipt/invoice, populated by OpenPaymentDetailsPage */
+    receipt?: PurchaseReceipt;
+
+    /** Active-user account IDs, populated by OpenPaymentDetailsPage */
+    activeUsers?: number[];
+
+    /** Account that was billed, populated by OpenPaymentDetailsPage */
+    billedToAccountID?: number;
+
+    /** Whether detail data has been loaded from the server */
+    isLoaded?: boolean;
 };
 
 /** Array of purchases */
