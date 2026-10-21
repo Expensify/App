@@ -7,9 +7,8 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    canMemberWrite,
+    canAdminPayReport,
     getManagerAccountID,
-    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -51,7 +50,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -222,21 +221,14 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
+    if (isPayBlocked(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-
-    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
-    const canPayReport =
-        isReportPayer ||
-        (canNonPayerAdminPay &&
-            isGroupPolicy(policy) &&
-            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPayReport = isReportPayer || (!!canNonPayerAdminPay && canAdminPayReport(policy, currentUserLogin));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -526,6 +518,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
 
