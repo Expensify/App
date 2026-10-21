@@ -550,6 +550,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Whether an existing expense policy document was replaced (true) or a first one added (false) */
     isReplacement?: boolean;
 
+    /** Workspace whose expense policy document changed, used to link to its Overview page */
+    policyID?: string;
+
     /** Report field type */
     fieldType?: string;
 

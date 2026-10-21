@@ -8228,5 +8228,19 @@ describe('ReportActionsUtils', () => {
         it('says the document was replaced when one already existed', () => {
             expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction(true))).toBe('replaced the expense policy document');
         });
+
+        it('links to the workspace Overview page in the rendered message only', () => {
+            const action = {...buildRulesDocumentAction(false), originalMessage: {isReplacement: false, policyID: 'ABC123'}} as ReportAction;
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            expect(fragment.text).toBe('added an expense policy document');
+            expect(fragment.html).toMatch(/^<muted-text>added an expense policy document in <a href=".*\/workspaces\/ABC123\/overview">Workspace &gt; Overview<\/a><\/muted-text>$/);
+        });
+
+        it('stays plain text when the change log has no workspace', () => {
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, buildRulesDocumentAction(false));
+
+            expect(fragment.html).toBe('<muted-text>added an expense policy document</muted-text>');
+        });
     });
 });
