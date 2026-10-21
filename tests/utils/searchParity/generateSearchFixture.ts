@@ -322,7 +322,6 @@ function generateSearchFixture(): SearchFixture {
             continue;
         }
         const contact = personalDetails[accountID];
-        // A DM with a nameless contact is named after the contact's login, formatted when it is a phone number
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty displayName must fall back too
         const name = contact?.displayName || FORMATTED_PHONE_LOGINS[contact?.login ?? ''] || (contact?.login ?? '');
         dmReportIDByAccountID[accountID] = addReport(

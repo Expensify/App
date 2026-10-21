@@ -40,9 +40,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRHPActiveRoute: jest.fn(),
 }));
 
-// Baseline for the search option pipeline the SearchRouter runs through (createFilteredOptionList to getSearchOptions).
-// Only re-record the snapshot (jest -u) against the pre-migration search on main, so the migration never becomes its own baseline.
-// The snapshot lists every option as "<keyForList> <text> [flags] [alt: ...] [accID: ...]", so a changed result shows its options in the diff.
+// Baseline snapshot for the search option pipeline (createFilteredOptionList to getSearchOptions).
+// Only re-record (jest -u) against pre-migration search on main so the migration never becomes its own baseline.
 const fixture = generateSearchFixture();
 
 /** Drops every cache the search keeps between calls, so the next build starts cold. */
@@ -56,7 +55,6 @@ function clearSearchCaches() {
  * Invited users include their login when different from text to distinguish email from phone invites.
  */
 function createOptionSerializer() {
-    /** Serializes one option into a "<keyForList> <text> [flags] [alt: ...] [accID: ...]" line to pin option ordering and content rather than rendering details. */
     function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
         if (!option) {
             return null;
@@ -102,7 +100,6 @@ function createOptionSerializer() {
     return {serializeOption, serializeResult, serializeOptionList};
 }
 
-/** Matches the readable serialization of a recorded value against the snapshot. */
 function expectToMatchGoldenMaster(value: unknown) {
     expect(value).toMatchSnapshot();
 }
@@ -244,7 +241,7 @@ function createCallSites(sourceFixture: SearchFixture) {
 
     const searchCallSites = {
         searchRouterLocal: (options, query) => runSearchRouterSearch(options, query),
-        // SearchAutocompleteList displayed pass: combines rankings, appends userToInvite and caps results
+        // Replicates the displayed ranking and capping pass from SearchAutocompleteList
         searchRouterDisplayed: (options, query) => {
             const result = runSearchRouterSearch(options, query);
 
