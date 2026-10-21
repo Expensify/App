@@ -661,6 +661,9 @@ const WRITE_COMMANDS = {
     QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
     QUEUE_EXPORT_SEARCH_WITH_TEMPLATE: 'QueueExportSearchWithTemplate',
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
+    QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
+    QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
+    QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
@@ -796,6 +799,8 @@ const WRITE_COMMANDS = {
     DELETE_AGENT: 'DeleteAgent',
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
+    SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE: 'SendBulkActionSummaryFromConcierge',
+    CLEAR_BULK_ACTION: 'ClearBulkAction',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
@@ -1506,6 +1511,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.QueueExportSearchItemsToCSVParams;
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE]: Parameters.QueueExportSearchWithTemplateParams;
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
@@ -1622,6 +1630,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
     [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
     [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
+    [WRITE_COMMANDS.SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE]: Parameters.SendBulkActionSummaryFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_BULK_ACTION]: Parameters.ClearBulkActionParams;
 };
 
 const READ_COMMANDS = {

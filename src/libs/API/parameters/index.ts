@@ -660,6 +660,9 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
+export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
+export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
+export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
@@ -725,6 +728,8 @@ export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
+export type {default as SendBulkActionSummaryFromConciergeParams} from './SendBulkActionSummaryFromConciergeParams';
+export type {default as ClearBulkActionParams} from './ClearBulkActionParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadOFXParams} from './UploadOFXParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';

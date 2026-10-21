@@ -117,6 +117,7 @@ import Onyx from 'react-native-onyx';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
+import {buildBulkActionOnyxData} from './BulkAction';
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -2280,7 +2281,26 @@ function queueExportSearchWithTemplate(
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
  */
 function queueBulkPayReports(jsonQuery: string) {
-    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
+    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/** Queues a hold, with the given reason, for every expense matching the search query that the user can hold. */
+function queueBulkHoldExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+    write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
+/** Queues an unhold for every held expense matching the search query that the user can unhold. */
+function queueBulkUnholdExpenses(jsonQuery: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+    write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
+/** Queues a rejection, with the given reason, for every expense matching the search query on reports the user can reject. */
+function queueBulkRejectExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+    write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
 }
 
 /**
@@ -2735,6 +2755,9 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkHoldExpenses,
+    queueBulkUnholdExpenses,
+    queueBulkRejectExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
