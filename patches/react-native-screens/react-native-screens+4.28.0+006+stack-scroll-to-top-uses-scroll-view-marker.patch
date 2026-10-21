@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+--- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+@@ -143,8 +143,12 @@ namespace react = facebook::react;
+       tabScreenController.tabScreenComponentView.shouldUseRepeatedTabSelectionPopToRootSpecialEffect) {
+     return [[self popToRootViewControllerAnimated:true] count] > 0;
+   } else if (tabScreenController.tabScreenComponentView.shouldUseRepeatedTabSelectionScrollToTopSpecialEffect) {
+-    UIScrollView *scrollView =
+-        [RNSScrollViewFinder findScrollViewInFirstDescendantChainFrom:[[self topViewController] view]];
++    // A ScrollViewMarker registers its scroll view with the tabs screen, not with this stack, so it can be on any
++    // screen of the stack. It is used only while the stack shows a single screen.
++    UIScrollView *markedScrollView =
++        [[self viewControllers] count] == 1 ? [tabScreenController.tabScreenComponentView cachedContentScrollView] : nil;
++    UIScrollView *scrollView = markedScrollView
++        ?: [RNSScrollViewFinder findScrollViewInFirstDescendantChainFrom:[[self topViewController] view]];
+     return [scrollView rnscreens_scrollToTop];
+   }
+ 
