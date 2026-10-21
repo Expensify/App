@@ -18,8 +18,10 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canAdminPayReport,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -48,6 +50,7 @@ import {
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
+    isSentMoneyReportAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
@@ -400,7 +403,7 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === currentUserAccountID;
 
-    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
+    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 
@@ -480,16 +483,6 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
-    const canCancelPayment =
-        isPayer ||
-        (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-
-    if (!canCancelPayment) {
-        return false;
-    }
-
     const payActions = getReportPayActions(report.reportID);
     const latestPayAction = getLatestPayAction(payActions);
     const latestPaymentType = getPayActionPaymentType(latestPayAction);
@@ -497,8 +490,21 @@ function isCancelPaymentAction(
     // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
     const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
+    // Auth computes cancellation permission per viewer. Shared bank accounts have different IDs for each user,
+    // and persisted pay actions may omit bankAccountID, so local account matching cannot determine access.
+    if (isPaidViaBankAccount) {
+        return !!report.canCancelReimbursement;
+    }
+
+    // Mirror the pay gate for payments marked as paid elsewhere.
+    const canCancelPayment = isPayer || canAdminPayReport(policy, currentUserEmail);
+
+    if (!canCancelPayment) {
+        return false;
+    }
+
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
-    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
         return true;
     }
 
@@ -512,6 +518,10 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
     }
 
     if (report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    if (policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)) {
         return false;
     }
 
@@ -1171,6 +1181,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
     }
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.SHARE);
+
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
     }
@@ -1204,6 +1216,12 @@ function getSecondaryReportActions({
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
+    }
+
+    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports.
+    // "Pay someone" reports always use the expense view, because their expense is the report itself.
+    if (isSingleTransactionReport(report, reportTransactions) && !reportActions?.some(isSentMoneyReportAction)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

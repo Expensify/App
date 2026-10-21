@@ -1,15 +1,15 @@
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -91,9 +91,24 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
@@ -102,7 +117,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
-            setOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -164,8 +179,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
@@ -267,7 +282,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                        <ReportSubmitToPopoverMeasurableAnchor>
                             <SelectionDropdown
                                 hasPayInSelectionMode={hasPayInSelectionMode}
                                 chatReport={chatReport}
@@ -281,7 +296,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 kycWallRef={kycWallRef}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                             />
-                        </ReportSubmitToPopoverAnchor>
+                        </ReportSubmitToPopoverMeasurableAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
@@ -306,24 +321,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onClearSelection={() => clearSelectedTransactions(true)}
                 />
             )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
@@ -366,12 +363,16 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
         return null;
     }
 
+    // The toolbar's own hooks open the submit-to popover for bulk Submit, so its provider has to sit above the toolbar.
+    // The bulk action bar and the selection dropdown mark themselves as its anchor.
     return (
-        <SelectionToolbar
-            reportID={reportID}
-            transactions={transactions}
-            reportActions={reportActions}
-        />
+        <ReportSubmitToPopoverRoot reportID={reportID}>
+            <SelectionToolbar
+                reportID={reportID}
+                transactions={transactions}
+                reportActions={reportActions}
+            />
+        </ReportSubmitToPopoverRoot>
     );
 }
 
