@@ -19,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,9 +66,14 @@ type ReportSubmitToContentProps = {
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before this popover opened (iOS can't present
+     * the violations modal while this popover is still open), so this component must not run that check itself.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 function ReportSubmitToContent({
@@ -79,9 +85,10 @@ function ReportSubmitToContent({
     shouldDismissRHPAfterSubmit = true,
     onSubmitWithManagerEmail,
     canSubmitRef,
+    shouldResolveAcknowledgedViolations,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -110,6 +117,7 @@ function ReportSubmitToContent({
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const reportTransactions = useReportTransactions(report?.reportID);
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
     const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail?.trim(), (details) => details?.accountID);
@@ -226,6 +234,7 @@ function ReportSubmitToContent({
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
             rules,
+            formatPhoneNumber,
         });
 
         if (!inviteOption?.login) {
@@ -251,6 +260,7 @@ function ReportSubmitToContent({
         convertToDisplayString,
         rules,
         currentUserDetails.accountID,
+        formatPhoneNumber,
     ]);
 
     const submitToSelectionData = useMemo(() => {
@@ -301,7 +311,7 @@ function ReportSubmitToContent({
         const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList, employeePersonalDetails);
 
         if (onSubmitWithManagerEmail) {
-            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
+            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -322,6 +332,7 @@ function ReportSubmitToContent({
         submitReport({
             getCurrencyDecimals,
             expenseReport: report,
+            expenseReportTransactions: reportTransactions,
             policy,
             rules,
             currentUserAccountIDParam: currentUserDetails.accountID,
@@ -330,6 +341,7 @@ function ReportSubmitToContent({
             isASAPSubmitBetaEnabled,
             userBillingGracePeriodEnds,
             amountOwed,
+            shouldResolveAcknowledgedViolations,
             ownerBillingGracePeriodEnd,
             delegateEmail,
             delegateAccountID,
@@ -361,6 +373,7 @@ function ReportSubmitToContent({
         employeePersonalDetails,
         managerEmail,
         report,
+        reportTransactions,
         policy,
         currentUserDetails.accountID,
         currentUserDetails.email,
@@ -386,6 +399,7 @@ function ReportSubmitToContent({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        shouldResolveAcknowledgedViolations,
     ]);
 
     const onSelectMember = useCallback(

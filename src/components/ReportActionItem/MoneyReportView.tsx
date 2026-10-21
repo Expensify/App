@@ -122,14 +122,12 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    // Only used to decide whether the report field block is worth rendering.
-    // `MoneyRequestViewReportFields` builds and resolves the fields it displays itself.
-    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-    const sortedPolicyReportFields = Object.values(fieldsByName)
-        .filter((field) => isReportFieldTargetMatchingReport(report, field))
-        .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
+    const policyReportFields = useMemo(() => {
+        const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+        return Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
+    }, [policy?.fieldList, report, reportNameValuePairs]);
 
-    const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
+    const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
@@ -159,19 +157,17 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {shouldDisplayReportFields &&
-                            (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
-                                // One-expense reports edit their fields in place like the report view does, instead of
-                                // opening the report field editor page. They stay one field per row though: this screen
-                                // reads as a single expense rather than a table, so the fields stack vertically here.
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                    pendingAction={pendingAction}
-                                    style={styles.mt5}
-                                    shouldUseSingleColumn
-                                />
-                            )}
+                        {/* One-expense reports edit their fields in place like the multi-expense report view does, one field
+                            per row since this screen reads as a single expense rather than a table. */}
+                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                                pendingAction={pendingAction}
+                                style={styles.mt5}
+                                shouldUseSingleColumn
+                            />
+                        )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>

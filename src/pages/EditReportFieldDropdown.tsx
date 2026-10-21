@@ -87,10 +87,9 @@ function EditReportFieldDropdown({
 
     // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes the rows
     // match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized for less content
-    // than it holds.
-    const sections = shouldUseCompactRows
-        ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: styles.optionRowCompactMinHeight}))}))
-        : optionSections;
+    // than it holds. Without vertical padding a two line title still fits the row height.
+    const compactRowStyle = [styles.optionRowCompactMinHeight, styles.pv0];
+    const sections = shouldUseCompactRows ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: compactRowStyle}))})) : optionSections;
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
 
@@ -107,6 +106,7 @@ function EditReportFieldDropdown({
         <SelectionListWithSections
             sections={sections ?? []}
             ListItem={SingleSelectListItem}
+            titleNumberOfLines={shouldUseCompactRows ? 2 : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             // Re-selecting the value the field already holds submits that same value rather than an empty string.

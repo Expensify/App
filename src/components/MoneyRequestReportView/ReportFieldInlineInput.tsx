@@ -11,6 +11,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,13 +77,15 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const [validationError, setValidationError] = useState('');
 
     // Tracks the value that was last sent to the server so a second save attempt for the same value, for example when
-    // the input is blurred right after it was submitted, is skipped while the update is still in flight.
+    // the input is focused and blurred again before the update comes back, is skipped while it is still in flight.
     const [lastSavedValue, setLastSavedValue] = useState(value);
 
     // On Android a tap on the list field's input reports the same press twice, once as `onPress` and once as
     // `onPressOut`, and the dropdown trigger toggles. Remembering the last press lets each tap open the list once
     // instead of opening and then closing it.
     const lastOptionsPressEventRef = useRef<GestureResponderEvent | KeyboardEvent | null>(null);
+
+    const textInputRef = useRef<BaseTextInputRef | null>(null);
 
     // The saved value changes while this input is mounted whenever the field is updated elsewhere, for example from
     // another device or by an optimistic update, so the draft follows it.
@@ -97,26 +100,21 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const isReadOnly = isDisabled || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
 
     const saveDraftValue = () => {
-        const valueToSave = StringUtils.lineBreaksToSpaces(draftValue);
-        const trimmedValue = valueToSave.trim();
+        const draftWithoutLineBreaks = StringUtils.lineBreaksToSpaces(draftValue);
+        const trimmedValue = draftWithoutLineBreaks.trim();
 
-        if (trimmedValue === lastSavedValue.trim()) {
+        // Whitespace alone is saved as an empty value, so clearing a field never stores the spaces left behind.
+        const valueToSave = trimmedValue === '' ? '' : draftWithoutLineBreaks;
+
+        // Only a text field can be cleared, the same as on OldDot, so any other field goes back to its saved value.
+        const canClearField = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
+
+        if (trimmedValue === lastSavedValue.trim() || (trimmedValue === '' && !canClearField)) {
             setValidationError('');
             // Nothing is sent, so the saved value never changes and the resync above that follows it never runs.
             // Without this the field would keep displaying the whitespace the user left behind until it remounted,
             // at which point the text would visibly snap back to the value that was really stored.
             setDraftValue(lastSavedValue);
-            return;
-        }
-
-        if (trimmedValue === '') {
-            // Clearing a field is a real change, so the empty value is saved even when the field is required. Like
-            // Classic, a required field left empty is flagged by its violation rather than blocked from saving. Any
-            // whitespace the user left behind is normalized away first so the stored value is empty rather than blank.
-            setValidationError('');
-            setDraftValue('');
-            setLastSavedValue('');
-            onSaveValue('');
             return;
         }
 
@@ -294,7 +292,11 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             disabled={isReadOnly}
             onChangeText={setDraftValue}
             onBlur={saveDraftValue}
-            onSubmitEditing={saveDraftValue}
+            // Enter only blurs the input and leaves the save to `onBlur`. On iOS and Android, submitting also blurs
+            // the input, and `lastSavedValue` is not updated until the next render, so saving here as well sent the
+            // value twice and posted two identical system messages.
+            onSubmitEditing={() => textInputRef.current?.blur()}
+            ref={textInputRef}
             textInputContainerStyles={textInputContainerStyles}
         />,
     );
