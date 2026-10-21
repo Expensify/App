@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
@@ -17,6 +18,13 @@ import type {PropsWithChildren} from 'react';
 
 import createMock from '../utils/createMock';
 
+jest.mock('@components/Button', () =>
+    Object.assign(
+        jest.fn(() => null),
+        {Text: () => null, KeyboardShortcut: () => null},
+    ),
+);
+jest.mock('@components/FixedFooter', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
@@ -48,6 +56,11 @@ type MockSelectionListProps = {
     onSelectRow?: (item: MockOfficeLocationOption) => void;
 };
 
+type MockButtonProps = {
+    onPress?: () => void;
+    isDisabled?: boolean;
+};
+
 type WorkspaceMemberOfficeLocationPageTestProps = React.ComponentProps<typeof WorkspaceMemberOfficeLocationPage> & {policy: Policy; personalDetails: PersonalDetailsList};
 
 describe('WorkspaceMemberOfficeLocationPage', () => {
@@ -57,6 +70,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
     const personalDetails = {[accountID]: {login: memberLogin}};
     const mockedSelectionList = jest.mocked(SelectionList);
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+    const getConfirmButtonProps = () => jest.mocked(Button).mock.lastCall?.[0] as MockButtonProps | undefined;
     const getSelectedOfficeIDs = () =>
         getSelectionListProps()
             ?.data.filter((option) => option.isSelected)
@@ -91,23 +105,24 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
         renderPage();
 
         // When the page lists the offices
-        // Then the company address and every office are offered, and the primary office is the selected one
+        // Then the company address and every office are offered, and the primary office is the selected one and can be confirmed
         expect(getSelectionListProps()?.data.map((option) => option.keyForList)).toEqual(['1', 'OFFICE1', 'OFFICE2']);
         expect(getSelectedOfficeIDs()).toEqual(['OFFICE1']);
+        expect(getConfirmButtonProps()?.isDisabled).toBe(false);
     });
 
-    it('does nothing when the selected office is already the member’s', () => {
-        // Given a member assigned to the New Jersey office
-        renderPage('OFFICE2');
+    it('returns to the member details without a change when the member’s office is confirmed', () => {
+        // Given a member who follows the primary office
+        renderPage();
 
-        // When that office is selected again
+        // When the office they follow is confirmed without choosing another one
         act(() => {
-            getSelectionListProps()?.onSelectRow?.({keyForList: 'OFFICE2'});
+            getConfirmButtonProps()?.onPress?.();
         });
 
-        // Then nothing is sent and the page stays open
+        // Then nothing is sent, so they keep following whichever office is primary, and the member details are shown
         expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 
     it('does nothing for a user who is not a workspace admin', () => {
@@ -115,22 +130,34 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
         jest.mocked(isPolicyAdmin).mockReturnValue(false);
         renderPage();
 
-        // When they select another office
+        // When they choose another office and confirm
         act(() => {
             getSelectionListProps()?.onSelectRow?.({keyForList: 'OFFICE2'});
+        });
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
         });
 
         // Then nothing is sent, since only admins can change office assignments
         expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
     });
 
-    it('assigns the selected office and returns to the member details', () => {
+    it('assigns the chosen office once it is confirmed and returns to the member details', () => {
         // Given a member who follows the primary office
         const policy = renderPage();
 
-        // When the company address is selected
+        // When the company address is chosen
         act(() => {
             getSelectionListProps()?.onSelectRow?.({keyForList: '1'});
+        });
+
+        // Then it is selected but nothing is sent before confirming
+        expect(getSelectedOfficeIDs()).toEqual(['1']);
+        expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
+
+        // When the choice is confirmed
+        act(() => {
+            getConfirmButtonProps()?.onPress?.();
         });
 
         // Then the member is assigned to it and the member details are shown

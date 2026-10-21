@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -28,7 +30,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMemberOfficeLocationPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
@@ -49,16 +51,22 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
     const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy) && !!member;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const currentOfficeID = getMemberOfficeLocation(officeLocations, member?.officeID)?.officeID;
+    const [chosenOfficeID, setChosenOfficeID] = useState<string>();
+    const officeID = chosenOfficeID ?? currentOfficeID;
 
     const navigateBackToDetails = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 
-    const changeOfficeLocation = ({keyForList}: ListItem) => {
-        if (keyForList === currentOfficeID || !canChangeOfficeLocation) {
+    const changeOfficeLocation = () => {
+        if (!officeID || !canChangeOfficeLocation) {
             return;
         }
-        updateEmployeeOfficeLocation(policy, [accountID], keyForList, personalDetails, translate);
+
+        // Confirming the member's current office leaves them as they are, so a member following the primary office keeps following it
+        if (officeID !== currentOfficeID) {
+            updateEmployeeOfficeLocation(policy, [accountID], officeID, personalDetails, translate);
+        }
         navigateBackToDetails();
     };
 
@@ -66,7 +74,7 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
         text: officeLocation.name,
         alternateText: officeLocation.address,
         keyForList: officeLocation.officeID,
-        isSelected: officeLocation.officeID === currentOfficeID,
+        isSelected: officeLocation.officeID === officeID,
     }));
 
     return (
@@ -88,16 +96,24 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
                     <SelectionList
                         ListItem={SingleSelectListItem}
                         data={options}
-                        onSelectRow={changeOfficeLocation}
-                        initiallyFocusedItemKey={currentOfficeID}
-                        shouldSingleExecuteRowSelect
-                        shouldUpdateFocusedIndex
-                        disableKeyboardShortcuts
+                        onSelectRow={({keyForList}) => setChosenOfficeID(keyForList)}
+                        initiallyFocusedItemKey={officeID}
                     />
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.people.workArrangementPage.futureOnlyNote')}</Text>
                     </View>
                 </View>
+                <FixedFooter addBottomSafeAreaPadding>
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={changeOfficeLocation}
+                        isDisabled={!officeID}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.confirm')}</Button.Text>
+                    </Button>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
