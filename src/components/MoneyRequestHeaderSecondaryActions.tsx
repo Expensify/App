@@ -10,6 +10,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -367,10 +368,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         }
     };
 
-    const {showHoldOrRejectEducationalModal, showHoldSubmitterEducationalModal} = useHoldRejectEducationalModal({
-        onHoldOrRejectModalDismiss: dismissRejectModalBasedOnAction,
-        onHoldSubmitterModalDismiss: dismissModalAndUpdateUseHold,
-    });
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     // Secondary actions
     const secondaryActions = (() => {
@@ -454,9 +453,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         rules,
                     );
                 } else if (shouldShowHoldEducationalModal) {
-                    showHoldSubmitterEducationalModal({isDM: isParentChatReportDM});
+                    showHoldSubmitterEducationalModal({isDM: isParentChatReportDM}).finally(dismissModalAndUpdateUseHold);
                 } else {
-                    showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
                 }
             },
         },
@@ -666,7 +665,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
                 }
             },
         },

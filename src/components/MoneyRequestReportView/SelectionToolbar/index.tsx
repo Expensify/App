@@ -224,7 +224,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         }
     };
 
-    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal({onHoldOrRejectModalDismiss: dismissRejectModalAndOpenBulkReject});
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
 
     const selectedTransactionsOptions = (() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
@@ -240,7 +240,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         if (dismissedRejectUseExplanation) {
                             option.onSelected?.();
                         } else {
-                            showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                            showHoldOrRejectEducationalModal().finally(dismissRejectModalAndOpenBulkReject);
                         }
                     },
                 };

@@ -20,6 +20,7 @@ import type {RejectModalAction} from './useHoldRejectEducationalModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useHoldRejectEducationalModal from './useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from './useHoldSubmitterEducationalModal';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -97,14 +98,12 @@ function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
         }
     };
 
-    const {showHoldOrRejectEducationalModal, showHoldSubmitterEducationalModal} = useHoldRejectEducationalModal({
-        onHoldOrRejectModalDismiss: dismissRejectModalBasedOnAction,
-        onHoldSubmitterModalDismiss: dismissModalAndUpdateUseHold,
-    });
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     return {
-        openHoldEducational: () => showHoldSubmitterEducationalModal({isDM: isDM(chatReport)}),
-        openRejectModal: showHoldOrRejectEducationalModal,
+        openHoldEducational: () => showHoldSubmitterEducationalModal({isDM: isDM(chatReport)}).finally(dismissModalAndUpdateUseHold),
+        openRejectModal: (action: RejectModalAction) => showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(action)),
     };
 }
 

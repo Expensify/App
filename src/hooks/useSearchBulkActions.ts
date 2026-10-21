@@ -153,6 +153,7 @@ import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useExpensifyCardStatementPDFDownloadModal from './useExpensifyCardStatementPDFDownloadModal';
 import useHoldRejectEducationalModal from './useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from './useHoldSubmitterEducationalModal';
 import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLoadSearchCardData from './useLoadSearchCardData';
@@ -977,10 +978,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [hash, selectedTransactionsKeys.length],
     );
 
-    const {showHoldOrRejectEducationalModal, showHoldSubmitterEducationalModal} = useHoldRejectEducationalModal({
-        onHoldOrRejectModalDismiss: dismissRejectModalBasedOnAction,
-        onHoldSubmitterModalDismiss: dismissModalAndUpdateUseHold,
-    });
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
     // so an empty current result yields no selection rather than one derived from the previous query's settlements.
@@ -2824,7 +2823,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
-                        showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
                     }
                 },
             });
@@ -3192,9 +3191,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (isDismissed) {
                         navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
                     } else if (shouldShowHoldEducationalModal) {
-                        showHoldSubmitterEducationalModal({isDM: areAllTransactionsFromDMReports});
+                        showHoldSubmitterEducationalModal({isDM: areAllTransactionsFromDMReports}).finally(dismissModalAndUpdateUseHold);
                     } else {
-                        showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
                     }
                 },
             });
@@ -3414,6 +3413,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissedHoldUseExplanation,
         showHoldOrRejectEducationalModal,
         showHoldSubmitterEducationalModal,
+        dismissRejectModalBasedOnAction,
+        dismissModalAndUpdateUseHold,
         localeCompare,
         firstTransaction,
         isDuplicateOptionVisible,
