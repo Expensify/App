@@ -70,7 +70,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSystemChat = isSystemChatReportUtils(report);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, reportMetadata, undefined, true, true);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, rules, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -118,7 +118,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
     const shouldExcludeCurrentUser = participantAccountIDs.length > 0;
-    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, shouldExcludeCurrentUser);
+    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, undefined, shouldExcludeCurrentUser);
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
     const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,

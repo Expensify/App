@@ -167,6 +167,7 @@ import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
+import type PolicyMemberBankAccounts from './PolicyMemberBankAccounts';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
@@ -252,6 +253,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type {WiseKYCRequirement, WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 
 export type {
@@ -357,6 +359,7 @@ export type {
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyMemberBankAccounts,
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
@@ -473,6 +476,8 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseKYCRequirement,
+    WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,

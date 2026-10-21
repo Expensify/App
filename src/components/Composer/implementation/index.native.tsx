@@ -1,4 +1,4 @@
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
+import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
@@ -97,7 +97,7 @@ function Composer({
             // get a ref to the inner textInput element e.g. if we do
             // <constructor ref={el => this.textInput = el} /> this will not
             // return a ref to the component, but rather the HTML element by default
-            ref(textInputRef.current as ComposerRef);
+            ref(textInputRef.current);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isInLandscapeMode],

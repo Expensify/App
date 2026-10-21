@@ -691,7 +691,8 @@ export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSec
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
-export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
+export type {default as SetRuleParams} from './SetRuleParams';
+export type {default as DeleteRuleParams} from './DeleteRuleParams';
 export type {default as SetApprovalWorkflowParams} from './SetApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
@@ -714,6 +715,7 @@ export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSec
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
 export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';
 export type {default as CreateAgentParams} from './CreateAgentParams';
+export type {default as CreateCompanyAgentParams} from './CreateCompanyAgentParams';
 export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSecurityGroupParams';
 export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
