@@ -624,7 +624,16 @@ const CONST = {
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',
             UNINTELLIGIBLE: 'unintelligible',
+            AGENT_RULE: 'agentRule',
+            IMPOSSIBLE: 'impossible',
             FAILED: 'failed',
+        },
+        IMPOSSIBLE_REASON: {
+            NO_TRIGGER: 'noTrigger',
+            NO_CAPABILITY: 'noCapability',
+            MISSING_DATA: 'missingData',
+            RETROACTIVE: 'retroactive',
+            HISTORY_LIMIT: 'historyLimit',
         },
         RULE_TYPE: {
             REQUIRE_FIELDS: 'requireFields',
@@ -1004,7 +1013,6 @@ const CONST = {
             NOT_PROVIDED: 'NOT_PROVIDED',
             IN_REVIEW: 'IN_REVIEW',
             VERIFIED: 'VERIFIED',
-            REJECTED: 'REJECTED',
         },
         /** Who asked for the requirement: us before Submit, Wise after */
         KYC_REQUIREMENT_REQUESTED_BY: {
@@ -1932,6 +1940,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2494,6 +2503,10 @@ const CONST = {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
         },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
+        },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
@@ -2613,6 +2626,7 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_SAML_AUTH_SESSION: 'saml.auth_session',
         BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
@@ -2642,6 +2656,7 @@ const CONST = {
             BUILD_TYPE: 'build_type',
             /** Written by Sentry's `thirdPartyErrorFilterIntegration` on events whose every frame is foreign to our bundle, read by the noise filters. */
             THIRD_PARTY_CODE: 'third_party_code',
+            TEST_CRASH: 'test_crash',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
@@ -3758,6 +3773,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {
@@ -3872,6 +3888,7 @@ const CONST = {
             },
             AUTH_TYPE: {
                 TBA: 'tba',
+                OAUTH2: 'oauth2',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -8148,6 +8165,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                HELD: {
+                    column: this.TABLE_COLUMNS.HELD,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8443,6 +8465,7 @@ const CONST = {
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            HELD: 'held',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8593,6 +8616,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             DECLINED: 'declined',
+            HELD: 'held',
             POLICY_ID: 'policyID',
             ACTION: 'action',
             HAS: 'has',
@@ -8685,6 +8709,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             DECLINED: 'declined',
+            HELD: 'held',
             ACTION: 'action',
             HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
@@ -8725,6 +8750,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.HELD]: 'held',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -9599,6 +9625,7 @@ const CONST = {
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: 'wiseGlobalReimbursementsWorkspaceBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9844,6 +9871,10 @@ const CONST = {
         WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: {
             CTA: 'WiseGlobalReimbursementsWalletBanner-CTA',
             DISMISS: 'WiseGlobalReimbursementsWalletBanner-Dismiss',
+        },
+        WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10146,6 +10177,7 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -10531,6 +10563,7 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
+                DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
                 SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',

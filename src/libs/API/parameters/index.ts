@@ -545,6 +545,7 @@ export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
+export type {default as SaveSearchFiltersParams} from './SaveSearchFiltersParams';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
 export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
@@ -690,7 +691,8 @@ export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSec
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
-export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
+export type {default as SetRuleParams} from './SetRuleParams';
+export type {default as DeleteRuleParams} from './DeleteRuleParams';
 export type {default as SetApprovalWorkflowParams} from './SetApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';

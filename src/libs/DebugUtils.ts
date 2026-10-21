@@ -1460,7 +1460,6 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
-                isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
                 nights: 'number',
