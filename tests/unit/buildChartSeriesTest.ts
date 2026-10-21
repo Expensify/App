@@ -444,6 +444,7 @@ describe('buildChartSeries', () => {
         // When the series is built knowing which group is in progress and which come later
         const {rows} = buildChartSeries({
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
@@ -455,7 +456,7 @@ describe('buildChartSeries', () => {
         });
 
         // Then both periods that haven't ended are marked, so the line chart draws them dashed, and only the current one says "so far"
-        expect(rows.map((row) => row.point.isInProgress)).toEqual([undefined, true, true]);
+        expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true, true]);
         expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026', 'Q3 so far', 'Q4 2026']);
     });
 });
