@@ -836,7 +836,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the supplier row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
+    it('shows the vendor row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
         // Given a non-reimbursable expense whose vendor is one of the synced Xero contacts
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -864,11 +864,10 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the row is shown with the Supplier label and the contact name because Xero does not depend on the beta
+        // Then the row is shown with the Vendor label used for every integration and the contact name, because Xero does not depend on the beta
         await waitFor(() => {
-            expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Xero/);
         });
-        expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
     });
 
     it.each([
@@ -964,7 +963,6 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then no vendor row is shown because Business Central still depends on the beta
         await waitFor(() => {
-            expect(screen.queryByLabelText(fieldLabel('common.supplier'))).not.toBeOnTheScreen();
             expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
         });
     });
