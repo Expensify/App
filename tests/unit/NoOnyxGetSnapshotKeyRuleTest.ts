@@ -1,6 +1,8 @@
 /**
  * @jest-environment node
  */
+import isSnapshotCompatibleKey from '@libs/SnapshotUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -98,6 +100,7 @@ describe('no-onyx-get-snapshot-key restricted keys', () => {
                 errors: RESTRICTED_ERRORS,
             },
             {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.COLLECTION); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit() { let key = ONYXKEYS.SESSION; key = other; return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(getTravelCardKey(id)); }`, errors: UNRESOLVABLE_ERRORS},
             {
@@ -355,10 +358,6 @@ describe('no-onyx-get-snapshot-key multiGet', () => {
 describe('no-onyx-get-snapshot-key every ONYXKEYS entry', () => {
     const linter = new Linter();
 
-    function isSearchSnapshotKey(value: string): boolean {
-        return !value.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((prefix) => value.startsWith(prefix));
-    }
-
     function isRecord(value: unknown): value is Record<string, unknown> {
         return typeof value === 'object' && value !== null;
     }
@@ -390,9 +389,9 @@ describe('no-onyx-get-snapshot-key every ONYXKEYS entry', () => {
         expect(keyPaths.length).toBeGreaterThan(500);
 
         // When each one is read with Onyx.get and compared with what useOnyx would redirect to a snapshot
-        const disagreements = keyPaths.filter(([keyPath, value]) => isRejected(keyPath) !== isSearchSnapshotKey(value));
+        const disagreements = keyPaths.filter(([keyPath, value]) => isRejected(keyPath) !== isSnapshotCompatibleKey(value, CONST.SEARCH.SNAPSHOT_ONYX_KEYS));
 
-        // Then the rule and the runtime agree on every key, so the rule tracks CONST.SEARCH.SNAPSHOT_ONYX_KEYS exactly
+        // Then the rule's list, the hook's list and the predicate agree on every key
         expect(disagreements).toEqual([]);
     });
 });

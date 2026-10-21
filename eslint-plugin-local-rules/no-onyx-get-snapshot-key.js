@@ -1,4 +1,4 @@
-import fs from 'fs';
+import {createRequire} from 'node:module';
 import path from 'path';
 
 /* eslint-disable import/extensions */
@@ -23,8 +23,6 @@ import {
 
 const name = 'no-onyx-get-snapshot-key';
 
-const SNAPSHOT_KEYS_DECLARATION = /SEARCH_SNAPSHOT_ONYX_KEYS:\s*\[([^\]]*)\]/;
-
 // A read of the Concierge chat always wants the live report, so a report key provably built from this ID may read live data
 const CONCIERGE_REPORT_ID_KEY_PATH = 'CONCIERGE_REPORT_ID';
 
@@ -36,24 +34,42 @@ const USE_ONYX_EXPORT_NAME = 'useOnyx';
 
 const SELECTOR_OPTION_NAME = 'selector';
 
-// Read once at load. ESLint's result cache is keyed on the linted file and the config, not on this list, so after
-// SEARCH_SNAPSHOT_ONYX_KEYS changes a cached pass survives until that file or the config changes; lint with --no-cache then.
-function resolveRestrictedKeyPaths() {
-    if (!REPO_ROOT) {
-        throw new Error(`${name} could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
+if (!REPO_ROOT) {
+    throw new Error(`${name} could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
+}
+
+// ESLint's result cache is keyed on the linted file and the config, not on the modules required here, so after SnapshotUtils.ts,
+// ONYXKEYS.ts or runtimeDefaults.ts changes a cached pass survives until that file or the config changes; lint with --no-cache then.
+const requireFromRepo = createRequire(path.join(REPO_ROOT, 'package.json'));
+
+let snapshotKeyResolver = null;
+
+// Loading SnapshotUtils.ts, ONYXKEYS.ts and runtimeDefaults.ts takes tens of ms, so it is deferred to the first Onyx.get or Onyx.multiGet a lint worker meets
+function getSnapshotKeyResolver() {
+    if (snapshotKeyResolver) {
+        return snapshotKeyResolver;
     }
 
-    const source = fs.readFileSync(path.join(REPO_ROOT, SNAPSHOT_KEYS_SOURCE), 'utf8');
-    const declaration = SNAPSHOT_KEYS_DECLARATION.exec(source);
+    const snapshotKeys = requireFromRepo(`./${SNAPSHOT_KEYS_SOURCE}`).default?.SEARCH_SNAPSHOT_ONYX_KEYS;
 
-    if (!declaration) {
+    if (!Array.isArray(snapshotKeys) || snapshotKeys.length === 0) {
         throw new Error(`${name} could not read SEARCH_SNAPSHOT_ONYX_KEYS from ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
     }
 
-    return new Set([...declaration[1].matchAll(/ONYXKEYS\.([A-Z0-9_.]+)/g)].map((match) => match[1]));
+    snapshotKeyResolver = {
+        isSnapshotCompatibleKey: requireFromRepo('./src/libs/SnapshotUtils.ts').default,
+        onyxKeys: requireFromRepo('./src/ONYXKEYS.ts').default,
+        snapshotKeys,
+    };
+
+    return snapshotKeyResolver;
 }
 
-const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
+function getOnyxKeyValue(keyPath) {
+    const value = keyPath.split('.').reduce((node, segment) => node?.[segment], getSnapshotKeyResolver().onyxKeys);
+
+    return typeof value === 'string' ? value : null;
+}
 
 const DISABLE_GUIDANCE =
     'Live data is right only when the read replaces a subscription that never went through the useOnyx() redirection, such as a module-level Onyx.connect() used from handlers only. ' +
@@ -245,12 +261,15 @@ function create(context) {
 
     function findRestrictedKey(keyArgument) {
         const keyPath = getOnyxKeyPath(keyArgument, sourceCode);
+        const key = keyPath ? getOnyxKeyValue(keyPath) : null;
 
-        if (!keyPath) {
+        if (!key) {
             return {keyPath: null, keyNode: keyArgument};
         }
 
-        if (!RESTRICTED_KEY_PATHS.has(keyPath) || isConciergeChatKey(keyArgument)) {
+        const {isSnapshotCompatibleKey, snapshotKeys} = getSnapshotKeyResolver();
+
+        if (!isSnapshotCompatibleKey(key, snapshotKeys) || isConciergeChatKey(keyArgument)) {
             return null;
         }
 

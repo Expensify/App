@@ -3,7 +3,7 @@ import path from 'path';
 
 const ONYX_MODULE = 'react-native-onyx';
 
-const SNAPSHOT_KEYS_SOURCE = 'src/CONST/runtimeConfigured.ts';
+const SNAPSHOT_KEYS_SOURCE = 'src/CONST/runtimeDefaults.ts';
 
 const ONYXKEYS_ROOT = 'ONYXKEYS';
 
