@@ -5,6 +5,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -74,6 +75,8 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             // If the deleted expense is displayed directly below, close the entire RHP
             const isSuperWideRHPDisplayed = superWideRHPIndex > -1;
             shouldCloseRHPAfterReportDeletion = isParentReportDeleted && superWideRHPReportID === iouReport?.reportID;
+            // On narrow layouts the report sits in the Inbox central pane instead of the super wide RHP
+            const isDeletedReportUnderRHP = shouldCloseRHPAfterReportDeletion || (isParentReportDeleted && getCentralPaneReportID() === iouReport?.reportID);
             const isSuperWideRHPDisplayedDirectlyBelow = isSuperWideRHPDisplayed && superWideRHPIndex === rhpRoutes.length - 2;
             if (isSuperWideRHPDisplayedDirectlyBelow && previousRouteReportID === reportID) {
                 Navigation.dismissModal();
@@ -81,7 +84,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             }
 
             // If the deleted expense is opened from the super wide rhp, go back there, unless going back would show the deleted report.
-            if (!shouldCloseRHPAfterReportDeletion && previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
+            if (!isDeletedReportUnderRHP && previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
                     navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});
