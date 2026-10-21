@@ -1,7 +1,7 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -76,7 +76,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
 
     return (
         <ScreenWrapper testID="DomainAlreadyExistsPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('domain.domainAlreadyExists.headerTitle')}
                 onBackButtonPress={goToDomainsList}
             />
