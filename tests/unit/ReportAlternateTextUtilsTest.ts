@@ -27,6 +27,7 @@ import {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -1639,6 +1640,11 @@ describe('ReportAlternateTextUtils', () => {
                 getUpdatedOfficeLocationMessage,
             ],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                getUpdatedEmployeeOfficeLocationMessage,
+            ],
         ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
             // Given an office location change log, whose stored text is Auth's English message
             const report: Report = createRandomReport(0, undefined);

@@ -43,6 +43,7 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
+    getAddedOfficeLocationMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
@@ -63,6 +64,7 @@ import {
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDelegateSubmitMessage,
+    getDeletedOfficeLocationMessage,
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
@@ -90,6 +92,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getPolicyWorkArrangementMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRenamedAction,
@@ -108,6 +111,9 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
+    getUpdatedMemberWorkArrangementMessage,
+    getUpdatedOfficeLocationMessage,
     getUpdatedProhibitedExpensesMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -701,6 +707,24 @@ function computeReportNameBasedOnReportAction({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
         return getUpdatedAutoHarvestingMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT) {
+        return getPolicyWorkArrangementMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) {
+        return getUpdatedMemberWorkArrangementMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION) {
+        return getAddedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION) {
+        return getUpdatedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION) {
+        return getDeletedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION) {
+        return getUpdatedEmployeeOfficeLocationMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
         return getWorkspaceReportFieldAddMessage(translate, parentReportAction);
