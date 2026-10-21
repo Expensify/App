@@ -1,13 +1,11 @@
-// Plain .mjs so the bun lint pipeline and oxlint's JS plugin runtime can both read one copy; only the
-// first of those can load TypeScript.
+// Plain `.mjs`: oxlint's JS plugin runtime cannot load TypeScript.
 const OXLINT_RULE_RENAMES = {
     'no-object-constructor': 'no-new-object',
     'no-new-native-nonconstructor': 'no-new-symbol',
 };
 
-// A rule hosted through oxlint's `jsPlugins` cannot take a native plugin's prefix (`react`,
-// `import`, `react-hooks` and `@typescript-eslint` are reserved), so it is registered bare under
-// `hosted` and this table is what gives it back its ESLint identity.
+// oxlint reserves native plugin prefixes (`react`, `import`, `react-hooks`, `@typescript-eslint`), so
+// hosted rules register under `hosted` and this maps each back to its ESLint plugin.
 const HOSTED_RULE_ORIGIN = {
     'jsx-no-bind': 'react',
     'function-component-definition': 'react',
@@ -51,7 +49,6 @@ const HOSTED_RULE_ORIGIN = {
     'use-storybook-testing-library': 'storybook',
 };
 
-// Repo-written hosted rules that report under an existing ESLint rule id.
 const HOSTED_RULE_ESLINT_ID = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };

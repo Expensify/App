@@ -1,8 +1,7 @@
 import {defineConfig} from 'oxlint';
 
-// Every block that sets `no-restricted-imports` has to restate the whole option object, because an
-// oxlint override replaces it rather than merging into it. Building each variant from these keeps the
-// copies identical, the way `restrictedImportPaths` does in config/eslint/eslint.config.mjs.
+// An oxlint override replaces a rule's options instead of merging them, so every block that sets
+// `no-restricted-imports` restates the full list, built from these.
 const restrictedImportPaths = [
     {
         name: 'react-native',
@@ -30,10 +29,8 @@ const restrictedImportPaths = [
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
     },
     {
-        // ESLint carries this under @typescript-eslint/no-restricted-imports, which oxlint does
-        // not implement; its core rule accepts allowTypeImports, so the path lands in every
-        // block that re-sets no-restricted-imports, because an oxlint override replaces the
-        // option object rather than merging into it.
+        // ESLint bans this through @typescript-eslint/no-restricted-imports, which oxlint lacks; its
+        // core rule accepts allowTypeImports instead.
         name: 'react-native-onyx/dist/OnyxUtils',
         message:
             'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
@@ -73,7 +70,6 @@ const restrictedImportPatterns = [
     {group: ['@styles/theme/illustrations/themes/**'], message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.'},
 ];
 
-// TypeScript files also ban three helpers that have safer replacements.
 const typescriptRestrictedImportPatterns = [
     ...restrictedImportPatterns,
     {
@@ -95,10 +91,8 @@ const typescriptRestrictedImportPatterns = [
     },
 ];
 
-// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
-// Two patterns for what ESLint writes as one: ESLint matches with gitignore semantics, where a bare
-// directory name also covers everything under it, and oxlint matches the path exactly. The second
-// entry is what catches `.../HeaderWithBackButton/types`.
+// Two patterns where ESLint has one: ESLint's gitignore semantics let a directory name cover its
+// contents, but oxlint matches the path exactly, so the second catches `.../HeaderWithBackButton/types`.
 const restrictedHeaderImportPatterns = [
     {group: ['**/HeaderWithBackButton'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
     {group: ['**/HeaderWithBackButton/**'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
@@ -110,9 +104,7 @@ const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportP
 
 export default defineConfig({
     plugins: ['typescript', 'import', 'jsx-a11y', 'unicorn', 'react'],
-    // Aliases are declared here because oxlint reserves `react`, `import` and `jsdoc` for its native
-    // ports, and a jsPlugin rule id always carries a prefix.
-    // prefix ESLint uses, so declaring it would only add noise.
+    // oxlint reserves `react`, `import` and `jsdoc` for its native ports, so jsPlugins use these aliases.
     jsPlugins: [
         {name: 'rulesdir', specifier: './config/oxlint/plugins/expensify-rules.mjs'},
         {name: 'report-name-utils', specifier: './config/eslint/plugins/eslint-plugin-report-name-utils.mjs'},
@@ -120,7 +112,7 @@ export default defineConfig({
         {name: 'hosted', specifier: './config/oxlint/plugins/hosted-rules.mjs'},
         {name: 'rc', specifier: './config/oxlint/plugins/rc-rules.mjs'},
     ],
-    // Categories off: every rule is listed explicitly to mirror eslint.config.mjs.
+    // Every rule is listed explicitly to mirror eslint.config.mjs.
     categories: {correctness: 'off'},
     options: {typeAware: true},
     env: {builtin: true, es2026: true, node: true, browser: true, audioworklet: true, jest: true},
@@ -129,8 +121,6 @@ export default defineConfig({
         react: {version: '19.2.3'},
         propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze'],
         progress: {hide: false},
-        // `eslint-seatbelt/configure` is off: eslint-seatbelt suppresses through an ESLint processor,
-        // which oxlint has no concept of.
     },
     ignorePatterns: [
         'oxlint.config.mts',
@@ -314,8 +304,7 @@ export default defineConfig({
         'import/no-duplicates': 'error',
         'import/extensions': ['error', 'ignorePackages', {js: 'never', mjs: 'never', jsx: 'never', ts: 'never', tsx: 'never', cts: 'never', mts: 'never'}],
         'import/newline-after-import': 'error',
-        // OFF, shadowed not dropped: oxlint's native port anchors its reports on a different line
-        // than ESLint's, so ESLint's own rule runs instead as `hosted/prefer-default-export`.
+        // The native port anchors on a different line than ESLint's; `hosted/prefer-default-export` runs instead.
         'import/prefer-default-export': 'off',
         'import/no-absolute-path': 'error',
         'import/no-webpack-loader-syntax': 'error',
@@ -356,16 +345,13 @@ export default defineConfig({
         'rulesdir/require-live-region-for-status-updates': 'error',
         'rulesdir/require-locale-for-localized-date-format': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
-        // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
+        // Needs the type of the `&&` left operand, and jsPlugins get no type info.
         'rulesdir/boolean-conditional-rendering': 'off',
-        // OFF, superseded: needs typeChecker.isArrayType, and jsPlugins get no type info.
-        // `unicorn/prefer-at` at default options stands in for the x[x.length - N] family.
+        // Needs typeChecker.isArrayType; `unicorn/prefer-at` stands in.
         'rulesdir/prefer-at': 'off',
-        // OFF here, ON for src/**/*.ts(x): ESLint's copy needs the type checker, so oxlint runs a
-        // type-free rewrite (config/oxlint/preferLocaleCompareFromContext.mjs) instead.
+        // ESLint's copy needs the type checker; a type-free rewrite runs for src/**/*.ts(x) below.
         'rulesdir/prefer-locale-compare-from-context': 'off',
-        // Hosted behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs): ESLint's
-        // processor drops this rule's messages in a dual-memoized file, and the gate mirrors that.
+        // Behind config/oxlint/reactCompilerGate.mjs, like ESLint's react-compiler-compat processor.
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'no-array-constructor': 'error',
         'no-bitwise': 'error',
@@ -382,8 +368,7 @@ export default defineConfig({
         'unicorn/prefer-array-find': 'error',
         'unicorn/prefer-set-size': 'error',
         'unicorn/prefer-string-replace-all': 'error',
-        // ON with no ESLint counterpart: stands in for `rulesdir/prefer-at`, which needs the type
-        // checker. Default options only; `checkAllIndexAccess` is what makes it unusable.
+        // Stands in for `rulesdir/prefer-at`. Default options only: `checkAllIndexAccess` makes it unusable.
         'unicorn/prefer-at': 'error',
         'no-delete-var': 'error',
         'no-label-var': 'error',
@@ -467,7 +452,6 @@ export default defineConfig({
         'react/prefer-es6-class': ['error', 'always'],
         'react/self-closing-comp': 'error',
         'react/jsx-no-target-blank': ['error', {enforceDynamicLinks: 'always'}],
-        // Dead on both tools: after the JS override below only .ts/.mts/.cts stay in scope, and JSX does not parse there.
         'react/jsx-filename-extension': 'off',
         'react/jsx-no-comment-textnodes': 'error',
         'react/no-render-return-value': 'error',
@@ -482,12 +466,10 @@ export default defineConfig({
         'react/state-in-constructor': ['error', 'always'],
         'react/jsx-no-script-url': ['error', [{name: 'Link', props: ['to']}]],
         'react/jsx-no-useless-fragment': 'error',
-        // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
-        // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
+        // The native port also fires inside Jest mock factories; `hosted/function-component-definition` runs instead.
         'react/function-component-definition': 'off',
-        // OFF, ESLint's own rule runs as `hosted/jsx-no-constructed-context-values` behind the React
-        // Compiler gate, which a native Rust rule cannot have. The native port diverges too: it
-        // anchors on the JSX provider rather than the declaration.
+        // A native Rust rule cannot sit behind the React Compiler gate, and this port anchors on the JSX
+        // provider instead of the declaration; `hosted/jsx-no-constructed-context-values` runs instead.
         'react/jsx-no-constructed-context-values': 'off',
         'react/no-unstable-nested-components': 'error',
         'react/no-namespace': 'error',
@@ -581,8 +563,7 @@ export default defineConfig({
             {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
             {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
         ],
-        // NOT oxlint's native react/exhaustive-deps: it is a Rust rule, and the React Compiler
-        // message gate can only wrap a JS plugin. See config/oxlint/plugins/hosted-rules.mjs.
+        // Hosted because the React Compiler gate can only wrap a JS plugin, and the native port is Rust.
         'hosted/exhaustive-deps': 'error',
         'rc/refs': 'error',
         'rc/set-state-in-effect': 'error',
@@ -606,15 +587,13 @@ export default defineConfig({
         'hosted/prefer-default-export': 'error',
         'hosted/order': ['error', {groups: [['builtin', 'external', 'internal']], distinctGroup: true, sortTypesGroup: false, named: false, warnOnUnassignedImports: false}],
         'hosted/no-types': 'error',
-        // no-invalid-this is off: ESLint's implementation reaches sourceCode.getJSDocComment, which
-        // oxlint's JS bridge answers with a throw.
         'core/no-octal': 'error',
         'core/no-octal-escape': 'error',
         'core/no-undef-init': 'error',
         'core/strict': ['error', 'never'],
         'one-var': ['error', 'never'],
-        // Stands in for ESLint's deprecated `no-new-object`: oxlint only implements the new name,
-        // which also flags bare `Object()` while not flagging `new Object(arg)`.
+        // oxlint only has the new name of ESLint's deprecated `no-new-object`. It also flags bare
+        // `Object()` but not `new Object(arg)`.
         'no-object-constructor': 'error',
         'hosted/no-import-module-exports': ['error', {exceptions: []}],
         'hosted/no-relative-packages': 'error',
@@ -696,10 +675,9 @@ export default defineConfig({
                 'jsdoc/check-tag-names': 'error',
                 'import/named': 'error',
                 'no-undef': ['error', {typeof: false}],
-                // Stands in for ESLint's `no-new-symbol`, deprecated in 9.x for this rule. Same
-                // rename mechanism as no-new-object -> no-object-constructor, see OXLINT_RENAMES.
+                // oxlint's name for ESLint's deprecated `no-new-symbol`; see OXLINT_RULE_RENAMES.
                 'no-new-native-nonconstructor': 'error',
-                // No native oxlint rule of any name; hosted from ESLint core through `core/`.
+                // oxlint has no native dot-notation.
                 'core/dot-notation': ['error', {allowKeywords: true, allowPattern: ''}],
                 'core/no-dupe-args': 'error',
                 'core/no-return-await': 'error',
@@ -709,7 +687,6 @@ export default defineConfig({
         {
             files: ['**/*.{ts,tsx,cts,mts}'],
             rules: {
-                // Core rules the TypeScript compiler enforces; off as typescript-eslint's eslint-recommended does for TS.
                 'no-class-assign': 'off',
                 'no-new-native-nonconstructor': 'off',
                 'no-with': 'off',
@@ -727,8 +704,8 @@ export default defineConfig({
                 'typescript/no-non-null-asserted-optional-chain': 'error',
                 'typescript/no-redundant-type-constituents': 'error',
                 'typescript/no-this-alias': 'error',
-                // ON although ESLint reports 0: tsgolint's TS7 inference disagrees with the repo's
-                // TS 6.0.2 about which assertions are unnecessary.
+                // ESLint reports 0 here: tsgolint's TS7 inference disagrees with the repo's TS 6.0.2
+                // about which assertions are unnecessary.
                 'typescript/no-unnecessary-type-assertion': 'error',
                 'typescript/no-unnecessary-type-constraint': 'error',
                 'typescript/no-unsafe-declaration-merging': 'error',
@@ -742,8 +719,7 @@ export default defineConfig({
                 'typescript/restrict-template-expressions': 'error',
                 'typescript/triple-slash-reference': 'error',
                 'typescript/unbound-method': 'error',
-                // Hosted because tsgolint has not implemented it; oxlint rejects `@typescript-eslint`
-                // as a JS-plugin name, so it reports under the `hosted/` alias.
+                // Hosted because tsgolint has not implemented it.
                 'hosted/naming-convention': [
                     'error',
                     {selector: ['variable', 'property'], format: null, filter: {regex: '^__esModule$', match: true}},
@@ -753,8 +729,6 @@ export default defineConfig({
                     {selector: ['parameter', 'method'], format: ['camelCase', 'PascalCase'], leadingUnderscore: 'allow'},
                 ],
                 'core/lines-between-class-members': ['error', 'always', {exceptAfterSingleLine: false}],
-                // Every "off" in this block mirrors ESLint's resolved config for TS files: TypeScript-covered core rules,
-                // and typed rules eslint-config-expensify leaves off. Parity, not coverage gaps.
                 'typescript/adjacent-overload-signatures': 'error',
                 'typescript/array-type': ['error', {default: 'array-simple'}],
                 'typescript/ban-tslint-comment': 'error',
@@ -801,8 +775,8 @@ export default defineConfig({
                 'typescript/no-non-null-assertion': 'error',
                 'typescript/prefer-enum-initializers': 'error',
                 'typescript/no-import-type-side-effects': 'error',
-                // Accepted gap: oxlint compares constituents syntactically, so `{a: string} & {a: string}`
-                // passes where typescript-eslint's type-checker comparison reports it.
+                // oxlint compares constituents syntactically, so `{a: string} & {a: string}` passes where
+                // typescript-eslint reports it.
                 'typescript/no-duplicate-type-constituents': ['error', {ignoreUnions: true}],
             },
             plugins: ['jsdoc'],
@@ -810,7 +784,6 @@ export default defineConfig({
         {
             files: ['**/scripts/**', '**/server/**', '**/.github/**'],
             rules: {
-                // CLI output; ESLint resolves no-console off for these directories too.
                 'no-console': 'off',
             },
         },
@@ -831,7 +804,6 @@ export default defineConfig({
                 'jestSetup.js',
             ],
             rules: {
-                // Mirrors ESLint's test-file block.
                 'no-console': 'off',
                 'no-await-in-loop': 'off',
                 'no-import-assign': 'off',
@@ -842,7 +814,6 @@ export default defineConfig({
         {
             files: ['**/*.{ts,tsx,js,jsx,mjs,cjs}'],
             rules: {
-                // Every "off" in this block is off in eslint.config.mjs for the same files.
                 'react-native-a11y/has-accessibility-props': 'error',
                 'react-native-a11y/has-valid-accessibility-actions': 'error',
                 'react-native-a11y/has-valid-accessibility-component-type': 'error',
@@ -910,7 +881,6 @@ export default defineConfig({
         {
             files: ['**/*.{js,jsx,mjs,cjs}'],
             rules: {
-                // Mirrors ESLint's plain-JS block.
                 'prefer-arrow-callback': 'off',
                 'lodash/import-scope': 'off',
             },
@@ -919,7 +889,6 @@ export default defineConfig({
         {
             files: ['**/*.{mjs,cjs}', '.storybook/**/*.{ts,tsx}', 'config/rsbuild/**/*.ts'],
             rules: {
-                // Node ESM, Storybook and the Rsbuild config need explicit extensions on relative imports; off in ESLint too.
                 'import/extensions': 'off',
             },
         },
@@ -988,11 +957,10 @@ export default defineConfig({
                 'you-dont-need-lodash-underscore/replace': 'error',
                 'you-dont-need-lodash-underscore/omit': 'error',
                 'you-dont-need-lodash-underscore/flatten': 'error',
-                // throttle and clone-deep stay off as in ESLint; structuredClone, the suggested clone-deep replacement, is
-                // unsupported in Hermes (facebook/hermes#68).
                 'you-dont-need-lodash-underscore/throttle': 'off',
                 'you-dont-need-lodash-underscore/is-string': 'error',
                 'you-dont-need-lodash-underscore/cast-array': 'error',
+                // structuredClone, the suggested clone-deep replacement, is not supported in Hermes: https://github.com/facebook/hermes/issues/684
                 'you-dont-need-lodash-underscore/clone-deep': 'off',
                 'you-dont-need-lodash-underscore/is-function': 'error',
                 'you-dont-need-lodash-underscore/union-by': 'error',
@@ -1007,7 +975,6 @@ export default defineConfig({
         {
             files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
             rules: {
-                // Sequential awaits are fine in scripts and tests; off in eslint.config.mjs for the same directories.
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
             },
@@ -1019,8 +986,7 @@ export default defineConfig({
             },
         },
         {
-            // An oxlint override replaces the rule value rather than merging, so the airbnb browser
-            // list from the root is deliberately not repeated here.
+            // This replaces the root's list, so the airbnb browser globals are left out on purpose.
             files: ['.github/actions/**/*.ts', '.github/libs/**/*.ts'],
             rules: {
                 'no-restricted-globals': [
@@ -1034,7 +1000,6 @@ export default defineConfig({
         {
             files: ['tests/**/*'],
             rules: {
-                // Mirrors ESLint's tests block.
                 'import/extensions': 'off',
                 'no-import-assign': 'off',
                 '@dword-design/import-alias/prefer-alias': ['off'],
@@ -1053,10 +1018,8 @@ export default defineConfig({
             files: ['**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
-                // Overrides are last-wins, so this block's position is load-bearing twice: this rule
-                // has to stay above the 83-file block near the end of `overrides` that switches it
-                // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
-                // it for 24 files between them.
+                // Overrides are last-wins: keep this block above the later ones that turn this rule off
+                // or re-set `no-restricted-imports`.
                 'typescript/no-deprecated': ['error', {allow: ['translateFn']}],
                 // tsgolint misses `<MenuItem />`; see config/oxlint/noDeprecatedSelfClosingJsx.mjs.
                 'hosted/no-deprecated-self-closing-jsx': [
@@ -1077,7 +1040,6 @@ export default defineConfig({
         {
             files: ['modules/ExpensifyNitroUtils/src/**/*'],
             rules: {
-                // Off in eslint.config.mjs for the same files.
                 'typescript/consistent-type-definitions': 'off',
             },
         },
@@ -1096,7 +1058,7 @@ export default defineConfig({
         {files: ['src/styles/**'], excludeFiles: ['src/styles/typography.ts', 'src/styles/variables.ts'], rules: {'rulesdir/no-raw-typography': ['error', {allowVariablesReferences: true}]}},
         {files: ['**/en.ts', '**/es.ts'], rules: {'rulesdir/use-periods-for-error-messages': 'error'}},
         {files: ['src/libs/ReportNameUtils.ts'], rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'}},
-        // reportAttributes.ts computes report names, so it keeps the base list without the TypeScript-only bans.
+        // reportAttributes.ts computes report names, so the TypeScript-only bans do not apply.
         {
             files: ['src/libs/actions/OnyxDerived/configs/reportAttributes.ts'],
             rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: restrictedImportPatterns}]},
@@ -1104,15 +1066,14 @@ export default defineConfig({
         {
             files: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
             rules: {
-                // ESLint applies max-lines to src/** with these files in its ignores list.
                 'max-lines': 'off',
             },
         },
         {
             files: ['scripts/**', '.github/**'],
             rules: {
-                // Deliberate difference, not a mirror: tsgolint's no-unsafe-* port is stricter than typescript-eslint's and this
-                // loosely typed Actions glue is where it shows. Removing this block adds 695 findings ESLint reports 0 of.
+                // tsgolint's no-unsafe-* port is stricter than typescript-eslint's, and this loosely typed
+                // Actions glue is where it shows: hundreds of findings ESLint does not report.
                 'typescript/no-unsafe-assignment': 'off',
                 'typescript/no-unsafe-argument': 'off',
                 'typescript/no-unsafe-return': 'off',
@@ -1221,8 +1182,8 @@ export default defineConfig({
                 'tests/utils/createSharedValueMock.ts',
             ],
             rules: {
-                // tsgolint reports writes to deprecated properties, typescript-eslint does not (typescript-eslint#10643); off
-                // where that would flood. Costs 5 read-site findings ESLint reports in these files.
+                // tsgolint also reports writes to deprecated properties (typescript-eslint#10643), which
+                // floods these files. Costs a few read-site findings ESLint reports here.
                 'typescript/no-deprecated': 'off',
                 'hosted/no-deprecated-self-closing-jsx': 'off',
             },
@@ -1230,7 +1191,6 @@ export default defineConfig({
         {
             files: ['**/*.{js,jsx,mjs,cjs}'],
             rules: {
-                // Typed rules off for plain JS, as typescript-eslint does; parity, not coverage gaps.
                 'typescript/await-thenable': 'off',
                 'typescript/consistent-type-exports': 'off',
                 'typescript/dot-notation': 'off',
@@ -1267,26 +1227,22 @@ export default defineConfig({
             files: ['**/*.d.{ts,tsx}'],
             rules: {
                 // ESLint's code-path analyzer throws on declaration files under oxlint's plugin bridge
-                // (`Cannot read properties of undefined (reading 'parent')`), and a thrown plugin fails the run.
+                // (`Cannot read properties of undefined (reading 'parent')`), failing the run.
                 'core/no-unreachable-loop': 'off',
             },
         },
         {
-            // Mirrors config/eslint/eslint.config.mjs: bun-types declares
-            // `expect(...).resolves` / `.rejects` as returning `void` even though Bun's own docs
-            // recommend (and its runtime requires) awaiting them, so the rule reports every correct
-            // use of that pattern here. See https://github.com/oven-sh/bun/pull/23425. Without this
-            // block oxlint reports 30 findings across 7 files that ESLint never shows.
+            // bun-types declares `expect(...).resolves`/`.rejects` as returning `void` even though Bun
+            // requires awaiting them. See https://github.com/oven-sh/bun/pull/23425.
             files: ['tests/tooling/**/*.ts'],
             rules: {'typescript/await-thenable': 'off'},
         },
         {
-            // oxlint has no storybook plugin, so the story-file scope `plugin:storybook/recommended`
-            // applies internally is restated here, with the upstream severities.
+            // oxlint has no storybook plugin, so this restates the story-file scope and severities of
+            // `plugin:storybook/recommended`.
             files: ['**/*.{stories,story}.{ts,tsx,js,jsx,mjs,cjs}'],
             rules: {
-                // The storybook preset turns this rule off for story globs; oxlint enabled it
-                // everywhere, so this mirrors the preset's scope.
+                // The storybook preset turns this off for stories.
                 'react/rules-of-hooks': 'off',
                 'hosted/await-interactions': 'error',
                 'hosted/context-in-play-function': 'error',
@@ -1301,14 +1257,11 @@ export default defineConfig({
             },
         },
         {
-            // The one storybook rule upstream scopes to the config file rather than to stories: it
-            // reads the addon list off disk and checks each one is installed.
             files: ['.storybook/main.{js,cjs,mjs,ts}'],
             rules: {'hosted/no-uninstalled-addons': 'error'},
         },
         {files: ['src/types/onyx/**/*.ts'], rules: {'hosted/require-jsdoc': ['error', {contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration']}]}},
         {
-            // Mirrors eslint.config.mjs: the personal-details wrappers, the key declaration and test setup are exempt.
             files: [
                 'src/ONYXKEYS.ts',
                 'src/hooks/usePersonalDetails.ts',

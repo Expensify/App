@@ -1,7 +1,5 @@
-// A rule hosted through oxlint's `jsPlugins` cannot take a native plugin's prefix (`react-hooks`,
-// `@typescript-eslint`, `react`, `import` are reserved), so an existing `eslint-disable-next-line
-// @typescript-eslint/naming-convention` does not suppress `hosted/naming-convention`. This makes a
-// hosted rule answer to the id ESLint uses, by dropping the reports ESLint would have dropped.
+// An `eslint-disable-next-line @typescript-eslint/naming-convention` does not suppress
+// `hosted/naming-convention`, so this drops the reports ESLint would have suppressed under its own id.
 
 const JUSTIFICATION = /\s-{2,}\s/;
 const KINDS = ['eslint-disable-next-line', 'eslint-disable-line', 'eslint-disable', 'eslint-enable'];
@@ -36,8 +34,8 @@ function parseDirectives(comments) {
         }
         for (const ruleId of parsed.ruleIds) {
             if (parsed.kind === 'eslint-disable-next-line' || parsed.kind === 'eslint-disable-line') {
-                // ESLint rejects only a multi-line `-line` directive; a multi-line `-next-line` is
-                // applied to the line after the comment closes, which is why the target is `end`.
+                // ESLint ignores a multi-line `-line` directive but applies a multi-line `-next-line`
+                // to the line after the comment ends.
                 if (parsed.kind === 'eslint-disable-line' && start !== end) {
                     continue;
                 }
@@ -62,9 +60,7 @@ function directivesFor(filename, comments) {
     return cache.get(key);
 }
 
-// Mirrors ESLint: the last block directive at or before the line that names the rule (or no rule)
-// decides. A bare `eslint-disable` followed by `eslint-enable foo` therefore re-enables `foo` alone,
-// and a bare `eslint-enable` re-enables every rule.
+// As in ESLint, the last block directive at or before the line that names the rule (or no rule) wins.
 function isSuppressed(directives, eslintRuleId, line) {
     if (line == null) {
         return false;
@@ -77,7 +73,6 @@ function isSuppressed(directives, eslintRuleId, line) {
         if (block.line > line || (block.ruleId !== ALL_RULES && block.ruleId !== eslintRuleId)) {
             continue;
         }
-        // A report on the `eslint-enable` line itself stays suppressed, as with the previous inclusive range.
         if (block.disable) {
             disabled = true;
         } else if (block.line < line) {
@@ -99,8 +94,7 @@ function withEslintDirectiveIds(rule, eslintRuleId) {
         create(context) {
             const filteredContext = Object.create(context, {
                 report: {
-                    // Forwarded as-is rather than as one descriptor: ESLint also accepts the legacy
-                    // `report(node, message)` form, and dropping the extra arguments would change the message.
+                    // Keeps every argument: ESLint also accepts the legacy `report(node, message)` form.
                     value(...args) {
                         const line = reportLine(args);
                         if (line != null) {

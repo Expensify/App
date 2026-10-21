@@ -1,7 +1,7 @@
-// tsgolint's no-deprecated skips the signature check on self-closing JSX (`<X />`, not `<X></X>`), so a
-// component deprecated only through its signature, like `MenuItem` wrapped in `Object.assign`, goes
-// unreported. jsPlugins get no types, so the components are listed in the options. Delete this rule once
-// tsgolint reports these itself: the findings will double.
+// tsgolint's no-deprecated skips the signature check on self-closing JSX (`<X />`), so a component
+// deprecated only through its signature, like `MenuItem` wrapped in `Object.assign`, goes unreported.
+// jsPlugins get no types, so the options list the components. Delete this rule once tsgolint reports
+// these itself, or the findings will double.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,7 +9,6 @@ import {fileURLToPath} from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-// tsconfig.json allows comments and trailing commas.
 function readJsonc(file) {
     const text = fs
         .readFileSync(file, 'utf8')

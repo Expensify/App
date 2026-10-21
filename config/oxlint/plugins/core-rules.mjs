@@ -1,6 +1,5 @@
-// no-invalid-this is deliberately absent, even though ESLint enables it: it reaches
-// sourceCode.getJSDocComment, which oxlint's bridge answers with `throw Error("...not supported at
-// present (and deprecated)")` at node_modules/oxlint/dist/lint.js:5765, erroring out 36 files.
+// no-invalid-this is left out although ESLint enables it: it calls sourceCode.getJSDocComment, which
+// oxlint's bridge throws on as unsupported.
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 
 import {withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';

@@ -16,8 +16,8 @@ function rulesOf(packageName) {
     try {
         mod = require(path.resolve(repoRoot, 'node_modules', packageName));
     } catch {
-        // A directory require ignores the package's `exports` map, so a package that ships no `main`
-        // (typescript-eslint) resolves only by bare specifier.
+        // A directory require ignores `exports`, so a package with no `main` (typescript-eslint) needs
+        // the bare specifier.
         mod = require(packageName);
     }
     return mod?.rules ?? mod?.default?.rules ?? {};
@@ -29,17 +29,17 @@ const jsdoc = rulesOf('eslint-plugin-jsdoc');
 const storybook = rulesOf('eslint-plugin-storybook');
 const typescriptEslint = rulesOf('@typescript-eslint/eslint-plugin');
 
-// eslint-plugin-react-hooks is not a root dependency: it arrives nested under eslint-config-expensify,
-// and that nested copy is the one ESLint loads. Resolving by bare specifier would run a second install.
+// eslint-plugin-react-hooks is not a root dependency; ESLint loads the copy nested under
+// eslint-config-expensify.
 const reactHooks = (() => {
     const configEntry = require.resolve('eslint-config-expensify', {paths: [repoRoot]});
     return rulesOf(require.resolve('eslint-plugin-react-hooks', {paths: [path.dirname(configEntry)]}));
 })();
 
-// naming-convention demands parser services at startup, which oxlint's JS plugins cannot provide.
-// getParserServices(context, true) tolerates a missing `program` but hard-fails on missing node maps
-// and reads context.languageOptions before any check, so both are stubbed. With this repo's selector
-// groups the rule never reaches the type checker anyway (no `types` selector).
+// naming-convention requires parser services, which oxlint's JS plugins lack.
+// getParserServices(context, true) tolerates a missing `program` but fails on missing node maps and
+// reads context.languageOptions first, so both are stubbed. This repo's selectors never reach the
+// type checker (no `types` selector).
 const STUB_PARSER_SERVICES = {
     esTreeNodeToTSNodeMap: new Map(),
     tsNodeToESTreeNodeMap: new Map(),
@@ -50,8 +50,8 @@ function withStubbedParserServices(rule) {
         ...rule,
         create(context) {
             const sourceCode = context.sourceCode ?? context.getSourceCode();
-            // Prototype shadowing, not a Proxy: oxlint defines `parserServices` as a read-only,
-            // non-configurable data property, which a Proxy get trap may not report a different value for.
+            // A Proxy cannot do this: oxlint defines `parserServices` as a read-only, non-configurable
+            // property, and a get trap may not return a different value for it.
             const stubbedSourceCode = Object.create(sourceCode, {
                 parserServices: {value: STUB_PARSER_SERVICES},
             });

@@ -31,8 +31,7 @@ const plugin = {
     rules: {
         ...rules,
         'no-inline-useOnyx-selector': withFullGating(rules['no-inline-useOnyx-selector']),
-        // ESLint's copy calls getParserServices at create() time, which throws in a jsPlugin, so a
-        // type-free rewrite stands in for it.
+        // ESLint's copy calls getParserServices in create(), which throws in a jsPlugin.
         'prefer-locale-compare-from-context': {create: preferLocaleCompareCreate, meta: preferLocaleCompareMeta},
     },
 };

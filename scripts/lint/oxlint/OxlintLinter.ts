@@ -12,8 +12,8 @@ import {LINT_SEVERITY} from '../types';
 
 const OXLINT_FILE_COUNT_KEY = 'number_of_files' as const;
 const OXLINT_CONFIG_FILE = 'oxlint.config.mts';
-// Not `npx`: it passes the command to `sh -c` as one string, and Linux caps a single argv element at
-// 128 KB, so a shard's file list fails to exec with E2BIG (exit 249). macOS has no per-element cap.
+// `npx` passes the command to `sh -c` as one string, and Linux caps a single argv element at 128 KB,
+// so a shard's file list would fail with E2BIG (exit 249).
 const OXLINT_BIN = path.join('node_modules', '.bin', 'oxlint');
 
 type OxlintSpan = {
@@ -79,14 +79,14 @@ const SIGNAL_EXIT_CODE = 128;
 const OXLINT_WARNING_SEVERITIES = new Set(['warning', 'advice']);
 const GIB = 1073741824;
 
-// Workaround for oxlint running every JS plugin on one thread (oxc#26621): JS-plugin rules are fanned
-// across `--threads=1` processes with type information off, and type-aware rules run once in a separate
-// process, because each oxlint process spawns its own multi-GB `oxlint-tsgolint` type program.
+// oxlint runs every JS plugin on one thread (oxc#26621), so JS-plugin rules are split across
+// `--threads=1` processes without type information. Type-aware rules run in one separate process,
+// because each oxlint process spawns its own multi-GB `oxlint-tsgolint` type program.
 const JS_SHARD_MEM_GB = 2;
 const TYPE_AWARE_MEM_GB = 10;
 
-// On macOS `os.freemem()` counts only free pages and ignores the inactive, speculative and purgeable
-// pages the kernel reclaims on demand, so it reads a few GB on an idle machine with tens of GB available.
+// On macOS `os.freemem()` ignores inactive, speculative and purgeable pages the kernel reclaims on
+// demand, so it reads a few GB on an idle machine with tens of GB available.
 function availableMemoryBytes(): number {
     if (process.platform === 'darwin') {
         const vmStat = Bun.spawnSync(['vm_stat']);
@@ -203,12 +203,11 @@ function normalizeSeverity(severity: string | undefined): LintSeverity {
     return OXLINT_WARNING_SEVERITIES.has(severity ?? '') ? LINT_SEVERITY.WARNING : LINT_SEVERITY.ERROR;
 }
 
-/** Oxlint splits a finding across `message`, `help` and `note`; ESLint has only `message`. */
 function joinDiagnosticText(diagnostic: OxlintDiagnostic): string {
     return [diagnostic.message, diagnostic.help, diagnostic.note].filter(Boolean).join('\n');
 }
 
-/** Oxlint reports cwd-relative paths. They must be absolute or every seatbelt row silently misses. */
+/** Oxlint reports cwd-relative paths, which every seatbelt row would silently miss. */
 function toAbsolute(projectRoot: string, filename: string): string {
     return path.isAbsolute(filename) ? filename : path.resolve(projectRoot, filename);
 }
@@ -225,10 +224,7 @@ function toLintMessage(projectRoot: string, diagnostic: OxlintDiagnostic, ruleID
     };
 }
 
-/**
- * `lintedFiles` comes from a separate `--debug=files` pass because oxlint's JSON omits every file
- * that produced no diagnostic.
- */
+/** `lintedFiles` comes from a separate `--debug=files` pass because oxlint's JSON omits clean files. */
 function normalizeOxlintDiagnostics(diagnostics: OxlintDiagnostic[], projectRoot: string, lintedFiles: readonly string[]): LintFileResult[] {
     const byFile = new Map<string, LintMessage[]>();
     for (const filePath of lintedFiles) {
@@ -277,7 +273,6 @@ function isOxlintConfig(value: unknown): value is OxlintConfig {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** The config is a TypeScript module, so it is imported rather than parsed; bun runs `.mts` natively. */
 async function loadOxlintConfig(projectRoot: string): Promise<OxlintConfig> {
     const loaded: unknown = await import(path.join(projectRoot, OXLINT_CONFIG_FILE));
     const config = typeof loaded === 'object' && loaded !== null && 'default' in loaded ? loaded.default : undefined;
@@ -292,9 +287,9 @@ function isOxlintReport(value: unknown): value is OxlintJSONReport {
 }
 
 /**
- * Oxlint exits 1 for findings, for no files matched, and for a config that failed to parse. Only
- * the first is a normal run, and `LintPipeline` treats everything at or below 1 as one, so the
- * other two are promoted here. A config error is recognizable by producing no JSON at all.
+ * Oxlint exits 1 for findings, for no matched files, and for a config that failed to parse.
+ * `LintPipeline` treats exit 1 as a normal run, so the other two are promoted here. A config error
+ * produces no JSON.
  */
 function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, projectRoot: string, lintedFiles: readonly string[]): LinterResult {
     const jsonText = extractJSONObject(stdout);
@@ -330,10 +325,9 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
 }
 
 /**
- * `--type-aware` is not passed: `oxlint.config.mts` already sets `options.typeAware`.
- * `--no-error-on-unmatched-pattern` is not passed either, because it turns a mistyped path into a
- * silent clean pass; the empty-file-list case is detected explicitly instead.
- * Oxlint has no `--cache`, so the pipeline's `--no-cache` flag has no effect here.
+ * `--no-error-on-unmatched-pattern` is left off because it turns a mistyped path into a silent clean
+ * pass; the empty-file-list case is detected explicitly instead. Oxlint has no `--cache`, so
+ * `--no-cache` has no effect here.
  */
 class OxlintLinter extends Linter {
     readonly name = 'oxlint';

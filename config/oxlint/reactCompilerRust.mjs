@@ -16,12 +16,10 @@ const RULE_BY_CATEGORY = {
     UnsupportedSyntax: 'unsupported-syntax',
 };
 
-// A `Config` diagnostic means the options handed to the compiler are wrong, so it is never
-// ignorable: a broken ENVIRONMENT would otherwise become twelve rules that silently report nothing.
+// A `Config` diagnostic means the compiler options are wrong; ignoring it would silence every rule.
 const CONFIG_CATEGORY = 'Config';
 
-// ESLint does not enable the rule behind each of these, so surfacing them would be oxlint-only
-// noise.
+// ESLint does not enable the rules behind these categories.
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',
     'EffectDependencies',
@@ -59,9 +57,8 @@ const ENVIRONMENT = {
     enableTreatRefLikeIdentifiersAsRefs: true,
 };
 
-// Categories are only available inside the formatted `codeframe` string, which is not a public API of
-// oxc-transform-react. Hence the exact version pin in package.json and the throw on an unmapped
-// category: an upstream rename has to fail loudly.
+// The category is only in the formatted `codeframe` string, which is not a public API of
+// oxc-transform-react. That is why package.json pins the exact version and an unmapped category throws.
 const CATEGORY_PATTERN = /react-compiler\(([^)]+)\)/;
 
 const cache = new Map();
@@ -91,15 +88,11 @@ function utf8Length(code) {
     return 4;
 }
 
-// `label.start`/`label.end` are UTF-8 *byte* offsets into the source oxc parsed, while a JavaScript
-// string is indexed in UTF-16 code units. Indexing `sourceText` with one directly overshoots by one
-// unit for every extra byte, which drifts across newlines in any file holding non-ASCII (281 of
-// src/'s .tsx files do), so a diagnostic would anchor on the wrong line and an
-// `eslint-disable-next-line` on the right line would stop suppressing it. This maps a byte offset
-// back to the line and UTF-16 column oxlint's `loc` expects. Built once per file rather than per
-// diagnostic, hence the closure.
+// `label.start`/`label.end` are UTF-8 byte offsets, while JavaScript strings index UTF-16 code units.
+// Using them directly drifts in any non-ASCII file, anchoring diagnostics on the wrong line where
+// `eslint-disable-next-line` no longer suppresses them. This maps a byte offset to the line and UTF-16
+// column oxlint's `loc` expects.
 function buildOffsetToPoint(source) {
-    // Byte and UTF-16 offset of the start of each line, both indexed by line - 1.
     const lineBytes = [0];
     const lineUnits = [0];
     let byte = 0;
@@ -114,8 +107,6 @@ function buildOffsetToPoint(source) {
     }
 
     return function offsetToPoint(offset) {
-        // The last line starting at or before `offset`. An offset past the end of the source clamps
-        // to the final line rather than running off it.
         let low = 0;
         let high = lineBytes.length - 1;
         while (low < high) {
@@ -127,7 +118,6 @@ function buildOffsetToPoint(source) {
             }
         }
 
-        // Walked rather than subtracted: a column is UTF-16 code units, not bytes.
         let byteInLine = lineBytes[low];
         let unit = lineUnits[low];
         while (byteInLine < offset && unit < source.length) {
@@ -153,21 +143,18 @@ function analyze(filename, sourceText) {
             reactCompiler: {
                 target: '19',
                 outputMode: 'lint',
-                // Without it the binding returns only fatal diagnostics, so a non-blocking problem
-                // reports nothing and the rule looks clean.
+                // Without it the binding returns only fatal diagnostics.
                 reportDiagnostics: true,
                 flowSuppressions: false,
-                // Without it the compiler skips every function under an
-                // `eslint-disable-next-line react-hooks/exhaustive-deps` comment, and the repo has
-                // 228. Lint-only: setting it in the build configs would change what those comments
-                // make the build memoize, i.e. what ships.
+                // Without it the compiler skips every function under an `eslint-disable-next-line
+                // react-hooks/exhaustive-deps` comment. Lint-only: in the build configs it would change
+                // what ships memoized.
                 eslintSuppressionRules: [],
                 environment: ENVIRONMENT,
             },
         });
     } catch (error) {
-        // Malformed options are rejected at the binding rather than reported as a diagnostic;
-        // swallowing it would make one bad edit to ENVIRONMENT look like a clean repo.
+        // The binding throws on malformed options instead of reporting a diagnostic.
         const message = error instanceof Error ? error.message : String(error);
         if (/is none of these types|ReactCompilerOptions/.test(message)) {
             throw new Error(`oxc-transform-react rejected this module's React Compiler options: ${message}`);
@@ -177,16 +164,13 @@ function analyze(filename, sourceText) {
 
     const errors = result.errors ?? [];
 
-    // A config oxc rejects is a bug in this module, not a finding about the file. Fail loudly, the
-    // same way an unmapped category does.
     const rejected = errors.find((error) => (error.message ?? '').startsWith('Invalid React Compiler'));
     if (rejected) {
         throw new Error(`oxc-transform-react rejected this module's React Compiler options: ${rejected.message}`);
     }
 
-    // A fatal result carrying no `react-compiler(...)` category means the compiler never got as far
-    // as analyzing: a parse failure aborts that way. oxlint's own parser reports the syntax error, so
-    // a rule here stays quiet rather than throwing on it.
+    // A fatal result with no `react-compiler(...)` category is a parse failure, which oxlint's own
+    // parser already reports.
     if (result.fatal && !errors.some((error) => CATEGORY_PATTERN.test(error.codeframe ?? ''))) {
         return [];
     }

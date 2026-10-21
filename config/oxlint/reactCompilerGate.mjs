@@ -1,5 +1,5 @@
-// oxlint has no processor concept and no way to filter a native Rust rule's diagnostics, so the
-// ESLint react-compiler-compat processor is replicated here by wrapping `context.report` in a JS plugin.
+// oxlint has no processors and cannot filter a native Rust rule's diagnostics, so this replicates
+// ESLint's react-compiler-compat processor by wrapping `context.report` in a JS plugin.
 import path from 'node:path';
 
 import {didBothCompilersMemoizeFile} from '../reactCompiler/checkBoth.mjs';
@@ -32,8 +32,7 @@ function withGating(rule, shouldGate) {
         create(context) {
             const gatedContext = Object.create(context, {
                 report: {
-                    // Forwarded as-is rather than as one descriptor: ESLint also accepts the legacy
-                    // `report(node, message)` form, and dropping the extra arguments would change the message.
+                    // Keeps every argument: ESLint also accepts the legacy `report(node, message)` form.
                     value(...args) {
                         if (shouldGate(rule, args[0])) {
                             const filename = context.filename ?? context.getFilename();
