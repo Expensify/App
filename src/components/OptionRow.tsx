@@ -145,7 +145,6 @@ function OptionRow({
         subscriptColor = focusedBackgroundColor;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (

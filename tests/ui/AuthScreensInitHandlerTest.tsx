@@ -2,6 +2,8 @@ import {render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
+
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
@@ -32,6 +34,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const TEST_ACCOUNT_ID = 1;
 const QA_APP_KEY = 'qa-app-key';
+const TRANSACTION_THREAD_REPORT_ID = '20';
 
 jest.mock('@libs/ApiUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
@@ -126,6 +129,11 @@ jest.mock('@selectors/Onboarding', () => ({
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+jest.mock('@hooks/useOneTransactionThreadReportID', () => ({
+    __esModule: true,
+    default: jest.fn(() => undefined),
+}));
+
 const mockedPusherInit = jest.mocked(Pusher.init);
 const mockedGetCurrentUrl = jest.mocked(getCurrentUrl);
 const mockedIsActiveRoute = jest.mocked(Navigation.isActiveRoute);
@@ -135,6 +143,7 @@ const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
 const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
 const mockedIsQAServerActive = jest.mocked(isQAServerActive);
+const mockedUseOneTransactionThreadReportID = jest.mocked(useOneTransactionThreadReportID);
 function renderAuthScreensInitHandler() {
     return render(
         <LocaleContextProvider>
@@ -161,6 +170,7 @@ describe('AuthScreensInitHandler', () => {
         mockedIsReady.mockReturnValue(Promise.resolve());
         mockedIsActiveRoute.mockReturnValue(false);
         mockedIsQAServerActive.mockReturnValue(false);
+        mockedUseOneTransactionThreadReportID.mockReturnValue(undefined);
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -236,6 +246,25 @@ describe('AuthScreensInitHandler', () => {
     });
 
     it.each([
+        ['expense', CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, TRANSACTION_THREAD_REPORT_ID],
+        ['table', CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, undefined],
+    ])('passes the right expense thread to Pusher notifications when single-expense reports use the %s view', async (_view, singleExpenseReportView, expectedThreadReportID) => {
+        // Given an open single-expense report with an expense thread. Only the expense view shows that thread's comments.
+        mockedUseOneTransactionThreadReportID.mockReturnValue(TRANSACTION_THREAD_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, singleExpenseReportView);
+        await waitForBatchedUpdates();
+
+        // When the handler subscribes to user events
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the thread getter returns the thread only when its comments are shown, so in the table view they still notify
+        const getTopmostOneTransactionThreadReportID = mockedSubscribeToUserEvents.mock.calls.at(0)?.[2];
+        expect(getTopmostOneTransactionThreadReportID?.()).toBe(expectedThreadReportID);
+    });
+
+    it.each([
         ['production', false, CONFIG.PUSHER.APP_KEY],
         ['QA', true, QA_APP_KEY],
     ])('opens the Pusher socket with the %s app key', async (_server, isQAActive, expectedAppKey) => {
@@ -266,20 +295,7 @@ describe('AuthScreensInitHandler', () => {
         expect(mockedSubscribeToUserEvents).not.toHaveBeenCalled();
     });
 
-    it('signs out when logging in as a new user via a supportal transition', async () => {
-        mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}?authTokenType=${CONST.AUTH_TOKEN_TYPES.SUPPORT}`);
-        mockedIsLoggingInAsNewUser.mockReturnValue(true);
-
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, true, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
-    });
-
-    it('does not sign out for a non-supportal transition', async () => {
+    it('signs out when logging in as new user during transition', async () => {
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
 
@@ -289,8 +305,7 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        // LogOutPreviousUserPage owns this case, gated behind its own confirm modal.
-        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {
