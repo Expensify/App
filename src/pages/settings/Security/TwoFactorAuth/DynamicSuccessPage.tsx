@@ -42,6 +42,8 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
+    // The require-2FA overlay is the only entry that uses Home as the base route.
+    const isRequired2FAOverlayFlow = focusedRoute?.name === SCREENS.HOME;
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -55,12 +57,12 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
     const isIncompleteOnboarding = hasCompletedGuidedSetupFlow === false;
     const hasSavedOnboardingPath = !!onboardingInitialPath?.includes(`/${ROUTES.ONBOARDING_ROOT.route}`);
-    // Forced onboarding 2FA always enters via Settings > Security (from the require-2FA overlay).
+    // Forced onboarding 2FA enters from the require-2FA overlay, which uses Home as its base route. Users can also reach it from Settings > Security.
     // Gate on the real hasCompletedGuidedSetupFlow so the handoff only fires for users who haven't finished
     // guided setup; passing a literal false made it fire for every user setting up 2FA from Settings > Security.
     const isForcedOnboardingHandoff =
         AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
-    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
+    const shouldReturnToOnboardingAfter2FA = (isSecuritySettingsFlow || isRequired2FAOverlayFlow) && isForcedOnboardingHandoff;
 
     const completeForcedOnboarding2FAHandoff = () => {
         clearTwoFactorAuthData(true);
