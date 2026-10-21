@@ -16,6 +16,7 @@ function useExpenseEducationalModal() {
             modalInnerContainerStyle: styles.pt0,
             shouldCloseOnConfirm: false,
             shouldUseScrollView: true,
+            shouldHandleNavigationBack: true,
             children,
         });
     };
