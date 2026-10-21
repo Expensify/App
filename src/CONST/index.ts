@@ -3873,6 +3873,7 @@ const CONST = {
             },
             AUTH_TYPE: {
                 TBA: 'tba',
+                OAUTH2: 'oauth2',
             },
             STEP_KEYS: {
                 install: 'installBundle',
