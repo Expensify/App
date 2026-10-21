@@ -22,7 +22,7 @@ import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
+import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -63,8 +63,8 @@ type InsightsChartWidgetProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Shows a group-by control in the chart's header when set */
-    onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
+    onGroupByChange?: (update: Partial<InsightsFilters>) => void;
 };
 
 function InsightsChartWidget({
@@ -92,6 +92,8 @@ function InsightsChartWidget({
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
+    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    const isRunningTotal = !!filters.runningTotal && view === CONST.SEARCH.VIEW.LINE;
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
@@ -103,10 +105,11 @@ function InsightsChartWidget({
     };
 
     const groupByControl =
-        onGroupByChange && groupByOptions.length > 1 ? (
+        onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={getQueryGroupBy(filters)}
+                groupBy={getFittingGroupBy(filters.groupBy, groupByOptions)}
                 options={groupByOptions}
+                runningTotal={!!filters.runningTotal}
                 onChange={onGroupByChange}
             />
         ) : null;
@@ -162,6 +165,7 @@ function InsightsChartWidget({
                         data={data}
                         isLoading={isLoading}
                         comparison={comparison}
+                        runningTotal={isRunningTotal}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}

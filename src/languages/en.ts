@@ -1310,6 +1310,7 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        runningTotal: 'Running total',
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',

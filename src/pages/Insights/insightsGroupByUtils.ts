@@ -58,9 +58,25 @@ function getFittingGroupBy(groupBy: InsightsGroupBy, options: InsightsGroupBy[])
     return options.reduce((nearest, option) => (getDistanceFromSelection(option) < getDistanceFromSelection(nearest) ? option : nearest));
 }
 
-/** Returns the Group by the charts are queried with, fitted to the date range. */
+/** Whether Running total can be offered for a date range. It rides the same pill as Group by, so a single day, which hides the pill, rules it out. */
+function isRunningTotalAvailable(date: InsightsFilters['date']): boolean {
+    if ('on' in date) {
+        return false;
+    }
+    return getInsightsGroupByOptions(date).length > 0;
+}
+
+/** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise. */
+function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsGroupBy {
+    return getInsightsGroupByOptions(date).includes(CONST.SEARCH.GROUP_BY.DAY) ? CONST.SEARCH.GROUP_BY.DAY : CONST.SEARCH.GROUP_BY.MONTH;
+}
+
+/** Returns the Group by the charts are queried with, fitted to the date range. Running total queries at its own grouping, so the data behind it is ready to accumulate. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsGroupBy {
+    if (filters.runningTotal && isRunningTotalAvailable(filters.date)) {
+        return getRunningTotalGroupBy(filters.date);
+    }
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
-export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy};
+export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, getRunningTotalGroupBy, isRunningTotalAvailable};

@@ -2,7 +2,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setInsightsFilters} from '@libs/actions/Insights';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
-import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,22 +33,29 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
 
-    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
+    // Running total is stored beside the query, so it's read off the whole stored entry rather than the query string.
+    const [storedFilter, storedFilterMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {
+        selector: (searchFilters) => {
+            const entry = searchFilters?.[searchKey];
+            return typeof entry === 'object' ? {query: entry.query, runningTotal: entry.runningTotal} : {query: entry, runningTotal: undefined};
+        },
+    });
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
+    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedFilter?.query), runningTotal: storedFilter?.runningTotal};
 
     const setFilters = (update: Partial<InsightsFilters>) => {
-        setInsightsFilters(searchKey, buildInsightsQueryString({...filters, ...update}));
+        const next = {...filters, ...update};
+        setInsightsFilters(searchKey, buildInsightsQueryString(next), next.runningTotal ?? false);
     };
 
     return {
         filters,
         defaultFilters,
-        isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded',
+        isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedFilterMetadata.status === 'loaded',
         setFilters,
     };
 }

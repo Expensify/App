@@ -27,6 +27,7 @@ import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -55,6 +56,9 @@ type SearchChartViewProps = {
     /** Rows the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
+    /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
+    runningTotal?: boolean;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
@@ -76,6 +80,7 @@ function SearchChartView({
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     comparison,
+    runningTotal = false,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
@@ -87,11 +92,13 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
+    const {data: chartData, comparison: chartComparison} = runningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
+
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const {series, rows} = buildChartSeries({
-        data,
-        comparison,
+        data: chartData,
+        comparison: chartComparison,
         groupBy,
         view,
         getLabel,

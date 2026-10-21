@@ -8,6 +8,8 @@ type SearchFilter = {
     timestamp: string;
     /** Query used for the filter. */
     query: string;
+    /** Insights only: whether the Spend over time chart accumulates spend across the range instead of plotting each period's own total. Kept off the query so toggling it never re-runs the backend search. */
+    runningTotal?: boolean;
 };
 
 /** Collection of search filters keyed by search key or by Insights dashboard for the Insights page's page-level controls. */
