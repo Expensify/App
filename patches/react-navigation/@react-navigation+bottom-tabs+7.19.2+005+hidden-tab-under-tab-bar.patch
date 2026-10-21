@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 8f34943..ef22d0e 100644
+index 8f34943..5144b70 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -32,13 +32,12 @@ export function NativeBottomTabView({
@@ -44,38 +44,48 @@ index 8f34943..ef22d0e 100644
        colorScheme: dark ? 'dark' : 'light',
        nativeContainerStyle: {
          backgroundColor: colors.background
-@@ -291,7 +292,7 @@ export function NativeBottomTabView({
+@@ -243,6 +244,9 @@ export function NativeBottomTabView({
+         } = descriptors[route.key];
+         const isFocused = state.index === index;
+         const isPreloaded = state.preloadedRouteKeys.includes(route.key);
++        // Only the tab the hidden routes are drawn in is drawn unselected, so a tab the user taps natively shows as
++        // selected right away.
++        const isSelectionHidden = isFocusedRouteHidden && route.key === hiddenRoutesHostKey;
+         const {
+           title,
+           lazy = false,
+@@ -291,7 +295,7 @@ export function NativeBottomTabView({
            focused: false
          })) : tabBarIcon != null ? getPlatformIcon(tabBarIcon) : undefined;
          const selectedIcon = typeof tabBarIcon === 'function' ? getPlatformIcon(tabBarIcon({
 -          focused: true
-+          focused: !isFocusedRouteHidden
++          focused: !isSelectionHidden
          })) : undefined;
          return /*#__PURE__*/_jsx(Tabs.Screen, {
            onWillDisappear: () => onTransitionStart({
-@@ -320,8 +321,8 @@ export function NativeBottomTabView({
+@@ -320,8 +324,8 @@ export function NativeBottomTabView({
            },
            specialEffects: {
              repeatedTabSelection: {
 -              popToRoot: true,
 -              scrollToTop: true
-+              popToRoot: !isFocusedRouteHidden,
-+              scrollToTop: !isFocusedRouteHidden
++              popToRoot: !isSelectionHidden,
++              scrollToTop: !isSelectionHidden
              }
            },
            android: {
-@@ -332,8 +333,8 @@ export function NativeBottomTabView({
+@@ -332,8 +336,8 @@ export function NativeBottomTabView({
                tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
                tabBarItemLabelVisibilityMode: currentOptions?.tabBarLabelVisibilityMode,
                normal: normalTabItemAppearance,
 -              selected: selectedTabItemAppearance,
 -              tabBarItemActiveIndicatorColor: activeIndicatorColor,
-+              selected: isFocusedRouteHidden ? normalTabItemAppearance : selectedTabItemAppearance,
-+              tabBarItemActiveIndicatorColor: isFocusedRouteHidden ? 'transparent' : activeIndicatorColor,
++              selected: isSelectionHidden ? normalTabItemAppearance : selectedTabItemAppearance,
++              tabBarItemActiveIndicatorColor: isSelectionHidden ? 'transparent' : activeIndicatorColor,
                tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
                tabBarItemTitleFontFamily: fontFamily,
                tabBarItemTitleFontWeight: fontWeight,
-@@ -379,7 +380,7 @@ export function NativeBottomTabView({
+@@ -379,7 +383,7 @@ export function NativeBottomTabView({
              overrideScrollViewContentInsetAdjustmentBehavior
            },
            // Keyed by route key, so a re-keyed route still remounts its content inside the same native tab.
@@ -84,7 +94,7 @@ index 8f34943..ef22d0e 100644
              lazy: lazy,
              visible: isFocused || isPreloaded,
              children: /*#__PURE__*/_jsx(ScreenWithHeader, {
-@@ -392,10 +393,13 @@ export function NativeBottomTabView({
+@@ -392,10 +396,13 @@ export function NativeBottomTabView({
                  children: render()
                })
              })
@@ -100,7 +110,7 @@ index 8f34943..ef22d0e 100644
        if (!isRouteHidden(route) || !visitedHiddenRouteKeysRef.current.has(route.key)) {
          return null;
        }
-@@ -421,8 +425,8 @@ export function NativeBottomTabView({
+@@ -421,8 +428,8 @@ export function NativeBottomTabView({
            })
          })
        }, route.key);

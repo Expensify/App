@@ -33,7 +33,7 @@ index d76842a..bc62e29 100644
   * Tell the controller that react provided tabs have changed (count / instances) & the child
   * view controllers need to be updated.
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 06c1957..95cad83 100644
+index 06c1957..bb2dcb0 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -177,6 +177,34 @@ - (void)detachFromParentContainerItem
@@ -71,6 +71,18 @@ index 06c1957..95cad83 100644
  - (void)didMoveToParentViewController:(UIViewController *)parent
  {
    [super didMoveToParentViewController:parent];
+@@ -353,6 +381,11 @@ - (void)userDidRepeatViewControllerSelection:(nonnull UIViewController *)viewCon
+ 
+ - (void)userDidSelectViewController:(nonnull UIViewController *)viewController
+ {
++  // The tab the user picked shows its selection right away, without waiting for JS to turn the prop off.
++  if (_tabBarItemSelectionHidden) {
++    self.tabBarItemSelectionHidden = NO;
++  }
++
+   // At this moment the `UITabBarController` model is already updated.
+   RCTAssert(self.selectedViewController == viewController,
+             @"[RNScreens] Expected UIKit to update selectedViewController");
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 index 60c9ab2..fa2afb9 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
