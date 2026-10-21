@@ -138,12 +138,15 @@ function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>):
 
 /**
  * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ * Pass the record's top-level `bankCurrency` when available, since the nested `additionalData.currency` is optional.
  */
-function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined): boolean {
+function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined, bankCurrency?: string): boolean {
     return (
-        accountData?.additionalData?.currency === CONST.CURRENCY.USD &&
-        accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !accountData.additionalData.verifications?.corpay &&
+        // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
+        accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData?.verifications?.corpay &&
         accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
     );
 }
@@ -159,7 +162,7 @@ function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEnt
         }
 
         const accountData = bankAccount.accountData;
-        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData)) {
+        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData, bankAccount.bankCurrency)) {
             return latest;
         }
 
@@ -194,7 +197,7 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
 
     // Admins without a copy of the account can't see its currency, type or verifications, so the banner stays hidden for them
     const bankAccount = bankAccountList?.[bankAccountID];
-    if (bankAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)) {
+    if (bankAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
         return undefined;
     }
 

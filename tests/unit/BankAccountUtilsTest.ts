@@ -267,6 +267,13 @@ describe('BankAccountUtils', () => {
             expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
         });
 
+        it('returns true when only the top-level bank currency is USD', () => {
+            // Given a business account whose nested currency is missing but whose record carries bankCurrency USD
+            // When checking eligibility with that bankCurrency
+            // Then it is eligible, because bankCurrency is the required field and the nested currency is optional
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}}, CONST.CURRENCY.USD)).toBe(true);
+        });
+
         it('returns false when the account is already set up with Corpay', () => {
             // Given a verified USD business account that already has a Corpay verification
             // When checking eligibility

@@ -65,7 +65,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)}
+                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)}
                 onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
