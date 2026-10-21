@@ -12991,8 +12991,9 @@ function canJoinChat(
         return false;
     }
 
-    // For restricted visibility rooms, the user must be a workspace member to join
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail)) {
+    // For restricted visibility rooms, the user must be a non-guest workspace member to join
+    const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
+    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST)) {
         return false;
     }
 
@@ -14972,13 +14973,13 @@ function getStatusBadgeBackgroundColor(theme: ThemeColors, stateNum?: number, st
  * Checks if a workspace member is leaving a workspace room
  * This is used to determine if we need to show special handling when a workspace member leaves a room
  */
-function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean, isPolicyAdminParam: boolean): boolean {
+function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean, isPolicyAdminParam: boolean, isPolicyGuestParam = false): boolean {
     if (!report) {
         return false;
     }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
-    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
+    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee && !isPolicyGuestParam;
 }
 
 /**
