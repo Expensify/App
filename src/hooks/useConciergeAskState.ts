@@ -1,12 +1,17 @@
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isCreatedAction, isReportActionUnread} from '@libs/ReportActionsUtils';
 
 import {useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAskConciergeChat from './useIsAskConciergeChat';
@@ -31,6 +36,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isAskConciergeChat = useIsAskConciergeChat(reportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory} = useConciergeChatHistoryState();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [lastReadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.lastReadTime});
 
@@ -63,10 +69,11 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    const shouldShowWelcome = isAskConciergeChat && !showFullHistory && !shouldKeepMessagesOnScreen && !hasUnreadMessageFromOthers;
+    const isHistoryExpanded = isAskConciergeChat && (showFullHistory || !!route.params?.reportActionID);
+    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && !shouldKeepMessagesOnScreen && !hasUnreadMessageFromOthers;
 
     return {
-        isHistoryExpanded: isAskConciergeChat && showFullHistory,
+        isHistoryExpanded,
         shouldShowWelcome,
         shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
         hasUnreadMessageFromOthers,

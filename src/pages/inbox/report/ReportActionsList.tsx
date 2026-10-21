@@ -24,6 +24,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
@@ -511,7 +512,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             {isConciergeHistoryExpanded && !!hasPreviousMessages && (
                 <ConciergeChatHistoryToggle
                     isHistoryShown
-                    onPress={() => setConciergeShowFullHistory(false)}
+                    onPress={() => {
+                        setConciergeShowFullHistory(false);
+                        if (reportActionIDFromRoute) {
+                            Navigation.setParams({reportActionID: ''}, route.key);
+                        }
+                    }}
                 />
             )}
             <ReportActionsListHeader

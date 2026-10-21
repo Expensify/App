@@ -8,6 +8,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+import type * as NativeNavigation from '@react-navigation/native';
+
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -18,6 +20,12 @@ const CONCIERGE_REPORT_ID = '1';
 const CURRENT_USER_ACCOUNT_ID = 100;
 
 let mockShowFullHistory = false;
+let mockRouteParams: {reportActionID?: string} = {};
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useRoute: () => ({key: 'Report-test', name: 'Report', params: mockRouteParams}),
+}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -51,6 +59,7 @@ describe('useConciergeAskState', () => {
 
     afterEach(async () => {
         mockShowFullHistory = false;
+        mockRouteParams = {};
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, null);
         await waitForBatchedUpdates();
@@ -139,6 +148,19 @@ describe('useConciergeAskState', () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
         // Then the conversation shows instead of the welcome screen
+        expect(result.current.shouldShowWelcome).toBe(false);
+        expect(result.current.isHistoryExpanded).toBe(true);
+    });
+
+    it('shows the conversation when opened from a link to a message', async () => {
+        // Given the user asked Concierge before
+        await setReportActions([createdAction, conciergeMessage, userMessage]);
+
+        // When the Concierge chat opens from a link to Concierge's message
+        mockRouteParams = {reportActionID: conciergeMessage.reportActionID};
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+
+        // Then the linked message shows instead of the welcome screen
         expect(result.current.shouldShowWelcome).toBe(false);
         expect(result.current.isHistoryExpanded).toBe(true);
     });
