@@ -41,7 +41,7 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: 
     }
 
     // Release web independently while the native navigation fixes roll out.
-    if (beta === CONST.BETAS.INSIGHTS_PAGE && getPlatform() === CONST.PLATFORM.WEB) {
+    if ((beta === CONST.BETAS.INSIGHTS_PAGE || beta === CONST.BETAS.INSIGHTS_COMPARE) && getPlatform() === CONST.PLATFORM.WEB) {
         return true;
     }
 
