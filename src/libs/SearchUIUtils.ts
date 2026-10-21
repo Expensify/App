@@ -120,6 +120,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
+import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isTransactionGroupListItemType from './isTransactionGroupListItemType';
 import memoize from './memoize';
@@ -7072,39 +7073,6 @@ function getSettlementStatusBadgeProps(
         default:
             return null;
     }
-}
-
-/**
- * Extracts the core Transaction fields from a TransactionListItemType
- * This removes UI-specific fields like formattedFrom, hash, violations, etc.
- */
-function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
-    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
-
-    const {
-        keyForList,
-        action,
-        allActions,
-        report,
-        from,
-        to,
-        formattedFrom,
-        formattedTo,
-        formattedTotal,
-        formattedMerchant,
-        date,
-        shouldShowMerchant,
-        shouldShowYear: shouldTransactionShowYear,
-        isAmountColumnWide,
-        isTaxAmountColumnWide,
-        violations,
-        hash,
-        accountID,
-        policyID,
-        ...transaction
-    } = item;
-
-    return transaction as OnyxTypes.Transaction;
 }
 
 /**
