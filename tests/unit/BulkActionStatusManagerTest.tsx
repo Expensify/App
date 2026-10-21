@@ -20,10 +20,17 @@ jest.mock('@userActions/BulkAction', () => ({
     clearBulkAction: jest.fn(),
     wasBulkActionInitiatedLocally: jest.fn(() => false),
 }));
-jest.mock('@userActions/Modal', () => ({
-    ...jest.requireActual<typeof Modal>('@userActions/Modal'),
-    close: jest.fn((cb?: () => void) => cb?.()),
-}));
+jest.mock('@userActions/Modal', () => {
+    const actualModal = jest.requireActual<typeof Modal>('@userActions/Modal');
+    return {
+        ...actualModal,
+        // Like the real close(), this runs the open modal's onClose before the callback.
+        close: jest.fn((cb?: () => void) => {
+            actualModal.closeTop();
+            cb?.();
+        }),
+    };
+});
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -103,6 +110,7 @@ describe('BulkActionStatusManager', () => {
 
         // Then Search opens on exactly those reports and the record is cleared
         expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A111%2C222/));
+        expect(mockClearBulkAction).toHaveBeenCalledTimes(1);
         expect(mockClearBulkAction).toHaveBeenCalledWith(BULK_ACTION_ID, expect.objectContaining({state: CONST.BULK_ACTION.STATE.DONE}));
     });
 
