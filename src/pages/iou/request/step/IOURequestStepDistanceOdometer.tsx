@@ -404,7 +404,8 @@ function IOURequestStepDistanceOdometer({
         const calculatedDistance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
 
         if (!isEditing) {
-            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+            // Keep the unit the readings were first entered in, since they aren't converted when the rate's unit changes
+            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft, currentTransaction?.comment?.odometerUnit ?? unit);
             setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         }
         // Local state has just been persisted to the transaction thus the resync guard can be lowered
@@ -447,6 +448,7 @@ function IOURequestStepDistanceOdometer({
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
+                    odometerUnit: transaction?.comment?.odometerUnit ?? undefined,
                     // Not required for odometer distance request
                     transactionBackup: undefined,
                     policy,
