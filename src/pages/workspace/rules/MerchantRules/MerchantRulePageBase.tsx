@@ -44,7 +44,7 @@ import {buildMerchantRule, canEditMerchantRule, getMerchantRuleDraftFromGenerate
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -302,9 +302,7 @@ function MerchantRulePageBase({
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isVendorFeatureEnabled = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
-    const isOnXero = isXeroActiveMatchingSource(policy);
-    const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
-    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
     // `Expense defaults` has not been migrated to the new rules system, so a rule can only carry one condition. The
@@ -609,7 +607,7 @@ function MerchantRulePageBase({
                 isVendorFeatureEnabled
                     ? {
                           key: 'vendorID',
-                          description: vendorFieldLabel,
+                          description: translate('common.vendor'),
                           title: vendorDisplayName,
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID))),
                           icon: icons.Basket,
