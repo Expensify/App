@@ -36,6 +36,14 @@ const PURCHASE_ID = 1001;
 const BOB = {accountID: 2, login: 'bob@example.com', displayName: 'Bob Clyde'};
 const TODD = {accountID: 3, login: 'todd@example.com', displayName: 'Todd Clyde'};
 
+// Enough extra members to reach the search bar threshold together with Bob and Todd
+const OTHER_MEMBERS = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT - 2}, (_, index) => ({
+    accountID: 100 + index,
+    login: `member${index}@example.com`,
+    displayName: `Member ${index}`,
+}));
+const SEARCH_PLACEHOLDER = 'Find an active user';
+
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 function renderPage() {
@@ -75,7 +83,7 @@ describe('PaymentDetailsPage Activity list', () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAYMENT_HISTORY]);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[BOB.accountID]: BOB, [TODD.accountID]: TODD});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries([BOB, TODD, ...OTHER_MEMBERS].map((member) => [member.accountID, member])));
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -97,26 +105,29 @@ describe('PaymentDetailsPage Activity list', () => {
         expect(screen.getByText(BOB.displayName)).toBeOnTheScreen();
         expect(screen.getByText(TODD.displayName)).toBeOnTheScreen();
         expect(screen.getByText(BOB.login)).toBeOnTheScreen();
+
+        // And the search bar is hidden because two members are quick to scan
+        expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).toBeNull();
     });
 
-    it('filters the list as the user searches', async () => {
-        // Given a month with two billed members
-        await setPurchase([TODD.accountID, BOB.accountID]);
+    it('filters the list as the user searches once there are enough members to search', async () => {
+        // Given a month with enough billed members to show the search bar
+        await setPurchase([TODD.accountID, BOB.accountID, ...OTHER_MEMBERS.map((member) => member.accountID)]);
         renderPage();
         await waitForBatchedUpdatesWithAct();
         await screen.findByText(BOB.displayName);
 
         // When the user searches for one of them
-        fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'bob');
+        fireEvent.changeText(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'bob');
 
-        // Then only the matching member stays in the list
+        // Then only the matching member stays in the list, and the count still shows every active user
         await waitFor(() => expect(screen.queryByText(TODD.displayName)).toBeNull());
         expect(screen.getByText(BOB.displayName)).toBeOnTheScreen();
+        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
 
         // And a search that matches nobody shows the no-results message
-        fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'zzzz');
-        // The message is aria-hidden because the search input announces it, so the query has to include hidden elements
-        expect(await screen.findByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
+        fireEvent.changeText(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'zzzz');
+        expect(await screen.findByText('No results found')).toBeOnTheScreen();
         expect(screen.queryByText(BOB.displayName)).toBeNull();
     });
 
@@ -131,7 +142,7 @@ describe('PaymentDetailsPage Activity list', () => {
         // Then the details still show, but the Activity label, the search field, and the count are all hidden
         expect(await screen.findByText('$10.00')).toBeOnTheScreen();
         expect(screen.queryByText('Activity')).toBeNull();
-        expect(screen.queryByTestId('selection-list-text-input')).toBeNull();
+        expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).toBeNull();
         expect(screen.queryByText(/active user/)).toBeNull();
     });
 });

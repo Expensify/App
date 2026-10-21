@@ -21,10 +21,6 @@ export default {
         height: 32,
     },
 
-    h9: {
-        height: 36,
-    },
-
     h10: {
         height: 40,
     },
