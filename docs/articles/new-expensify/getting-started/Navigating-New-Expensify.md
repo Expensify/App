@@ -35,10 +35,9 @@ The navigation tabs include:
 - **Home**
 - **Inbox**
 - **Spend**
-- **Insights**
+- **Insights** (web only)
 - **Workspaces**
-
-To access your account settings, select **Account** in the navigation tabs on web, or select your profile icon on mobile.
+- **Account**
 
 ---
 
@@ -91,7 +90,7 @@ From **Spend**, you can:
 
 ---
 
-## What the Insights tab is used for
+## What the Insights tab on web is used for
 
 **Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
 
@@ -124,9 +123,7 @@ Learn how to [create and set up a company workspace](/articles/new-expensify/get
 
 **Account** contains personal and account-level settings. Select **Account** to open it.
 
-On mobile, **Account** is your profile picture in the top-right corner of the screen. It appears on top-level pages such as **Home**, **Inbox**, **Spend**, **Insights**, and **Workspaces**.
-
-From Account, you can manage:
+From **Account**, you can manage:
 
  - **Profile** to update your personal details
  - **Subscription** to manage your Expensify subscription
@@ -272,15 +269,9 @@ In the navigation tabs (on the left on web, on the bottom on mobile), select **W
 
 ## Where do I update my personal profile or billing information?
 
-On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+Personal information is managed under **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
 
 Then select **Profile** to update your personal information, or **Subscription** to manage billing.
-
-## Where did Account go?
-
-On mobile, **Account** is now accessed through your profile icon instead of the navigation tabs. Select your profile icon to open **Account**.
-
-A tip highlights the new location the first time you see it.
 
 ## What does the green Scan button do?
 
