@@ -168,4 +168,4 @@ function FileDownloadModal({
 FileDownloadModal.displayName = 'FileDownloadModal';
 
 export default FileDownloadModal;
-export type {FileDownloadModalProps, FileDownloadStatus};
+export type {FileDownloadModalProps};
