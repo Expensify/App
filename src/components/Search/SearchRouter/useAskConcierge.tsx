@@ -7,6 +7,8 @@ import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {generateReportID} from '@libs/ReportUtils';
 
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
+
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
 import {createTaskFromMarkdown} from '@userActions/Task';
 
@@ -35,6 +37,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {timezone, accountID: currentUserAccountID} = currentUserPersonalDetails;
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
+    const {setShowFullHistory} = useConciergeChatHistoryActions();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
     const shouldRespondInThread = targetReportID === conciergeReportID;
@@ -46,6 +49,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
         const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
         if (isTask) {
+            if (shouldRespondInThread && !isInSidePanel) {
+                setShowFullHistory(true);
+            }
             openConciergeAnywhere({forceConcierge});
             return;
         }
