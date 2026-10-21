@@ -731,10 +731,10 @@ describe('getRecruitingCards', () => {
             );
         });
 
-        it('falls back to "not set" for the approver when basic mode has none', () => {
+        it('undefined for the approver when basic mode has none', () => {
             // Given a connection in basic mode with no final approver chosen
             // When the default approver row is built
-            // Then the missing approver is called out rather than left blank
+            // Then the missing approver is undefiend
             expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: null}})).toBe(
                 'workspace.merge.approvalModes.basic • workspace.merge.notSet',
             );
