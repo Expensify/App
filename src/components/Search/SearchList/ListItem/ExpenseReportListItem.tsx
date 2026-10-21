@@ -342,6 +342,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             bankAccountList,
         });
     }, [
+        formatPhoneNumber,
         currentSearchHash,
         reportItem,
         isASAPSubmitBetaEnabled,

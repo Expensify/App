@@ -94,6 +94,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         },
         [
             isDelegateAccessRestricted,
+            formatPhoneNumber,
             currentSearchHash,
             selectedTransactionsForReject,
             allPolicies,

@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
+
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
@@ -73,6 +75,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
+        formatPhoneNumber,
         translate: (key: string) => {
             const translations = new Map([
                 ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
@@ -420,7 +423,7 @@ describe('useCreateNavigationSuggestions', () => {
         act(() => onCreateReport?.(submitPolicy, true));
 
         // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, formatPhoneNumber, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

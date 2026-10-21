@@ -245,6 +245,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
@@ -274,6 +275,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,

@@ -370,6 +370,7 @@ function ReportSubmitToContent({
         });
     }, [
         hasSelectedSubmitToMember,
+        formatPhoneNumber,
         selectedSubmitToMember?.accountID,
         employeePersonalDetails,
         managerEmail,
