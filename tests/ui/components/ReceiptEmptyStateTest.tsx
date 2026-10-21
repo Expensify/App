@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
@@ -6,6 +6,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React from 'react';
+import {View as MockView} from 'react-native';
 
 import {translateLocal} from '../../utils/TestHelper';
 
@@ -24,13 +25,7 @@ jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObje
 }));
 
 // ReceiptAlternativeMethods uses RenderHTML which requires TRenderEngineProvider (buildTTree). Mock to avoid the error.
-jest.mock(
-    '@components/ReceiptAlternativeMethods',
-    () =>
-        function MockReceiptAlternativeMethods() {
-            return null;
-        },
-);
+jest.mock('@components/ReceiptAlternativeMethods', () => () => <MockView testID="receipt-alternative-methods" />);
 
 function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
@@ -42,6 +37,22 @@ describe('ReceiptEmptyState', () => {
     });
 
     describe('wide RHP attachment picker flow', () => {
+        it('keeps alternative receipt methods outside the upload button', () => {
+            // Given an editable wide receipt panel with alternative actions.
+            render(
+                <Wrapper>
+                    <ReceiptEmptyState isDisplayedInWideRHP />
+                </Wrapper>,
+            );
+
+            // When the upload button and alternative methods are inspected.
+            const uploadButton = screen.getByRole('button', {name: translateLocal('receipt.upload')});
+
+            // Then alternative links cannot become nested interactive button content.
+            expect(screen.getByTestId('receipt-alternative-methods')).toBeOnTheScreen();
+            expect(within(uploadButton).queryByTestId('receipt-alternative-methods')).toBeNull();
+        });
+
         it('calls openPicker when pressed and isDisplayedInWideRHP is true', () => {
             // Given a wide receipt panel with its own picker action.
             render(
