@@ -9,7 +9,18 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 
-import {AMOUNT_TEST_ID, FOOTER_TEST_ID, INPUT_TEST_ID, PAD_TEST_ID, ROOT_TEST_ID, getLayoutStyles, renderLayout, renderWithProviders} from '../utils/NumericInputLayoutTestUtils';
+import findAncestorWithStyle from '../utils/findAncestorWithStyle';
+import {
+    AMOUNT_TEST_ID,
+    FOOTER_TEST_ID,
+    INPUT_TEST_ID,
+    MAIN_TEST_ID,
+    PAD_TEST_ID,
+    ROOT_TEST_ID,
+    getLayoutStyles,
+    renderLayout,
+    renderWithProviders,
+} from '../utils/NumericInputLayoutTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const PORTRAIT_PHONE = {windowWidth: 390, windowHeight: 844};
@@ -62,9 +73,10 @@ describe('NumericInput layout without touch screen', () => {
     it.each([
         ['portrait', PORTRAIT_PHONE],
         ['landscape', LANDSCAPE_PHONE],
-    ])('places the actions right under the amount in %s', async (_orientation, windowDimensions) => {
+    ])('places the actions right under the amount in %s', async (orientation, windowDimensions) => {
         // Given a device without a touch screen, in either orientation, and a currency button passed as an action
         mockWindowDimensions.mockReturnValue(windowDimensions);
+        const styles = getLayoutStyles();
 
         // When the layout renders
         renderWithProviders(
@@ -85,10 +97,24 @@ describe('NumericInput layout without touch screen', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the currency button is rendered inside the centered amount area alongside the input, with the error shown too
+        // Then the currency button sits inside the amount area but outside the horizontal input row, placed under it
         const currencyButton = screen.getByText('USD');
+        const inputRow = findAncestorWithStyle(screen.getByTestId(INPUT_TEST_ID), 'flexDirection', 'row');
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(currencyButton);
-        expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(screen.getByTestId(INPUT_TEST_ID));
-        expect(screen.getByText('Test error')).toBeOnTheScreen();
+        expect(inputRow).toBeDefined();
+        expect(inputRow).not.toContainElement(currencyButton);
+
+        // Then the error is positioned according to the orientation without touch screen spacing
+        const error = screen.getByText('Test error');
+        if (orientation === 'portrait') {
+            const floatingError = findAncestorWithStyle(error, 'position', 'absolute');
+            expect(floatingError).toBeDefined();
+            expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(floatingError ?? null);
+            expect(floatingError).toHaveStyle({...styles.b0, ...styles.mb3});
+        } else {
+            expect(screen.getByTestId(MAIN_TEST_ID)).toContainElement(error);
+            expect(screen.getByTestId(AMOUNT_TEST_ID)).not.toContainElement(error);
+            expect(findAncestorWithStyle(error, 'position', 'absolute')).toBeUndefined();
+        }
     });
 });

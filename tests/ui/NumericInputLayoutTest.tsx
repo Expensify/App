@@ -245,9 +245,11 @@ describe('NumericInput layout', () => {
     });
 
     it.each([
-        ['a single column', PORTRAIT_PHONE],
-        ['two columns', LANDSCAPE_PHONE],
-    ])('keeps the input focused and collapses selection when pressing an empty area of the layout in %s', async (_, windowDimensions) => {
+        ['a single column footer', PORTRAIT_PHONE, FOOTER_TEST_ID],
+        ['a single column pad gap', PORTRAIT_PHONE, PAD_TEST_ID],
+        ['two columns footer', LANDSCAPE_PHONE, FOOTER_TEST_ID],
+        ['two columns pad gap', LANDSCAPE_PHONE, PAD_TEST_ID],
+    ])('keeps the input focused and collapses selection when pressing an empty area of the layout in %s', async (_, windowDimensions, targetTestID) => {
         // Given an input with a highlighted range, so the refocus has a selection to collapse, in a layout whose root differs per column count
         mockWindowDimensions.mockReturnValue(windowDimensions);
         const inputRef = React.createRef<BaseTextInputRef>();
@@ -265,7 +267,7 @@ describe('NumericInput layout', () => {
 
         // When pressing an empty area of the layout, which bubbles up to the layout root
         const event = createMouseDownEvent(document.createElement('div'));
-        fireEvent(screen.getByTestId(FOOTER_TEST_ID), 'mouseDown', event);
+        fireEvent(screen.getByTestId(targetTestID), 'mouseDown', event);
         await waitForBatchedUpdatesWithAct();
 
         // Then the browser blur is prevented, the selection collapses, and the input is refocused
@@ -365,7 +367,7 @@ describe('NumericInput layout', () => {
         const event = {...createMouseDownEvent(document.createElement('div')), isDefaultPrevented: () => true};
 
         // When the event bubbles up to the layout root
-        fireEvent(screen.getByTestId(MAIN_TEST_ID), 'mouseDown', event);
+        fireEvent(screen.getByTestId(FOOTER_TEST_ID), 'mouseDown', event);
         await waitForBatchedUpdatesWithAct();
 
         // Then the root leaves it alone and does not refocus the input on top of the control
@@ -432,7 +434,7 @@ describe('NumericInput layout', () => {
         const floatingError = findAncestorWithStyle(error, 'position', 'absolute');
         expect(floatingError).toBeDefined();
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toContainElement(floatingError ?? null);
-        expect(floatingError).toHaveStyle(styles.mb5);
+        expect(floatingError).toHaveStyle({...styles.b0, ...styles.mb5});
 
         // Then the amount container reserves minimum height to prevent layout shifts
         expect(findAncestorWithStyle(screen.getByTestId(INPUT_TEST_ID), 'minHeight', styles.moneyRequestAmountContainer.minHeight)).toBeDefined();
