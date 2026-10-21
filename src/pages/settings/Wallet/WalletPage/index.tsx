@@ -538,6 +538,34 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowEnableGlobalReimbursementsButton
+                ? [
+                      {
+                          text: translate('common.enableGlobalReimbursements'),
+                          icon: icons.Globe,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              if (isWiseGlobalReimbursementsEnabled) {
+                                  closeModal(() =>
+                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                                  );
+                                  return;
+                              }
+                              closeModal(() =>
+                                  Navigation.navigate(
+                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                          paymentMethod.selectedPaymentMethod.bankAccountID,
+                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                      ),
+                                  ),
+                              );
+                          },
+                      },
+                  ]
+                : []),
             ...(shouldShowEditNicknameButton
                 ? [
                       {
@@ -596,34 +624,6 @@ function WalletPage() {
                     });
                 },
             },
-            ...(shouldShowEnableGlobalReimbursementsButton
-                ? [
-                      {
-                          text: translate('common.enableGlobalReimbursements'),
-                          icon: icons.Globe,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              if (isWiseGlobalReimbursementsEnabled) {
-                                  closeModal(() =>
-                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
-                                  );
-                                  return;
-                              }
-                              closeModal(() =>
-                                  Navigation.navigate(
-                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
-                                          paymentMethod.selectedPaymentMethod.bankAccountID,
-                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                                      ),
-                                  ),
-                              );
-                          },
-                      },
-                  ]
-                : []),
         ],
         [
             shouldUseNarrowLayout,
