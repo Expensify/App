@@ -1,5 +1,6 @@
 import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -38,6 +39,7 @@ function useWideModalStackScreenOptions() {
     const {windowWidth} = useWindowDimensions();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
+    const isResizableSingleRHP = useIsResizableSingleRHP();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -70,6 +72,8 @@ function useWideModalStackScreenOptions() {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
                         containerStyle: styles.overflowVisible,
                     });
+                } else if (isResizableSingleRHP) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles});
                 }
             }
 
@@ -89,7 +93,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, windowWidth, wideRHPRouteKeys],
+        [StyleUtils, isResizableSingleRHP, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, windowWidth, wideRHPRouteKeys],
     );
 }
 

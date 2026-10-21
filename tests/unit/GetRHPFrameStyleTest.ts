@@ -13,7 +13,13 @@ import createMock from '../utils/createMock';
 const getRHPFrameStyleWeb = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.ts').default;
 const getRHPFrameStyleNative = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.native.ts').default;
 
+// The bare specifier resolves to the native stub under jest-expo, so the web card is built against the web width helper.
+jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/singleRHPWidth/index.ts'));
+
 const RHP_WIDTH = 375;
+
+/** The single RHP's width read from CSS, falling back to the default width, with the card's border added. */
+const FLOATING_CARD_WIDTH = `calc(var(--rhp-width, ${variables.rhpWidth}px) + ${2 * variables.rhpFloatingCardBorderWidth}px)`;
 
 const styles = createMock<ThemeStyles>({
     pAbsolute: {position: 'absolute'},
@@ -34,25 +40,20 @@ function getWidth(style: ReturnType<GetRHPFrameStyle>) {
     return (style as Array<{width?: unknown}>).at(-1)?.width;
 }
 
-// An animated node only exposes its current value through this internal getter, hence the cast and the underscored-name disables.
-function readAnimatedValue(width: unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention, no-underscore-dangle
-    return (width as {__getValue: () => number}).__getValue();
-}
-
 describe('getRHPFrameStyle', () => {
-    it('gives a standalone web RHP a floating card whose width absorbs the border', () => {
+    it('gives a standalone web RHP a floating card at the resizable width, absorbing the border', () => {
         // Given one RHP card on web with nothing stacked on or under it, the only case where the frame itself has to look like a card
         const params = {styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: false, shouldUseCenteredFrame: false};
 
         // When the frame style is built for it
         const style = getRHPFrameStyleWeb(params);
 
-        // Then it gets the floating card with the width absorbing the border, because the card is border-box and its fixed-width panes clip without the compensation.
+        // Then it gets the floating card at the width a drag of its edge writes to CSS, which is the default width until a drag happens,
+        // plus the border, because the card is border-box and its content clips without the compensation.
         expect(style).toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.r0);
-        expect(readAnimatedValue(getWidth(style))).toBe(RHP_WIDTH + 2 * variables.rhpFloatingCardBorderWidth);
+        expect(getWidth(style)).toBe(FLOATING_CARD_WIDTH);
     });
 
     it('gives the stacked report flow an invisible frame that neither clips nor compensates for a border', () => {
@@ -115,13 +116,12 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
         // When the frame style is built for it
         const style = getRHPFrameStyleWeb(params);
 
-        // Then it floats like any other RHP card, border included, so it lines up with the skinny cards behind it instead of standing out as a narrower panel.
-        // The width stays a plain number, since a panel that never animates its width must not need an Animated component.
+        // Then it floats like any other RHP card at the same width, border included, so it lines up with the skinny cards behind it instead of standing out as a narrower panel.
         expect(style).toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.r0);
         expect(style).not.toContain(styles.h100);
         expect(style).not.toContain(styles.RHPCenteredFrame);
-        expect(getWidth(style)).toBe(variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth);
+        expect(getWidth(style)).toBe(FLOATING_CARD_WIDTH);
     });
 
     it('keeps the panel full-bleed on native', () => {

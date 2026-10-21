@@ -2,6 +2,8 @@ import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelCo
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,16 +42,17 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ComponentRef} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import RHPOverlay from './Overlay/RHPOverlay';
+import RHPResizeHandle from './RHPResizeHandle';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
@@ -100,6 +103,9 @@ type RightModalDialogFrameProps = {
     /** Animated style applied to the RHP container. */
     style: React.ComponentProps<typeof Animated.View>['style'];
 
+    /** Style of a box around the stack navigator, which is rendered without one when this is undefined. */
+    contentStyle?: StyleProp<ViewStyle>;
+
     /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
@@ -115,7 +121,7 @@ type RightModalDialogFrameProps = {
  * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
  * Header also announces "{title}, dialog" via a polite live region when the title is ready.
  */
-function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
+function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
 
@@ -129,7 +135,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}
         >
-            {children}
+            {contentStyle ? <View style={contentStyle}>{children}</View> : children}
         </Animated.View>
     );
 }
@@ -157,6 +163,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
+    const {isBetaEnabled} = usePermissions();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
     // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
@@ -218,6 +225,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const isResizableRHPEnabled = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP);
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+
+    // The box stays mounted for any layout once the beta is on, because adding or removing it would remount the whole stack.
+    let stackContentStyle: StyleProp<ViewStyle>;
+    if (isResizableSingleRHP) {
+        stackContentStyle = styles.singleRHPStackMeasureBox;
+    } else if (isResizableRHPEnabled) {
+        stackContentStyle = styles.flex1;
+    }
 
     const screenListeners = useMemo(
         () => ({
@@ -302,6 +319,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
                         style={frameStyle}
+                        contentStyle={stackContentStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -597,6 +615,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
+                {isResizableSingleRHP && <RHPResizeHandle sidePanelOffset={sidePanelOffset.current} />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

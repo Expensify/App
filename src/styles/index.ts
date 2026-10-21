@@ -5,6 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -2877,7 +2878,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        tableColumnResizeIndicator: {
+        resizeIndicator: {
             backgroundColor: theme.iconMenu,
         },
 
@@ -6782,6 +6783,35 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
+        // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
+        // it is dragged to, independent of the box react-navigation measures (singleRHPStackMeasureBox).
+        singleRHPCardInterpolatorStyles: {
+            ...positioning.pFixed,
+            top: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+        },
+
+        // react-navigation's stack keeps the size of the box it renders in as React state, so this box keeps the default width
+        // while the single RHP is dragged and the stack never re-renders mid-drag.
+        singleRHPStackMeasureBox: {
+            ...positioning.pAbsolute,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: variables.rhpWidth,
+        },
+
+        // Straddles the single RHP card's left edge.
+        rhpResizeHandleHitArea: {
+            ...positioning.pAbsolute,
+            top: 0,
+            bottom: 0,
+            width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
+            right: getSingleRHPWidthStyleValue(-CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -7122,6 +7152,16 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Anchored to the single RHP card's right edge, so its child can sit a card's width further left.
+        rhpResizeHandleAnchor: (right: Animated.AnimatedAddition<number>) =>
+            ({
+                ...positioning.pFixed,
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
+                width: 0,
+                right,
+            }) satisfies ViewStyle,
+
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer.
         offlineIndicatorAboveFooter: (footerHeight: number) =>

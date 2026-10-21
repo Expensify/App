@@ -4,8 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
-
-import variables from '@styles/variables';
+import {getSingleRHPWidth} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -63,7 +62,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             return {cardStyle: {...cardStyle, opacity: progress}};
         }
 
-        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.rhpWidth;
+        const widthFallback = shouldUseNarrowLayout ? screen.width : getSingleRHPWidth();
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
         const translateX = Animated.multiply(
