@@ -32,7 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {findSelfDMReportID} from '@libs/ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,23 +141,37 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             const targetIOUAction =
                 getIOUActionForReportID(targetExpenseReportID, targetTransaction.transactionID) ??
                 getIOUActionForTransactionID(Object.values(targetSnapshotReportActions ?? {}), targetTransaction.transactionID);
-            const createdTransactionThreadReport = createTransactionThreadReport({
-                introSelected,
-                currentUserLogin: currentUserEmailParam,
-                currentUserAccountID: currentUserAccountIDParam,
-                iouReport: targetTransactionReport,
-                iouReportAction: targetIOUAction,
-                transaction: targetTransaction,
-                transactionViolations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`],
-                personalDetails,
-                conciergeChat,
-                hasOptimisticReportActions: true,
-            });
 
-            if (createdTransactionThreadReport) {
-                targetTransactionThreadReportIDForMerge = createdTransactionThreadReport.reportID;
-                targetTransactionThreadReportForMerge = createdTransactionThreadReport;
+            // That action can already point at a thread: getTransactionThreadReportID reads childReportID through the
+            // main Onyx collection only, so a thread known just to the snapshot reads as missing here. Reuse it rather
+            // than calling createTransactionThreadReport, which always mints a fresh ID and would leave the expense
+            // with a second thread.
+            const existingTargetThreadReportID = targetIOUAction?.childReportID;
+            if (existingTargetThreadReportID) {
+                targetTransactionThreadReportIDForMerge = existingTargetThreadReportID;
+                targetTransactionThreadReportForMerge = getReportOrDraftReport(existingTargetThreadReportID, [
+                    currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTargetThreadReportID}`],
+                ]);
                 targetTransactionThreadParentReportForMerge = targetTransactionReport;
+            } else {
+                const createdTransactionThreadReport = createTransactionThreadReport({
+                    introSelected,
+                    currentUserLogin: currentUserEmailParam,
+                    currentUserAccountID: currentUserAccountIDParam,
+                    iouReport: targetTransactionReport,
+                    iouReportAction: targetIOUAction,
+                    transaction: targetTransaction,
+                    transactionViolations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`],
+                    personalDetails,
+                    conciergeChat,
+                    hasOptimisticReportActions: true,
+                });
+
+                if (createdTransactionThreadReport) {
+                    targetTransactionThreadReportIDForMerge = createdTransactionThreadReport.reportID;
+                    targetTransactionThreadReportForMerge = createdTransactionThreadReport;
+                    targetTransactionThreadParentReportForMerge = targetTransactionReport;
+                }
             }
         }
 
