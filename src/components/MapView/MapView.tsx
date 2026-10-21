@@ -61,7 +61,7 @@ function MapView({
 }: MapViewProps) {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
@@ -349,11 +349,18 @@ function MapView({
     const initCenterCoordinate = useMemo(() => (interactive && !hasWaypoints ? centerCoordinate : undefined), [interactive, hasWaypoints, centerCoordinate]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
+    // Localize the map labels to the user's preferred app locale so they match the rest of the app.
+    const localizeLabels = useMemo<{locale: string} | undefined>(() => {
+        const language = utils.getNativeMapboxLanguage(preferredLocale);
+        return language ? {locale: language} : undefined;
+    }, [preferredLocale]);
+
     return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
+                localizeLabels={localizeLabels}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
                 onTouchStart={() => {

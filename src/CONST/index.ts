@@ -351,6 +351,9 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+
+    /** Smallest height a dropdown popover shrinks to before it stops being usable */
+    POPOVER_DROPDOWN_MIN_USABLE_HEIGHT: 200,
     POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
@@ -628,6 +631,7 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             RESTRICT_CARD_SPEND: 'restrictCardSpend',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            CATEGORY_TAX_RATE: 'categoryTaxRate',
         },
     },
 
@@ -971,7 +975,7 @@ const CONST = {
         FILE_LIMIT: 1,
     },
     DYNAMIC_FORM: {
-        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
         LARGE_SELECT_MIN_OPTIONS: 10,
 
         /** Most questions sharing a page when pages are built from a flat list of fields */
@@ -982,6 +986,214 @@ const CONST = {
 
         /** Route segment of the confirmation page, which no page may take */
         CONFIRMATION_PAGE_KEY: 'confirm',
+    },
+    GLOBAL_REIMBURSEMENT_PROVIDER: {
+        WISE: 'WISE',
+        CORPAY: 'CORPAY',
+    },
+    WISE: {
+        /** Server-derived state of the Wise onboarding */
+        ONBOARDING_STATUS: {
+            IN_REVIEW: 'IN_REVIEW',
+            ACTION_REQUIRED: 'ACTION_REQUIRED',
+            APPROVED: 'APPROVED',
+            NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** Wise's state for one KYC requirement */
+        KYC_REQUIREMENT_STATE: {
+            NOT_PROVIDED: 'NOT_PROVIDED',
+            IN_REVIEW: 'IN_REVIEW',
+            VERIFIED: 'VERIFIED',
+            REJECTED: 'REJECTED',
+        },
+        /** Who asked for the requirement: us before Submit, Wise after */
+        KYC_REQUIREMENT_REQUESTED_BY: {
+            EXPENSIFY: 'EXPENSIFY',
+            WISE: 'WISE',
+        },
+        /** Wise's KYC requirement types we collect */
+        KYC_REQUIREMENT: {
+            ID_DOCUMENT: 'ID_DOCUMENT',
+        },
+        /** Wise's companyType values, the legal form */
+        COMPANY_TYPE: {
+            LIMITED: 'LIMITED',
+            PARTNERSHIP: 'PARTNERSHIP',
+            SOLE_TRADER: 'SOLE_TRADER',
+            LIMITED_BY_GUARANTEE: 'LIMITED_BY_GUARANTEE',
+            LIMITED_LIABILITY_COMPANY: 'LIMITED_LIABILITY_COMPANY',
+            FOR_PROFIT_CORPORATION: 'FOR_PROFIT_CORPORATION',
+            NON_PROFIT_CORPORATION: 'NON_PROFIT_CORPORATION',
+            LIMITED_PARTNERSHIP: 'LIMITED_PARTNERSHIP',
+            LIMITED_LIABILITY_PARTNERSHIP: 'LIMITED_LIABILITY_PARTNERSHIP',
+            GENERAL_PARTNERSHIP: 'GENERAL_PARTNERSHIP',
+            SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',
+            PRIVATE_LIMITED_COMPANY: 'PRIVATE_LIMITED_COMPANY',
+            PUBLIC_LIMITED_COMPANY: 'PUBLIC_LIMITED_COMPANY',
+            TRUST: 'TRUST',
+            OTHER: 'OTHER',
+        },
+        /** Wise's companyRole values */
+        COMPANY_ROLE: {
+            OWNER: 'OWNER',
+            DIRECTOR: 'DIRECTOR',
+            OTHER: 'OTHER',
+        },
+        /** Wise's industryCategories values, keys only */
+        INDUSTRY_CATEGORIES: [
+            'GROWING_OF_CROPS_AGRICULTURE',
+            'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',
+            'LIVESTOCK_FARMING_ANIMAL_PRODUCTION',
+            'FORESTRY_LOGGING',
+            'COMMERCIAL_FISHING_AQUACULTURE_SERVICES',
+            'EXTRACTION_OF_FOSSIL_FUELS',
+            'EXTRACTION_OF_METALS_GOLD_SILVER',
+            'QUARRYING_OF_CONSTRUCTION_INDUSTRIAL_MINERALS',
+            'EXTRACTION_OF_PRECIOUS_STONES_SPECIALISED_MINERALS',
+            'MANUFACTURE_OF_FOOD_PRODUCTS_PREPARED_MEALS',
+            'MANUFACTURE_OF_ALCOHOLIC_BEVERAGES_MALT',
+            'MANUFACTURE_OF_SOFT_DRINKS_BOTTLED_WATERS',
+            'MANUFACTURE_OF_TOBACCO_PRODUCTS',
+            'MANUFACTURE_OF_TEXTILES_APPAREL_FOOTWEAR',
+            'MANUFACTURE_OF_FUR_LEATHER_GOODS',
+            'MANUFACTURE_OF_WOOD_WOOD_BASED_PRODUCTS',
+            'MANUFACTURE_OF_PAPER_PAPER_PRODUCTS',
+            'PRINTING_MEDIA_REPRODUCTION_SERVICES',
+            'MANUFACTURE_OF_CHEMICALS_PETROLEUM_REFINED_PRODUCTS',
+            'MANUFACTURE_OF_COATINGS_INKS_PIGMENTS',
+            'MANUFACTURE_OF_PLASTIC_RUBBER_PRODUCTS',
+            'HOUSEHOLD_BEAUTY_AGRICULTURAL_CHEMICALS',
+            'MANUFACTURE_OF_PHARMACEUTICALS_MEDICINES',
+            'MANUFACTURE_PROCESSING_OF_GLASS_PRODUCTS',
+            'MANUFACTURE_OF_CERAMICS_CLAY_PRODUCTS',
+            'MANUFACTURE_OF_CEMENT_CONCRETE_STONE_PRODUCTS',
+            'MANUFACTURE_OF_BASIC_IRON_STEEL_NON_FERROUS_METALS',
+            'PRODUCTION_OF_PRECIOUS_METALS',
+            'PROCESSING_OF_NUCLEAR_FUEL',
+            'CASTING_OF_METALS_FOUNDRY_SERVICES',
+            'MANUFACTURE_OF_STRUCTURAL_METAL_PRODUCTS',
+            'MANUFACTURE_OF_METAL_TANKS_BOILERS_STEAM_GENERATORS',
+            'MANUFACTURE_OF_WEAPONS_AMMUNITION_MILITARY_VEHICLES',
+            'METAL_TREATMENT_PRECISION_MACHINING',
+            'MANUFACTURE_OF_TOOLS_HARDWARE_METAL_PACKAGING',
+            'MANUFACTURE_OF_COMPUTERS_ELECTRONICS_MEDICAL_OPTICAL_INSTRUMENTS',
+            'MANUFACTURE_OF_JEWELLERY_WATCHES',
+            'MANUFACTURE_OF_ELECTRICAL_EQUIPMENT_DOMESTIC_APPLIANCES',
+            'GENERAL_PURPOSE_MACHINERY_MECHANICAL_POWER',
+            'SPECIAL_PURPOSE_INDUSTRIAL_PROCESS_MACHINERY',
+            'MANUFACTURE_OF_MOTOR_VEHICLES_TRAILERS_LIGHT_TRANSPORT',
+            'MANUFACTURE_OF_MARINE_RAIL_AEROSPACE_EQUIPMENT',
+            'MANUFACTURE_OF_FURNITURE_MATTRESSES_CLEANING_TOOLS',
+            'MANUFACTURE_OF_MUSICAL_SPORTS_LEISURE_MISCELLANEOUS_GOODS',
+            'MANUFACTURE_OF_MEDICAL_DENTAL_INSTRUMENTS_AND_SUPPLIES',
+            'REPAIR_INSTALLATION_OF_INDUSTRIAL_EQUIPMENT',
+            'ELECTRIC_POWER_GENERATION_TRANSMISSION_SUPPLY',
+            'MANUFACTURE_DISTRIBUTION_TRADE_OF_GAS',
+            'STEAM_AIR_CONDITIONING_SUPPLY',
+            'WATER_SUPPLY_SEWERAGE_WASTE_MANAGEMENT',
+            'DEVELOPMENT_CONSTRUCTION_OF_BUILDINGS',
+            'CIVIL_ENGINEERING_INFRASTRUCTURE_CONSTRUCTION',
+            'ELECTRICAL_PLUMBING_SPECIALISED_BUILDING_INSTALLATION',
+            'BUILDING_COMPLETION_FINISHING_TRADES',
+            'ROOFING_SCAFFOLDING_ROOFING_OTHER_SPECIALISED_CONSTRUCTION_ACTIVITIES',
+            'AUTOMOTIVE_SALES_PARTS_SERVICES',
+            'WHOLESALE_OF_PHARMACEUTICALS_MEDICAL_SUPPLIES',
+            'WHOLESALE_OF_WATCHES_AND_JEWELLERY',
+            'WHOLESALE_OF_INDUSTRIAL_FUELS_CHEMICALS',
+            'WHOLESALE_OF_METALS_METAL_ORES',
+            'COMMISSION_AGENTS_GENERAL_TRADE_INTERMEDIARIES',
+            'WHOLESALE_OF_FRESH_PERISHABLE_FOODS',
+            'WHOLESALE_OF_CROPS_SEEDS_FLOWERS',
+            'WHOLESALE_OF_LIVESTOCK_ANIMAL_BY_PRODUCTS',
+            'WHOLESALE_OF_TEXTILES_CLOTHING',
+            'WHOLESALE_OF_JUICES_TEA_COFFEE_SPICES',
+            'WHOLESALE_OF_ALCOHOL',
+            'GENERAL_FOOD_BEVERAGE_TOBACCO_WHOLESALE',
+            'WHOLESALE_OF_ELECTRONICS_HOUSEHOLD_GOODS',
+            'WHOLESALE_OF_HEAVY_INDUSTRIAL_AGRICULTURAL_MACHINERY',
+            'WHOLESALE_OF_BUILDING_PLUMBING_TRADE_SUPPLIES',
+            'GENERALIST_MISCELLANEOUS_INDUSTRIAL_WHOLESALE',
+            'GROCERY_SUPERMARKETS_SPECIALIST_FOOD_RETAIL',
+            'ALCOHOL_TOBACCO_RETAIL',
+            'RETAIL_SALE_OF_WATCHES_AND_JEWELLERY',
+            'RETAIL_OF_ART_ANTIQUES_SPECIALISED_GOODS',
+            'PHARMACIES_HEALTH_BEAUTY_RETAIL',
+            'AUTOMOTIVE_FUEL_RETAIL',
+            'RETAIL_OF_ELECTRONICS_DIGITAL_EQUIPMENT',
+            'RETAIL_OF_HOME_GARDEN_DIY',
+            'BOOKS_SPORTS_RECREATIONAL_GOODS_RETAIL',
+            'RETAIL_OF_CLOTHING_FOOTWEAR',
+            'E_COMMERCE_DIRECT_TO_CONSUMER_RETAIL',
+            'PUBLIC_MASS_TRANSIT_SCHEDULED',
+            'PRIVATE_AVIATION_CHARTER_SERVICES',
+            'TAXIS_PRIVATE_HIRE_VEHICLES',
+            'FREIGHT_TRANSPORT_LOGISTICS_LAND_WATER_AIR_PIPELINE',
+            'SPACE_TRANSPORT_SATELLITE_LAUNCH_SERVICES',
+            'WAREHOUSING_CARGO_HANDLING_TRANSPORT_SUPPORT',
+            'POSTAL_COURIER_SERVICES',
+            'HOTELS_SHORT_STAY_ACCOMMODATION',
+            'RESTAURANTS_CATERING_BEVERAGE_SERVICES',
+            'MEDIA_CONTENT_PUBLISHING',
+            'SOFTWARE_DEVELOPMENT_PUBLISHING',
+            'FILM_RADIO_TV_MUSIC_PRODUCTION',
+            'TELECOMMUNICATIONS_NETWORKS_SERVICES',
+            'IT_CONSULTANCY_TECHNICAL_SUPPORT_SERVICES',
+            'DATA_HOSTING_WEB_PORTALS',
+            'NEWS_AGENCIES_SPECIALISED_INFORMATION_SERVICES',
+            'BANKING_CREDIT_FINANCIAL_INTERMEDIATION',
+            'HOLDING_COMPANIES',
+            'INVESTMENT_FUNDS_BROKERAGE_ASSET_MANAGEMENT',
+            'INSURANCE_REINSURANCE',
+            'PENSION_FUNDING_RETIREMENT_SERVICES',
+            'REAL_ESTATE_OWNERSHIP_LETTING',
+            'REAL_ESTATE_AGENCIES',
+            'PROPERTY_FACILITIES_MANAGEMENT_SERVICES',
+            'LEGAL_ACCOUNTING_MANAGEMENT_CONSULTANCY',
+            'ARCHITECTURE_ENGINEERING_TECHNICAL_CONSULTING',
+            'BUSINESS_STRATEGY_MANAGEMENT',
+            'MARKET_RESEARCH_PR_MEDIA_REPRESENTATION',
+            'ADVERTISING_DESIGN_PHOTOGRAPHY',
+            'SCIENTIFIC_RESEARCH_EXPERIMENTAL_DEVELOPMENT',
+            'TRANSLATION_INTERPRETATION_SERVICES',
+            'VETERINARY_SERVICES',
+            'VEHICLE_TRANSPORT_EQUIPMENT_LEASING',
+            'LEASING_OF_INTELLECTUAL_PROPERTY_IP',
+            'INDUSTRIAL_CONSTRUCTION_OFFICE_EQUIPMENT_LEASING',
+            'CONSUMER_LEISURE_HOUSEHOLD_GOODS_RENTAL',
+            'EMPLOYMENT_RECRUITMENT_HR_PROVISION',
+            'SECURITY_INVESTIGATION_SURVEILLANCE_SERVICES',
+            'BUSINESS_PROCESS_ADMINISTRATIVE_SUPPORT',
+            'CALL_CENTRES_DEBT_RECOVERY_SERVICES',
+            'CONFERENCES_EXHIBITIONS_TRADE_SHOWS',
+            'TRAVEL_AGENCIES_TOUR_OPERATORS_TOURIST_SERVICES',
+            'FACILITIES_MANAGEMENT_CLEANING',
+            'PUBLIC_ADMINISTRATION_REGULATION_DEFENCE',
+            'JUSTICE_PUBLIC_SAFETY_SOCIAL_SECURITY',
+            'SCHOOLS_COLLEGES_HIGHER_EDUCATION',
+            'SPECIALISED_TRAINING_EDUCATIONAL_SUPPORT',
+            'CLINICAL_HEALTHCARE_HOSPITALS_MEDICAL_PRACTICES',
+            'RESIDENTIAL_CARE_NURSING_FACILITIES',
+            'SOCIAL_WORK_CHILDCARE_COMMUNITY_SERVICES',
+            'GAMBLING_AND_BETTING_ACTIVITIES',
+            'ARTISTIC_CREATION_VENUES',
+            'PERFORMING_ARTS',
+            'HERITAGE_MUSEUMS_NATURE_PRESERVATION',
+            'THEME_PARKS_LEISURE_ATTRACTIONS',
+            'PROFESSIONAL_SPORTS_TEAMS_ATHLETES',
+            'SPORTS_FACILITIES_FITNESS_CENTRES',
+            'BUSINESS_PROFESSIONAL_LABOUR_ASSOCIATIONS',
+            'RELIGIOUS_ORGANISATIONS_SPIRITUAL_ACTIVITIES',
+            'POLITICAL_ORGANISATIONS_ADVOCACY',
+            'REPAIR_OF_COMPUTERS_ELECTRONICS_PERSONAL_GOODS',
+            'FUNERAL_CARE_RELATED_ACTIVITIES',
+            'WELLBEING_PERSONAL_SERVICES',
+            'HAIRDRESSING_BEAUTY_TREATMENT',
+            'LAUNDRY_DRY_CLEANING_SERVICES',
+            'REPAIR_OF_WATCHES_CLOCKS_JEWELLERY',
+            'DOMESTIC_EMPLOYERS_HOUSEHOLD_STAFF',
+            'RESIDENTS_PROPERTY_MANAGEMENT',
+            'DIPLOMATIC_BODIES',
+        ],
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -1188,6 +1400,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         BUSINESS_CENTRAL: 'businessCentral',
+        EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1207,6 +1420,7 @@ const CONST = {
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
     },
@@ -1703,6 +1917,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             DOWNLOAD_RECEIPTS: 'downloadReceipts',
+            SHARE: 'share',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1866,6 +2081,7 @@ const CONST = {
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
+                MERGED_EXPENSE_DELETED: 'MERGEDEXPENSEDELETED',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
@@ -2240,6 +2456,7 @@ const CONST = {
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
+            WAITING_FOR_CANCELLED_REIMBURSEMENT: 'waitingForCancelledReimbursement',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
@@ -2382,6 +2599,10 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        /** A load that started but has sent no progress event for this long is stalled (see useImageLoadStall) */
+        IMAGE_LOAD_STALL_TIMEOUT: 15000,
+        /** Budget for a load with no progress events at all (web <img>, no Content-Length): a ceiling, not a failure claim */
+        IMAGE_LOAD_CEILING_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
@@ -3652,6 +3873,7 @@ const CONST = {
             },
             AUTH_TYPE: {
                 TBA: 'tba',
+                OAUTH2: 'oauth2',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -4170,6 +4392,15 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_BANK_ACCOUNT_ID: 'reimbursementBankAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        POSTING_MODE: 'postingMode',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {
@@ -4614,6 +4845,10 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
     },
 
     LOCALES,
@@ -4699,8 +4934,10 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            ALL_REPORTS: 'allReports',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
             WORKFLOWS_PAYMENTS: 'workflowsPayments',
@@ -4940,6 +5177,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS: 'preventPayoutNonReimbursableReports',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         PROHIBITED_EXPENSES: {
@@ -5004,6 +5242,7 @@ const CONST = {
                 CAMPFIRE: 'campfire',
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
+                EXACT_ONLINE: 'exactOnline',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5042,6 +5281,7 @@ const CONST = {
                 campfire: 'Campfire',
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
+                exactOnline: 'Exact Online',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -6055,7 +6295,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
@@ -6158,6 +6397,8 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
+    // The inline category/tag pickers in the expense table are small popovers, so they show the search input sooner than the full-page pickers.
+    INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD: 8,
     SEARCH_BAR_THRESHOLD: 3,
     // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
     WORKFLOW_APPROVALS_INITIAL_BATCH: 5,
@@ -7470,6 +7711,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -8335,6 +8582,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8349,6 +8597,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
             POLICY_ID: 'policyID',
             ACTION: 'action',
             HAS: 'has',
@@ -8428,6 +8677,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'any-approval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8439,6 +8689,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
             ACTION: 'action',
             HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
@@ -9326,14 +9577,6 @@ const CONST = {
     // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
     SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
 
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
-
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
@@ -9360,6 +9603,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9459,6 +9703,7 @@ const CONST = {
         TYPE_TRANSFER_TO: 'transfer_to',
         TYPE_TRANSFER_FAILED: 'transfer_failed',
         TYPE_TRANSFER_OLD: 'transfer_old',
+        TYPE_INVOICING: 'invoicing2018',
     },
     PAYMENT_HISTORY: {
         STATE: {
@@ -9601,6 +9846,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWalletBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWalletBanner-Dismiss',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -9658,6 +9907,9 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        IMAGE_LOAD: {
+            RETRY_BUTTON: 'ImageLoadTimeoutNotice-RetryButton',
         },
         MODAL: {
             DISMISS_DIALOG: 'Modal-DismissDialog',
@@ -9816,6 +10068,7 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
@@ -9869,6 +10122,11 @@ const CONST = {
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
             DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
+            SHARE: 'MoreMenu-Share',
+            SHARE_REPORT: 'MoreMenu-ShareReport',
+            SHARE_CODE: 'MoreMenu-ShareCode',
+            REFER_FRIEND: 'MoreMenu-ReferFriend',
+            COPY_URL: 'MoreMenu-CopyURL',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -10140,6 +10398,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
@@ -10233,6 +10492,7 @@ const CONST = {
             },
             ACCOUNTING: {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
+                EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
@@ -10388,6 +10648,9 @@ const CONST = {
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
         },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
+        },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         },
@@ -10482,6 +10745,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
@@ -10548,10 +10812,6 @@ const CONST = {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
         },
-        AI_FEATURES_PROMO_MODAL: {
-            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
-            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
-        },
     },
 
     /**
@@ -10568,6 +10828,11 @@ const CONST = {
     },
 
     AGENTS: {
+        OWNER_TYPE: {
+            PERSON: 'person',
+            WORKSPACE: 'workspace',
+            DOMAIN: 'domain',
+        },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
         },

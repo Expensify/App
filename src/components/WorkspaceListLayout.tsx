@@ -18,7 +18,7 @@ import {View} from 'react-native';
 
 import {useDebugTabViewHeight} from './Navigation/DebugTabView';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from './Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from './Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
 import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
@@ -91,6 +91,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
 
 function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -122,8 +123,7 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
             shouldEnableMaxHeight
             shouldEnablePickerAvoiding={false}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContentStyle={styles.overflowVisible}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            {...tabRootScreenWrapperProps}
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>
