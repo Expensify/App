@@ -114,6 +114,7 @@ describe('ReportFooter', () => {
             isHistoryExpanded: true,
             shouldShowWelcome: false,
             shouldCenterWelcomeWithComposer: false,
+            hasUnreadMessageFromOthers: false,
         });
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});

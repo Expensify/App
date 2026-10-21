@@ -129,7 +129,7 @@ describe('useConciergeAskState', () => {
 
     it('keeps the messages on screen when a message failed to send', async () => {
         // Given the user's newest message failed to send
-        const failedMessage: ReportAction = {...userMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000', errors: {1: 'Failed to send'}};
+        const failedMessage: ReportAction = {...userMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000', errors: {error: 'Failed to send'}};
         await setReportActions([createdAction, conciergeMessage, userMessage, failedMessage]);
 
         // When the Concierge chat renders
