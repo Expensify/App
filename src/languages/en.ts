@@ -2394,7 +2394,7 @@ const translations = {
         autoExport: {
             [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: (connectionName: string) => `This report will export to ${connectionName} after final approval.`,
             [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID]: (connectionName: string) =>
-                `Out-of-pocket expenses will export to ${connectionName} when this report is paid.`,
+                `Reimbursable expenses will export to ${connectionName} when this report is paid.`,
         },
     },
     profilePage: {
