@@ -545,6 +545,7 @@ export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
+export type {default as SaveSearchFiltersParams} from './SaveSearchFiltersParams';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
 export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
