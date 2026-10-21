@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,16 +23,17 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
-type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
+type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
 
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -43,15 +45,15 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithCoins']);
 
-    const goBackToWallet = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    const goBackToEntryPoint = () => Navigation.goBack(backPath);
 
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToWallet();
-    }, [isWiseReimbursementsBetaEnabled, goBackToWallet]);
+        goBackToEntryPoint();
+    }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging eligibility
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
@@ -63,11 +65,11 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)}
-                onBackButtonPress={goBackToWallet}
+                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)}
+                onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
-                    <Header.BackButton onPress={goBackToWallet} />
+                    <Header.BackButton onPress={goBackToEntryPoint} />
                     <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
                 <ConfirmationPage
@@ -78,12 +80,13 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     descriptionStyle={styles.textSupporting}
                     shouldShowSecondaryButton
                     secondaryButtonText={translate('common.notNow')}
-                    onSecondaryButtonPress={goBackToWallet}
+                    onSecondaryButtonPress={goBackToEntryPoint}
                     shouldShowButton
                     buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                     onButtonPress={() => {
-                        // Starting onboarding for any account retires the Wallet banner for good
+                        // Starting onboarding for any account retires both banners for good
                         dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
                     }}
                 />
             </FullPageNotFoundView>
