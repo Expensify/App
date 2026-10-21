@@ -9,7 +9,7 @@ title: Read per-row Onyx data by key in list items
 
 A list row re-renders when any value it reads changes. If a row reads a whole collection, the whole `PERSONAL_DETAILS_LIST`, or a derived map, then a write to any member re-renders every visible row, even rows whose data did not change. A row that reads only its own member key, or a selector that returns a primitive, re-renders only when its own data changes.
 
-Since Onyx 3.0.117, `useOnyx` without a selector compares by reference. A write that rebuilds a value with the same contents still notifies every subscriber. `OnyxListItemProvider` hooks are built on `useOnyx` without a selector, so a provider over a large or often-rebuilt key re-renders every row that consumes it.
+Since Onyx 3.0.117, subscriptions live in one store keyed by Onyx key. A write to a member notifies only that member's subscribers and the collection's subscribers, so one keyed subscription per row is cheap and wakes only for that row. `useOnyx` without a selector now compares by reference, so a write that rebuilds a value with the same contents still notifies. `OnyxListItemProvider` hooks are built on `useOnyx` without a selector, so a provider over a large or often-rebuilt key re-renders every row that consumes it.
 
 The list can cause the same problem. If it reads collections and passes them to rows as props, or puts them in FlashList `extraData`, then every write to those collections re-renders every row.
 
