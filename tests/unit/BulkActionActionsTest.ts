@@ -15,10 +15,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
 
-function getRequestedCommands(mockFetch: MockFetch): string[] {
-    return mockFetch.mock.calls.map(([url]) => String(url));
-}
-
 describe('BulkAction actions', () => {
     let mockFetch: MockFetch;
 
@@ -44,7 +40,7 @@ describe('BulkAction actions', () => {
 
         // Then it's gone, and no ClearBulkAction request is sent that could fail and bring it back
         expect(await getOnyxValue(onyxKey)).toBeUndefined();
-        expect(getRequestedCommands(mockFetch).some((url) => url.includes(WRITE_COMMANDS.CLEAR_BULK_ACTION))).toBe(false);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CLEAR_BULK_ACTION, 0);
     });
 
     test('clearBulkAction asks the backend to clear a finished bulk action', async () => {
@@ -59,6 +55,6 @@ describe('BulkAction actions', () => {
 
         // Then it's gone here and the backend is asked to drop it too
         expect(await getOnyxValue(onyxKey)).toBeUndefined();
-        expect(getRequestedCommands(mockFetch).some((url) => url.includes(WRITE_COMMANDS.CLEAR_BULK_ACTION))).toBe(true);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CLEAR_BULK_ACTION, 1);
     });
 });
