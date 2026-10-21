@@ -819,9 +819,6 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
-    /** The KYC requirements the business's application needs */
-    WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
-
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
 
@@ -1991,7 +1988,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
-    [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirement[];
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;

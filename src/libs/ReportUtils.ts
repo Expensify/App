@@ -15070,6 +15070,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL,
     CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+    CONST.SEARCH.TABLE_COLUMNS.HELD,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
     CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.MCC,
@@ -15147,6 +15148,8 @@ function getTransactionSortValue(
             return getReimbursable(transaction) ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             return transaction.billable ? 1 : 0;
+        case CONST.SEARCH.TABLE_COLUMNS.HELD:
+            return isOnHoldTransactionUtils(transaction) ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return getExchangeRate(transaction, report?.currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:

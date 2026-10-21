@@ -260,10 +260,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
-                            path: ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
                         [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
                             path: ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.route,
                             exact: true,
