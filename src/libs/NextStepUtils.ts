@@ -66,7 +66,7 @@ function buildNextStepMessage(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     if (!nextStep.messageKey) {
-        Log.warn('NextStep missig messageKey', {nextStep});
+        Log.warn('NextStep missing messageKey', {nextStep});
         return '';
     }
 
@@ -335,7 +335,7 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
-function buildOptimisticsNoFurtherActionNextStep(): ReportNextStep {
+function buildOptimisticNoFurtherActionNextStep(): ReportNextStep {
     return {
         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
@@ -432,7 +432,7 @@ function getReportNextStep({
         reimbursableSpend === 0 &&
         (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
     if (shouldShowNoFurtherAction) {
-        return buildOptimisticsNoFurtherActionNextStep();
+        return buildOptimisticNoFurtherActionNextStep();
     }
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
