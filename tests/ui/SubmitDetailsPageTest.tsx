@@ -606,6 +606,7 @@ describe('SubmitDetailsPage', () => {
     });
 
     it('cleans up a pre-inserted destination route before goBack when opening the participant picker', async () => {
+        // Given the destination report is not topmost and is pre-inserted behind the Share flow
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
 
         renderSubmitDetailsPage();
@@ -613,9 +614,11 @@ describe('SubmitDetailsPage', () => {
 
         expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
 
+        // When the user opens the participant picker
         fireEvent.press(screen.getByTestId('mock-participant-picker-button'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the pre-inserted route is removed before navigating back to the picker
         expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalled();
     });

@@ -132,34 +132,42 @@ describe('ShareTabParticipantsSelector', () => {
     });
 
     it('renders the participant picker when user is not eligible for auto-navigation', async () => {
+        // Given the user has no eligible default workspace destination
+
+        // When the Share Submit destination selector renders
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the participant picker remains visible without navigating automatically
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('does not keep the Submit tab blank when the current user login is unavailable', async () => {
+        // Given the current user's personal details have not hydrated their login
         jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
             accountID: 1,
             login: '',
             displayName: 'Tester',
         });
 
+        // When the Share Submit destination selector renders
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the participant picker remains available instead of rendering a blank tab
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('does not blank out the picker when policy data arrives after committing to the picker', async () => {
+        // Given the selector initially resolves to the participant picker
         const {rerender} = render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
 
-        // Simulate late-arriving Onyx data making autoNavigateReportID truthy after commit
+        // When late Onyx data provides an eligible automatic destination after that decision
         const mockPolicy = {
             ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
             id: 'policy-late',
@@ -177,7 +185,7 @@ describe('ShareTabParticipantsSelector', () => {
         rerender(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
-        // Picker must remain visible (not null/blank) and not auto-navigate away
+        // Then the committed picker remains visible and does not navigate unexpectedly
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
