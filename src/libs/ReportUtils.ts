@@ -6537,6 +6537,8 @@ type GetReportPreviewMessageBaseParams = {
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
+    /** The transaction linked to `iouReportAction`. Needed for split and track actions, whose transaction isn't part of `reportOrID`. */
+    linkedTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -6569,9 +6571,7 @@ function getReportPreviewMessageForCopy(
 function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    params: GetReportPreviewMessageBaseParams & {
-        linkedTransaction?: OnyxEntry<Transaction>;
-    },
+    params: GetReportPreviewMessageBaseParams,
 ): string {
     const {
         reportOrID,
@@ -6823,7 +6823,7 @@ function getReportPreviewMessage(
  */
 function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
-    params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
+    params: Omit<GetReportPreviewMessageBaseParams, 'policy' | 'linkedTransaction'> & {policy?: OnyxInputOrEntry<Policy>},
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
