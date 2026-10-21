@@ -1,5 +1,6 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -127,7 +128,11 @@ export default function WorkspaceMembersTableRow({
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
-                                <>
+                                <OfflineWithFeedback
+                                    pendingAction={item.approverPendingAction}
+                                    style={styles.flex1}
+                                    contentContainerStyle={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                                >
                                     <AccountAvatar
                                         accountID={item.approverAccountID}
                                         accountEmail={item.approverLogin}
@@ -140,7 +145,7 @@ export default function WorkspaceMembersTableRow({
                                         numberOfLines={1}
                                         text={item.approverDisplayName}
                                     />
-                                </>
+                                </OfflineWithFeedback>
                             )}
                         </View>
                     )}

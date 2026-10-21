@@ -38,6 +38,7 @@ type WorkspaceMemberRowData = TableData & {
     approverAccountID?: number;
     approverDisplayName?: string;
     approverLogin?: string;
+    approverPendingAction?: OnyxCommon.PendingAction;
     bankAccountLastFour?: string;
     name: string;
     email: string;

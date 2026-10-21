@@ -666,7 +666,7 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
 
-        it('dims a member row while approvals are being turned back on offline', async () => {
+        it('dims only the approver cell while approvals are being turned back on offline', async () => {
             // Given approvals being re-enabled offline. That rewrites who everyone submits to, but it marks the
             // policy rather than the employees, so the row has no field of its own to read the change from.
             const mockedUseNetwork = jest.mocked(useNetwork);
@@ -688,14 +688,16 @@ describe('WorkspaceMembers', () => {
 
             const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
 
-            // OfflineWithFeedback dims a wrapper around the row rather than the row node itself.
+            // Only the approver is mid-change, so the dim belongs to that cell. Dimming the row instead would read
+            // as the whole member being mid-change, and it would come and go with the column's own layout rules.
             let node: typeof ownerRow | null = ownerRow;
-            let dimmed = false;
-            while (node && !dimmed) {
-                dimmed = hasPendingOpacity(node.props?.style);
+            let isRowDimmed = false;
+            while (node && !isRowDimmed) {
+                isRowDimmed = hasPendingOpacity(node.props?.style);
                 node = node.parent;
             }
-            expect(dimmed).toBe(true);
+            expect(isRowDimmed).toBe(false);
+            expect(ownerRow.findAll((descendant) => hasPendingOpacity(descendant.props?.style))).not.toHaveLength(0);
 
             mockedUseNetwork.mockReturnValue({isOffline: false});
             unmount();

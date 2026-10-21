@@ -1052,6 +1052,73 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
+        it('should clear pendingFields when the API fails', async () => {
+            // Given a custom workflow that two members submit to
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee3Email,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee3Email,
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail, employee3Email],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [{email: employee3Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When a member is taken off the workflow and the backend rejects the save
+            mockFetch.fail?.();
+            updateApprovalWorkflow(approvalWorkflow, [{email: employee2Email, displayName: employee2Email}], [], policy);
+            await waitForBatchedUpdates();
+
+            // Then the rollback restores the approver and leaves nothing marked pending, so the member is not shown
+            // as mid-change for good on the surfaces that read these fields
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.submitsTo).toBe(employee3Email);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeFalsy();
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingAction).toBeFalsy();
+
+            mockFetch.succeed?.();
+        });
+
         it('should keep ADVANCED approval mode when default approver has overLimitForwardsTo after removing second approver', async () => {
             mockFetch.pause();
 

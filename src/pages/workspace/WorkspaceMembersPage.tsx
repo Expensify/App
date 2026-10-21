@@ -423,6 +423,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 approverAccountID,
                 approverDisplayName,
                 approverLogin: approver?.email,
+                approverPendingAction: approverPendingActionByMemberEmail[login],
                 keyForList: login,
                 role,
                 login,
@@ -441,9 +442,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 shouldShowEmployeeUserID: shouldShowCustomField1Column,
                 shouldShowEmployeePayrollID: shouldShowCustomField2Column,
                 errors: getLatestErrorMessageField(policyEmployee),
-                // Changing only who a member submits to can leave their own record untouched, so fall back to the
-                // approver's pending state to keep the row dimmed while that change is still in flight.
-                pendingAction: policyEmployee.pendingAction ?? (shouldShowApproverColumn ? approverPendingActionByMemberEmail[login] : undefined),
+                pendingAction: policyEmployee.pendingAction,
                 disabled: isPendingDeleteOrError,
                 canEditRole,
                 onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),

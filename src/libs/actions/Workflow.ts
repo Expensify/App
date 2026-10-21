@@ -62,6 +62,22 @@ type ClearApprovalWorkflowApproverParams = {
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
 
+/**
+ * Roll the policy's employees back to what they were before an approval workflow save.
+ *
+ * Restoring the previous values is not enough to undo the optimistic pending markers, because an Onyx merge leaves
+ * keys the rollback omits alone. Every employee the save touched has to null its `pendingFields` the same way
+ * `successData` does, or a surface reading those fields keeps the member dimmed for good.
+ */
+function getRolledBackEmployeeList(previousEmployeeList: NullishDeep<PolicyEmployeeList>, updatedEmployees: PolicyEmployeeList): NullishDeep<PolicyEmployeeList> {
+    return Object.fromEntries(
+        Object.keys({...previousEmployeeList, ...updatedEmployees}).map((email) => [
+            email,
+            updatedEmployees[email] ? {...previousEmployeeList[email], pendingAction: null, pendingFields: null} : previousEmployeeList[email],
+        ]),
+    );
+}
+
 function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
     if (!policy) {
         return;
@@ -103,7 +119,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: previousEmployeeList,
+                employeeList: getRolledBackEmployeeList(previousEmployeeList, updatedEmployees),
                 approvalMode: previousApprovalMode,
                 ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
             },
@@ -212,7 +228,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: previousEmployeeList,
+                employeeList: getRolledBackEmployeeList(previousEmployeeList, updatedEmployees),
                 approvalMode: previousApprovalMode,
                 pendingFields: {employeeList: null},
                 ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
@@ -286,7 +302,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: previousEmployeeList,
+                employeeList: getRolledBackEmployeeList(previousEmployeeList, updatedEmployees),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             },
         },
