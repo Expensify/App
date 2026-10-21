@@ -788,6 +788,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        navigationTabBarContainerLandscape: {
+            height: variables.floatingTabBarLandscapeHeight,
+        },
+
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
         navigationTabBarSlot: {
             minWidth: 0,
