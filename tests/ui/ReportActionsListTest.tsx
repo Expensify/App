@@ -1137,7 +1137,10 @@ describe('ReportActionsList (body)', () => {
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
                     const conciergeReport = {...mockReport, reportID: CONCIERGE_REPORT_ID};
-                    return [options?.selector ? (options.selector as (report: OnyxTypes.Report) => unknown)(conciergeReport) : conciergeReport, {status: 'loaded'}];
+                    return [
+                        options?.selector ? (options.selector as (report: OnyxTypes.Report) => OnyxTypes.Report | boolean | undefined)(conciergeReport) : conciergeReport,
+                        {status: 'loaded'},
+                    ];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
