@@ -106,7 +106,8 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         ];
         leftAxisLabelPadding = computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, labelOffset);
     } else if (!isDependentAxis && !isHorizontal) {
-        ((axisSide = orientation === 'top' ? 'top' : 'bottom'), (labelOffset = rawLabelOffset));
+        axisSide = orientation === 'top' ? 'top' : 'bottom';
+        labelOffset = rawLabelOffset;
         xAxis = {
             tickCount,
             tickValues,
