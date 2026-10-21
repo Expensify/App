@@ -148,7 +148,7 @@ const mockLegendListMount = jest.fn();
 const mockLegendListUnmount = jest.fn();
 const mockLegendScrollToEnd = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
-const mockLegendGetState = jest.fn(() => ({positionByKey: mockLegendPositionByKey}));
+const mockLegendGetState = jest.fn(() => ({positionByKey: mockLegendPositionByKey, isAtEnd: false}));
 const mockLegendGetScrollableNode = jest.fn(() => ({scrollTop: 0}));
 let mockShouldCallLegendListOnLoad = true;
 jest.mock('@legendapp/list/react-native', () => {
@@ -581,6 +581,42 @@ describe('ReportActionsList (body)', () => {
             await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
         } finally {
             mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
+    it.each([
+        {isAtEnd: true, shouldFollowEnd: true},
+        {isAtEnd: false, shouldFollowEnd: false},
+    ])('follows late row growth after opening at an unread marker only when it lands at the end ($isAtEnd)', async ({isAtEnd, shouldFollowEnd}) => {
+        // Given the chat opens at an unread marker, which LegendList clamps to the end when the marker is near the newest action.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
+        mockLegendGetState.mockReturnValue({positionByKey: mockLegendPositionByKey, isAtEnd});
+        try {
+            renderReportActionsList();
+
+            // When rows above the viewport are measured after the list is ready and change the content height.
+            act(() => {
+                getCapturedListProps()?.onContentSizeChange?.(300, 1025);
+            });
+            await act(
+                async () =>
+                    new Promise<void>((resolve) => {
+                        setTimeout(resolve, 30);
+                    }),
+            );
+
+            // Then a list that landed at the end keeps the newest messages in view, and one showing older unread messages stays put.
+            if (shouldFollowEnd) {
+                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+            } else {
+                expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+            }
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+            mockLegendGetState.mockReturnValue({positionByKey: mockLegendPositionByKey, isAtEnd: false});
         }
     });
 

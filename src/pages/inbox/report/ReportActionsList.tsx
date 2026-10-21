@@ -566,7 +566,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         onLoad();
         setLoadedInitialViewportListID(listID);
         readyEndListIDRef.current = listID;
-        shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions && userScrolledListIDRef.current !== listID;
+        // An unread marker near the newest action lands at the end. Rows above it are still measured after
+        // onReady, so keep that end in view instead of exposing older messages.
+        const isUnreadInitialScroll = initialScrollIndex !== undefined && !reportActionIDFromRoute && !shouldBeAlignedToTop;
+        const didLandAtEnd = initialScrollIndex === undefined || (isUnreadInitialScroll && !!legendListRef.current?.getState()?.isAtEnd);
+        shouldFollowEndOnResizeRef.current = didLandAtEnd && !hasNewerActions && userScrolledListIDRef.current !== listID;
         lastScrollMetricsRef.current = undefined;
         // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
         scheduleEndCorrection();
