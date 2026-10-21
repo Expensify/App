@@ -6631,6 +6631,9 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books organization',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
             prerequisitesTitle: 'Before you connect...',
@@ -10543,6 +10546,12 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
+            },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
             },
             status: 'Status',
             keyword: 'Keyword',

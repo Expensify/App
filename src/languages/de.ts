@@ -9275,6 +9275,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books-Organisation',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
             prerequisitesTitle: 'Bevor Sie eine Verbindung herstellen …',
@@ -10299,6 +10302,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Auszug',
                 },
                 customDay: 'Benutzerdefinierter Tag',
+            },
+            describeSearch: {
+                title: 'Beschreiben Sie Ihre Suche',
+                description: 'Beschreiben Sie in einfachem Englisch, welche Ausgaben Sie sehen möchten, und wir wenden automatisch die richtigen Filter an.',
+                inputLabel: 'Beschreiben Sie Ihre Suche',
+                buttonText: 'Anwenden',
             },
             status: 'Status',
             keyword: 'Schlüsselwort',
