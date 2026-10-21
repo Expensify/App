@@ -139,6 +139,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             <ScrollView
                 style={styles.insightsDashboardScrollView}
                 onScroll={triggerScrollEvent}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...scrollProps}
                 addBottomSafeAreaPadding
             >
