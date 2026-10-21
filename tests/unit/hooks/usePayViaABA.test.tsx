@@ -68,7 +68,7 @@ describe('usePayViaABA', () => {
             expect.objectContaining({
                 reportIDs: ['123', '456'],
                 policy,
-                full: false,
+                shouldReimburseHeldTransactions: false,
                 currentUserAccountID: ACCOUNT_ID,
                 amountOwed: 100,
             }),

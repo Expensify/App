@@ -2932,7 +2932,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is saved as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
-            expect(appendSpy).toHaveBeenCalledWith('full', 'true');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
             expect(fileDownload).toHaveBeenCalledWith(
                 translateForTest,
                 expect.stringContaining(WRITE_COMMANDS.PAY_VIA_ABA),
@@ -2952,11 +2952,11 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const reportIDs = ['123', '456'];
 
             // When they're paid via ABA
-            payViaABA({...payViaABAParams, reportIDs, full: false, onDownloadFailed: jest.fn()});
+            payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
 
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
-            expect(appendSpy).toHaveBeenCalledWith('full', 'false');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
             expect(jest.mocked(fileDownload).mock.calls.at(0)?.at(2)).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
         });
 

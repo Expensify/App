@@ -956,7 +956,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 type PayViaABAFunctionParams = {
     reportIDs: string[];
     policy: OnyxEntry<OnyxTypes.Policy>;
-    full?: boolean;
+    shouldReimburseHeldTransactions?: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     isSelfTourViewed: boolean | undefined;
     currentUserAccountID: number;
@@ -976,7 +976,7 @@ function payViaABA(params: PayViaABAFunctionParams) {
     const {
         reportIDs,
         policy,
-        full = true,
+        shouldReimburseHeldTransactions = true,
         introSelected,
         isSelfTourViewed,
         currentUserAccountID,
@@ -995,7 +995,7 @@ function payViaABA(params: PayViaABAFunctionParams) {
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.PAY_VIA_ABA, {reportIDList: reportIDs.join(','), full});
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.PAY_VIA_ABA, {reportIDList: reportIDs.join(','), shouldReimburseHeldTransactions});
     const formData = new FormData();
     for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));

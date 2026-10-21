@@ -3,7 +3,7 @@ type PayViaABAParams = {
     reportIDList: string;
 
     /** Whether held expenses are paid too, otherwise they're moved to a new report */
-    full: boolean;
+    shouldReimburseHeldTransactions: boolean;
 };
 
 export default PayViaABAParams;

@@ -29,11 +29,11 @@ function usePayViaABA() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
-    return (reportIDs: string[], policy: OnyxEntry<Policy>, full?: boolean) =>
+    return (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) =>
         payViaABA({
             reportIDs,
             policy,
-            full,
+            shouldReimburseHeldTransactions,
             introSelected,
             isSelfTourViewed,
             currentUserAccountID: accountID,
