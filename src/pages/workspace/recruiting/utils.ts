@@ -60,7 +60,7 @@ function getDefaultApproverLabel(
             return `${translate('workspace.merge.approvalModes.basic')} • ${approver}`;
         }
 
-        return `${translate('workspace.merge.approvalModes.advanced')} • ${getApproverFieldLabel(policy, translate)}${approver ? `-> ${approver}` : ''}`;
+        return `${translate('workspace.merge.approvalModes.advanced')} • ${getApproverFieldLabel(policy, translate)}${approver ? ` -> ${approver}` : ''}`;
     }
 
     if (approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM) {
