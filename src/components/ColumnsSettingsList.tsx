@@ -68,8 +68,8 @@ type ColumnsSettingsListProps = {
     /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
 
-    /** Callback fired with the updated column list when the user saves changes */
-    onSave: (columns: SearchCustomColumnIds[]) => void;
+    /** Callback fired with the updated column list when the user saves changes, and whether that list is the default selection */
+    onSave: (columns: SearchCustomColumnIds[], isDefaultSelection: boolean) => void;
 
     /** The active Search type, used to resolve type-specific column labels */
     type?: SearchDataTypes;
@@ -228,7 +228,7 @@ function ColumnsSettingsList({
     };
 
     const handleSave = () => {
-        onSave(selectedColumnIds);
+        onSave(selectedColumnIds, isDefaultState);
     };
 
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {

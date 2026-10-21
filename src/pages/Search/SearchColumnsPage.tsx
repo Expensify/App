@@ -99,10 +99,10 @@ function SearchColumnsPage() {
         !currentSearchResults?.data &&
         !isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
 
-    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
+    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[], isDefaultSelection: boolean) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
-            columns: selectedColumnIds,
+            columns: isDefaultSelection ? [] : selectedColumnIds,
         };
 
         const currentQueryJSON = getCurrentSearchQueryJSON();
