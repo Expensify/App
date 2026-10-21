@@ -1,4 +1,5 @@
+import canUseCssPositionSticky from './canUseCssPositionSticky';
 import canUseTouchScreen from './canUseTouchScreen';
 import hasHoverSupport from './hasHoverSupport';
 
-export {canUseTouchScreen, hasHoverSupport};
+export {canUseCssPositionSticky, canUseTouchScreen, hasHoverSupport};

@@ -2,7 +2,6 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -15,6 +14,7 @@ import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
@@ -119,12 +119,14 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
-    useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
     const tabNavigatorStateKey = useRootNavigationState(getTabNavigatorStateKey);
-    const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    const oneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(topmostReportID);
+    // The table view doesn't show the expense thread's actions, so a comment there should still notify while the report is open
+    const topmostOneTransactionThreadReportID = shouldUseTableViewForSingleExpense ? undefined : oneTransactionThreadReportID;
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
 

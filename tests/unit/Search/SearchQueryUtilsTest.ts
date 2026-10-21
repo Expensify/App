@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutFooterSelections,
@@ -61,6 +62,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -606,6 +608,76 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense -transactionStatus:pending');
+        });
+
+        test('declined filter value', () => {
+            // Given the Rejected filter set to yes on an expense report search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                declined: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the declined key used by the backend
+            expect(result).toEqual('type:expense-report declined:yes');
+        });
+
+        test('negated declined filter value', () => {
+            // Given the Rejected filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                declinedNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the declined key gets the "-" prefix
+            expect(result).toEqual('type:expense -declined:no');
+        });
+
+        test('held filter value', () => {
+            // Given the Held filter set to yes on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the held key
+            expect(result).toEqual('type:expense held:yes');
+        });
+
+        test('negated held filter value', () => {
+            // Given the Held filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                heldNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held key gets the "-" prefix
+            expect(result).toEqual('type:expense -held:no');
+        });
+
+        test('held filter is dropped for expense reports', () => {
+            // Given the Held filter set on an expense report search, which only supports it for expenses
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held filter is not written
+            expect(result).toEqual('type:expense-report');
         });
 
         test('negated receipt type filter value', () => {
@@ -2212,6 +2284,98 @@ describe('SearchQueryUtils', () => {
             expect(result.transactionStatus).toBeUndefined();
         });
 
+        test('declined filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they were rejected
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Rejected filter holds the yes value
+            expect(result.declined).toEqual('yes');
+        });
+
+        test('declined filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('negated declined filter populates declinedNot', () => {
+            // Given a query that excludes rejected expense reports with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense-report -declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.declinedNot).toEqual('yes');
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('held filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they are on hold
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Held filter holds the yes value
+            expect(result.held).toEqual('yes');
+        });
+
+        test('held filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.held).toBeUndefined();
+        });
+
+        test('negated held filter populates heldNot', () => {
+            // Given a query that excludes held expenses with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.heldNot).toEqual('yes');
+            expect(result.held).toBeUndefined();
+        });
+
         test('negated receipt type filter populates receiptTypeNot', () => {
             // Negation in the query syntax uses the "-" prefix, which round-trips to the receiptTypeNot form value.
             const queryString = 'sortBy:date sortOrder:desc type:expense -receipt-type:hotel';
@@ -2352,6 +2516,88 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             expect(result.has).toBeUndefined();
+        });
+    });
+
+    describe('anyApproval date filter', () => {
+        const anyApprovalFormKeys = [
+            FILTER_KEYS.ANY_APPROVAL_ON,
+            FILTER_KEYS.ANY_APPROVAL_AFTER,
+            FILTER_KEYS.ANY_APPROVAL_BEFORE,
+            FILTER_KEYS.ANY_APPROVAL_RANGE,
+            FILTER_KEYS.ANY_APPROVAL_NOT,
+        ] as const;
+
+        test.each([
+            {
+                modifier: 'ON',
+                formKey: FILTER_KEYS.ANY_APPROVAL_ON,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+            {
+                modifier: 'AFTER',
+                formKey: FILTER_KEYS.ANY_APPROVAL_AFTER,
+                formValue: '2026-04-01',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`,
+            },
+            {
+                modifier: 'BEFORE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_BEFORE,
+                formValue: '2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`,
+            },
+            {
+                modifier: 'RANGE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_RANGE,
+                formValue: '2026-04-01,2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`,
+            },
+            {
+                modifier: 'negated',
+                formKey: FILTER_KEYS.ANY_APPROVAL_NOT,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+        ])('round-trips the $modifier form', ({formKey, formValue, expectedQuery}) => {
+            // Given an expense search with an anyApproval date filter
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [formKey]: formValue,
+            };
+
+            // When the form is converted to a query and back
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(expectedQuery);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the original form key is preserved and the other anyApproval keys are empty
+            expect(result[formKey]).toBe(formValue);
+            for (const otherKey of anyApprovalFormKeys) {
+                if (otherKey !== formKey) {
+                    expect(result[otherKey]).toBeUndefined();
+                }
+            }
+        });
+
+        test('anyApproval date filters are dropped on an expense-report search', () => {
+            // Given an expense-report search with an anyApproval date filter
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            // When the form is converted to a query
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then anyApproval is stripped because Auth only supports it for type:expense
+            expect(result).toBe(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`);
         });
     });
 
@@ -5368,6 +5614,34 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getMerchantFilterFormValues', () => {
+        it('keeps the match type when not negated', () => {
+            // Given a Merchant filter that is not negated
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', false, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is kept, because it decides between Contains and Equal to
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_NOT]: undefined,
+                [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            });
+        });
+
+        it('clears the match type when negated', () => {
+            // Given a negated Merchant filter
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', true, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is cleared, because a negated Merchant filter always uses the not-equal operator
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: undefined,
+                [FILTER_KEYS.MERCHANT_NOT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_OPERATOR]: undefined,
+            });
+        });
+    });
+
     describe('getFilterFromQuery', () => {
         test('returns all comma-separated values for a non-negated filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense policyID:123,456');
@@ -5888,6 +6162,21 @@ describe('SearchQueryUtils', () => {
                 start: '2025-03-02',
                 end: '2025-03-09',
             });
+        });
+
+        test('zero-pads dates typed without leading zeros so they compare correctly with other dates', () => {
+            // Given a query whose dates are typed without leading zeros, which the search parser accepts
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-1-5 date<=2026-2-9');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
         });
     });
 
