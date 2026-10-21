@@ -643,7 +643,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/libs/Navigation/types.ts'],
+        files: ['src/libs/Navigation/types.ts', 'src/libs/Navigation/paramLists/**/*.ts'],
         rules: {
             'no-restricted-syntax': [
                 'error',
