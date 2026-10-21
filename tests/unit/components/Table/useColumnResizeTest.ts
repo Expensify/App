@@ -4,7 +4,7 @@ import {RESIZE_GRIP_HOVER_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, getColumn
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import type React from 'react';
 
@@ -15,7 +15,7 @@ const {default: useColumnResize} = jest.requireActual<{default: typeof UseColumn
 jest.mock('@styles/utils/cursor', () => jest.requireActual<Record<string, unknown>>('@styles/utils/cursor/index.ts'));
 
 jest.mock('@libs/actions/TableColumnWidths', () => ({
-    setTableColumnWidth: jest.fn(),
+    setTableColumnWidths: jest.fn(),
 }));
 
 const COLUMN_RESIZING_ID = 'testTable';
@@ -23,6 +23,16 @@ const COLUMN_RESIZING_ID = 'testTable';
 const NAME_COLUMN_KEY = 'name';
 
 const resolvedColumnWidths = {name: 200, email: 200, role: 200};
+
+/** Stands in for the resolver: the email column absorbs the whole resize. */
+function getResizedColumnWidths(columnKey: string, width: number): Record<string, number> {
+    return {[columnKey]: width, email: 400 - width};
+}
+
+/** Stands in for the resolver's layout, wrapping the painted widths in what the layout was sized for. */
+function getStoredTableColumnWidths(columnWidths: Record<string, number>, columnKey: string) {
+    return {availableColumnsWidth: 600, columnWidths, resizedColumnKeys: [columnKey]};
+}
 
 type PointerEventInit = {clientX: number; clientY?: number; button?: number};
 
@@ -60,7 +70,9 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
     const initialProps: UseColumnResizeParams = {
         columnResizingID: COLUMN_RESIZING_ID,
         resizableColumnKeys: [NAME_COLUMN_KEY],
+        getResizedColumnWidths,
         resolvedColumnWidths,
+        getStoredTableColumnWidths,
         columnGap: 12,
         ...params,
     };
@@ -110,7 +122,14 @@ describe('useColumnResize', () => {
 
     it('returns no controller when resizing is off', () => {
         // Given a table with no resizing ID, which is how native, narrow layouts and tables that didn't opt in render it
-        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumnKeys: [NAME_COLUMN_KEY], resolvedColumnWidths, columnGap: 12};
+        const params: UseColumnResizeParams = {
+            columnResizingID: undefined,
+            resizableColumnKeys: [NAME_COLUMN_KEY],
+            getResizedColumnWidths,
+            resolvedColumnWidths,
+            getStoredTableColumnWidths,
+            columnGap: 12,
+        };
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -121,7 +140,14 @@ describe('useColumnResize', () => {
 
     it('returns a controller before the columns are measured', () => {
         // Given a resizable table on its first render, before layout, when no column is resizable yet
-        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumnKeys: [], resolvedColumnWidths: {}, columnGap: 12};
+        const params: UseColumnResizeParams = {
+            columnResizingID: COLUMN_RESIZING_ID,
+            resizableColumnKeys: [],
+            getResizedColumnWidths,
+            resolvedColumnWidths: {},
+            getStoredTableColumnWidths,
+            columnGap: 12,
+        };
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -133,7 +159,7 @@ describe('useColumnResize', () => {
     });
 
     it('paints a drag onto the scope and stores the dragged column on release', () => {
-        // Given a 200px column with two 200px columns after it
+        // Given a 200px column with two 200px columns after it, the first of which absorbs its resize
         const {handleElement, getHandleProps, readWidth} = renderColumnResize();
 
         // When its edge is dragged 60px right
@@ -142,10 +168,9 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the width is painted straight onto the scope without a React render, and later columns keep their widths
+        // Then the dragged column and its absorber are painted straight onto the scope without a React render
         expect(readWidth('name')).toBe('260px');
-        expect(readWidth('email')).toBe('');
-        expect(readWidth('role')).toBe('');
+        expect(readWidth('email')).toBe('140px');
         expect(document.body.style.cursor).toBe('col-resize');
 
         // When the pointer is released
@@ -153,9 +178,9 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the dragged column is stored, once
-        expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 260);
+        // Then every painted width is saved once, with the dragged column marked as resized, so a reload moves nothing
+        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, 'name'));
         expect(document.body.style.cursor).toBe('');
     });
 
@@ -175,8 +200,45 @@ describe('useColumnResize', () => {
         });
 
         // Then nothing is stored, and the scope is cleared since no render follows to clear it
-        expect(setTableColumnWidth).not.toHaveBeenCalled();
+        expect(setTableColumnWidths).not.toHaveBeenCalled();
         expect(readWidth('name')).toBe('');
+    });
+
+    it('stores nothing and clears the scope when the table has no layout to save', () => {
+        // Given a resizable table that hands over no layout to save
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize({getStoredTableColumnWidths: undefined});
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
+        });
+
+        // When a drag that moved the column is released
+        act(() => {
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 160}));
+        });
+
+        // Then nothing is stored, and the painted widths are cleared since no stored width renders to replace them
+        expect(setTableColumnWidths).not.toHaveBeenCalled();
+        expect(readWidth('name')).toBe('');
+        expect(readWidth('email')).toBe('');
+    });
+
+    it('keeps the painted widths when new resolved widths render mid-drag', () => {
+        // Given a column being dragged 60px right
+        const {handleElement, getHandleProps, readWidth, rerender, initialProps} = renderColumnResize();
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
+        });
+
+        // When the table renders new resolved widths before the drag ends, e.g. because the window resized
+        rerender({...initialProps, resolvedColumnWidths: {name: 210, email: 190, role: 200}});
+
+        // Then the drag keeps painting where the pointer put it, so the column doesn't jump away from the pointer
+        expect(readWidth('name')).toBe('260px');
+        expect(readWidth('email')).toBe('140px');
     });
 
     it('stores the width when the pointer capture is lost mid-drag', () => {
@@ -194,12 +256,12 @@ describe('useColumnResize', () => {
         });
 
         // Then the drag ends the same way a release does, so the width the user already sees is kept
-        expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 240);
+        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, expect.objectContaining({columnWidths: expect.objectContaining({name: 240}), resizedColumnKeys: ['name']}));
         expect(document.body.style.cursor).toBe('');
     });
 
-    it('shows the edge line only while dragging, not on hover', () => {
+    it('shows the edge line while dragging and hides it on release', () => {
         // Given a resizable column
         const {handleElement, getHandleProps} = renderColumnResize();
         const readLineOpacity = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_OPACITY_VARIABLE);
