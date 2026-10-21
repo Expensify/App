@@ -71,8 +71,8 @@ It reads the cache once and never subscribes, so the value it returns MUST NOT r
 
 Live data is right only when the read replaces a subscription that never went through the `useOnyx` redirection, such as a module-level `Onyx.connect()` used from handlers only. Then disable `rulesdir/no-onyx-get-snapshot-key` on that line (for `Onyx.multiGet()`, the line of the call, which covers every key in the list) with a reason after `--`, for example `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. The reason is required, one line at a time, and reviewers judge it. A read of the Concierge chat always wants the live report, whatever Search scope the component sits in, so `Onyx.get()` may read `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}` without a disable when `conciergeReportID` is a `const` in the same file bound to a read of `ONYXKEYS.CONCIERGE_REPORT_ID`.
 
-### - Reads MUST come before a write in the same tick, or after the write is awaited
-`Onyx.get()` captures the cache when it is called, and most writes land later, so a read queued behind a write returns the old value. A derived key (`ONYXKEYS.DERIVED.*`) lags its sources, so read it only before writing them.
+### - Reads MUST come before a merge, mergeCollection, setCollection or update in the same tick, or after it is awaited
+`Onyx.get()` reads the cache when it is called. `Onyx.set()` and `Onyx.multiSet()` update the cache before they return, but `Onyx.merge()`, `Onyx.mergeCollection()`, `Onyx.setCollection()` and every `Onyx.update()` operation, including SET, land after at least one microtask, so a read queued behind one of those returns the old value. A derived key (`ONYXKEYS.DERIVED.*`) lags its sources, so read it only before writing them.
 
 ### - A subscription that triggers work MUST stay on `useOnyx`
 If the value re-runs an effect, directly or through a callback in a dependency array, a one-shot read stops that effect from re-running.

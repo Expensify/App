@@ -152,7 +152,7 @@ return <Text>Current theme: {theme}</Text>;
 
 #### B. Tick
 
-- B1. A write that isn't awaited is followed in the same tick by a read of the written key, a member of the written collection, or a `DERIVED` key built from either (see `dependencies` in `src/libs/actions/OnyxDerived/configs/`). The read can be direct or in a called function whose file contains it. Repeat on any plain function it calls. Comment on the write, naming the callee and the key.
+- B1. An `Onyx.merge`, `Onyx.mergeCollection`, `Onyx.setCollection` or `Onyx.update` that isn't awaited is followed in the same tick by a read of the written key, a member of the written collection, or a `DERIVED` key built from either (see `dependencies` in `src/libs/actions/OnyxDerived/configs/`). `Onyx.set` and `Onyx.multiSet` update the cache before they return, so a read after them is fine, but a `DERIVED` key still lags. The read can be direct or in a called function whose file contains it. Repeat on any plain function it calls. Comment on the write, naming the callee and the key.
 - B2. The diff adds a read to a function whose callers write that key before calling it in the same tick.
 
 #### C. Effect in another file
