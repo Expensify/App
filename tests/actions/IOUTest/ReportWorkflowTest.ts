@@ -4572,7 +4572,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             const expenseReport = createSubmittedExpenseReport();
 
             approveMoneyRequest({
-                formatPhoneNumber,
                 ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
                 onApproved,
             });
@@ -4585,7 +4584,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             const expenseReport = createSubmittedExpenseReport(teamPolicyID);
 
             approveMoneyRequest({
-                formatPhoneNumber,
                 ...createApproveMoneyRequestParams(expenseReport, teamPolicy),
                 onApproved,
             });
