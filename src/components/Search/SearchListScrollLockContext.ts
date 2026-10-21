@@ -64,4 +64,4 @@ function useRegisterSearchListScroller(scroller: SearchListScroller) {
 
 export default SearchListScrollLockContext;
 export {SearchListScrollRegistrationContext, useRegisterSearchListScroller, useSearchListScrollLockStyle};
-export type {RegisterSearchListScroller, SearchListScroller};
+export type {SearchListScroller};

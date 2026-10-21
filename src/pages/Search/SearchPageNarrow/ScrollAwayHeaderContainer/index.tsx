@@ -50,8 +50,7 @@ const MOMENTUM_REST_DISTANCE = 0.5;
 
 /**
  * Continues a fling on the given scroller, frame by frame, the way native momentum would: it starts at the fling's own
- * velocity (so there is no ease-in that reads as a stop at the hand-off) and decays exponentially. Returns the cancel
- * function, which is harmless to call after the motion has finished.
+ * velocity and decays exponentially.
  */
 function continueMomentum(scroller: SearchListScroller, velocity: number): () => void {
     const startOffset = scroller.getOffset();
