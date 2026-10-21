@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -65,7 +65,6 @@ function IOURequestStepVendor({
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
-    const isOnXero = isXeroActiveMatchingSource(policy);
     const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
@@ -74,7 +73,6 @@ function IOURequestStepVendor({
     const vendors = getMatchingVendors(policy);
     const sortedVendors = sortVendors(vendors, localeCompare);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
-    const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const vendorRows: VendorListItem[] = sortedVendors
@@ -143,7 +141,7 @@ function IOURequestStepVendor({
 
     return (
         <StepScreenWrapper
-            headerTitle={vendorLabel}
+            headerTitle={translate('common.vendor')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}

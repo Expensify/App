@@ -222,6 +222,17 @@ function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: st
 }
 
 /**
+ * Whether a report still has an expense after a duplicate merge discards the given transactions. Expenses that are
+ * already pending deletion don't count. A report whose transactions haven't loaded is treated as keeping expenses.
+ */
+function doesReportKeepExpensesAfterMerge(reportTransactions: Transaction[], discardedTransactionIDs: Set<string>): boolean {
+    if (reportTransactions.length === 0) {
+        return true;
+    }
+    return reportTransactions.some((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !discardedTransactionIDs.has(transaction.transactionID));
+}
+
+/**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
  *
  * @returns An object with two properties: 'keep' and 'change'.
@@ -437,19 +448,25 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
+type MergeDuplicatesTransactionParams = Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
+    transaction: OnyxEntry<Transaction>;
+    transactionList: Transaction[];
+};
+
 function buildMergeDuplicatesParams(
     reviewDuplicates: OnyxEntry<ReviewDuplicates>,
     duplicatedTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: Partial<Transaction>,
-): MergeDuplicatesParams {
+    keptTransaction: OnyxEntry<Transaction>,
+): MergeDuplicatesTransactionParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
+        transaction: keptTransaction,
+        transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -464,6 +481,9 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
     compareDuplicateTransactionFields,
+    doesReportKeepExpensesAfterMerge,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 };
+
+export type {MergeDuplicatesTransactionParams};

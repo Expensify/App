@@ -36,6 +36,7 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
+    hasValidModifiedAmount,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
@@ -231,19 +232,16 @@ function getMergeableDataAndConflictFields(
     searchReports: Array<OnyxEntry<Report>> = [],
     targetTransactionPolicy?: OnyxEntry<Policy>,
     sourceTransactionPolicy?: OnyxEntry<Policy>,
-    targetReportOwnerAsAttendee?: Attendee,
-    sourceReportOwnerAsAttendee?: Attendee,
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
     // The same object, typed for the field builders that read the values merged so far
     const mergedSoFar = mergeableData as MergeTransaction;
 
-    // Resolve the report-owner fallback the same way the display path (buildMergeFieldsData) does, so an expense
-    // with no stored attendee is compared as [owner] instead of [] and doesn't produce a false attendee conflict
-    // against an expense whose attendee is that same owner.
-    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+    // Attendees are compared as stored, without the report-owner display fallback. The owner can only be resolved for
+    // reports loaded locally, so applying it would give the two expenses different values when they sit on different reports.
+    const targetTransactionDetails = getTransactionDetails(targetTransaction);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
     for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
@@ -318,7 +316,8 @@ function getMergeableDataAndConflictFields(
             const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
             const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
 
-            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+            // An expense with no attendees has nothing to choose between, so the other side's attendees are kept
+            if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             } else {
                 conflictFields.push(field);
@@ -798,8 +797,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
-        // Use the displayed amount so the tax has the same sign as the amount, like the taxValue branch below
-        const amount = Number(fieldValue) || 0;
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
         if (mergeTransaction?.taxValue && amount) {
             updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
         }
@@ -859,7 +857,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
         updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
-        updatedValues.taxAmount = transactionDetails?.taxAmount;
+        updatedValues.taxAmount = transaction?.taxAmount;
         // Don't erase this prop
         // The selected rate might not have tax tracking
         // The backend needs it to remove tax from the transaction

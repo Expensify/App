@@ -4,8 +4,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
-import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
@@ -83,14 +83,22 @@ import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type {
+    DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormContentItem,
+    DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
+    DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 } from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
@@ -105,6 +113,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -158,6 +167,7 @@ import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
+import type PolicyMemberBankAccounts from './PolicyMemberBankAccounts';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
@@ -243,6 +253,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 
 export type {
     FileObject,
@@ -279,6 +290,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,
@@ -346,6 +358,7 @@ export type {
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyMemberBankAccounts,
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
@@ -461,15 +474,24 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseKYCReviewEmbeddedLink,
     CorpayFormField,
+    DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormContentItem,
+    DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
+    DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
@@ -512,7 +534,7 @@ export type {
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
-    AgentPrompt,
+    Agent,
     SuggestedAgentRule,
     SuggestedAgent,
 };

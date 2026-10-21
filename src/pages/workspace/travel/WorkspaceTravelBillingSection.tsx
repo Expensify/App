@@ -12,13 +12,13 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearTravelBillingErrors,
@@ -32,6 +32,7 @@ import {
 } from '@libs/actions/TravelBilling';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -60,6 +61,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -80,7 +82,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const defaultFundID = useDefaultFundID(policyID);
+    const travelBillingFundID = useTravelBillingFundID(policyID);
     const {allFeeds: accessibleTravelFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -91,7 +93,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const shouldResumeToggleRef = useRef(false);
 
     // Read the travel feed from the resolved fund so a shared domain feed shows feed-wide spend and limit.
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -99,7 +101,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [domainMemberData] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${defaultFundID}`);
+    const [domainMemberData] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${travelBillingFundID}`);
 
     // Resolve travel-specific settings from the shared card settings key
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -168,8 +170,10 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const toggleErrors = cardSettings?.errors;
     const togglePendingAction = isTogglePendingAction ? cardSettings?.pendingAction : undefined;
 
-    // Only show errors/pending under the settlement account if it's a settlement account action
-    const settlementAccountErrors = isSettlementAccountPendingAction ? cardSettings?.errorFields?.paymentBankAccountID : undefined;
+    // Only show errors/pending under the settlement account if it's a settlement account action.
+    // Only the highest-keyed error is shown, so the backend's specific message takes precedence over the client fallback.
+    const latestSettlementAccountError = getLatestErrorField(cardSettings, 'paymentBankAccountID');
+    const settlementAccountErrors = isSettlementAccountPendingAction && !isEmptyObject(latestSettlementAccountError) ? latestSettlementAccountError : undefined;
     const settlementAccountPendingAction = isSettlementAccountPendingAction ? cardSettings?.pendingFields?.paymentBankAccountID : undefined;
 
     // Only show error indicator if we have settlement account errors
@@ -206,7 +210,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        payTravelBillingSpend(policyID, defaultFundID, travelSpendRef.current);
+        payTravelBillingSpend(policyID, travelBillingFundID, travelSpendRef.current);
     };
 
     /**
@@ -214,7 +218,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
      * can reconcile their travel spend.
      */
     const handleViewOnSpend = () => {
-        const travelFeedID = getTravelBillingFeedID(defaultFundID);
+        const travelFeedID = getTravelBillingFeedID(travelBillingFundID);
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             feed: [travelFeedID],
@@ -256,7 +260,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
 
         // Has settlement account - enable Travel Billing and navigate to settlement page to show verification state
         if (settlementAccount?.bankAccountID) {
-            configureTravelBillingForPolicy(policyID, defaultFundID, settlementAccount.bankAccountID);
+            configureTravelBillingForPolicy(policyID, travelBillingFundID, settlementAccount.bankAccountID);
         }
         Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
@@ -289,7 +293,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        deactivateTravelBilling(policyID, defaultFundID);
+        deactivateTravelBilling(policyID, travelBillingFundID);
     };
 
     /**
@@ -384,7 +388,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
                         size={CONST.BUTTON_SIZE.SMALL}
-                        onRetry={() => retryTravelCardsProvisioning(policyID, defaultFundID, travelProvisioningErrors ?? {})}
+                        onRetry={() => retryTravelCardsProvisioning(policyID, travelBillingFundID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
                     />
@@ -440,7 +444,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             <OfflineWithFeedback
                 errors={settlementAccountErrors}
                 pendingAction={settlementAccountPendingAction}
-                onClose={() => clearTravelBillingSettlementAccountErrors(defaultFundID, travelSettings?.previousPaymentBankAccountID ?? null)}
+                onClose={() => clearTravelBillingSettlementAccountErrors(travelBillingFundID, travelSettings?.previousPaymentBankAccountID ?? null)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -464,7 +468,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             <OfflineWithFeedback
                 errors={settlementFrequencyErrors}
                 pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                onClose={() => clearTravelBillingSettlementFrequencyErrors(defaultFundID, travelSettings?.previousMonthlySettlementDate)}
+                onClose={() => clearTravelBillingSettlementFrequencyErrors(travelBillingFundID, travelSettings?.previousMonthlySettlementDate)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -483,7 +487,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             <OfflineWithFeedback
                 errors={monthlyLimitErrors}
                 pendingAction={cardSettings?.pendingFields?.monthlySpendLimitPerUser}
-                onClose={() => clearTravelBillingMonthlyLimitErrors(defaultFundID)}
+                onClose={() => clearTravelBillingMonthlyLimitErrors(travelBillingFundID)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -516,7 +520,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
                 pendingAction={togglePendingAction}
                 errors={toggleErrors}
-                onCloseError={() => clearTravelBillingErrors(defaultFundID)}
+                onCloseError={() => clearTravelBillingErrors(travelBillingFundID)}
                 subMenuItems={travelBillingSubMenuItems}
             />
         </Section>

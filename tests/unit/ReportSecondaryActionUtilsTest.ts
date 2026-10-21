@@ -114,6 +114,10 @@ jest.mock('@libs/PolicyUtils', () => ({
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/workflows'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -150,6 +154,7 @@ describe('getSecondaryAction', () => {
         const result = [
             CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.SHARE,
             CONST.REPORT.SECONDARY_ACTIONS.PRINT,
             CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
         ];
@@ -169,6 +174,118 @@ describe('getSecondaryAction', () => {
                 cardList: undefined,
             }),
         ).toEqual(result);
+    });
+
+    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
+        // Given a report that holds exactly one expense
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the option to switch views is offered, just before "View details"
+        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+        expect(toggleIndex).toBeGreaterThan(-1);
+        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
+        // Given a report with two expenses, which always uses the table view
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [firstTransaction, secondTransaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
+        // Given a report with no expenses
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
+        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+        const sentMoneyAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
+        });
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [sentMoneyAction],
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views, because the report has no expense thread for a table row to open
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     });
 
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
@@ -2222,6 +2339,42 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
+    it('does not include UNAPPROVE option while the cancelled payment is processing', () => {
+        // Given an approved expense report whose cancelled payment is still being sent back to the payer
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            isWaitingForCancelledReimbursement: true,
+        });
+        const policy = createMock<Policy>({
+            approver: EMPLOYEE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        // When the secondary actions are calculated for the manager
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then UNAPPROVE is not offered because the backend rejects unapproving until that money posts
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
     it('does not include UNAPPROVE option for non-admin on DEW policy', () => {
         // Given an approved expense report on a DEW policy where the current user is the manager but not an admin
         const report = createMock<Report>({
@@ -3437,6 +3590,45 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT when report has only non-reimbursable expenses and policy prevents paying non reimbursable reports ', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'TRANSACTION_ID_932',
+            comment: {},
+            reimbursable: false,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            preventPayoutNonReimbursableReports: true,
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
             originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},

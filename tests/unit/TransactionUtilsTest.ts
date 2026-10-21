@@ -5383,9 +5383,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
         });
 
         it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
@@ -5396,9 +5397,10 @@ describe('TransactionUtils', () => {
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
 
         it('returns an empty transactionIDList when every duplicate is non-editable', () => {
@@ -5414,9 +5416,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
     });
 
@@ -5454,6 +5457,47 @@ describe('TransactionUtils', () => {
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
             expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+        });
+    });
+
+    describe('doesReportKeepExpensesAfterMerge', () => {
+        const DISCARDED_TRANSACTION_ID = '1';
+        const OTHER_TRANSACTION_ID = '2';
+
+        it('returns true when another expense stays on the report', () => {
+            // Given a report with the discarded expense and another active expense
+            const reportTransactions = [
+                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
+                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID},
+            ];
+
+            // When the merge discards one of them, Then the report still has the other one
+            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
+        });
+
+        it('returns false when the merge discards the only expense on the report', () => {
+            // Given a report whose only expense is the one being discarded
+            const reportTransactions = [{...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID}];
+
+            // When the merge discards it, Then the report has no expenses left, so going back to it would show "Not here"
+            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
+        });
+
+        it('returns false when the only other expense is already pending deletion', () => {
+            // Given a report with the discarded expense and another expense that is already being deleted
+            const reportTransactions = [
+                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
+                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            ];
+
+            // When the merge discards the first one, Then the pending delete doesn't count, so the report has no expenses left
+            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
+        });
+
+        it('returns true when the report transactions are not loaded', () => {
+            // Given no transactions loaded for the report, so we can't tell whether it would be emptied
+            // When the merge runs, Then the report is treated as keeping expenses, so the app goes back to it as before
+            expect(TransactionUtils.doesReportKeepExpensesAfterMerge([], new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
         });
     });
 
