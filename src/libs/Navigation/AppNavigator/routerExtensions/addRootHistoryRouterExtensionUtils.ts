@@ -12,8 +12,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
 
-import type {CustomHistoryEntry} from './types';
-
 type RootHistoryState = PlatformStackNavigationState<ParamListBase>;
 type PendingReveal = {rhpKey: string; routesLengthAtCapture: number; historyLengthAtCapture: number};
 type RehydrateRootHistoryState = (newState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) => RootHistoryState;
@@ -31,7 +29,7 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 }
 
 /** Returns true if the entry is a per-instance Modal back-guard (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
-function isModalHistorySentinel(entry: CustomHistoryEntry | undefined): boolean {
+function isModalHistoryGuardEntry(entry: unknown): boolean {
     return typeof entry === 'string' && entry.startsWith(`${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:`);
 }
 
@@ -40,21 +38,20 @@ function isModalHistorySentinel(entry: CustomHistoryEntry | undefined): boolean 
  * re-appended after `enhanceStateWithHistory` rebuilds `history` from `routes`. This keeps those
  * overlays' browser entries alive through benign history rebuilds (e.g. RESET / resize).
  */
-function getTrailingStringSentinels(history: unknown[] | undefined): string[] {
-    const typed = asCustomHistory(history);
-    if (!typed?.length) {
+function getTrailingStringEntries(history: unknown[] | undefined): string[] {
+    if (!history?.length) {
         return [];
     }
-    let cutoff = typed.length;
-    while (cutoff > 0 && typeof typed.at(cutoff - 1) === 'string') {
+    let cutoff = history.length;
+    while (cutoff > 0 && typeof history.at(cutoff - 1) === 'string') {
         cutoff -= 1;
     }
-    return typed.slice(cutoff).filter((entry): entry is string => typeof entry === 'string');
+    return history.slice(cutoff).filter((entry): entry is string => typeof entry === 'string');
 }
 
 /** Removes only the topmost modal back-guard entry (used to consume one guard on forward navigation). */
-function stripTrailingModalSentinels(history: CustomHistoryEntry[]): CustomHistoryEntry[] {
-    if (isModalHistorySentinel(history.at(-1))) {
+function removeTopModalHistoryGuardEntry(history: unknown[]): unknown[] {
+    if (isModalHistoryGuardEntry(history.at(-1))) {
         return history.slice(0, -1);
     }
     return history;
@@ -64,13 +61,8 @@ function isRightModalNavigatorRouteName(name: string | undefined): boolean {
     return name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
 
-/** Centralizes the cast from PlatformStackNavigationState's `unknown[]` history slot to our typed array. */
-function asCustomHistory(history: unknown[] | undefined): CustomHistoryEntry[] | undefined {
-    return history as CustomHistoryEntry[] | undefined;
-}
-
 /** Counts the leading `CUSTOM_HISTORY_ENTRY_REVEAL_PADDING` padding entries in a history array. */
-function countLeadingRevealPadding(history: CustomHistoryEntry[] | undefined): number {
+function countLeadingRevealPadding(history: unknown[] | undefined): number {
     if (!history?.length) {
         return 0;
     }
@@ -87,11 +79,11 @@ function countLeadingRevealPadding(history: CustomHistoryEntry[] | undefined): n
 }
 
 /** Returns a fresh history array with `offset` reveal-padding entries prepended. */
-function buildPaddedHistory(baseHistory: CustomHistoryEntry[], offset: number): CustomHistoryEntry[] {
+function buildPaddedHistory(baseHistory: unknown[], offset: number): unknown[] {
     if (offset <= 0) {
         return [...baseHistory];
     }
-    const padding = new Array<CustomHistoryEntry>(offset).fill(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_REVEAL_PADDING);
+    const padding = new Array<string>(offset).fill(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_REVEAL_PADDING);
     return [...padding, ...baseHistory];
 }
 
@@ -154,7 +146,7 @@ function getRevealDismissState(
     // Apply the reveal fix only when this DISMISS closes the same RHP we snapshotted.
     if (dismissingTopKey === pendingReveal.rhpKey && depthMatches && historyDepthMatches) {
         const rehydrated = rehydrate(newState, configOptions);
-        const rehydratedHistory = asCustomHistory(rehydrated.history) ?? [];
+        const rehydratedHistory = rehydrated.history ?? [];
         // rehydratedHistory already includes any trailing SIDE_PANEL entry,
         // so it does not inflate the computed offset.
         const lengthDelta = (state.history?.length ?? 0) - rehydratedHistory.length;
@@ -183,9 +175,9 @@ function getRevealDismissState(
 
 function applyRevealPaddingOffset(state: RootHistoryState, rehydrated: RootHistoryState): RootHistoryState {
     // Regular navigation rebuilds history from routes; put back any fake slots already in use.
-    const offset = countLeadingRevealPadding(asCustomHistory(state.history));
+    const offset = countLeadingRevealPadding(state.history);
     if (offset > 0) {
-        return {...rehydrated, history: buildPaddedHistory(asCustomHistory(rehydrated.history) ?? [], offset)};
+        return {...rehydrated, history: buildPaddedHistory(rehydrated.history ?? [], offset)};
     }
     return rehydrated;
 }
@@ -193,14 +185,13 @@ function applyRevealPaddingOffset(state: RootHistoryState, rehydrated: RootHisto
 export type {PendingReveal, RootHistoryState};
 export {
     applyRevealPaddingOffset,
-    asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
-    getTrailingStringSentinels,
+    getTrailingStringEntries,
     isDismissModalAction,
-    isModalHistorySentinel,
+    isModalHistoryGuardEntry,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
-    stripTrailingModalSentinels,
+    removeTopModalHistoryGuardEntry,
 };
