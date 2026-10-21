@@ -10297,6 +10297,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         display: {
             label: 'Exibir',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Exibir (${count})` : 'Exibir'),
             sortBy: 'Ordenar por',
             sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
