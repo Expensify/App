@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {Scheduler} from '@libs/Scheduler';
 
-import SubmitDetailsPage, {getDestinationKey} from '@pages/Share/SubmitDetailsPage';
+import SubmitDetailsPage, {getDefaultBillableForDestination, getDestinationKey} from '@pages/Share/SubmitDetailsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -306,6 +306,30 @@ function resetNavigationMocksForSubmitDetailsPageTests() {
 }
 
 describe('SubmitDetailsPage', () => {
+    it('does not inherit a stale workspace billable default for a personal destination', () => {
+        // Given a P2P destination while the previously selected workspace policy is still resolving away
+        const staleWorkspaceDefaultBillable = true;
+
+        // When the destination default is resolved
+        const defaultBillable = getDefaultBillableForDestination(false, false, staleWorkspaceDefaultBillable);
+
+        // Then the personal destination uses its own non-billable default
+        expect(defaultBillable).toBe(false);
+    });
+
+    it('uses the resolved policy billable default for workspace and Track destinations', () => {
+        // Given policy-backed Submit and Track destinations
+        const policyDefaultBillable = true;
+
+        // When their destination defaults are resolved
+        const workspaceDefaultBillable = getDefaultBillableForDestination(true, false, policyDefaultBillable);
+        const trackDefaultBillable = getDefaultBillableForDestination(false, true, policyDefaultBillable);
+
+        // Then both continue using the resolved policy default
+        expect(workspaceDefaultBillable).toBe(true);
+        expect(trackDefaultBillable).toBe(true);
+    });
+
     it('keys personal destinations with a fake policy by report ID', () => {
         // Given a self-DM and P2P destination that both use the fake policy sentinel
         const selfDMReportID = 'self-dm-report';

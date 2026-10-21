@@ -91,6 +91,14 @@ function getDestinationKey(policyID: string | undefined, reportID: string | unde
     return undefined;
 }
 
+function getDefaultBillableForDestination(isPolicyExpenseChat: boolean, isCreatingTrackExpense: boolean, policyDefaultBillable: boolean | undefined): boolean {
+    if (!isPolicyExpenseChat && !isCreatingTrackExpense) {
+        return false;
+    }
+
+    return !!policyDefaultBillable;
+}
+
 function SubmitDetailsPage({
     route: {
         params: {reportOrAccountID},
@@ -320,7 +328,9 @@ function SubmitDetailsPage({
     const isGroupPolicyExpenseChat = isPolicyExpenseChat && isGroupPolicy(policy);
     const isDestinationPolicyReady = isPolicyExpenseChat ? !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
 
-    const defaultBillable = !!policy?.defaultBillable;
+    // Personal destinations do not inherit workspace defaults. `policy` can briefly refer to the previous workspace
+    // while transaction participants update, so reading it for a P2P destination would leak a stale billable value.
+    const defaultBillable = getDefaultBillableForDestination(isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultBillable);
     useEffect(() => {
         if (!hasCapturedInitialDestinationRef.current || !destinationKey || lastHandledDestinationKeyRef.current === destinationKey || !report?.reportID || !isDestinationPolicyReady) {
             return;
@@ -795,4 +805,4 @@ function SubmitDetailsPage({
 
 export default SubmitDetailsPage;
 
-export {getDestinationKey};
+export {getDefaultBillableForDestination, getDestinationKey};
