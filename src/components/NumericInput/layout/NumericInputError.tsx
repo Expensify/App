@@ -1,11 +1,17 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import {useNumericInputState} from '@components/NumericInput/context';
-import type {NumericErrorProps} from '@components/NumericInput/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-/** Renders the root error wherever the composition places this primitive. */
-function NumericError({style}: NumericErrorProps) {
+import type {StyleProp, ViewStyle} from 'react-native';
+
+type NumericInputErrorProps = {
+    /** Style applied to the message container, appended to the defaults. */
+    style?: StyleProp<ViewStyle>;
+};
+
+/** Renders the root error, placed by the layout. */
+function NumericInputError({style}: NumericInputErrorProps) {
     const styles = useThemeStyles();
     const {errorText} = useNumericInputState();
 
@@ -22,4 +28,4 @@ function NumericError({style}: NumericErrorProps) {
     );
 }
 
-export default NumericError;
+export default NumericInputError;

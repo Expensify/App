@@ -63,9 +63,10 @@ function MapViewImpl({
     const hasAlternateDirection = !!alternateDirection?.coordinates?.length;
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -211,6 +212,32 @@ function MapViewImpl({
             resizeObserver?.disconnect();
         };
     }, [mapRef]);
+
+    // cspell:ignore styledata
+    // Keep the map labels in the user's preferred app locale and its disputed borders drawn from the user's
+    // own worldview, reapplying whenever the map, the locale or the country changes.
+    useEffect(() => {
+        if (!mapRef) {
+            return;
+        }
+
+        const map = mapRef.getMap();
+        const applyLocalization = () => {
+            map.setLanguage(utils.getMapboxLanguage(preferredLocale));
+            map.setWorldview(utils.getMapboxWorldview(countryByIp));
+        };
+
+        if (map.isStyleLoaded()) {
+            applyLocalization();
+            return;
+        }
+
+        // The style must be loaded before labels and borders can be localized, so defer until it is ready.
+        map.once('styledata', applyLocalization);
+        return () => {
+            map.off('styledata', applyLocalization);
+        };
+    }, [mapRef, preferredLocale, countryByIp]);
 
     // Tracks the wrapper size so the map mounts when it appears and unmounts when it collapses.
     // Re-runs when the wrapper can come into existence, i.e. once the map is no longer pending.
