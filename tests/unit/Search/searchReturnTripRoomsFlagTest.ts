@@ -22,12 +22,13 @@ function getQueryJSON(query: string) {
     return queryJSON;
 }
 
-function getLastRequestJsonQuery(): Record<string, unknown> {
+function getLastRequestJsonQuery(): unknown {
     const requestParams = mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[1];
     if (!requestParams || !('jsonQuery' in requestParams) || typeof requestParams.jsonQuery !== 'string') {
         throw new Error('Search request params with jsonQuery should be defined');
     }
-    return JSON.parse(requestParams.jsonQuery) as Record<string, unknown>;
+    const parsedJsonQuery: unknown = JSON.parse(requestParams.jsonQuery);
+    return parsedJsonQuery;
 }
 
 // The backend only returns one row per trip room when a trip search sends shouldReturnTripRooms, and keeps

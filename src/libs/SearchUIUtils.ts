@@ -1020,9 +1020,9 @@ function isTaskListItemType(item: SearchListItem): item is TaskListItemType {
 }
 
 /**
- * Type guard that checks if something is a TripListItemType. Trip rows aren't part of SearchListItem since they can't be selected.
+ * Type guard that checks if something is a TripListItemType
  */
-function isTripListItemType(item: SearchListItem | TripListItemType): item is TripListItemType {
+function isTripListItemType(item: SearchListItem): item is TripListItemType {
     return 'chatType' in item && item.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM && 'travelerAccountID' in item;
 }
 

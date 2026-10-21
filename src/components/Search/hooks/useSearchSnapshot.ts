@@ -351,14 +351,12 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        // Trip rows render through the same list as every other row, they're only kept out of SearchListItem because they can't be selected
-        const sortedData = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
             shouldReturnTripRooms,
-        }) as SearchListItem[];
-        return sortedData.map((item) => {
+        }).map((item) => {
             if (item.hash === hash) {
                 return item;
             }

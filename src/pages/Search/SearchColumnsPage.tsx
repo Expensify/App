@@ -39,11 +39,11 @@ function SearchColumnsPage() {
 
     // Without the TravelApproval beta a trip search is an expense search with no trip columns to pick
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryType);
-    const hasNoTypeCustomColumns = queryType === CONST.SEARCH.DATA_TYPES.TRIP && !shouldReturnTripRooms;
-    const allTypeCustomColumns = hasNoTypeCustomColumns ? [] : getCustomColumns(queryType).filter(isColumnAvailable);
+    const canPickTypeColumns = queryType !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms;
+    const allTypeCustomColumns = canPickTypeColumns ? getCustomColumns(queryType).filter(isColumnAvailable) : [];
     const allGroupCustomColumns = getCustomColumns(groupBy);
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
-    const defaultTypeCustomColumns = hasNoTypeCustomColumns ? [] : [...getCustomColumnDefault(queryType)];
+    const defaultTypeCustomColumns = canPickTypeColumns ? [...getCustomColumnDefault(queryType)] : [];
     const savedColumns = [...(searchAdvancedFiltersForm?.columns ?? [])].filter(isColumnAvailable);
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
