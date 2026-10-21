@@ -46,7 +46,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const messageContent = useMemo(
         () => buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber),
-        [nextStep, translate, dateFnsLocale, formatPhoneNumber],
+        [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber],
     );
 
     return (
