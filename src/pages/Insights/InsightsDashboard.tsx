@@ -190,7 +190,16 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
 
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const query = isResolved
+        ? buildInsightsJsonQuery(
+              dashboardID,
+              filters,
+              eligibleCharts.map(({graphKey}) => graphKey),
+              isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE),
+          )
+        : undefined;
     const jsonQuery = query?.jsonQuery;
     const hash = query?.hash;
 
@@ -213,11 +222,9 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     // Until the filters resolve, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
-        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
+        ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
