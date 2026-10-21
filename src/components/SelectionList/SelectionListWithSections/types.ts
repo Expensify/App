@@ -40,6 +40,12 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     shouldPreventAutoScrollOnSelect?: boolean;
 
     /**
+     * Whether ArrowUp from the first row, or pressing the search input, clears the focused row so focus returns to the search input.
+     * With no focused row, plain Enter in the search input reaches the confirm button instead of toggling a row.
+     */
+    shouldAllowArrowUpToSearchInput?: boolean;
+
+    /**
      * Passed straight to the underlying list. Defaults to `always`, which a list whose own text input drives its
      * rows needs: a row press has to land while that input still holds focus. A list whose rows are inputs of their
      * own (the expense confirmation form) passes `handled` instead, so a tap that no row claims dismisses the
@@ -71,7 +77,6 @@ type SectionHeader = {
 };
 
 type SectionListItem<TItem extends ListItem> = TItem & {
-    flatIndex: number;
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
     /** Unique key for FlashList rendering, containing section info  */
     flatListKey: string;

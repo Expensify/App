@@ -5,7 +5,7 @@ import usePermissions from '@hooks/usePermissions';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
-import {getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
@@ -64,6 +64,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     distanceDraftData: DistanceDraftData;
     delegateAccountID: number | undefined;
     participantsPolicyTags: ParticipantsPolicyTags;
+    reportTransactions: Transaction[];
 };
 
 /** Hook implementing the distance-request submission path (CreateDistanceRequest) for the expense confirmation screen. */
@@ -99,6 +100,7 @@ function useDistanceSubmission({
     distanceDraftData,
     delegateAccountID,
     participantsPolicyTags,
+    reportTransactions,
 }: UseDistanceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -111,9 +113,7 @@ function useDistanceSubmission({
 
     const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport
-        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
-        : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
@@ -146,6 +146,7 @@ function useDistanceSubmission({
             getCurrencyDecimals,
             writeBarrier,
             report,
+            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
