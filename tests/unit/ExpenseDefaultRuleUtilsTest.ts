@@ -1,7 +1,6 @@
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryRenameRuleUpdates,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
@@ -417,70 +416,6 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // Then the editor refuses it, since saving would drop that trigger
             expect(getExpenseDefaultFormValues(rule)).toBeUndefined();
-        });
-    });
-
-    describe('getCategoryRenameRuleUpdates', () => {
-        const categoryRule = asStoredRule({...merchantRuleBody, filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}});
-
-        it('rewrites the renamed category in a rule that matches on it', () => {
-            // Given a rule matching on the category being renamed
-            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: categoryRule};
-
-            // When the rename is applied
-            const updates = getCategoryRenameRuleUpdates(rules, POLICY_ID, 'Coffee', 'Caffeine');
-
-            // Then the rule carries the new name, and the old tree is kept so a failed rename can put it back
-            expect(updates).toEqual([
-                {
-                    ruleID: '1',
-                    filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Caffeine'},
-                    previousFilters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
-                },
-            ]);
-        });
-
-        it('rewrites the category inside a nested condition', () => {
-            // Given a rule that matches on a merchant and the renamed category together
-            const nested = asStoredRule({
-                ...merchantRuleBody,
-                filters: {left: merchantFilter, operator: AND, right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}},
-            });
-
-            // When the rename is applied
-            const updates = getCategoryRenameRuleUpdates({[`${ONYXKEYS.COLLECTION.RULE}1`]: nested}, POLICY_ID, 'Coffee', 'Caffeine');
-
-            // Then only the category branch changes
-            expect(updates.at(0)?.filters).toEqual({left: merchantFilter, operator: AND, right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Caffeine'}});
-        });
-
-        it('rewrites one name out of a list the rule matches on', () => {
-            // Given a rule matching on several categories at once
-            const multi = asStoredRule({...merchantRuleBody, filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee', 'Travel']}});
-
-            // When one of them is renamed
-            const updates = getCategoryRenameRuleUpdates({[`${ONYXKEYS.COLLECTION.RULE}1`]: multi}, POLICY_ID, 'Coffee', 'Caffeine');
-
-            // Then the others are left alone
-            expect(updates.at(0)?.filters).toEqual({left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Caffeine', 'Travel']});
-        });
-
-        it('leaves alone a rule that does not name the category', () => {
-            // Given a rule matching on a merchant only
-            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody)};
-
-            // When an unrelated category is renamed
-            // Then nothing is rewritten, so the rename writes no rule updates
-            expect(getCategoryRenameRuleUpdates(rules, POLICY_ID, 'Coffee', 'Caffeine')).toEqual([]);
-        });
-
-        it('leaves alone a rule belonging to another workspace', () => {
-            // Given a rule on the same category but scoped to a different policy
-            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule({...merchantRuleBody, filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}, 'OTHER')};
-
-            // When the rename is applied to this policy
-            // Then the other workspace's rule is untouched, since the collection holds every workspace the user sees
-            expect(getCategoryRenameRuleUpdates(rules, POLICY_ID, 'Coffee', 'Caffeine')).toEqual([]);
         });
     });
 

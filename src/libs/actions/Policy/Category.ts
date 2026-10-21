@@ -27,7 +27,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getCategoryRenameRuleUpdates} from '@libs/ExpenseDefaultRuleUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -41,13 +40,13 @@ import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction, Rule} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -847,7 +846,7 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
     }
 }
 
-function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}, isVendorMatchingBetaEnabled: boolean | undefined, rules?: OnyxCollection<Rule>) {
+function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}, isVendorMatchingBetaEnabled: boolean | undefined) {
     const policy = policyData.policy;
     const policyID = policy.id;
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
@@ -875,10 +874,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
         updatedApprovalRules[indexToUpdate] = policyCategoryApproverRule;
     }
 
-    // A coding rule names its category rather than pointing at it, so it has to be rewritten alongside the approval
-    // rules above, otherwise it matches a category that no longer exists until the next fetch.
-    const ruleUpdates = getCategoryRenameRuleUpdates(rules, policyID, policyCategory.oldName, policyCategory.newName);
-
     const policyOptimisticData = {
         rules: {
             approvalRules: updatedApprovalRules,
@@ -900,7 +895,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -915,11 +910,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: policyOptimisticData,
             },
-            ...ruleUpdates.map(({ruleID, filters}) => ({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const,
-                value: {filters},
-            })),
         ],
         successData: [
             {
@@ -943,11 +933,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
             },
         ],
         failureData: [
-            ...ruleUpdates.map(({ruleID, previousFilters}) => ({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const,
-                value: {filters: previousFilters},
-            })),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,

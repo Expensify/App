@@ -28,12 +28,12 @@ import {updateExpensifyCardLimit, updateExpensifyCardLimitType} from '@userActio
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
-import type {Card, Policy, Rule} from '@src/types/onyx';
+import type {Card, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {renamePolicyCategory} from './Category';
@@ -48,7 +48,6 @@ function renameCategoryInline(
     currentName: string,
     newName: string,
     isVendorMatchingBetaEnabled: boolean | undefined,
-    rules?: OnyxCollection<Rule>,
 ): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getDecodedCategoryName(currentName);
@@ -62,7 +61,7 @@ function renameCategoryInline(
         return getCategoryNameErrorMessage(translate, categoryError, newName);
     }
 
-    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, rules);
+    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
 }
 
 function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {

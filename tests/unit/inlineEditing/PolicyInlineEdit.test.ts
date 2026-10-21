@@ -19,8 +19,7 @@ import {updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, Rule} from '@src/types/onyx';
+import type {Card, Policy} from '@src/types/onyx';
 
 import type {PartialDeep} from 'type-fest';
 
@@ -90,10 +89,6 @@ const policyData = createMock<PolicyData>({
 
 const policy = createMock<Policy>({id: '1'});
 
-const rules: Record<string, Rule> = {
-    [`${ONYXKEYS.COLLECTION.RULE}1`]: createMock<Rule>({scope: CONST.RULES.SCOPE.POLICY, scopeID: '1'}),
-};
-
 function buildCard(overrides: PartialDeep<Card> = {}): Card {
     return createMock<Card>({
         cardID: 10,
@@ -144,12 +139,9 @@ describe('PolicyInlineEdit', () => {
         });
 
         it('delegates a valid rename to the canonical action', () => {
-            // Given the coding rules, which the action needs because it rewrites the renamed category inside them
-            // When the rename is made from the table
-            renameCategoryInline(translate, policyData, 'Food', '  Meals  ', true, rules);
+            renameCategoryInline(translate, policyData, 'Food', '  Meals  ', true);
 
-            // Then the collection reaches the action alongside the names
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true, rules);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true);
         });
 
         it('does not persist a name that matches an HTML-encoded category', () => {
@@ -165,9 +157,9 @@ describe('PolicyInlineEdit', () => {
         });
 
         it('persists a rename of an HTML-encoded category using the raw stored name', () => {
-            renameCategoryInline(translate, policyData, encodedFoodAndDrink, 'Snacks', true, rules);
+            renameCategoryInline(translate, policyData, encodedFoodAndDrink, 'Snacks', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true, rules);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true);
         });
     });
 
