@@ -29,7 +29,7 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -134,7 +134,7 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
+    if (isPayBlocked(report, policy, isReportArchived)) {
         return false;
     }
 

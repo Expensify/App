@@ -402,7 +402,7 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === currentUserAccountID;
 
-    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
+    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 
@@ -517,6 +517,10 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
     }
 
     if (report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    if (policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)) {
         return false;
     }
 
