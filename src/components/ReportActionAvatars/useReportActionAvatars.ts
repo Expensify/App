@@ -33,6 +33,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -82,7 +83,7 @@ function useReportActionAvatars({
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
     const chatReportID = report?.chatReportID ?? passedChatReportID;
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;

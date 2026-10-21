@@ -239,6 +239,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
                             path: ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.route,
                             exact: true,
@@ -1099,12 +1103,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.SPEND_CATEGORY_SELECTOR.path,
                         [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.path,
                         [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
@@ -1120,6 +1121,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
+                        },
+                        [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: {
+                            path: DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,
@@ -1692,7 +1696,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
                     screens: {
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path,
-                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path,
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT]: {
@@ -1711,7 +1714,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
                     screens: {
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path,

@@ -345,8 +345,6 @@ const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosS
 });
 
 const CategoriesModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCreateCategoryPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicEditCategoryPage').default,
     [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
@@ -357,7 +355,6 @@ const CategoriesModalStackNavigator = createModalStackNavigator({
 });
 
 const TagsModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default,
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceEditTagsPage').default,
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsOptionsPage').default,
@@ -501,6 +498,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EditBankAccountNicknamePage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WiseGlobalReimbursementsIntroPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
@@ -607,10 +605,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditCategoryTaxRulePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewAddressPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceOverviewPlanTypePage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportCategoriesPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportedCategoriesPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicSpendCategorySelectorPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicDefaultCategorySelectorPage').default,
     [SCREENS.WORKSPACE.UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/upgrade/WorkspaceUpgradePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/DynamicWorkspaceDowngradePage').default,
@@ -619,6 +615,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
+    [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/DynamicWorkspaceOwnerChangeWrapperPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/DynamicWorkspaceOwnerChangeSuccessPage').default,
@@ -657,7 +654,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportMultiLevelTagsSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportedTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportedMultiLevelTagsPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicTagSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceViewTagsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/DynamicWorkspaceEditTagsPage').default,
