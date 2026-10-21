@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {Alert} from 'react-native';
 
 import type AddToWalletButtonProps from './types';
@@ -26,15 +26,18 @@ const isIOS = getPlatform() === CONST.PLATFORM.IOS;
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable, refreshWalletStatus} = useIsCardInWallet(card);
 
-    const handleOnPress = useCallback(() => {
+    const handleOnPress = () => {
         setIsLoading(true);
         handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false))
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+
+                    // Keep the spinner until the new wallet status is known, so the Add button does not flash back in the meantime
+                    refreshWalletStatus().finally(() => setIsLoading(false));
                     if (isIOS) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                     }
@@ -47,7 +50,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    };
 
     if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;

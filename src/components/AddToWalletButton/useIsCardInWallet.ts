@@ -5,13 +5,16 @@ import {checkIfWalletIsAvailable, isCardInWallet} from '@libs/Wallet';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 type UseIsCardInWalletType = {
     isInWallet: boolean | null;
     isLoading: boolean;
     isCardAvailable: boolean;
     isWalletAvailable: boolean;
+
+    /** Re-reads the card status from the device wallet, e.g. right after the user adds the card */
+    refreshWalletStatus: () => Promise<void>;
 };
 
 function useIsCardInWallet(card: Card): UseIsCardInWalletType {
@@ -19,7 +22,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const [isWalletAvailable, setIsWalletAvailable] = useState(false);
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const checkIfCardIsInWallet = useCallback(() => {
+    const refreshWalletStatus = () =>
         isCardInWallet(card)
             .then((result) => {
                 setIsInWallet(result);
@@ -30,15 +33,14 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
             .finally(() => {
                 setIsLoading(false);
             });
-    }, [card]);
 
     useEffect(() => {
         if (!isCardAvailable) {
             return;
         }
 
-        checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet, isCardAvailable, card]);
+        refreshWalletStatus();
+    }, [refreshWalletStatus, isCardAvailable, card]);
 
     useEffect(() => {
         if (!isCardAvailable) {
@@ -55,20 +57,19 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     }, [isCardAvailable]);
 
     // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
-    useAppFocusEvent(
-        useCallback(() => {
-            if (!isCardAvailable) {
-                return;
-            }
-            checkIfCardIsInWallet();
-        }, [checkIfCardIsInWallet, isCardAvailable]),
-    );
+    useAppFocusEvent(() => {
+        if (!isCardAvailable) {
+            return;
+        }
+        refreshWalletStatus();
+    });
 
     return {
         isInWallet,
         isLoading,
         isCardAvailable,
         isWalletAvailable,
+        refreshWalletStatus,
     };
 }
 
