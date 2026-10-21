@@ -362,7 +362,7 @@ describe('DomainUtils', () => {
             // Given a member whose lock request failed, which is stored outside the generic `errors` field
             const domainErrors: DomainErrors = {
                 errors: {},
-                memberErrors: {user1: {errors: {}, lockAccountErrors:{timestamp1: 'Lock error'}}},
+                memberErrors: {user1: {errors: {}, lockAccountErrors: {timestamp1: 'Lock error'}}},
             };
 
             // When / Then the Domain members row and the Domains list should still show the red dot
@@ -373,7 +373,7 @@ describe('DomainUtils', () => {
             // Given a member whose unlock request failed, which is stored outside the generic `errors` field
             const domainErrors: DomainErrors = {
                 errors: {},
-                memberErrors: {user1: {errors: {}, unlockAccountErrors:{timestamp1: 'Unlock error'}}},
+                memberErrors: {user1: {errors: {}, unlockAccountErrors: {timestamp1: 'Unlock error'}}},
             };
 
             // When / Then the Domain members row and the Domains list should still show the red dot
