@@ -2,7 +2,6 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -36,6 +35,7 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
+import {setUpPoliciesAndNavigate} from '@userActions/Policy/CreateWorkspaceFlow';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -118,7 +118,6 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
-    useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
@@ -225,7 +224,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate({
+        setUpPoliciesAndNavigate({
             session,
             introSelected,
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

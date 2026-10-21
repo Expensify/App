@@ -257,6 +257,41 @@ describe('usePolicyIndicatorChecks', () => {
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
+
+        it('returns HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER when a member submits to someone no longer on the workspace', async () => {
+            // Given an advanced-approval workspace the admin can edit, where a member still submits to a removed approver
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...createPolicyCollectionDataSet(
+                        createMock<Policy>({
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            owner: userID,
+                            role: 'admin',
+                            approver: userID,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            employeeList: {
+                                [userID]: {email: userID, role: CONST.POLICY.ROLE.ADMIN, submitsTo: userID},
+                                [otherUserID]: {email: otherUserID, role: CONST.POLICY.ROLE.USER, submitsTo: 'removed@example.com'},
+                            },
+                        }),
+                    ),
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the policy indicator checks run
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Workspaces tab gets the red dot for that workspace, matching the flagged card on its Workflows page
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
+        });
     });
 
     describe('policy info statuses', () => {

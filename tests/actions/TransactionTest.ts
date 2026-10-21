@@ -5,22 +5,23 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useOnyx from '@hooks/useOnyx';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -29,9 +30,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
 import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs} from '../../src/libs/actions/TransactionThreadNavigation';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -125,6 +128,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -133,6 +140,7 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_CASH_CARD_ID = 777;
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport(reportID);
@@ -341,6 +349,7 @@ describe('actions/Transaction', () => {
                 transactionViolations: {},
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -450,6 +459,7 @@ describe('actions/Transaction', () => {
                 reports: allReports,
                 selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -551,6 +561,7 @@ describe('actions/Transaction', () => {
                 reports: reportsSubset.current,
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -567,6 +578,100 @@ describe('actions/Transaction', () => {
             const updatedThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${liveTransactionThread.reportID}`);
             expect(updatedThread?.parentReportID).toBe(destinationReport.reportID);
             expect(updatedThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+        });
+
+        describe('carousel cleanup', () => {
+            const carouselPolicy: Policy = {...createRandomPolicy(90, CONST.POLICY.TYPE.TEAM, 'Carousel Workspace'), id: 'policy-for-carousel'};
+            const sourceReport: Report = {...createRandomReport(91), reportID: '91', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const destinationReport: Report = {...createRandomReport(92), reportID: '92', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const buildTransaction = (transactionID: string): Transaction => ({
+                transactionID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: sourceReport.reportID,
+            });
+            const transactionIDs = ['carousel-transaction-1', 'carousel-transaction-2', 'carousel-transaction-3'];
+
+            const moveFirstTransactionToDestination = async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${carouselPolicy.id}`, carouselPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+                for (const transactionID of transactionIDs) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, buildTransaction(transactionID));
+                }
+                await waitForBatchedUpdates();
+
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+                await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transactionIDs.at(0) ?? ''],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CARLOS_ACCOUNT_ID,
+                    email: CARLOS_EMAIL,
+                    newReport: destinationReport,
+                    policy: carouselPolicy,
+                    allTransactions,
+                    policyTagList: {},
+                    transactionViolations: {},
+                    reports: allReports,
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+            };
+
+            beforeEach(() => clearActiveTransactionIDs().then(waitForBatchedUpdates));
+
+            it('removes a moved expense from a carousel seeded from the report it left', async () => {
+                // Given a carousel seeded by opening an expense row in the source report, which is how the report's arrows get their list
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the moved expense is gone from the carousel, so the arrows only page through the expenses still in the report
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('does not write the carousel back when the move fails', async () => {
+                // Given a carousel seeded by opening an expense row in the source report
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved but the request fails, which returns the expense to the report
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // Then the failure leaves the carousel alone, because by the time it lands the screen that owned the list
+                // may already have cleared it, and writing it back would leave an orphaned list that nothing clears
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('leaves a carousel seeded from another source untouched', async () => {
+                // Given a carousel seeded from search results, which legitimately spans several reports
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});
+                await waitForBatchedUpdates();
+
+                // When one of the expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the search carousel keeps every expense, since the moved one still matches the search
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs);
+            });
         });
 
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
@@ -649,6 +754,7 @@ describe('actions/Transaction', () => {
                 personalPolicyOutputCurrency: 'EUR',
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -659,6 +765,142 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedCurrency).toBe('GBP');
             expect(Math.abs(Number(updated?.modifiedAmount ?? 0))).toBe(2000);
             expect(updated?.modifiedMerchant).toContain('mi');
+        });
+
+        describe('unheldTotal', () => {
+            const SOURCE_REPORT_ID = 'source-unheld-total';
+            const DESTINATION_REPORT_ID = 'destination-unheld-total';
+            const UNHELD_TRANSACTION_ID = 'txn-unheld';
+            const HELD_TRANSACTION_ID = 'txn-held';
+
+            /**
+             * Seeds a source report carrying a $10 unheld expense and a $20 held expense (so `unheldTotal` is
+             * deliberately not equal to `total`), plus an empty destination report, then moves one of them.
+             */
+            async function moveExpense(transactionIDToMove: string, sourceUnheldTotals: Partial<Report> = {unheldTotal: -1000}) {
+                const policyID = generatePolicyID();
+                const policy: Policy = {...createRandomPolicy(4, CONST.POLICY.TYPE.TEAM, 'Hold Workspace'), id: policyID, outputCurrency: CONST.CURRENCY.USD};
+
+                const sourceReport = {
+                    reportID: SOURCE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: -3000,
+                    ...sourceUnheldTotals,
+                    transactionCount: 2,
+                } as Report;
+
+                const destinationReport = {
+                    reportID: DESTINATION_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    unheldTotal: 0,
+                    transactionCount: 0,
+                } as Report;
+
+                const unheldTransaction: Transaction = {
+                    transactionID: UNHELD_TRANSACTION_ID,
+                    reportID: SOURCE_REPORT_ID,
+                    amount: -1000,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Unheld',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    reimbursable: true,
+                };
+
+                const heldTransaction: Transaction = {
+                    transactionID: HELD_TRANSACTION_ID,
+                    reportID: SOURCE_REPORT_ID,
+                    amount: -2000,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Held',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    reimbursable: true,
+                    comment: {hold: 'holdReportActionID'},
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`, sourceReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, destinationReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${UNHELD_TRANSACTION_ID}`, unheldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${HELD_TRANSACTION_ID}`, heldTransaction);
+                await waitForBatchedUpdates();
+
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
+                changeTransactionsReport({
+                    transactionIDs: [transactionIDToMove],
+                    isASAPSubmitBetaEnabled: false,
+                    isVendorMatchingBetaEnabled: false,
+                    accountID: RORY_ACCOUNT_ID,
+                    email: RORY_EMAIL,
+                    newReport: destinationReport,
+                    policy,
+                    allTransactions: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${UNHELD_TRANSACTION_ID}`]: unheldTransaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${HELD_TRANSACTION_ID}`]: heldTransaction,
+                    },
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    reports,
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                return {
+                    source: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`),
+                    destination: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`),
+                };
+            }
+
+            it('should move the amount out of unheldTotal on both reports when the expense is not on hold', async () => {
+                // When the $10 unheld expense is moved to the destination report
+                const {source, destination} = await moveExpense(UNHELD_TRANSACTION_ID);
+
+                // Then it leaves the source unheldTotal and arrives in the destination unheldTotal
+                expect(source?.total).toBe(-2000);
+                expect(source?.unheldTotal).toBe(0);
+                expect(destination?.total).toBe(-1000);
+                expect(destination?.unheldTotal).toBe(-1000);
+            });
+
+            it('should leave unheldTotal untouched on both reports when the expense is on hold', async () => {
+                // When the $20 held expense is moved to the destination report
+                const {source, destination} = await moveExpense(HELD_TRANSACTION_ID);
+
+                // Then only `total` moves, because a held expense was never counted in unheldTotal
+                expect(source?.total).toBe(-1000);
+                expect(source?.unheldTotal).toBe(-1000);
+                expect(destination?.total).toBe(-2000);
+                expect(destination?.unheldTotal).toBe(0);
+            });
+
+            it('should not add unheldTotal to a report that does not have one', async () => {
+                // Given a source report without unheldTotal, whose unheld amount is derived from its siblings instead
+                // When the $10 unheld expense is moved to the destination report
+                const {source} = await moveExpense(UNHELD_TRANSACTION_ID, {unheldReimbursableTotal: -1000});
+
+                // Then the source report still has no unheldTotal, because `getNonHeldAndFullAmount` would read a
+                // seeded value in preference to the correct derived sum
+                expect(source?.total).toBe(-2000);
+                expect(source).not.toHaveProperty('unheldTotal');
+            });
         });
 
         describe('moved system messages', () => {
@@ -684,6 +926,10 @@ describe('actions/Transaction', () => {
                     ...sourceReportStatus,
                 } as Report;
 
+                const cardList: CardList = {
+                    [RORY_CASH_CARD_ID]: createCashCard(RORY_ACCOUNT_ID, RORY_CASH_CARD_ID),
+                };
+
                 const transaction: Transaction = {
                     transactionID: TRANSACTION_ID,
                     reportID: SOURCE_REPORT_ID,
@@ -691,6 +937,7 @@ describe('actions/Transaction', () => {
                     currency: CONST.CURRENCY.USD,
                     merchant: 'Test Merchant',
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    cardID: RORY_CASH_CARD_ID,
                 };
 
                 // The IOU action links the expense to its transaction thread, which is where moved messages land.
@@ -744,6 +991,7 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     reports,
                     isTrackIntentUser: false,
+                    cardList,
                 });
                 await waitForBatchedUpdates();
 
@@ -945,6 +1193,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1131,6 +1380,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1331,6 +1581,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1470,7 +1721,24 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, {rules: undefined});
+                    const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                    const transactionThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+                    const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
+                    putOnHold({
+                        transactionID: originalTransactionID,
+                        transaction: originalTransaction,
+                        comment: 'Test hold reason',
+                        initialReportID: transactionThreadReportID,
+                        initialReport: transactionThreadReport,
+                        transactionReport,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                 }
                 await waitForBatchedUpdates();
 
@@ -1560,6 +1828,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {

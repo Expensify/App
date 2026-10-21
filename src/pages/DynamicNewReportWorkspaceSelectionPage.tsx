@@ -19,6 +19,7 @@ import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -112,6 +113,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const navigateToNewReport = (optimisticReportID: string) => {
         if (isRHPOnReportInSearch) {
@@ -155,6 +157,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     allTransactionViolation: transactionViolations,
                     reports: reportsForCall,
                     rules,
+                    cardList,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     selfDMReportActions,
@@ -197,6 +200,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             setPendingPolicySelection(null);
         },
     });
+
+    useOpenRecipientPicker();
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
@@ -265,7 +270,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
         value: searchTerm,
         onChangeText: setSearchTerm,
-        headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
+        headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
     };
 
     return (

@@ -3,10 +3,11 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
+import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -21,12 +22,15 @@ import WorkspaceMemberDetailsPage from '@pages/workspace/members/WorkspaceMember
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -130,7 +134,108 @@ describe('WorkspaceMemberDetailsPage', () => {
         await act(async () => {
             await Onyx.clear();
         });
+        jest.restoreAllMocks();
         jest.clearAllMocks();
+    });
+
+    const setupWorkArrangement = async ({
+        isOfficeWorkArrangement,
+        memberArrangement,
+        method,
+        betaEnabled = true,
+    }: {
+        isOfficeWorkArrangement?: boolean;
+        memberArrangement?: boolean;
+        method: NonNullable<NonNullable<Policy['commuterExclusions']>['method']>;
+        betaEnabled?: boolean;
+    }) => {
+        const typedPolicy = createMock<Policy>(policy);
+        const employeeList = {
+            ...typedPolicy.employeeList,
+            [invitedEmail]: {...typedPolicy.employeeList?.[invitedEmail], ...(memberArrangement !== undefined ? {hasOfficeWorkArrangement: memberArrangement} : {})},
+        };
+        const workArrangementPolicy = createMock<Policy>({...typedPolicy, commuterExclusions: {method, isOfficeWorkArrangement}, employeeList});
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS] : []);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, workArrangementPolicy);
+        });
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        return unmount;
+    };
+
+    it('shows the work arrangement item for home and office workspaces when the beta is enabled', async () => {
+        // Given a home and office workspace and the work arrangement beta is enabled
+        const unmount = await setupWorkArrangement({method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE});
+
+        // Then the member details include the work arrangement item
+        expect(await screen.findByTestId('member-work-arrangement-menu-item')).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the work arrangement item for other commuter exclusion methods', async () => {
+        // Given a workspace using a commuter exclusion method other than home and office
+        const unmount = await setupWorkArrangement({method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE});
+
+        // Then the work arrangement item is hidden
+        expect(screen.queryByTestId('member-work-arrangement-menu-item')).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the work arrangement item when the beta is disabled', async () => {
+        // Given a home and office workspace but the work arrangement beta is disabled
+        const unmount = await setupWorkArrangement({method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, betaEnabled: false});
+
+        // Then the work arrangement item is hidden
+        expect(screen.queryByTestId('member-work-arrangement-menu-item')).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('uses the member override for the work arrangement title', async () => {
+        // Given the member override is office-based while the workspace default is no regular workspace
+        const unmount = await setupWorkArrangement({
+            method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isOfficeWorkArrangement: false,
+            memberArrangement: true,
+        });
+
+        // Then the member override supplies the title
+        const row = await screen.findByTestId('member-work-arrangement-menu-item');
+        expect(within(row).getByText(TestHelper.translateLocal('workspace.people.officeBased'))).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('falls back to the workspace default when the member arrangement is unset', async () => {
+        // Given the member override is unset and the workspace default is office-based
+        const unmount = await setupWorkArrangement({
+            method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isOfficeWorkArrangement: true,
+        });
+
+        // Then the workspace default supplies the title
+        const row = await screen.findByTestId('member-work-arrangement-menu-item');
+        expect(within(row).getByText(TestHelper.translateLocal('workspace.people.officeBased'))).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('prefers a no regular workspace member override over an office-based workspace default', async () => {
+        // Given the member override is no regular workspace while the workspace default is office-based
+        const unmount = await setupWorkArrangement({
+            method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isOfficeWorkArrangement: true,
+            memberArrangement: false,
+        });
+
+        // Then the member override still takes precedence
+        const row = await screen.findByTestId('member-work-arrangement-menu-item');
+        expect(within(row).getByText(TestHelper.translateLocal('workspace.people.noRegularWorkspace'))).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
     });
 
     it('should show the member details when the route accountID matches their personal details entry', async () => {
@@ -191,6 +296,40 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         expect(screen.getAllByText('Primary User').length).toBeGreaterThan(0);
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should reassign the submitters of a removed approver whose personal details are missing', async () => {
+        // Given an approver with no personal details loaded, who a member submits to, opened through the route
+        // accountID derived from their login
+        const approverWithoutDetails = 'nodetails@example.com';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [approverWithoutDetails]: {email: approverWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverWithoutDetails},
+                },
+            });
+        });
+
+        // The admin confirms the removal prompt
+        const showConfirmModal = jest.fn(() => Promise.resolve({action: ModalActions.CONFIRM}));
+        jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(approverWithoutDetails))});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin removes that approver
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle')));
+        await waitForBatchedUpdatesWithAct();
+        expect(showConfirmModal).toHaveBeenCalledTimes(1);
+
+        // Then the member's `submitsTo` is cleared so the backend sends them to the default approver, instead of
+        // being left submitting to someone no longer on the workspace
+        const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+        expect(updatedPolicy?.employeeList?.[invitedEmail]?.submitsTo).toBe('');
 
         unmount();
         await waitForBatchedUpdatesWithAct();

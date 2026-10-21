@@ -2,8 +2,10 @@ import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemI
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -17,19 +19,21 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
+    bankAccountLastFour?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -40,6 +44,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -50,6 +56,7 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
@@ -60,6 +67,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
@@ -72,12 +80,15 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
@@ -120,14 +131,33 @@ export default function WorkspaceMembersTable({
                   },
               ]
             : []),
+        ...(shouldShowBankAccountColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'bankAccount' as const,
+                      label: translate('common.bankAccount'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) =>
+                              item.bankAccountLastFour ? [{text: `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`, fontSize: fontScale.text}] : [],
+                      },
+                  },
+              ]
+            : []),
         {
             key: 'role',
             label: translate('common.role'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
+                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -157,6 +187,10 @@ export default function WorkspaceMembersTable({
 
         if (activeSorting.columnKey === 'customField2') {
             return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'bankAccount') {
+            return compareOptionalValues(item1.bankAccountLastFour, item2.bankAccountLastFour, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -200,6 +234,11 @@ export default function WorkspaceMembersTable({
 
         const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
+            return true;
+        }
+
+        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
             return true;
         }
 
@@ -253,6 +292,11 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.guests'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
+        });
     }
 
     if (isSubmitPolicy(policy)) {
@@ -275,6 +319,8 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowBankAccountColumn={shouldShowBankAccountColumn}
+                policy={policy}
             />
         );
     };
@@ -283,6 +329,7 @@ export default function WorkspaceMembersTable({
     return (
         <Table
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_MEMBERS}
             ref={ref}
             data={members}
             filters={filterConfig}

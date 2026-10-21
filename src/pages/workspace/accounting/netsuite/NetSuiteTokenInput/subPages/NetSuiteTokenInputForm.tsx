@@ -29,7 +29,7 @@ import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
 
-function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -41,8 +41,9 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
     const validate = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+            const inputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-            for (const formInput of formInputs) {
+            for (const formInput of inputs) {
                 if (formValues[formInput]) {
                     continue;
                 }
@@ -50,7 +51,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
             }
             return errors;
         },
-        [formInputs, translate],
+        [isOAuthFlow, translate],
     );
 
     const connectPolicy = useCallback(
@@ -60,7 +61,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
             }
 
             if (isOAuthFlow) {
-                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL);
+                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, isMigration);
                 return;
             }
 
@@ -71,7 +72,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
             }
             onNext();
         },
-        [onNext, policyID, policy, isOAuthFlow, environmentURL],
+        [onNext, policyID, policy, isOAuthFlow, environmentURL, isMigration],
     );
 
     return (

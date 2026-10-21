@@ -1,17 +1,14 @@
+import useAlertModals from '@hooks/useAlertModals';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction, getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,24 +62,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
-    const {showDecisionModal} = useDecisionModal();
-    const {translate} = useLocalize();
-
-    const showOfflineModal = () => {
-        showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
-
-    const showDownloadErrorModal = () => {
-        showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: translate('common.downloadFailedDescription'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
+    const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
 
     const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
         const open = () =>

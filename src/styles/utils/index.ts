@@ -15,7 +15,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -514,11 +514,12 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns a style with width set to the specified number, or on web to a CSS expression like `calc()`
  */
-function getWidthStyle(width: number): ViewStyle & ImageStyle {
+function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        width,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        width: width as DimensionValue,
     };
 }
 
@@ -569,7 +570,7 @@ function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscape
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextColorStyle {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -913,11 +914,12 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
- * Get minimum width as style
+ * Get minimum width as style, or on web a CSS expression like `calc()`
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        minWidth,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        minWidth: minWidth as DimensionValue,
     };
 }
 
@@ -1229,7 +1231,7 @@ function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
 /**
  * Returns color style
  */
-function getColorStyle(color: string): TextColorStyle {
+function getColorStyle(color: ColorValue): TextColorStyle {
     return {color};
 }
 
@@ -1888,6 +1890,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
+    /** Returns the color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
@@ -1981,7 +1986,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
-    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+    getSearchRowBackgroundStyle: (isSelected?: boolean): ViewStyle => ({
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+    }),
 
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {
@@ -2523,9 +2530,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({

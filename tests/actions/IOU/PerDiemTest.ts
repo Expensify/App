@@ -8,6 +8,7 @@ import {
     hasCompletePerDiemCustomUnit,
     removeSubrate,
     submitPerDiemExpense,
+    submitPerDiemExpenseForSelfDM,
     updateSubrate,
 } from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
@@ -84,7 +85,7 @@ describe('PerDiem', () => {
 
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
+        globalThis.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
         allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -135,6 +136,88 @@ describe('PerDiem', () => {
             };
             return transaction;
         }
+
+        test.each([undefined, null])('does not write a draft for an absent transaction %p', async (transaction) => {
+            // Given an absent transaction and an unrelated orphan key that must remain untouched.
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}undefined` as const;
+            await Onyx.set(key, {merchant: 'Stored only'});
+            const set = jest.spyOn(Onyx, 'set');
+            // When each editor receives the missing transaction, including otherwise reachable NaN indices.
+            if (transaction === null) {
+                // @ts-expect-error Null is intentionally malformed at this one runtime transaction argument.
+                removeSubrate(null, '0');
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                updateSubrate(null, 'not-a-number', 1, 'meal', 'Meal', 500);
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                addSubrate(null, '0', 2, 'meal', 'Meal', 500);
+            } else {
+                removeSubrate(transaction, '0');
+                updateSubrate(transaction, 'not-a-number', 1, 'meal', 'Meal', 500);
+                addSubrate(transaction, '0', 2, 'meal', 'Meal', 500);
+            }
+            await waitForBatchedUpdates();
+            // Then no partial draft is written and existing data is preserved.
+            expect(set).not.toHaveBeenCalled();
+            expect(await getOnyxValue(key)).toEqual({merchant: 'Stored only'});
+            set.mockRestore();
+        });
+
+        test.each(['-2', 'not-a-number'])('preserves Number and splice behavior for index %s', async (index) => {
+            // Given two rates and unrelated fields from the existing transaction producer.
+            const rates = [
+                {id: 'first', quantity: 1, name: 'First', rate: 100},
+                {id: 'last', quantity: 2, name: 'Last', rate: 200},
+            ];
+            const transaction = createTransactionWithSubrates(rates);
+            transaction.merchant = 'Retained merchant';
+            const originalComment = transaction.comment;
+            const originalUnit = transaction.comment?.customUnit;
+            const set = jest.spyOn(Onyx, 'set');
+            // When update uses the existing numeric conversion and copies only edited ancestors.
+            updateSubrate(transaction, index, 3, 'replacement', 'Replacement', 300);
+            await waitForBatchedUpdates();
+            const payload = set.mock.calls.at(-1)?.[1];
+            // Then both indices replace the first rate without changing the source object.
+            expect(payload).toBeDefined();
+            expect(payload).not.toBe(transaction);
+            expect(payload).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [{id: 'replacement', quantity: 3, name: 'Replacement', rate: 300}, rates.at(1)], quantity: null}},
+            });
+            expect(transaction.comment).toBe(originalComment);
+            expect(transaction.comment?.customUnit).toBe(originalUnit);
+            expect(transaction.comment?.customUnit?.subRates).toBe(rates);
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.comment).not.toBe(originalComment);
+            expect(draft?.comment?.customUnit).not.toBe(originalUnit);
+            expect(draft?.comment?.customUnit).not.toHaveProperty('quantity');
+            // When removal receives the same index, splice removes the first rate.
+            removeSubrate(transaction, index);
+            await waitForBatchedUpdates();
+            // Then the unedited rate and unrelated fields survive actual Onyx application.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`)).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [rates.at(1)]}},
+            });
+            set.mockRestore();
+        });
+
+        it('creates missing nested fields without retaining a prior draft comment', async () => {
+            // Given a historical partial transaction with no comment or custom unit.
+            const transaction = createMock<Transaction>({transactionID: TRANSACTION_ID, merchant: 'Input merchant'});
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}` as const;
+            await Onyx.set(key, {comment: {comment: 'Prior draft only'}});
+            // When the action adds the first subrate through partial SET.
+            addSubrate(transaction, '0', 1, 'meal', 'Meal', 500);
+            await waitForBatchedUpdates();
+            // Then absent input fields remain absent and nested rate data is created.
+            expect(await getOnyxValue(key)).toEqual({
+                transactionID: TRANSACTION_ID,
+                merchant: 'Input merchant',
+                comment: {customUnit: {subRates: [{quantity: 1, id: 'meal', name: 'Meal', rate: 500}]}},
+            });
+            expect(transaction).not.toHaveProperty('comment');
+        });
 
         describe('addSubrate', () => {
             it('should add a subrate at the correct index', async () => {
@@ -1337,6 +1420,57 @@ describe('PerDiem', () => {
 
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('submitPerDiemExpenseForSelfDM', () => {
+        const selfDMCustomUnit: TransactionCustomUnit = {
+            customUnitID: 'unit-1',
+            customUnitRateID: 'rate-1',
+            subRates: [{id: 'sub-1', name: 'Meals', quantity: 1, rate: 2500}],
+            attributes: {dates: {start: '2026-04-24', end: '2026-04-24'}},
+        };
+
+        const submitToSelfDM = (isFromGlobalCreate: boolean) =>
+            submitPerDiemExpenseForSelfDM({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                selfDMReport: undefined,
+                policy: {...createRandomPolicy(1)},
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: selfDMCustomUnit,
+                    isFromGlobalCreate,
+                },
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                quickAction: undefined,
+                optimisticChatReportID: 'self-dm-1',
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+        it('should signal the expense added growl when submitted from global create', async () => {
+            // Given a per diem expense headed for the self-DM, started from the global create flow
+            // When it is submitted
+            submitToSelfDM(true);
+            await waitForBatchedUpdates();
+
+            // Then the new transaction is queued for the "Expense added" growl
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(Object.values(signal ?? {})).toEqual([CONST.SEARCH.DATA_TYPES.EXPENSE]);
+        });
+
+        it('should not signal the growl when submitted from within a report', async () => {
+            // Given a per diem expense headed for the self-DM, started from within a report
+            // When it is submitted
+            submitToSelfDM(false);
+            await waitForBatchedUpdates();
+
+            // Then nothing is queued for the growl
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(signal).toBeUndefined();
         });
     });
 

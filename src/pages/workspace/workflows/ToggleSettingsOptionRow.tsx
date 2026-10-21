@@ -222,7 +222,7 @@ function ToggleSettingOptionRow({
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
-                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
                     >
                         {title}
@@ -279,7 +279,7 @@ function ToggleSettingOptionRow({
                             styles.flexRow,
                             shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.mnh40,
                             toggleContainerStyles,
                         ]}
                     >

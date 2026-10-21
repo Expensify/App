@@ -31,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Permissions from '@libs/Permissions';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -51,7 +52,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -91,16 +92,16 @@ function ProfilePage({route}: ProfilePageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const switchToDelegator = useSwitchToDelegator();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'MagnifyingGlass', 'Pencil', 'Phone', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'History', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -111,6 +112,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
+    const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -163,6 +166,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
+
+    // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
+    const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
+    const hasDisplayNameSet = !!details?.firstName || !!details?.lastName;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -285,6 +292,19 @@ function ProfilePage({route}: ProfilePageProps) {
                                     />
                                 </View>
                             ) : null}
+                            {canManageMemberDisplayName ? (
+                                <View style={[styles.alignSelfStretch, styles.mhn5]}>
+                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
+                                        <MenuItemWithTopDescription
+                                            title={displayName}
+                                            description={translate('displayNamePage.headerTitle')}
+                                            interactive={!hasDisplayNameSet}
+                                            shouldShowRightIcon={!hasDisplayNameSet}
+                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID)))}
+                                        />
+                                    </OfflineWithFeedback>
+                                </View>
+                            ) : null}
                             {pronouns ? (
                                 <View style={[styles.w100, styles.detailsPageSectionContainer]}>
                                     <MenuItemWithTopDescription
@@ -317,7 +337,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     shouldTruncateTitle
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
                                 />
                             </OfflineWithFeedback>
                         )}
@@ -331,8 +351,8 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!accountID && !isAnonymousUserSession() && (
                             <MenuItem
                                 shouldShowRightIcon
-                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.viewMemberHistory')}
-                                icon={expensifyIcons.MagnifyingGlass}
+                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
+                                icon={expensifyIcons.History}
                                 onPress={() => {
                                     const query = buildQueryStringFromFilterFormValues({
                                         type: CONST.SEARCH.DATA_TYPES.CHAT,
@@ -352,15 +372,20 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem
-                                title={`${translate('privateNotes.title')}`}
-                                titleStyle={styles.flex1}
-                                icon={expensifyIcons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, true)}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                                brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true))}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={expensifyIcons.Pencil} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('privateNotes.title')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        {hasErrorInPrivateNotes(report) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItemAction
