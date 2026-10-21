@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,11 +23,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {isLoadingReportStatusSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import getReportHistorySteps from './getReportHistorySteps';
 import ReportHistoryItem from './ReportHistoryItem';
+import ReportHistoryItemSkeleton from './ReportHistoryItemSkeleton';
 
 type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>;
 
@@ -37,6 +40,8 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [reportUpcomingSteps] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS}${report.reportID}`);
+    const [isLoadingReportStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {selector: isLoadingReportStatusSelector});
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         openReportStatusPage(report.reportID);
@@ -52,6 +57,8 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         nextStep: report.nextStep,
     });
 
+    const shouldShowUpcomingStepsSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;
+
     return (
         <ScreenWrapper testID="ReportHistoryPage">
             <FullPageNotFoundView shouldShow={!isMoneyRequestReport(report)}>
@@ -66,6 +73,12 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
                             <ReportHistoryItem step={step} />
                         </View>
                     ))}
+                    {shouldShowUpcomingStepsSkeleton && (
+                        <View>
+                            {steps.length > 0 && <View style={styles.reportHistoryConnector} />}
+                            <ReportHistoryItemSkeleton />
+                        </View>
+                    )}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
