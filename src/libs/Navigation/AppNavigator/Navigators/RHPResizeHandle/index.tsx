@@ -66,7 +66,7 @@ function RHPResizeHandle({sidePanelOffset}: RHPResizeHandleProps) {
     const dragRef = useRef<Drag | null>(null);
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
-        onMove: (drag, clientX) => applySingleRHPWidth(getDraggedSize(drag.startWidth, drag.startClientX, clientX, {axisSign: -1, min, max})),
+        onMove: (drag, clientX) => applySingleRHPWidth(getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max})),
         onEnd: () => setIsDragging(false),
     });
 

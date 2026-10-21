@@ -85,7 +85,7 @@ function useColumnResize({
         dragRef,
         onMove: (drag, clientX) => {
             // The line rides the handle, so it follows the clamped width, not the pointer.
-            const width = getDraggedSize(drag.startWidth, drag.startClientX, clientX, {axisSign: 1, min: dragMinWidths?.[drag.columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
+            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: dragMinWidths?.[drag.columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
 
             for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
                 writeColumnWidth(columnKey, resizedWidth);

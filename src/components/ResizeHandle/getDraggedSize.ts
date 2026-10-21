@@ -1,19 +1,16 @@
 /** Turns pointer travel on a resize handle into a pane's or column's size. */
 import lodashClamp from 'lodash/clamp';
 
-type DraggedSizeParams = {
-    /** `1` when the handle sits on the trailing edge, so moving right grows the size. `-1` when it sits on the leading edge. */
-    axisSign: 1 | -1;
-
+type DraggedSizeBounds = {
     min: number;
 
     /** Unbounded when omitted. */
     max?: number;
 };
 
-/** The size a drag puts a pane or column at: its start size plus the pointer's travel, rounded and kept between the bounds. The minimum wins over the maximum. */
-function getDraggedSize(startSize: number, startClientX: number, clientX: number, {axisSign, min, max = Infinity}: DraggedSizeParams): number {
-    return lodashClamp(Math.round(startSize + axisSign * (clientX - startClientX)), min, max);
+/** The size a drag puts a pane or column at: its start size plus `travel`, rounded and kept between the bounds. `travel` is positive when the drag grows the size. The minimum wins over the maximum. */
+function getDraggedSize(startSize: number, travel: number, {min, max = Infinity}: DraggedSizeBounds): number {
+    return lodashClamp(Math.round(startSize + travel), min, max);
 }
 
 export default getDraggedSize;
