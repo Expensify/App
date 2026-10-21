@@ -10908,6 +10908,32 @@ describe('SearchUIUtils', () => {
             expect(withReport.visibility.approve).toBe(true);
         });
 
+        test('Should not throw when employeeList contains a null entry', () => {
+            // Given an approval-enabled policy whose employeeList holds a null entry, which Onyx can leave behind when
+            // several policy updates are applied in one batch
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                        'removed@policy.com': null as unknown as OnyxTypes.PolicyEmployee,
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: adminEmail},
+                    },
+                },
+            };
+
+            // When the suggested searches visibility is computed
+            const getVisibility = () => SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            // Then it skips the null entry instead of crashing, and still finds the member who submits to the user
+            expect(getVisibility).not.toThrow();
+            expect(getVisibility().visibility.approve).toBe(true);
+        });
+
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
             const policyKey = `policy_${policyID}`;
 
@@ -14832,6 +14858,17 @@ describe('SearchUIUtils', () => {
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
         });
+
+        test.each([FILTER_KEYS.BILLABLE_NOT, FILTER_KEYS.REIMBURSABLE_NOT, FILTER_KEYS.DECLINED_NOT] as const)('translates the yes/no value of a negated %s filter', (key) => {
+            // Given a negated yes/no filter, as stored when the query is "-billable:yes", "-reimbursable:yes" or "-declined:yes"
+            const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
+            expect(result).toBe(translateLocal('common.yes'));
+        });
     });
 
     describe('filterValidHasValues', () => {
@@ -15490,5 +15527,22 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getDatePresets', () => {
+    it('does not offer never for anyApproval', () => {
+        // Given anyApproval, which always matches an approval action
+        // When presets are requested
+        const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
+
+        // Then only the common date presets are returned, without never
+        expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+        ]);
+        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });
