@@ -25,6 +25,7 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
     [SCREENS.SETTINGS.AGENTS.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AgentsPage').default),
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.HELP]: () => require<ReactComponentModule>('../../../../pages/settings/HelpPage/HelpPage').default,
+    [SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]: () => require<ReactComponentModule>('../../../../pages/settings/HelpPage/TalkToHumanPage').default,
     [SCREENS.SETTINGS.ABOUT]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/AboutPage').default,
     [SCREENS.SETTINGS.TROUBLESHOOT]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/TroubleshootPage').default,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,

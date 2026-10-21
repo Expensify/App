@@ -2469,6 +2469,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_HELP,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]: {
+                            path: ROUTES.SETTINGS_HELP_TALK_TO_HUMAN,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.TROUBLESHOOT]: {
                             path: ROUTES.SETTINGS_TROUBLESHOOT,
                             exact: true,

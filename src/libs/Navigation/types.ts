@@ -1042,6 +1042,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.HELP]: undefined;
+    [SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {

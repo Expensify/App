@@ -2786,6 +2786,7 @@ const ROUTES = {
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
+    SETTINGS_HELP_TALK_TO_HUMAN: 'settings/help/talk-to-human',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
     SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
