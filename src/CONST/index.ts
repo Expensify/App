@@ -624,7 +624,16 @@ const CONST = {
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',
             UNINTELLIGIBLE: 'unintelligible',
+            AGENT_RULE: 'agentRule',
+            IMPOSSIBLE: 'impossible',
             FAILED: 'failed',
+        },
+        IMPOSSIBLE_REASON: {
+            NO_TRIGGER: 'noTrigger',
+            NO_CAPABILITY: 'noCapability',
+            MISSING_DATA: 'missingData',
+            RETROACTIVE: 'retroactive',
+            HISTORY_LIMIT: 'historyLimit',
         },
         RULE_TYPE: {
             REQUIRE_FIELDS: 'requireFields',
@@ -1933,6 +1942,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2495,6 +2505,10 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
+        },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -3761,6 +3775,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {
@@ -5046,11 +5061,7 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
-            MAKE_AUDITOR: 'makeAuditor',
-            MAKE_GUEST: 'makeGuest',
-            MAKE_CARD_ADMIN: 'makeCardAdmin',
-            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
-            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
@@ -10168,6 +10179,7 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -10553,6 +10565,7 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
+                DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
                 SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',

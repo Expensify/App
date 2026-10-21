@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     CardList,
     PersonalDetails,
@@ -507,6 +508,7 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID,
     lastOriginalAction,
     rules,
+    bankAccountList,
     formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
@@ -535,6 +537,9 @@ function getLastMessageTextForReport({
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -600,11 +605,13 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+            personalDetails,
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy,
             isForListPreview: true,
+            bankAccountList,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
@@ -623,6 +630,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+                personalDetails,
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -633,6 +641,7 @@ function getLastMessageTextForReport({
                 policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
+                bankAccountList,
             });
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
@@ -990,11 +999,13 @@ function getLastMessageTextForReport({
                     formatReportLastMessageText(
                         Parser.htmlToText(
                             getReportPreviewMessage(translate, convertToDisplayString, {
+                                personalDetails,
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
                                 policy,
                                 isForListPreview: true,
+                                bankAccountList,
                             }),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;
@@ -1212,6 +1223,9 @@ type GetReportAlternateTextParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -1250,6 +1264,7 @@ function getReportAlternateText({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
+    bankAccountList,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1314,6 +1329,7 @@ function getReportAlternateText({
             oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
             rules,
+            bankAccountList,
             formatPhoneNumber,
         });
 

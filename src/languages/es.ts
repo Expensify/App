@@ -7151,6 +7151,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             removeMemberPrompt: (memberName) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
+            changeRole: 'Cambiar rol',
             makeMember: () => ({
                 one: 'Convertir en miembro',
                 other: 'Convertir en miembros',
@@ -7717,7 +7718,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             dontSeeYourATS: `<muted-text-label>¿No ves tu ATS aquí? <a href="#">Pregunta a Concierge</a> y podremos añadirlo.</muted-text-label>`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
-            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección', hiringManager: 'responsable de contratación'},
             filters: {
                 description: (providerName: string) => `Selecciona qué miembros se importan desde ${providerName}. Puedes elegir entre etapas de trabajo, etiquetas y oficinas.`,
                 stages: {
@@ -7751,7 +7752,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             finalApprover: `Aprobador final`,
             finalApproverOptional: 'Aprobador final (opcional)',
             approvalModeDescription: (providerName: string) => `Establece el aprobador para los nuevos miembros que se importen desde ${providerName} a Expensify.`,
-            approverFieldDescription: (providerName: string) => `Elige el primer aprobador para tus candidatos: puede ser su reclutador o su coordinador asignado en ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `su ${fieldNames.slice(0, -1).join(', ')}, o ${lastFieldName}` : `ya sea su ${fieldNames.join('o su')}`;
+                return `Elige al primer aprobador para tus candidatos: ${fieldList} asignado en ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Elige un único aprobador',
                 advanced: `El reclutador o coordinador del candidato se convierte en su aprobador de gastos`,
@@ -8808,6 +8814,7 @@ ${reportName}`,
                 createRule: 'Crear regla',
                 fallbackBanner:
                     'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -8893,6 +8900,14 @@ ${reportName}`,
                     unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
                     multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
                     categoryHasRule: 'Esa categoría ya tiene una regla. Edita la regla existente o describe una regla para otra categoría.',
+                },
+                impossible: {
+                    noTrigger: 'Las reglas no pueden comenzar desde ese evento.',
+                    noCapability: 'Las reglas no pueden hacer eso.',
+                    missingData: 'Expensify no tiene esa información.',
+                    retroactive: 'Las reglas solo se aplican a la actividad nueva.',
+                    historyLimit: 'Las reglas no pueden mirar tan atrás.',
+                    tryThisInstead: 'Prueba esto en su lugar',
                 },
             },
             expenseDefaultsTable: {
@@ -10339,6 +10354,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Cambiar a vista de tabla',
+        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {
@@ -12460,5 +12477,6 @@ ${reportName}`,
         mobileRenewPrompt: 'Visita Expensify en tu navegador web para renovar antes.',
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
+    bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
 };
 export default translations;

@@ -441,6 +441,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
         policyID: string;
         accountID: string;

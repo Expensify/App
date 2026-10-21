@@ -7058,6 +7058,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
+            changeRole: '更改角色',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -8431,6 +8432,7 @@ ${reportName}`,
                 gotIt: '知道了',
                 createRule: '创建规则',
                 fallbackBanner: '这不是一条标准规则，所以我们将其制定为代理规则。代理规则会在报销或报表发生变更后生效，例如暂扣该报销或驳回该报表。',
+                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，因此我们将其起草为代理规则。${explanation}`,
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
@@ -8509,6 +8511,14 @@ ${reportName}`,
                     unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
                     multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
                     categoryHasRule: '该类别已有规则。请编辑现有规则，或为其他类别描述规则。',
+                },
+                impossible: {
+                    noTrigger: '规则无法从该事件开始。',
+                    noCapability: '规则无法执行此操作。',
+                    missingData: 'Expensify 没有该信息。',
+                    retroactive: '规则仅适用于新活动。',
+                    historyLimit: '规则无法追溯到那么久以前。',
+                    tryThisInstead: '试试这个',
                 },
             },
             expenseDefaultsTable: {
@@ -8685,7 +8695,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
-            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员', hiringManager: '招聘经理'},
             filters: {
                 description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
                 stages: {
@@ -8709,7 +8719,12 @@ ${reportName}`,
             finalApprover: `最终审批人`,
             finalApproverOptional: '最终审批人（可选）',
             approvalModeDescription: (providerName: string) => `为从 ${providerName} 导入到 Expensify 的新成员设置审批人。`,
-            approverFieldDescription: (providerName: string) => `为候选人选择第一位审批人：可以是他们在 ${providerName} 中指定的招聘人员或协调员。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `其 ${fieldNames.slice(0, -1).join(', ')} 或 ${lastFieldName}` : `其 ${fieldNames.join('或其')}`;
+                return `为您的候选人选择第一位审批人：在 ${providerName} 中分配的 ${fieldList}。`;
+            },
             approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {
@@ -10051,6 +10066,8 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
+        switchToTableView: '切换到表格视图',
+        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {
@@ -11666,5 +11683,6 @@ ${reportName}`,
         mobileRenewPrompt: '请在网页浏览器中访问 Expensify 以提前续订。',
         mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
+    bulkActionBar: {label: '批量操作', clearSelection: '清除选择', loadingSelection: '正在加载所选内容'},
 };
 export default translations;

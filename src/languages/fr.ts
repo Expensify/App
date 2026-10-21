@@ -7396,6 +7396,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
+            changeRole: 'Modifier le rôle',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -8831,6 +8832,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 createRule: 'Créer une règle',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
+                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. ${explanation}`,
             },
             tabs: {
                 general: 'Général',
@@ -8916,6 +8918,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
                     categoryHasRule: 'Cette catégorie a déjà une règle. Modifiez la règle existante ou décrivez une règle pour une autre catégorie.',
+                },
+                impossible: {
+                    noTrigger: 'Les règles ne peuvent pas commencer à partir de cet événement.',
+                    noCapability: 'Les règles ne peuvent pas faire cela.',
+                    missingData: 'Expensify n’a pas ces informations.',
+                    retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
+                    historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
+                    tryThisInstead: 'Essayez plutôt ceci',
                 },
             },
             expenseDefaultsTable: {
@@ -9108,7 +9118,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
-            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement', hiringManager: 'Responsable du recrutement'},
             filters: {
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
@@ -9143,8 +9153,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             finalApprover: `Approbateur final`,
             finalApproverOptional: 'Approbateur final (facultatif)',
             approvalModeDescription: (providerName: string) => `Définissez l’approbateur pour les nouveaux membres importés de ${providerName} vers Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Choisissez le premier approbateur pour vos candidat·es : soit leur recruteur·se, soit leur coordinateur·rice assigné·e dans ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `leur ${fieldNames.slice(0, -1).join(', ')}, ou leur ${lastFieldName}` : `soit leur ${fieldNames.join('ou leur')}`;
+                return `Choisissez le premier approbateur pour vos candidats : ${fieldList} assigné dans ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Choisir un seul approbateur',
                 advanced: `Le recruteur ou le coordinateur du candidat devient la personne qui approuve ses dépenses`,
@@ -10563,6 +10577,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Passer à la vue tableau',
+        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {
@@ -12235,5 +12251,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         mobileRenewPrompt: 'Visitez Expensify dans votre navigateur web pour renouveler en avance.',
         mobileClaimPrompt: 'Visitez Expensify dans votre navigateur web pour bénéficier de votre réduction de renouvellement.',
     },
+    bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
 };
 export default translations;

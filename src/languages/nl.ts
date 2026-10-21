@@ -7317,6 +7317,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
+            changeRole: 'Rol wijzigen',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -8733,6 +8734,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 createRule: 'Regel maken',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus hebben we hem opgesteld als een agentregel. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we het opgesteld als een agentregel. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -8818,6 +8820,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
                     multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
                     categoryHasRule: 'Deze categorie heeft al een regel. Bewerk de bestaande regel of beschrijf een regel voor een andere categorie.',
+                },
+                impossible: {
+                    noTrigger: 'Regels kunnen niet vanaf die gebeurtenis beginnen.',
+                    noCapability: 'Regels kunnen dat niet.',
+                    missingData: 'Expensify heeft die informatie niet.',
+                    retroactive: 'Regels zijn alleen van toepassing op nieuwe activiteit.',
+                    historyLimit: 'Regels kunnen niet zo ver terugkijken.',
+                    tryThisInstead: 'Probeer dit in plaats daarvan',
                 },
             },
             expenseDefaultsTable: {
@@ -9010,7 +9020,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
             filters: {
                 description: (providerName: string) => `Selecteer welke leden worden geïmporteerd uit ${providerName}. Je kunt kiezen op basis van functieniveaus, tags en kantoren.`,
                 stages: {
@@ -9044,7 +9054,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             finalApprover: `Laatste goedkeurder`,
             finalApproverOptional: 'Laatste fiatteur (optioneel)',
             approvalModeDescription: (providerName: string) => `Stel de fiatteur in voor nieuwe leden die vanuit ${providerName} in Expensify worden geïmporteerd.`,
-            approverFieldDescription: (providerName: string) => `Kies de eerste fiatteur voor je kandidaten: ofwel hun recruiter of hun coördinator die is toegewezen in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `hun ${fieldNames.slice(0, -1).join(', ')}, of ${lastFieldName}` : `hun ${fieldNames.join('of hun')}`;
+                return `Kies de eerste fiatteur voor je kandidaten: ${fieldList} toegewezen in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Kies één fiatteur',
                 advanced: `Recruiter of coördinator van de kandidaat wordt zijn/haar onkostengoedkeurder`,
@@ -10455,6 +10470,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             category: 'Categorie',
             tag: 'Label',
         },
+        switchToTableView: 'Overschakelen naar tabelweergave',
+        switchToExpenseView: 'Overschakelen naar uitgavenweergave',
     },
     report: {
         newReport: {
@@ -12118,5 +12135,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileRenewPrompt: 'Bezoek Expensify in je webbrowser om vroegtijdig te verlengen.',
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
+    bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
 };
 export default translations;

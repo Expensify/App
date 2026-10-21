@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
+    canAdminPayReport,
     canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
@@ -18,6 +19,7 @@ import {
     canMemberWrite,
     canSendInvoice,
     canSendInvoiceFromWorkspace,
+    canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
@@ -733,6 +735,67 @@ describe('PolicyUtils', () => {
                 // When we check whether the category picker can offer to add one
                 // Then it cannot, because new categories have to be created in the integration
                 expect(canCreateCategoryInSitu(policy)).toBe(false);
+            });
+        });
+
+        describe('canShowReimbursableToggleForPolicy', () => {
+            const teamBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.TEAM});
+
+            it('returns true when the reimbursable field is not locked', () => {
+                // Given a workspace that lets members change the reimbursable field
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+                // When checking an expense that already matches the default
+                // Then the toggle is shown, because nothing stops the member from editing it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('returns false when the field is locked and the expense matches the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that is already non-reimbursable
+                // Then the toggle is hidden, because the lock says members cannot change it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(false);
+            });
+
+            it('returns true when the field is locked but the expense disagrees with the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that drifted to reimbursable
+                // Then the toggle is shown so the expense can be corrected instead of staying stuck
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(true);
+            });
+
+            it('treats an absent defaultReimbursable as reimbursable when the field is locked', () => {
+                // Given a locked workspace with no stored defaultReimbursable
+                const policy = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking a reimbursable expense and a non-reimbursable expense
+                // Then only the non-reimbursable one disagrees with the implied "reimbursable" default
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('treats an absent expense reimbursable value as reimbursable when the field is locked', () => {
+                // Given a locked workspace whose default is reimbursable, stored or implied
+                const policyWithDefault = {...teamBase, defaultReimbursable: true, disabledFields: {reimbursable: true}};
+                const policyWithoutDefault = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value
+                // Then the toggle is hidden, because the expense defaults to reimbursable and already matches the policy
+                expect(canShowReimbursableToggleForPolicy(policyWithDefault, undefined)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policyWithoutDefault, undefined)).toBe(false);
+            });
+
+            it('shows the toggle for an expense with no reimbursable value on a locked non-reimbursable workspace', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value, which defaults to reimbursable
+                // Then the toggle is shown, because the expense disagrees with the policy default
+                expect(canShowReimbursableToggleForPolicy(policy, undefined)).toBe(true);
             });
         });
 
@@ -4129,6 +4192,51 @@ describe('PolicyUtils', () => {
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
             });
+        });
+
+        describe('canAdminPayReport', () => {
+            describe.each([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('for a non-payer %s', (role) => {
+                it.each([
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                ])('should allow payment for %s: %s', (reimbursementChoice, expected) => {
+                    // Given a non-payer admin on a workspace using a current or deprecated reimbursement choice
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role,
+                        reimbursementChoice,
+                        reimburser: 'payer@example.com',
+                        owner: 'payer@example.com',
+                    });
+
+                    // When the admin's permission to pay a report is checked
+                    const canPay = canAdminPayReport(policy, 'admin@example.com');
+
+                    // Then deprecated choices preserve the same payment access as their current equivalents
+                    expect(canPay).toBe(expected);
+                });
+            });
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should not allow a regular member to pay for %s',
+                (reimbursementChoice) => {
+                    // Given a regular member on a workspace with manual reimbursement enabled
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role: CONST.POLICY.ROLE.USER,
+                        reimbursementChoice,
+                    });
+
+                    // When payment access is checked with either representation of manual reimbursement
+                    const canPay = canAdminPayReport(policy, 'member@example.com');
+
+                    // Then normalizing the reimbursement choice does not grant payment permissions to regular members
+                    expect(canPay).toBe(false);
+                },
+            );
         });
 
         describe('isPolicyPayer', () => {

@@ -507,7 +507,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
-    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CollectDepositAccount').default,
+    [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CollectDepositAccount').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
@@ -616,6 +616,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
     [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
+    [SCREENS.WORKSPACE.MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberOfficeLocationPage').default,
     [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,

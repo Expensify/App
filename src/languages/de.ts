@@ -7377,6 +7377,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
+            changeRole: 'Rolle ändern',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -8808,6 +8809,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 createRule: 'Regel erstellen',
                 fallbackBanner:
                     'Dies ist keine Standardregel, daher haben wir sie als Agentenregel erstellt. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht geändert hat, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dies ist keine Standardregel, daher haben wir sie als Agentenregel formuliert. ${explanation}`,
             },
             tabs: {
                 general: 'Allgemein',
@@ -8893,6 +8895,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
                     multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
                     categoryHasRule: 'Für diese Kategorie gibt es bereits eine Regel. Bearbeite die bestehende Regel oder beschreibe eine Regel für eine andere Kategorie.',
+                },
+                impossible: {
+                    noTrigger: 'Regeln können nicht von diesem Ereignis aus gestartet werden.',
+                    noCapability: 'Regeln können das nicht.',
+                    missingData: 'Expensify hat diese Information nicht.',
+                    retroactive: 'Regeln gelten nur für neue Aktivitäten.',
+                    historyLimit: 'Regeln können nicht so weit zurückblicken.',
+                    tryThisInstead: 'Versuchen Sie es stattdessen damit',
                 },
             },
             expenseDefaultsTable: {
@@ -9089,7 +9099,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             dontSeeYourATS: `<muted-text-label>Sie sehen Ihr ATS hier nicht? <a href="#">Fragen Sie Concierge</a>, und wir können es hinzufügen.</muted-text-label>`,
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
-            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator', hiringManager: 'Einstellungsmanager'},
             filters: {
                 description: (providerName: string) => `Wählen Sie aus, welche Mitglieder aus ${providerName} importiert werden. Sie können nach Jobphasen, Tags und Büros auswählen.`,
                 stages: {
@@ -9123,8 +9133,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             finalApprover: `Endgültige genehmigende Person`,
             finalApproverOptional: 'Endgültige Freigabe (optional)',
             approvalModeDescription: (providerName: string) => `Legen Sie die genehmigende Person für neue Mitglieder fest, die von ${providerName} nach Expensify importiert werden.`,
-            approverFieldDescription: (providerName: string) =>
-                `Wählen Sie die erste approver:ent für Ihre Kandidat:innen: entweder ihre:n Recruiter:in oder ihre:n Koordinator:in, die bzw. der in ${providerName} zugewiesen ist.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `ihre*n ${fieldNames.slice(0, -1).join(', ')} oder ${lastFieldName}` : `entweder ihre ${fieldNames.join('oder deren')}`;
+                return `Wählen Sie die erste genehmigende Person für Ihre Kandidat:innen: ${fieldList}, zugewiesen in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Wählen Sie eine einzelne genehmigende Person',
                 advanced: `Die Personalvermittlerin/der Personalvermittler oder die Koordinatorin/der Koordinator der Kandidatin/des Kandidaten wird zur Genehmigerin/zum Genehmiger ihrer Spesen`,
@@ -10537,6 +10551,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Zur Tabellenansicht wechseln',
+        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {
@@ -12206,5 +12222,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         mobileRenewPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um vorzeitig zu verlängern.',
         mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
+    bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
 };
 export default translations;
