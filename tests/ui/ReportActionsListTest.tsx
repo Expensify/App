@@ -334,7 +334,7 @@ describe('ReportActionsList (body)', () => {
             dispatchLocalDraftEvent: jest.fn(),
             revealDraftFromReportAction: jest.fn(),
         });
-        mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false});
+        mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false, isHistoryCollapsedByUser: false});
         mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn()});
 
         mockUseOnyx.mockImplementation(getMockOnyxValue);
@@ -1112,7 +1112,7 @@ describe('ReportActionsList (body)', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
-            mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory});
+            mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory, isHistoryCollapsedByUser: false});
             mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string, options) => {

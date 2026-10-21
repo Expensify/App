@@ -58,7 +58,6 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         return (
             <AskConciergeWelcome
                 reportID={reportID}
-                hasPreviousMessages={!!state.hasPreviousMessages}
                 onShowPreviousMessages={actions.handleShowPreviousMessages}
             />
         );
