@@ -36,17 +36,18 @@ import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusion
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS, {OnyxCollectionKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Agent, InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 
@@ -68,7 +69,11 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
-    const managedAgentsAccountIDs = new Set(Object.keys(allAgents ?? {}).map((key) => Number(extractCollectionItemID(key as `${OnyxCollectionKey}${string}`))));
+    const managedAgentsAccountIDs = new Set(
+        Object.keys(allAgents ?? {})
+            .filter((key) => OnyxKeys.isCollectionMemberKey(ONYXKEYS.COLLECTION.AGENT, key))
+            .map((key) => Number(extractCollectionItemID(key))),
+    );
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
