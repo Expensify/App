@@ -162,6 +162,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -174,7 +175,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, translate, undefined, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
-    const isConciergeThread = isChatThread && !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
