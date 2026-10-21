@@ -256,7 +256,7 @@ function getSuggestedSearches(
             translationPath: 'search.tabs.approve',
             type: CONST.SEARCH.DATA_TYPES.BILL,
             icon: 'ThumbsUp',
-            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.APPROVE}),
+            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.APPROVE, to: [`${accountID}`]}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },

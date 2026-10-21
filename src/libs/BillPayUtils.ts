@@ -38,7 +38,13 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     if (!arePaymentsEnabled(policy)) {
         return false;
     }
-    if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || (report.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED)) {
+    const isFinallyApproved =
+        report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED);
+
+    // Canceling a payment on a workspace with approvals turned off leaves the bill Submitted and Closed, and it can be paid again.
+    const isCanceledWithoutApproval =
+        report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isFinallyApproved && !isCanceledWithoutApproval) {
         return false;
     }
     const reimburser = policy?.reimburser ?? policy?.achAccount?.reimburser;

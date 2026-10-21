@@ -54,6 +54,15 @@ describe('Bill Pay', () => {
         expect(canPayBill({...approved, isWaitingOnBankAccount: true}, policy, accountID, email)).toBe(false);
     });
 
+    it('lets the payer pay a bill again after its payment is canceled on a workspace with approvals turned off', () => {
+        // Given a bill that a canceled payment left Submitted and Closed.
+        const canceled = {...bill, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+        // Then the payer can pay it when approvals are turned off, but not when the workspace requires approval.
+        expect(canPayBill(canceled, {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}, accountID, email)).toBe(true);
+        expect(canPayBill(canceled, policy, accountID, email)).toBe(false);
+    });
+
     it.each([
         [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.REPORT.PRIMARY_ACTIONS.APPROVE],
         [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.PRIMARY_ACTIONS.PAY],
@@ -235,7 +244,7 @@ describe('Bill Pay', () => {
         expect(canPayBill(invoice, undefined, accountID, email)).toBe(true);
     });
 
-    it('builds distinct Bills searches with the payer filter on Ready to pay', () => {
+    it('builds distinct Bills searches with the approver filter on Approve and the payer filter on Ready to pay', () => {
         const searches = getSuggestedSearches(accountID);
         const bills = buildSearchQueryJSON(searches[CONST.SEARCH.SEARCH_KEYS.BILLS].searchQuery);
         const approval = buildSearchQueryJSON(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE].searchQuery);
@@ -243,23 +252,26 @@ describe('Bill Pay', () => {
         expect(bills?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
         expect(approval?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
         expect(payment?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
+        expect(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE].searchQuery).toContain(`to:${accountID}`);
         expect(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY].searchQuery).toContain(`payer:${accountID}`);
         expect(new Set([bills?.hash, approval?.hash, payment?.hash]).size).toBe(3);
     });
 
-    it('renders the bill with sender and receiver emails and suppresses its invoice', () => {
+    it('renders the bill with the vendor and current approver emails and suppresses its invoice', () => {
         const vendorAccountID = 456;
+        const approverAccountID = 789;
         const approved: Report = {
             ...bill,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            billSenderAccountID: 456,
-            managerID: 789,
+            billSenderAccountID: vendorAccountID,
+            managerID: approverAccountID,
         };
         const data = createMock<SearchResults['data']>({
             personalDetailsList: {
                 [accountID]: {accountID, login: email, displayName: 'Receiver'},
                 [vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'},
+                [approverAccountID]: {accountID: approverAccountID, login: 'approver@receiver.com', displayName: 'Approver'},
             },
         });
         data[`${ONYXKEYS.COLLECTION.REPORT}100`] = approved;
@@ -282,6 +294,6 @@ describe('Bill Pay', () => {
         });
         const reports = sections.filter(isTransactionReportGroupListItemType);
         expect(reports).toHaveLength(1);
-        expect(reports.at(0)).toMatchObject({reportID: '100', formattedFrom: 'billing@vendor.com', formattedTo: email, action: CONST.SEARCH.ACTION_TYPES.PAY});
+        expect(reports.at(0)).toMatchObject({reportID: '100', formattedFrom: 'billing@vendor.com', formattedTo: 'approver@receiver.com', action: CONST.SEARCH.ACTION_TYPES.PAY});
     });
 });

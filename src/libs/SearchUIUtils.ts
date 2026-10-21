@@ -2854,10 +2854,9 @@ function getReportSections({
                 );
 
                 const fromAccountID = reportItem.billSenderAccountID ?? reportItem.ownerAccountID;
-                const toAccountID = reportItem.type === CONST.REPORT.TYPE.BILL ? reportItem.ownerAccountID : reportItem.managerID;
                 const fromDetails =
                     mergedPersonalDetails?.[fromAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? getPersonalDetailsForAccountID(fromAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? emptyPersonalDetails;
-                const toDetails = !shouldShowBlankTo && toAccountID ? mergedPersonalDetails?.[toAccountID] : emptyPersonalDetails;
+                const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
                 const firstApprovedAction = getFirstApprovedAction(firstApprovedActionByReportID.get(reportItem.reportID), actions);
