@@ -240,7 +240,7 @@ function usePhotoUpgrade() {
                     return undefined;
                 }
 
-                const rotation = rotatePhotoToUpright(photo.path).catch((error: unknown) => {
+                const rotation = rotatePhotoToUpright(photo.path, photo.orientation).catch((error: unknown) => {
                     throw new UpgradeStepError('rotate', `failed: ${error instanceof Error ? error.message : String(error)}`, false);
                 });
                 return withDeadline(rotation, ROTATE_TIMEOUT_MS, 'rotate', (latePath) => {

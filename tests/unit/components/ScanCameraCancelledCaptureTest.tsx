@@ -81,7 +81,7 @@ jest.mock('@libs/ReceiptStorage', () => ({
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry', () => ({
     __esModule: true,
-    default: () => ({handleCameraInitialized: jest.fn()}),
+    default: () => ({handleCameraConfigured: jest.fn(), handleSessionConfigSelected: jest.fn()}),
 }));
 
 jest.mock('@hooks/useReceiptPhotoOutput', () => ({__esModule: true, default: () => ({photoOutput: {}, cameraAspectRatio: undefined, updatePhotoResolution: jest.fn()})}));

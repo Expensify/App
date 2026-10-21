@@ -1,6 +1,6 @@
 import fileURIToPath from '@libs/fileURIToPath';
 
-import type {CameraOrientation, CameraPhotoOutput, CameraRef, CapturePhotoSettings, Photo} from 'react-native-vision-camera';
+import type {CameraOrientation, CameraPhotoOutput, CameraRef, CapturePhotoCallbacks, CapturePhotoSettings, Photo} from 'react-native-vision-camera';
 
 import RNFS from 'react-native-fs';
 
@@ -30,14 +30,14 @@ function callAsPromise<T>(start: () => Promise<T>): Promise<T> {
     });
 }
 
-function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePhotoSettings, filePath?: string): Promise<CapturedPhoto> {
-    return callAsPromise(() => photoOutput.capturePhoto(settings, {})).then((photo) => {
+function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePhotoSettings, filePath?: string, callbacks: CapturePhotoCallbacks = {}): Promise<CapturedPhoto> {
+    return callAsPromise(() => photoOutput.capturePhoto(settings, callbacks)).then((photo) => {
         const save = filePath
             ? preparePath(filePath).then((path) => callAsPromise(() => photo.saveToFileAsync(path)).then(() => path))
             : callAsPromise(() => photo.saveToTemporaryFileAsync());
 
         return save
-            .then((path) => ({path, ...getDisplaySize(photo)}))
+            .then((path) => ({path, ...getDisplaySize(photo), orientation: photo.orientation}))
             .finally(() => {
                 photo.dispose();
             });

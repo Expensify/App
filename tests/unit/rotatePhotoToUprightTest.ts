@@ -26,6 +26,19 @@ describe('getUprightRotation', () => {
         expect(getUprightRotation({width: 1440, height: 1920, rotation: 90})).toBe(90);
     });
 
+    it('turns a sideways frame the way the capture was oriented', () => {
+        // Given landscape frames saved without a rotation tag, captured with the sensor turned either way
+        const size = {width: 1920, height: 1440, rotation: 0};
+
+        // When the upright rotation is derived from each capture's orientation
+        const leftTurn = getUprightRotation(size, 'left');
+        const rightTurn = getUprightRotation(size, 'right');
+
+        // Then each turns its own way, so a photo taken in the opposite hold is not saved upside down
+        expect(leftTurn).toBe(90);
+        expect(rightTurn).toBe(270);
+    });
+
     it('leaves a square photo with no metadata alone', () => {
         expect(getUprightRotation({width: 1440, height: 1440, rotation: 0})).toBeUndefined();
     });

@@ -11,7 +11,7 @@ function shouldTakePhoto({flash, hasFlash, isInLandscapeMode}: Pick<CaptureRecei
     return (flash && hasFlash) || isInLandscapeMode;
 }
 
-const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode}) => {
+const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode, onWillCapturePhoto}) => {
     const filePath = getReceiptFilePath(path);
 
     if (!shouldTakePhoto({flash, hasFlash, isInLandscapeMode})) {
@@ -27,6 +27,7 @@ const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, i
             enableShutterSound: !isPlatformMuted,
         },
         filePath,
+        {onWillCapturePhoto},
     );
 };
 

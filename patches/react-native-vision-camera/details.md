@@ -17,6 +17,38 @@
       The patch restores the ringer check. Regions that legally require the sound still play it.
     ```
 
-- Upstream PR/issue: The maintainer offered to take the fix into V5 (https://github.com/Expensify/App/pull/102898#discussion_r4315528609). Upstream PR: TODO. Drop this patch once a release with it is installed.
+- Upstream PR/issue: The maintainer offered to take the fix into V5 (https://github.com/Expensify/App/pull/102898#discussion_r4315528609). Upstream PR: https://github.com/margelo/react-native-vision-camera/pull/4228. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
+
+### [react-native-vision-camera+5.2.3+002+unbind-own-session-only.patch](react-native-vision-camera+5.2.3+002+unbind-own-session-only.patch)
+
+- Reason:
+
+    ```
+    On Android, every V5 CameraSession calls `cameraProvider.unbindAll()` when it configures and when it is disposed.
+    The provider is shared by the whole app, so opening one camera unbinds every other mounted camera. The Scan screen
+    stays mounted (inactive) under the confirmation page, so after Replace receipt opens and closes its own camera, Scan
+    comes back with nothing bound and the viewfinder stays black until the screen remounts. V4 only unbound its own use
+    cases. The patch makes each session remember what it bound (its `SessionConfig`, or its use cases for multi-camera)
+    and unbind only that.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4229. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
+
+### [react-native-vision-camera+5.2.3+003+restore-v4-ios-session-restart.patch](react-native-vision-camera+5.2.3+003+restore-v4-ios-session-restart.patch)
+
+- Reason:
+
+    ```
+    AVFoundation stops the iOS capture session on a runtime error (for example when media services are reset) and does
+    not restart it. V4 called `startRunning()` again while the camera was active. V5 only forwards the error to JS, so the
+    Scan viewfinder stays empty until the user leaves the screen. The patch restarts the session if JS still wants it
+    running, at most once per 5 s so a camera that keeps failing does not restart in a loop.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4230. Drop this patch once a release with it is installed.
 - E/App issue: https://github.com/Expensify/App/issues/102514
 - PR introducing patch: https://github.com/Expensify/App/pull/102898

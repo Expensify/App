@@ -96,7 +96,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const showBlink = () => {
         blinkOpacity.set(withSequence(withTiming(1, {duration: BLINK_DURATION_MS}), withTiming(0, {duration: BLINK_DURATION_MS})));
-        HapticFeedback.press();
     };
 
     const {handleCameraConfigured, handleSessionConfigSelected} = useCameraInitTelemetry({cameraPermissionStatus, device});
@@ -156,26 +155,30 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
 
+        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
-                    ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
-                    : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
                 [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
             },
         });
 
         isCapturingPhoto.current = true;
-        showBlink();
+        HapticFeedback.press();
+        // A full photo is taken well after the tap when the flash has to meter first, so its blink waits for the real capture.
+        if (!isPhotoCapture) {
+            showBlink();
+        }
 
-        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !isPhotoCapture;
 
         // The snapshot goes first so its request reaches the native queue ahead of the still.
-        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path: getReceiptsUploadFolderPath()})
+        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path: getReceiptsUploadFolderPath(), onWillCapturePhoto: showBlink})
             .then((photo: CapturedPhoto) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,

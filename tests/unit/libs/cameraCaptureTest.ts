@@ -66,7 +66,7 @@ describe('capturePhotoToPath', () => {
 
         // Then it is written to the plain path, sized as displayed, and its native buffer is released
         expect(saveToFileAsync).toHaveBeenCalledWith('/receipts/receipt.jpg');
-        expect(result).toEqual({path: '/receipts/receipt.jpg', width: 3024, height: 4032});
+        expect(result).toEqual({path: '/receipts/receipt.jpg', width: 3024, height: 4032, orientation: 'right'});
         expect(dispose).toHaveBeenCalledTimes(1);
     });
 });

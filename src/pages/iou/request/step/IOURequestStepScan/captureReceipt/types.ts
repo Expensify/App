@@ -8,6 +8,7 @@ type CaptureReceiptOptions = {
     isPlatformMuted: boolean | undefined;
     path: string;
     isInLandscapeMode: boolean;
+    onWillCapturePhoto?: () => void;
 };
 
 type CaptureReceipt = (camera: CameraRef, photoOutput: CameraPhotoOutput, options: CaptureReceiptOptions) => Promise<CapturedPhoto>;

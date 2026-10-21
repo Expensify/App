@@ -9,7 +9,7 @@ function shouldTakePhoto(): boolean {
     return true;
 }
 
-const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode}) => {
+const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode, onWillCapturePhoto}) => {
     const filePath = getReceiptFilePath(path);
     const isUsingFlash = flash && hasFlash;
     // A plain portrait scan stands in for the silent v4 snapshot.
@@ -22,6 +22,7 @@ const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, i
             enableShutterSound: isSnapshotReplacement ? false : !isPlatformMuted,
         },
         filePath,
+        {onWillCapturePhoto},
     );
 };
 

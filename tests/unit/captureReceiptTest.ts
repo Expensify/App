@@ -59,6 +59,23 @@ describe('captureReceipt', () => {
         });
     });
 
+    describe('blink timing', () => {
+        it('hands the capture callback to full photos so the blink matches the real shutter moment', () => {
+            // Given a flash capture, which meters the flash before the photo is actually taken
+            const onWillCapturePhoto = jest.fn();
+
+            // When the receipt is captured on iOS and on Android
+            captureReceiptIOS(camera, photoOutput, {...BASE_OPTIONS, flash: true, onWillCapturePhoto});
+            const iosCallbacks = mockCapturePhotoToPath.mock.calls.at(-1)?.at(3);
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, onWillCapturePhoto});
+            const androidCallbacks = mockCapturePhotoToPath.mock.calls.at(-1)?.at(3);
+
+            // Then both photos report the moment they are taken, so the blink can wait for it instead of firing on the tap
+            expect(iosCallbacks).toEqual({onWillCapturePhoto});
+            expect(androidCallbacks).toEqual({onWillCapturePhoto});
+        });
+    });
+
     describe('on Android', () => {
         it('keeps the preview snapshot for a plain portrait scan', () => {
             // Given a portrait scan without flash, where a full photo is slow on many Android cameras

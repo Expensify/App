@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getFirstLine from '@libs/cameraCapture/getFirstLine';
 import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import variables from '@styles/variables';
@@ -23,7 +24,7 @@ import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {CameraDevice, CameraOutput, CameraRef, CameraSessionConfig} from 'react-native-vision-camera';
 
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -130,6 +131,34 @@ function CameraViewport({
     // iOS keeps showing the previous session's last frame until the restarted session delivers a new one. Restarting on the
     // ultra-wide (zoom 1) also lets close receipts focus at once, instead of waiting on the wide lens to hand over to macro.
     const shouldHidePreview = cameraPlatformConfig.shouldHidePreviewUntilLive && !isPreviewLive;
+    const previewStartCount = useRef(0);
+
+    // VisionCamera applies the `zoom` prop in an effect after the render that reveals the preview, so revealing first
+    // would show a frame or two of the ultra-wide lens. Switch to the wide lens through the controller, then reveal.
+    const revealPreviewOnWideLens = () => {
+        const startCount = previewStartCount.current;
+        const reveal = () => {
+            if (startCount !== previewStartCount.current) {
+                return;
+            }
+            setIsPreviewLive(true);
+        };
+        const wideLensZoom = getZoomProp(device);
+        const controller = camera.current?.controller;
+        if (!cameraPlatformConfig.shouldHidePreviewUntilLive || wideLensZoom === undefined || !controller) {
+            reveal();
+            return;
+        }
+        controller.setZoom(wideLensZoom).then(reveal, (error: unknown) => {
+            Log.info('[Camera] could not switch to the wide lens before revealing the preview', false, {error: getErrorMessage(error)});
+            reveal();
+        });
+    };
+
+    const hidePreview = () => {
+        previewStartCount.current += 1;
+        setIsPreviewLive(false);
+    };
 
     return (
         <View style={[styles.cameraView, styles.alignItemsCenter]}>
@@ -145,8 +174,8 @@ function CameraViewport({
                         forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
                         shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onConfigured={onConfigured}
-                        onPreviewStarted={() => setIsPreviewLive(true)}
-                        onPreviewStopped={() => setIsPreviewLive(false)}
+                        onPreviewStarted={revealPreviewOnWideLens}
+                        onPreviewStopped={hidePreview}
                         onSessionConfigSelected={onSessionConfigSelected}
                         // VisionCamera's default handler is console.error, which pops LogBox over the camera.
                         onError={(error) => Log.warn('[Camera] VisionCamera error', {summary: getFirstLine(error.message), message: error.message})}
