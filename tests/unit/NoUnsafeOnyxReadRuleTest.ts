@@ -136,6 +136,15 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { const read = () => Onyx.get(ONYXKEYS.SESSION); const onPress = () => read(); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { return <View onPress={() => load()} />; }`,
             `${ONYX_IMPORT} let read = Onyx.get; function Row() { const onPress = () => read(ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
+            `${ONYX_IMPORT} const handlers = {load: () => Onyx.get(ONYXKEYS.SESSION)}; function Row() { return <View onPress={() => handlers.load()} />; }`,
+            // Only the named property and only `this` of the same class count as the handler
+            `${ONYX_IMPORT} const api = {load: () => Onyx.get(ONYXKEYS.SESSION), other: () => 1}; function Row() { return <View value={api.other()} />; }`,
+            `${ONYX_IMPORT} class Row extends React.Component { load = () => Onyx.get(ONYXKEYS.SESSION); render() { return <View value={this.props.load()} />; } }`,
+            `${ONYX_IMPORT} class Outer extends React.Component { load = () => Onyx.get(ONYXKEYS.SESSION); render() { class Inner { load() { return 1; } render = () => <View value={this.load()} />; } return <View inner={Inner} />; } }`,
+            // A handler that calls itself through its holder must not loop the escalation
+            `${ONYX_IMPORT} const api = {load() { Onyx.get(ONYXKEYS.SESSION); return api.load(); }}; function Row() { return <View onPress={() => api.load()} />; }`,
+            // A non-arrow function rebinds `this`, so its `this.load()` is not the class member
+            `${ONYX_IMPORT} class Row extends React.Component { load = () => Onyx.get(ONYXKEYS.SESSION); render() { const values = ids.map(function () { return this.load(); }); return <View values={values} />; } }`,
             // A lowercase name with no JSX is a plain function
             `${ONYX_IMPORT} function username() { return Onyx.get(ONYXKEYS.SESSION); }`,
             // A function returned from a factory is a value; only the call site decides
@@ -230,6 +239,17 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} async function load() { return (await Onyx.get(ONYXKEYS.SESSION))?.email; } function useEmail() { return load(); }`, errors: RENDER_ERRORS},
             {
                 code: `${ONYX_IMPORT} function Row() { const read = () => Onyx.get(ONYXKEYS.SESSION); const values = ids.map(() => read()); return <View values={values} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            // A helper stored on an object or a class is followed through `holder.key()` and `this.key()`
+            {code: `${ONYX_IMPORT} const api = {load() { return Onyx.get(ONYXKEYS.SESSION); }}; function Row() { return <View value={api.load()} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const api = {load: () => Onyx.get(ONYXKEYS.SESSION)}; function Row() { const value = api.load(); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} class Row extends React.Component { load = () => Onyx.get(ONYXKEYS.SESSION); render() { return <View value={this.load()} />; } }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} class Row extends React.Component { load() { return Onyx.get(ONYXKEYS.SESSION); } render() { const value = this.load(); return <View value={value} />; } }`,
                 errors: RENDER_ERRORS,
             },
             // A helper with JSX behind a conditional is a render body
@@ -405,6 +425,11 @@ describe('no-unsafe-onyx-read effects', () => {
             // An alias of the handler is followed
             {
                 code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); const run = load; useEffect(() => { run(); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            // A handler stored on an object is followed through `holder.key()`
+            {
+                code: `${ONYX_IMPORT} const handlers = {load: () => Onyx.get(ONYXKEYS.SESSION)}; function Row() { useEffect(() => { void handlers.load(); }, []); return <View />; }`,
                 errors: EFFECT_ERRORS,
             },
             // useImperativeHandle runs its factory at commit, like a layout effect

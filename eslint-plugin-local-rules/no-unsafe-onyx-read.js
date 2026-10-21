@@ -72,7 +72,7 @@ const meta = {
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
         noOnyxReadOutsideAllowedPath:
             'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
-            'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. A file joins READ_ALLOWED_FILES only in a PR that removes an Onyx.connectWithoutView() from it.',
+            'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. Reviewers accept a new READ_ALLOWED_FILES entry only in a PR that removes an Onyx.connectWithoutView() from that file.',
         noOnyxReadInEffect:
             'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
             'Keep the useOnyx subscription. Reads inside effects stay banned until a check can confirm the value was not in the dependency array.',
@@ -207,7 +207,79 @@ function getFunctionBinding(functionNode, parent) {
         return {declaration: parent, name: parent.id.name};
     }
 
+    const key = parent && parent.value === functionNode ? getStaticName(parent.key, parent.computed) : null;
+
+    if (!key) {
+        return null;
+    }
+
+    if (parent.type === 'PropertyDefinition' || parent.type === 'MethodDefinition') {
+        return {definition: parent, classBody: parent.parent, key};
+    }
+
+    const holder = parent.type === 'Property' ? parent.parent.parent : null;
+
+    if (holder?.type === 'VariableDeclarator' && holder.init === parent.parent && holder.id.type === 'Identifier' && (holder.parent.kind === 'const' || holder.parent.kind === 'let')) {
+        return {definition: parent, holder: {declaration: holder, name: holder.id.name}, key};
+    }
+
     return null;
+}
+
+function getReadIdentifiers(declaration, boundName, sourceCode) {
+    const variable = getDeclaredVariable(declaration, boundName, sourceCode);
+
+    return variable ? variable.references.filter((reference) => reference.isRead()).map((reference) => reference.identifier) : [];
+}
+
+function isNamedMember(node, key) {
+    return node?.type === 'MemberExpression' && getStaticName(node.property, node.computed) === key;
+}
+
+// A nested non-arrow function or class rebinds `this`, but a member of this class is called on the instance
+function collectThisMemberUses(node, classBody, key, sourceCode, uses) {
+    if (isNamedMember(node, key) && node.object.type === 'ThisExpression') {
+        uses.push(node);
+    }
+
+    const rebindsThis = (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') && node.parent?.parent !== classBody;
+
+    if (rebindsThis || (node.type === 'ClassBody' && node !== classBody)) {
+        return;
+    }
+
+    for (const childKey of sourceCode.visitorKeys[node.type] ?? []) {
+        for (const child of [node[childKey]].flat()) {
+            if (child) {
+                collectThisMemberUses(child, classBody, key, sourceCode, uses);
+            }
+        }
+    }
+}
+
+// The expressions that evaluate to the bound function: a read of its variable, `holder.key`, or `this.key` inside its class
+function getBindingUses(binding, sourceCode, seen) {
+    const seenKey = binding.definition ?? getDeclaredVariable(binding.declaration, binding.name, sourceCode);
+
+    if (!seenKey || seen.has(seenKey)) {
+        return [];
+    }
+
+    seen.add(seenKey);
+
+    if (binding.classBody) {
+        const uses = [];
+        collectThisMemberUses(binding.classBody, binding.classBody, binding.key, sourceCode, uses);
+        return uses;
+    }
+
+    if (binding.holder) {
+        return getReadIdentifiers(binding.holder.declaration, binding.holder.name, sourceCode)
+            .map((identifier) => identifier.parent)
+            .filter((member) => isNamedMember(member, binding.key));
+    }
+
+    return getReadIdentifiers(binding.declaration, binding.name, sourceCode);
 }
 
 /**
@@ -215,26 +287,16 @@ function getFunctionBinding(functionNode, parent) {
  * render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
  * classifyPosition, which this recursion feeds back into for the call sites.
  */
-function getEscalatedPosition(declaration, boundName, sourceCode, seen, classifyCall) {
-    const variable = getDeclaredVariable(declaration, boundName, sourceCode);
-
-    if (!variable || seen.has(variable)) {
-        return null;
-    }
-
-    seen.add(variable);
-
-    for (const reference of variable.references) {
-        const identifier = reference.identifier;
-
-        if (isRenderTimeUsage(identifier, sourceCode)) {
+function getEscalatedPosition(binding, sourceCode, seen, classifyCall) {
+    for (const use of getBindingUses(binding, sourceCode, seen)) {
+        if (isRenderTimeUsage(use, sourceCode)) {
             return RENDER;
         }
 
-        const parent = identifier.parent;
+        const parent = use.parent;
 
         // `const value = helper();` written in a render body or at module scope runs the helper right there
-        if (parent?.type === 'CallExpression' && parent.callee === identifier) {
+        if (parent?.type === 'CallExpression' && parent.callee === use) {
             const position = classifyCall(parent);
 
             if (position === RENDER || position === MODULE_SCOPE) {
@@ -244,8 +306,8 @@ function getEscalatedPosition(declaration, boundName, sourceCode, seen, classify
             continue;
         }
 
-        if (parent?.type === 'VariableDeclarator' && parent.init === identifier && parent.id.type === 'Identifier') {
-            const position = getEscalatedPosition(parent, parent.id.name, sourceCode, seen, classifyCall);
+        if (parent?.type === 'VariableDeclarator' && parent.init === use && parent.id.type === 'Identifier') {
+            const position = getEscalatedPosition({declaration: parent, name: parent.id.name}, sourceCode, seen, classifyCall);
 
             if (position) {
                 return position;
@@ -326,37 +388,24 @@ function runsWithEnclosingCode(functionNode, parent) {
 
 function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
     function isHandlerInvokedFromEffect(binding) {
-        const variable = getDeclaredVariable(binding.declaration, binding.name, sourceCode);
+        return getBindingUses(binding, sourceCode, seen).some((use) => {
+            const parent = use.parent;
 
-        if (!variable || seen.has(variable)) {
-            return false;
-        }
-
-        seen.add(variable);
-
-        return variable.references.some((reference) => {
-            if (!reference.isRead()) {
-                return false;
-            }
-
-            const identifier = reference.identifier;
-            const parent = identifier.parent;
-
-            if (parent?.type === 'CallExpression' && parent.arguments.includes(identifier) && isEffectCallback(identifier, parent, parent.parent)) {
+            if (parent?.type === 'CallExpression' && parent.arguments.includes(use) && isEffectCallback(use, parent, parent.parent)) {
                 return true;
             }
 
-            if (parent?.type === 'VariableDeclarator' && parent.init === identifier && parent.id.type === 'Identifier') {
+            if (parent?.type === 'VariableDeclarator' && parent.init === use && parent.id.type === 'Identifier') {
                 return isHandlerInvokedFromEffect({declaration: parent, name: parent.id.name});
             }
 
-            const isCalled = parent?.type === 'CallExpression' && parent.callee === identifier;
+            const isCalled = parent?.type === 'CallExpression' && parent.callee === use;
 
-            if (!isCalled && !runsWithEnclosingCode(identifier, parent)) {
+            if (!isCalled && !runsWithEnclosingCode(use, parent)) {
                 return false;
             }
 
-            const referenceAncestors = sourceCode.getAncestors(identifier);
+            const referenceAncestors = sourceCode.getAncestors(use);
 
             return isReachedFromEffect(referenceAncestors, referenceAncestors.length - 1, sourceCode, seen);
         });
@@ -439,12 +488,12 @@ function classifyFunctionBoundary(functionNode, parent, grandparent, sourceCode,
             // `const read = useCallback(() => Onyx.get(key), []); read();` in a render body
             const handler = getHandlerBinding(functionNode, parent, grandparent);
 
-            return (handler && getEscalatedPosition(handler.declaration, handler.name, sourceCode, seen, classifyCall)) ?? DEFERRED;
+            return (handler && getEscalatedPosition(handler, sourceCode, seen, classifyCall)) ?? DEFERRED;
         }
     }
 
     const binding = getFunctionBinding(functionNode, parent);
-    const escalated = binding ? getEscalatedPosition(binding.declaration, binding.name, sourceCode, seen, classifyCall) : null;
+    const escalated = binding ? getEscalatedPosition(binding, sourceCode, seen, classifyCall) : null;
 
     if (escalated) {
         return escalated;
