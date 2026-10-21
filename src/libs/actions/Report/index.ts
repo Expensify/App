@@ -621,6 +621,11 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
+/** Loads the policy expense chats the workspace picker needs, since OpenApp no longer returns all of them. */
+function openRecipientPicker() {
+    API.read(READ_COMMANDS.OPEN_RECIPIENT_PICKER, null);
+}
+
 function openUnreportedExpense(reportID: string | undefined, backToReport?: string) {
     if (!reportID) {
         return;
@@ -3365,7 +3370,6 @@ function saveReportDraft(reportID: string, report: Report) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
@@ -3864,6 +3868,15 @@ function clearAllReportActionDrafts() {
     Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
 }
 
+/** Clears drafts for the comment report actions of a single report, keeping drafts of other reports */
+function clearReportActionDrafts(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, null);
+}
+
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, reportActions: OnyxEntry<ReportActions>, draftMessage: string, isOffline: boolean) {
     if (!reportAction) {
@@ -4138,7 +4151,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -9187,6 +9200,7 @@ export {
     isNoSupportRepAvailableResponse,
     dismissFailedSupportTicket,
     clearAllReportActionDrafts,
+    clearReportActionDrafts,
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,
@@ -9283,6 +9297,7 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     createTransactionThreadReport,
+    openRecipientPicker,
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,

@@ -53,6 +53,7 @@ import {
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
     compareDuplicateTransactionFields,
+    doesReportKeepExpensesAfterMerge,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
@@ -661,12 +662,10 @@ function getConvertedAmount(
  * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
  */
 function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     if (isExpenseReport) {
         return -((transaction.originalAmount || transaction.amount || Number(transaction.modifiedAmount)) ?? 0);
     }
     return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 }
 
 /**
@@ -674,7 +673,6 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
  * Falls back to originalCurrency, then currency, then modifiedCurrency.
  */
 function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
 }
 
@@ -745,7 +743,6 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
 
     if (!creatorLogin) {
@@ -984,7 +981,6 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 }
 
 function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
 
@@ -1938,6 +1934,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     canMergeDuplicates,
+    doesReportKeepExpensesAfterMerge,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,

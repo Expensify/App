@@ -121,6 +121,7 @@ type LazyHydrationContext = {
 
     /** Currency formatter used when the option list was built. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -300,6 +301,8 @@ type GetOptionsConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;
+    /** The user's default workspace. Its expense chat is ranked first in the separated workspace chats so the result limit can't drop it */
+    activePolicyID?: OnyxEntry<string>;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 } & GetValidReportsConfig;
@@ -323,6 +326,7 @@ type GetUserToInviteConfig = {
     currentUserEmail: string;
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

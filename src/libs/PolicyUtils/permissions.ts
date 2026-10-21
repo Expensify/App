@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {isArchivedPolicy, isControlPolicy, isSubmitPolicy} from './policyType';
 
@@ -222,6 +222,28 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
+/**
+ * The roles a member can be moved to, in the order the role selector lists them. Owner and Editor are left out
+ * because neither is assignable through the role selector.
+ */
+const SELECTABLE_ROLES = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.GUEST,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.USER,
+] as const;
+
+/**
+ * The roles the given member may assign on this policy, optionally narrowed to a permitted set (for example an
+ * Authorized Payer may only hold a role that can pay).
+ */
+function getSelectableRoles(policy: OnyxInputOrEntry<Policy>, login: string, allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
+    return SELECTABLE_ROLES.filter((role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)));
+}
+
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
 function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
     return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
@@ -251,6 +273,34 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
     const employeeList = policy?.employeeList;
     return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
+}
+
+/**
+ * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
+ */
+const POLICY_ROLE_RANKING = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.EDITOR,
+    CONST.POLICY.ROLE.USER,
+    CONST.POLICY.ROLE.GUEST,
+] as const;
+
+/**
+ * Returns the highest-privilege role held across the given policies.
+ * Defaults to user when no ranked role is found, so a member on any workspace is not reported as a guest.
+ */
+function getHighestPolicyRole(policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>): TupleToUnion<typeof POLICY_ROLE_RANKING> {
+    const roles = new Set(policyList.map((policy) => policy?.role));
+    for (const rankedRole of POLICY_ROLE_RANKING) {
+        if (roles.has(rankedRole)) {
+            return rankedRole;
+        }
+    }
+    return CONST.POLICY.ROLE.USER;
 }
 
 /**
@@ -351,9 +401,11 @@ export {
     canMemberWrite,
     hasReadOnlyAllReportsAccess,
     canMemberAssignRole,
+    getSelectableRoles,
     canMemberAssignElevatedRole,
     canMemberManageMemberWithRole,
     getPolicyRole,
+    getHighestPolicyRole,
     canRolePay,
     canRoleCreateExpenses,
     canCreateExpensesOnPolicy,

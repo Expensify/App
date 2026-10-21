@@ -19,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,7 +88,7 @@ function ReportSubmitToContent({
     shouldResolveAcknowledgedViolations,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -116,6 +117,7 @@ function ReportSubmitToContent({
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const reportTransactions = useReportTransactions(report?.reportID);
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
     const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail?.trim(), (details) => details?.accountID);
@@ -232,6 +234,7 @@ function ReportSubmitToContent({
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
             rules,
+            formatPhoneNumber,
         });
 
         if (!inviteOption?.login) {
@@ -257,6 +260,7 @@ function ReportSubmitToContent({
         convertToDisplayString,
         rules,
         currentUserDetails.accountID,
+        formatPhoneNumber,
     ]);
 
     const submitToSelectionData = useMemo(() => {
@@ -328,6 +332,7 @@ function ReportSubmitToContent({
         submitReport({
             getCurrencyDecimals,
             expenseReport: report,
+            expenseReportTransactions: reportTransactions,
             policy,
             rules,
             currentUserAccountIDParam: currentUserDetails.accountID,
@@ -368,6 +373,7 @@ function ReportSubmitToContent({
         employeePersonalDetails,
         managerEmail,
         report,
+        reportTransactions,
         policy,
         currentUserDetails.accountID,
         currentUserDetails.email,
