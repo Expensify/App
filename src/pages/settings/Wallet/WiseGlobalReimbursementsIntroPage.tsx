@@ -11,7 +11,8 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isEligibleForWiseGlobalReimbursements} from '@libs/BankAccountUtils';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -62,12 +63,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isEligibleForWiseGlobalReimbursements(bankAccount?.accountData)}
+                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData)}
                 onBackButtonPress={goBackToWallet}
             >
                 <Header>
                     <Header.BackButton onPress={goBackToWallet} />
-                    <Header.Title title={translate('common.enableGlobalReimbursements')} />
+                    <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
                 <ConfirmationPage
                     illustration={illustrations.EarthWithCoins}
@@ -80,7 +81,10 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     onSecondaryButtonPress={goBackToWallet}
                     shouldShowButton
                     buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                    onButtonPress={() => {}}
+                    onButtonPress={() => {
+                        // Starting onboarding for any account retires the Wallet banner for good
+                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                    }}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
