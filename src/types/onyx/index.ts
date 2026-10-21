@@ -7,6 +7,7 @@ import type AccountData from './AccountData';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
+import type {AppReviewLastPrompt} from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
@@ -525,6 +526,7 @@ export type {
     ExportTemplate,
     HybridApp,
     AppReview,
+    AppReviewLastPrompt,
     SamlMetadata,
     DomainErrors,
     DomainHighlightItems,
