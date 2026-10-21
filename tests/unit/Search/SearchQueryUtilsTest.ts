@@ -3145,6 +3145,28 @@ describe('SearchQueryUtils', () => {
             expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
         });
 
+        it('returns false when only a Spend footer selection differs from the default query', () => {
+            // Given a saved search on the reimbursable total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:reimbursable');
+
+            // When only the footer selections change, which the footer's own Reset undoes
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:billable footerCount:reports footerCurrency:EUR');
+
+            // Then the header doesn't offer Save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('still returns true when a row filter changes alongside a footer selection', () => {
+            // Given a search on one category
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When the category changes along with the footer total
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:meals footerTotal:billable');
+
+            // Then the header offers Save, since a row filter changed
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
         it('returns false when the query equals the default query', () => {
             // Given a query that matches its default
             const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
