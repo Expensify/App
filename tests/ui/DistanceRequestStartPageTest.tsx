@@ -4,6 +4,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as OnyxTabNavigatorModule from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
@@ -75,12 +76,16 @@ jest.mock('@components/ScreenWrapper', () => {
 
 jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
-    const actual = jest.requireActual<{default: React.ComponentType<Record<string, unknown>>}>('@libs/Navigation/OnyxTabNavigator');
-    function MockOnyxTabNavigator(props: Record<string, unknown>) {
-        mockOnyxTabNavigatorProps.current = props;
-        return ReactActual.createElement(actual.default, props);
-    }
-    return {...actual, __esModule: true, default: MockOnyxTabNavigator};
+    const actual = jest.requireActual<typeof OnyxTabNavigatorModule>('@libs/Navigation/OnyxTabNavigator');
+    const createNavigator: typeof actual.createOnyxTabNavigator = (names) => {
+        const pair = actual.createOnyxTabNavigator(names);
+        function MockOnyxTabNavigator(props: Parameters<typeof pair.OnyxTabNavigator>[0]) {
+            mockOnyxTabNavigatorProps.current = props;
+            return ReactActual.createElement(pair.OnyxTabNavigator, props);
+        }
+        return {...pair, OnyxTabNavigator: MockOnyxTabNavigator};
+    };
+    return {...actual, createOnyxTabNavigator: createNavigator};
 });
 
 const REPORT_ID = '1';
@@ -111,7 +116,11 @@ async function setUpOnyx({selectedTab, lastDistanceExpenseType}: {selectedTab?: 
     });
 }
 
-async function renderPage(defaultSelectedTab: SelectedTabRequest, iouType: IOUType = CONST.IOU.TYPE.TRACK, action: IOUAction = CONST.IOU.ACTION.CREATE) {
+async function renderPage(
+    defaultSelectedTab: Parameters<typeof DistanceRequestStartPage>[0]['defaultSelectedTab'],
+    iouType: IOUType = CONST.IOU.TYPE.TRACK,
+    action: IOUAction = CONST.IOU.ACTION.CREATE,
+) {
     render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>

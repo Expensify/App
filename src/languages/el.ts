@@ -1071,6 +1071,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Διαχείριση',
             },
             emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
+            upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1228,6 +1229,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Σύγκριση',
             previousPeriod: 'Προηγούμενη περίοδος',
             average: 'Μέσος όρος',
+            dayLabel: (day?: number) => (day === undefined ? 'Ημέρα' : `Ημέρα ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Εβδομάδα' : `Εβδομάδα ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Μήνας' : `Μήνας ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Τρίμηνο' : `Τρίμηνο ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Έτος' : `Έτος ${year}`),
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },
@@ -2239,6 +2245,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `έως ${eta}` : ` ${eta}`;
                 }
                 return `Αναμονή για την ολοκλήρωση της πληρωμής${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` έως ${eta}` : ` ${eta}`;
+                }
+                return `Αναμονή για την ολοκλήρωση της επεξεργασίας της ακυρωμένης πληρωμής${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7601,6 +7619,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
+            exactOnline: {
+                comingSoon: 'Έρχεται σύντομα',
+                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
+                onWaitlist: 'Είστε σε λίστα αναμονής',
+                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
+            },
             setup: 'Σύνδεση',
             connectToSandbox: 'Σύνδεση στο sandbox',
             lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
@@ -7884,6 +7908,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
+            netSuiteOAuthMigrationRequired: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite σε OAuth 2.0 έως τον Φεβρουάριο 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Η σύνδεσή σας με το NetSuite απαιτεί άμεση αναβάθμιση σε OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
         },
         hr: {
             title: 'HR',
@@ -8933,16 +8960,21 @@ ${reportName}`,
             newRule: {
                 title: 'Νέος κανόνας',
                 subtitle: 'Τι θέλετε να κάνετε;',
+                startWithTemplate: 'Ξεκινήστε με ένα πρότυπο',
                 restrictCardSpend: 'Περιορισμός δαπανών κάρτας',
                 restrictCardSpendDescription: 'Μπλοκάρετε ή περιορίστε τις δαπάνες στο σημείο πώλησης',
                 flagForReview: 'Σημείωση για έλεγχο',
-                flagForReviewDescription: 'Ειδοποίηση εγκριτών όταν τα έξοδα υπερβαίνουν τα όρια κατηγορίας',
+                flagForReviewDescription: 'Ειδοποίηση όταν πληρούνται οι προϋποθέσεις σας',
                 requireFields: 'Ορίστε απαιτήσεις πεδίου',
-                requireFieldsDescription: 'Απαιτήστε συγκεκριμένα πεδία εξόδων ή παραλείψτε την απαίτησή τους.',
+                requireFieldsShort: 'Απαίτηση πεδίων',
+                requireFieldsDescription: 'Αποδείξεις, κατηγορίες κ.λπ.',
                 applyExpenseDefaults: 'Εφαρμογή προεπιλογών δαπανών',
-                applyExpenseDefaultsDescription: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
+                applyExpenseDefaultsDescription: 'Αυτόματη ενημέρωση πεδίων',
                 createAgentRule: 'Περιγράψτε τον κανόνα πράκτορα',
                 createAgentRuleDescription: 'Δημιουργήστε ευέλικτους κανόνες που εκτελούνται όταν τους χρειάζεστε.',
+                describeItBelow: 'Ή απλώς περιγράψτε τον παρακάτω',
+                describeRulePlaceholder: 'Αποκλεισμός όλων των δαπανών άνω των 2.000 $',
+                selectTemplateOrDescribe: 'Επιλέξτε ένα πρότυπο ή περιγράψτε έναν κανόνα για να συνεχίσετε',
                 describe: 'Περιγραφή',
                 describeRule: 'Περιγράψτε τον κανόνα σας με απλά λόγια και ο Concierge θα τον δημιουργήσει για εσάς',
                 describeRuleInputLabel: 'Περιγράψτε τον κανόνα',
@@ -9234,6 +9266,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
+                fallbackBanner:
+                    'Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον διαμορφώσαμε ως κανόνα πράκτορα. Οι κανόνες πράκτορα εφαρμόζονται αφού αλλάξει μια δαπάνη ή μια αναφορά, για παράδειγμα κρατώντας τη δαπάνη ή απορρίπτοντας την αναφορά.',
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Επεξεργασία',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -9486,9 +9520,9 @@ ${reportName}`,
                 exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
                 exportToNextOpenPeriodDescription: 'Όταν μια αναφορά έχει ημερομηνία σε κλειστή περίοδο του Dynamics 365 Business Central, εξάγεται στην επόμενη ανοιχτή περίοδο.',
                 syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-                syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+                syncReimbursedReportsDescription: 'Όταν μια αναφορά εξοφλείται μέσω ACH, θα δημιουργείται μια γραμμή γενικής λογιστικής εγγραφής σε αυτόν τον λογαριασμό.',
                 reimbursementBankAccount: {
-                    label: 'Λογαριασμός πληρωμής λογαριασμών',
+                    label: 'Τραπεζικός λογαριασμός πληρωμών',
                     description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Dynamics 365 Business Central.',
                 },
                 syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
@@ -9690,6 +9724,7 @@ ${reportName}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `προστέθηκε συντελεστής «${rateName}» αξίας ${rateValue}, σε ισχύ έως ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `προστέθηκε συντελεστής «${rateName}» αξίας ${rateValue}, σε ισχύ από ${startDate} έως ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, με ${taxReclaimableAmount} ανακτήσιμο φόρο στο «${taxRateName}»`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `αφαίρεσε τον συντελεστή «${customUnitName}» «${rateName}»`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `άλλαξε την τιμή της μονάδας «${customUnitName}», της υποτιμής «${customUnitRateName}» του υποποσού «${customUnitSubRateName}», ${updatedField}, σε «${newValue}» (προηγουμένως «${oldValue}»)`,
@@ -10502,6 +10537,7 @@ ${reportName}`,
             withdrawn: 'Ανακλήθηκε',
             billable: 'Χρεώσιμη',
             rejected: 'Απορρίφθηκε',
+            held: 'Σε αναμονή',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
@@ -10716,6 +10752,7 @@ ${reportName}`,
             type: {
                 changeField: (oldValue, newValue, fieldName) => `άλλαξε το ${fieldName} σε «${newValue}» (προηγουμένως «${oldValue}»)`,
                 changeFieldEmpty: (newValue, fieldName) => `ορίστε το ${fieldName} σε «${newValue}»`,
+                changeFieldRemoved: (oldValue, fieldName) => `αφαίρεσε το ${fieldName} (προηγουμένως «${oldValue}»)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `άλλαξε τον χώρο εργασίας${fromPolicyName ? `(προηγουμένως ${fromPolicyName})` : ''}`;
