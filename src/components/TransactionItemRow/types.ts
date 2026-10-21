@@ -60,6 +60,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** ID of the policy the transaction belongs to, provided on search transactions */
     policyID?: string;
+
+    /** Whether the expense was ever rejected, provided on search transactions when the Rejected column is shown or sorted by */
+    declined?: boolean;
 };
 
 type TransactionItemRowProps = {

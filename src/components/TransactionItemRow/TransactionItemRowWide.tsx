@@ -381,6 +381,20 @@ function TransactionItemRowWide({
                         </Text>
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DECLINED)]}
+                    >
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {transactionItem.declined ? translate('common.yes') : translate('common.no')}
+                        </Text>
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 return (
                     <View

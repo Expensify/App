@@ -332,6 +332,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: 'declined' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MCC]: 'mcc' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: 'taxCode' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
@@ -3951,14 +3952,14 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
 /**
  * @private
  * Gets the value to use for sorting a transaction by a given property.
- * Handles special cases like comments and boolean fields (reimbursable, billable).
+ * Handles special cases like comments and boolean fields (reimbursable, billable, declined).
  */
 function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
     if (sortingProperty === 'comment') {
         return transaction.comment?.comment;
     }
 
-    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable' || sortingProperty === 'declined') {
         const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
         return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
     }
@@ -4270,6 +4271,15 @@ function getSortedReportData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.DECLINED) {
+        return data.sort((a, b) => {
+            // Ranked as 'yes'/'no' to match the backend, with a report that never got the field ranked as not rejected.
+            const aValue = a.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            const bValue = b.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : expenseReportColumnNamesToSortingProperty[sortBy];
 
@@ -4526,6 +4536,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             return 'common.billable';
+        case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+            return 'search.filters.rejected';
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return 'common.mcc';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -6708,6 +6720,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -7147,6 +7160,7 @@ function getTableMinWidth(
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
             column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+            column === CONST.SEARCH.TABLE_COLUMNS.DECLINED ||
             column === CONST.SEARCH.TABLE_COLUMNS.MCC ||
             column === CONST.SEARCH.TABLE_COLUMNS.TAX_CODE
         ) {
