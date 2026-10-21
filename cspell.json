@@ -733,6 +733,7 @@
         "hybridapp",
         "iOSQRCode",
         "iaco",
+        "iban",
         "idempotently",
         "idfa",
         "ifdef",
@@ -1211,7 +1212,15 @@
         "knip",
         "lottiefiles",
         "jsitooling",
-        "Refetched"
+        "Refetched",
+        "AASA",
+        "assetsignore",
+        "bcmap",
+        "HSTS",
+        "Miniflare",
+        "nosniff",
+        "SAMEORIGIN",
+        "workerd"
     ],
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",

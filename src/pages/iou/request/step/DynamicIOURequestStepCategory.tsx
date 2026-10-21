@@ -29,7 +29,7 @@ import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils'
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {canEditWorkspaceSettings, hasAccountingConnections, isGroupPolicy} from '@libs/PolicyUtils';
+import {canCreateCategoryInSitu, canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 
@@ -100,9 +100,7 @@ function DynamicIOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    const canCreateCategoryInSitu = canEditWorkspaceSettings(policy, currentUserEmailParam) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
-
-    const createCategoryMenuItems = canCreateCategoryInSitu
+    const createCategoryMenuItems = canCreateCategoryInSitu(policy, currentUserEmailParam)
         ? [
               {
                   icon: expensifyIcons.Plus,
