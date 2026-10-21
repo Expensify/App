@@ -6163,6 +6163,21 @@ describe('SearchQueryUtils', () => {
                 end: '2025-03-09',
             });
         });
+
+        test('zero-pads dates typed without leading zeros so they compare correctly with other dates', () => {
+            // Given a query whose dates are typed without leading zeros, which the search parser accepts
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-1-5 date<=2026-2-9');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
+        });
     });
 
     describe('isSearchBeforeViolationsSnapshotStarted', () => {
