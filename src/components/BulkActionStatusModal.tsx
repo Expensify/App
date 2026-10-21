@@ -132,10 +132,12 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
 
     const viewFailedReports = () => {
         const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${failedReportIDs.join(',')}`);
-        onClose();
         if (!queryJSON) {
+            onClose();
             return;
         }
+
+        // close() runs the modal's onClose, which clears the record.
         close(() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)})));
     };
 
