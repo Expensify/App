@@ -7644,15 +7644,20 @@ function replaceLocalAttachmentReferences(
         return draftMarkdown;
     }
 
+    const fileNameAttributeRegex = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`);
+    const getSyncedFileName = (tag: string) => tag.match(fileNameAttributeRegex)?.at(1) ?? tag.match(/\balt="([^"]*)"/)?.at(1) ?? tag.match(/>([^<]*)<\/(?:a|video)>$/)?.at(1);
+
     // Matching by position is only safe when the draft kept every attachment.
     const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
     let localReferenceIndex = 0;
     return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
+        const localFileName = match.match(/\[([^\]]+)\]/)?.at(1) ?? localSource.split('/').pop();
         const syncedAttachmentTag =
             (attachmentID ? syncedAttachmentTags.find((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
-            (canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined);
+            (canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined) ??
+            (localFileName ? syncedAttachmentTags.find((tag) => getSyncedFileName(tag) === localFileName) : undefined);
         localReferenceIndex++;
         if (!syncedAttachmentTag) {
             return '';

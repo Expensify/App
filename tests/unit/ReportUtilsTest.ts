@@ -7873,6 +7873,18 @@ describe('ReportUtils', () => {
                 // Then the second image stays, not the first
                 expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
             });
+
+            it('keeps the image the user kept by its file name after the app restarted', () => {
+                // Given the user deleted the first image, and the app restarted so it no longer knows which upload is which
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = 'Hello edited\n\n!(file:///var/mobile/Documents/receipt.jpg)';
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, {});
+
+                // Then the second image stays, matched by its file name
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
         });
 
         it('swaps a document reference for the synced attachment link', () => {
