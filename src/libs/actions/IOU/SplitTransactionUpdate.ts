@@ -1,5 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
+import type {SearchActionsContextValue, SearchGroupBy, SearchStateContextValue} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -7,6 +7,7 @@ import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
@@ -42,8 +43,11 @@ import {
     isSelfDM,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
+import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
+import {isTagMissing} from '@libs/TagUtils';
 import {
     getChildTransactions,
+    getCreated,
     hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isOnHold,
@@ -167,6 +171,41 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
         groupCurrency: groupSourceTransaction.groupCurrency,
         groupExchangeRate: groupSourceTransaction.groupExchangeRate,
     };
+}
+
+/**
+ * Whether a split still belongs to the group whose drill-down snapshot held the original transaction. Each split can get
+ * its own category, tag or date, which moves it to another group, so it must not be shown under the original's group.
+ */
+function isSplitInGroupSnapshot(
+    splitTransaction: OnyxTypes.Transaction,
+    groupSnapshot: OnyxEntry<OnyxTypes.SearchResults>,
+    originalTransaction: OnyxTypes.Transaction | undefined,
+    groupBy: SearchGroupBy | undefined,
+): boolean {
+    switch (groupBy) {
+        // Optimistic splits get the default "Uncategorized" category, which is in the same group as an expense with no category
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return isCategoryMissing(splitTransaction.category) ? isCategoryMissing(originalTransaction?.category) : splitTransaction.category === originalTransaction?.category;
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return isTagMissing(splitTransaction.tag) ? isTagMissing(originalTransaction?.tag) : splitTransaction.tag === originalTransaction?.tag;
+        case CONST.SEARCH.GROUP_BY.DAY:
+        case CONST.SEARCH.GROUP_BY.WEEK:
+        case CONST.SEARCH.GROUP_BY.MONTH:
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+        case CONST.SEARCH.GROUP_BY.YEAR: {
+            // Date groups are drilled into with an explicit date range (see buildDateRangeGroupQuery), recorded in the snapshot's query
+            const groupQueryJSON = groupSnapshot?.search?.inputQuery ? buildSearchQueryJSON(groupSnapshot.search.inputQuery) : undefined;
+            const splitDate = getCreated(splitTransaction).substring(0, 10);
+            if (!groupQueryJSON || !splitDate) {
+                return true;
+            }
+            const {start, end} = getDateFilterRange(groupQueryJSON);
+            return (!start || splitDate >= start) && (!end || splitDate <= end);
+        }
+        default:
+            return true;
+    }
 }
 
 /**
@@ -2047,12 +2086,19 @@ function updateSplitTransactions({
             snapshotKeysToUpdate.push(groupSnapshotKey);
         }
 
+        const activeGroupBy = searchContext?.currentSearchQueryJSON?.groupBy;
         for (const snapshotKey of snapshotKeysToUpdate) {
             const snapshotData = allSnapshots?.[snapshotKey]?.data;
             const rescaledChildSnapshotEntries: SearchResultDataType = {};
             for (const childKey of optimisticChildSnapshotKeys) {
                 const childTransaction = optimisticChildSnapshotEntries[childKey];
                 if (!childTransaction) {
+                    continue;
+                }
+                if (
+                    snapshotKey !== currentSnapshotKey &&
+                    !isSplitInGroupSnapshot(childTransaction, allSnapshots?.[snapshotKey], snapshotData?.[originalTransactionSnapshotKey], activeGroupBy)
+                ) {
                     continue;
                 }
                 const groupSourceTransaction = findSnapshotGroupSourceTransaction(snapshotData, childTransaction, [childTransaction.transactionID, ...groupSourceCandidateTransactionIDs]);
