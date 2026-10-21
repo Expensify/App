@@ -1,10 +1,10 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
-import {getSingleRHPWidth} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -27,6 +27,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
@@ -62,7 +63,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             return {cardStyle: {...cardStyle, opacity: progress}};
         }
 
-        const widthFallback = shouldUseNarrowLayout ? screen.width : getSingleRHPWidth();
+        const widthFallback = shouldUseNarrowLayout ? screen.width : singleRHPWidth;
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
         const translateX = Animated.multiply(

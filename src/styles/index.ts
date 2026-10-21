@@ -6803,15 +6803,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
-        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
-        rhpResizeHandle: {
-            ...positioning.pAbsolute,
-            top: variables.rhpFloatingCardMargin,
-            bottom: variables.rhpFloatingCardMargin,
-            width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-            right: getSingleRHPWidthStyleValue(variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
-        },
-
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -7152,6 +7143,16 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        rhpResizeHandle: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
+                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer.
         offlineIndicatorAboveFooter: (footerHeight: number) =>

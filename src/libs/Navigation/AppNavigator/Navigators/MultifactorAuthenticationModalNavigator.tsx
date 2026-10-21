@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -141,7 +142,8 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
+    const {width: singleRHPWidth} = useSingleRHPWidth();
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
 
     if (phase === 'closed') {
         return null;

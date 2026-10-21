@@ -1,18 +1,12 @@
-import variables from '@styles/variables';
-
 import type {DimensionValue} from 'react-native';
 
-/** The RHP is full-screen on native, so its width never changes. */
-function getSingleRHPWidth(): number {
-    return variables.rhpWidth;
+/** The RHP is full-screen on native, so nothing drags its width. */
+function writeLiveSingleRHPWidth() {}
+
+function clearLiveSingleRHPWidth() {}
+
+function getSingleRHPWidthStyleValue(width: number, offset: number): DimensionValue {
+    return width + offset;
 }
 
-function applySingleRHPWidth() {}
-
-function clampSingleRHPWidth() {}
-
-function getSingleRHPWidthStyleValue(offset: number): DimensionValue {
-    return variables.rhpWidth + offset;
-}
-
-export {applySingleRHPWidth, clampSingleRHPWidth, getSingleRHPWidth, getSingleRHPWidthStyleValue};
+export {clearLiveSingleRHPWidth, getSingleRHPWidthStyleValue, writeLiveSingleRHPWidth};

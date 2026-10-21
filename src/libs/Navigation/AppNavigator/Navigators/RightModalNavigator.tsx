@@ -6,6 +6,7 @@ import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -224,7 +225,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
     const isResizableRHPEnabled = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP);
     const isResizableSingleRHP = useIsResizableSingleRHP();
 
@@ -302,7 +305,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     return (
         <NarrowPaneContextProvider>
-            <NoDropZone>
+            <NoDropZone ref={singleRHPWidthScopeRef}>
                 {!shouldUseNarrowLayout && (
                     <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
@@ -615,7 +618,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
-                {isResizableSingleRHP && <RHPResizeHandle />}
+                {isResizableSingleRHP && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

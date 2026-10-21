@@ -2,10 +2,10 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
-import {getSingleRHPWidth} from '@libs/Navigation/helpers/singleRHPWidth';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationOptions';
@@ -42,12 +42,13 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     const isWideRHPContext = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
     const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
 
     return useMemo<PlatformStackNavigationOptions>(() => {
         const getHorizontalIOSInterpolatorProps = (props: StackCardInterpolationProps) => {
             // The resizable single RHP's stack measures a fixed-width box, so the slide distance comes from the dragged width instead.
             if (isResizableSingleRHP) {
-                return withScreenWidth(props, getSingleRHPWidth());
+                return withScreenWidth(props, singleRHPWidth);
             }
             // A narrow screen on top of a wide RHP uses only half the width, the other half being transparent, so it slides from there.
             return shouldAdjustInterpolatorProps ? withScreenWidth(props, props.layouts.screen.width / 2) : props;
@@ -81,6 +82,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
         shouldAdjustInterpolatorProps,
         isWideRHPContext,
         isResizableSingleRHP,
+        singleRHPWidth,
         isSmallScreenWidth,
         styles.navigationScreenCardStyle,
         styles.singleRHPCardInterpolatorStyles,
