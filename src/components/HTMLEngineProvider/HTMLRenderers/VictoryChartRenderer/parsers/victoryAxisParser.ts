@@ -1,5 +1,5 @@
 import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {CartesianChartProps, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
 import {
     parseAttributeAsNumber,
@@ -11,6 +11,7 @@ import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/Vict
 
 import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {XAxisSide, YAxisSide} from 'victory-native';
 
 import {Skia} from '@shopify/react-native-skia';
 
@@ -46,74 +47,83 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     // 0 width intentionally avoids drawing grid lines, preserving VictoryChart compatibility
     const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0;
     const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
-    const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
     const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
     const labelsForMeasurement = tickValues?.map(formatLabel) ?? tickFormat;
+    const rawLabelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
 
-    if (isDependentAxis) {
-        return isHorizontal
-            ? {
-                  xAxis: {
-                      tickCount,
-                      tickValues,
-                      formatXLabel: formatLabel,
-                      axisSide: orientation === 'right' ? 'top' : 'bottom',
-                      lineColor,
-                      lineWidth,
-                      labelColor,
-                      labelOffset,
-                      font,
-                  },
-              }
-            : {
-                  yAxis: [
-                      {
-                          tickCount,
-                          tickValues,
-                          formatYLabel: formatLabel,
-                          axisSide: orientation === 'right' ? 'right' : 'left',
-                          lineColor,
-                          lineWidth,
-                          labelColor,
-                          labelOffset,
-                          font,
-                      },
-                  ],
-              };
-    }
-    if (isHorizontal) {
-        const axisSide = orientation === 'top' ? 'right' : 'left';
-        const resolvedLabelOffset = axisSide === 'left' && labelOffset !== undefined ? Math.min(labelOffset, LEFT_AXIS_LABEL_OFFSET_MAX) : labelOffset;
-        return {
-            yAxis: [
-                {
-                    tickCount,
-                    tickValues,
-                    formatYLabel: formatLabel,
-                    axisSide,
-                    lineColor,
-                    lineWidth,
-                    labelColor,
-                    labelOffset: resolvedLabelOffset,
-                    font,
-                },
-            ],
-            leftAxisLabelPadding: computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, resolvedLabelOffset),
-        };
-    }
-    return {
-        xAxis: {
+    let xAxis: CartesianChartProps['xAxis'] | undefined;
+    let yAxis: CartesianChartProps['yAxis'] | undefined;
+    let axisSide: XAxisSide | YAxisSide | undefined;
+    let labelOffset: number | undefined;
+    let leftAxisLabelPadding: number | undefined;
+
+    if (isDependentAxis && isHorizontal) {
+        axisSide = orientation === 'right' ? 'top' : 'bottom';
+        labelOffset = rawLabelOffset;
+        xAxis = {
             tickCount,
             tickValues,
             formatXLabel: formatLabel,
-            axisSide: orientation === 'top' ? 'top' : 'bottom',
+            axisSide,
             lineColor,
             lineWidth,
             labelColor,
             labelOffset,
             font,
-        },
+        };
+    } else if (isDependentAxis && !isHorizontal) {
+        axisSide = orientation === 'right' ? 'right' : 'left';
+        labelOffset = rawLabelOffset;
+        yAxis = [
+            {
+                tickCount,
+                tickValues,
+                formatYLabel: formatLabel,
+                axisSide,
+                lineColor,
+                lineWidth,
+                labelColor,
+                labelOffset,
+                font,
+            },
+        ];
+    } else if (!isDependentAxis && isHorizontal) {
+        axisSide = orientation === 'top' ? 'right' : 'left';
+        labelOffset = axisSide === 'left' && rawLabelOffset !== undefined ? Math.min(rawLabelOffset, LEFT_AXIS_LABEL_OFFSET_MAX) : rawLabelOffset;
+        yAxis = [
+            {
+                tickCount,
+                tickValues,
+                formatYLabel: formatLabel,
+                axisSide,
+                lineColor,
+                lineWidth,
+                labelColor,
+                labelOffset,
+                font,
+            },
+        ];
+        leftAxisLabelPadding = computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, labelOffset);
+    } else if (!isDependentAxis && !isHorizontal) {
+        ((axisSide = orientation === 'top' ? 'top' : 'bottom'), (labelOffset = rawLabelOffset));
+        xAxis = {
+            tickCount,
+            tickValues,
+            formatXLabel: formatLabel,
+            axisSide,
+            lineColor,
+            lineWidth,
+            labelColor,
+            labelOffset,
+            font,
+        };
+    }
+
+    return {
+        xAxis,
+        yAxis,
+        leftAxisLabelPadding,
     };
 }
 
