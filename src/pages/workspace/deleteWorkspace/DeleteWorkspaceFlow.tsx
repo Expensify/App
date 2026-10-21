@@ -109,10 +109,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     );
 
     const hasCardFeedOrExpensifyCard =
-        !isEmptyObject(cardFeeds) ||
-        !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
+        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasTravelBillingEnabledOnWorkspace = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);

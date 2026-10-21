@@ -532,7 +532,6 @@ function MoneyRequestView({
         (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && policyHasEnabledTags));
     // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead of
     // navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully emptied,

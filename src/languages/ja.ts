@@ -7239,6 +7239,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
+            changeRole: 'ロールを変更',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -9092,6 +9093,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books 組織',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
             prerequisitesTitle: '接続する前に…',
@@ -10103,6 +10107,12 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新明細書',
                 },
                 customDay: 'カスタム日',
+            },
+            describeSearch: {
+                title: '検索内容を入力してください',
+                description: '表示したい経費をわかりやすい英語で入力してください。適切なフィルターを自動的に適用します。',
+                inputLabel: '検索内容を入力してください',
+                buttonText: '適用',
             },
             status: 'ステータス',
             keyword: 'キーワード',
@@ -11986,5 +11996,6 @@ ${reportName}`,
         mobileRenewPrompt: '早期に更新するには、ウェブブラウザで Expensify にアクセスしてください。',
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
+    bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
 };
 export default translations;

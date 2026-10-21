@@ -541,7 +541,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
         allRecentAttendees
             .filter((attendee) => {
                 // Deduplicate: use email for regular users, displayName for name-only attendees
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const key = attendee.email || attendee.displayName || '';
                 if (!key || seenAttendees.has(key)) {
                     return false;
@@ -551,7 +550,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
             })
             .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
             // Use || to fall back to displayName for name-only attendees (empty email)
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             .map((attendee) => attendee.email || attendee.displayName)
     );
 }

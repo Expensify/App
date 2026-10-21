@@ -2242,6 +2242,7 @@ const ROUTES = {
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: 'search/filters',
+    SEARCH_NL_FILTER: 'search/describe',
     SEARCH_ADVANCED_FILTERS_CONTENT: {
         route: 'search/filters/:filterKey',
         getRoute: (filterKey: SearchFilterKey | UserFriendlyKey, applyDirectly?: boolean) => {
@@ -3873,6 +3874,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/taxes/settings/tax-name',
         getRoute: (policyID: string) => `workspaces/${policyID}/taxes/settings/tax-name` as const,
     },
+    WORKSPACE_MEMBERS_ROLE: {
+        route: 'workspaces/:policyID/change-member-roles',
+        getRoute: (policyID: string) => `workspaces/${policyID}/change-member-roles` as const,
+    },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}` as const,
@@ -4643,6 +4648,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_SETUP: {
         route: 'workspaces/:policyID/accounting/xero/setup',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/setup` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_OAUTH: {
+        route: 'workspaces/:policyID/accounting/zoho-books/oauth',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
