@@ -56,7 +56,7 @@ function currentCycleForwardedActorAccountIDsSelector(reportActions: OnyxEntry<R
 
     // Walk reverse chronologically. A SUBMITTED action marks the start of the current
     // approval cycle — any FORWARDED actions older than that are stale (from a prior
-    // submit→approve→reject→resubmit cycle) and must be ignored. Collect every forward
+    // submit, approve, reject, then resubmit cycle) and must be ignored. Collect every forward
     // in the cycle, newest first, so ineligible approvers can be skipped.
     const forwardedActorAccountIDs: number[] = [];
     for (const action of sortedActions) {
