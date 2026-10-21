@@ -16,9 +16,14 @@ For an introduction to the available insights and what they show, see [Learn Abo
 
 ## Where to find Insights
 
-In the navigation tabs (on the left on web, on the bottom on mobile), select **Insights**. 
 
-**Insights** displays spending visualizations based on your permissions and workspace configuration.
+Insights displays spending visualizations based on your permissions and workspace configuration. Where you access insights depends on your platform.
+
+On web: 
+In the navigation tabs on the left, select **Insights**.
+
+On mobile: 
+In the navigation tabs on the bottom, select **Spend**. Then, in the navigation menu, select the individual insight you want to view.
 
 ## How to filter insights
 
