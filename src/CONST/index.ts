@@ -2469,7 +2469,7 @@ const CONST = {
             STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
-            DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE: 'dynamicExternalWorkflowWOffline',
+            DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
         },
         ICONS: {
             HOURGLASS: 'hourglass',

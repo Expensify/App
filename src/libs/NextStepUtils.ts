@@ -382,7 +382,7 @@ function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?
 
 function buildOptimisticNextStepForDEWOffline(): ReportNextStepOverride {
     return {
-        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOWW_OFFLINE,
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY_OVERRIDE.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE,
     };
 }
 
