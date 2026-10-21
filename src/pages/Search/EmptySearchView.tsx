@@ -2,7 +2,7 @@ import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
-import {useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -143,6 +143,7 @@ function EmptySearchViewContent({
     const isInLandscapeMode = useIsInLandscapeMode();
     const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
     const scrollLockStyle = useSearchListScrollLockStyle();
+    const scrollViewRef = useRegisterSearchScrollView();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -424,6 +425,7 @@ function EmptySearchViewContent({
 
     return (
         <Animated.ScrollView
+            ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
             style={scrollLockStyle}
             {...tabRootScrollProps}

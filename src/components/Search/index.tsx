@@ -119,7 +119,7 @@ import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {useSearchListScrollLockStyle} from './SearchListScrollLockContext';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -165,6 +165,7 @@ function Search({
     const styles = useThemeStyles();
     const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const chartScrollLockStyle = useSearchListScrollLockStyle();
+    const chartScrollViewRef = useRegisterSearchScrollView();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -1438,6 +1439,7 @@ function Search({
         return (
             <SearchScopeProvider>
                 <Animated.ScrollView
+                    ref={chartScrollViewRef}
                     style={[styles.flex1, chartScrollLockStyle]}
                     {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}

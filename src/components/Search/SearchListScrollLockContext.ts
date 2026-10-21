@@ -1,4 +1,6 @@
-import type {ViewStyle} from 'react-native';
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 
 import {createContext, useContext, useEffect} from 'react';
 
@@ -62,6 +64,30 @@ function useRegisterSearchListScroller(scroller: SearchListScroller) {
     useEffect(() => registerListScroller(scroller), [registerListScroller, scroller]);
 }
 
+/** React Native types `getScrollableNode` as `any`. On web it resolves to the element that actually scrolls. */
+function getScrollTop(scrollView: ComponentRef<typeof RNScrollView>): number {
+    const node: unknown = scrollView.getScrollableNode();
+    return !!node && typeof node === 'object' && 'scrollTop' in node && typeof node.scrollTop === 'number' ? node.scrollTop : 0;
+}
+
+/**
+ * Registers a ScrollView rendered in place of the results list (the chart, the empty state) the same way, so a fling
+ * or drag that hides the header carries on into it too. Returns a callback ref for that ScrollView: registering on
+ * attach rather than in an effect ties it to the ScrollView actually being mounted, as `Search` calls this before it
+ * knows whether it will render the chart, and its effects would run after (and override) a results list's.
+ */
+function useRegisterSearchScrollView() {
+    const registerListScroller = useContext(SearchListScrollRegistrationContext);
+
+    return (scrollView: ComponentRef<typeof RNScrollView> | null) =>
+        scrollView
+            ? registerListScroller({
+                  getOffset: () => getScrollTop(scrollView),
+                  scrollTo: (offset) => scrollView.scrollTo({y: offset, animated: false}),
+              })
+            : undefined;
+}
+
 export default SearchListScrollLockContext;
-export {SearchListScrollRegistrationContext, useRegisterSearchListScroller, useSearchListScrollLockStyle};
+export {SearchListScrollRegistrationContext, useRegisterSearchListScroller, useRegisterSearchScrollView, useSearchListScrollLockStyle};
 export type {SearchListScroller};
