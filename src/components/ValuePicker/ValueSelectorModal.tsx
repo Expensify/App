@@ -22,7 +22,6 @@ function ValueSelectorModal({
     shouldEnableKeyboardAvoidingView = true,
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
-    shouldShowSearchInput = false,
 }: ValueSelectorModalProps) {
     return (
         <Modal
@@ -52,7 +51,6 @@ function ValueSelectorModal({
                     shouldShowTooltips={shouldShowTooltips}
                     disableKeyboardShortcuts={disableKeyboardShortcuts}
                     alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
-                    shouldShowSearchInput={shouldShowSearchInput}
                 />
             </ScreenWrapper>
         </Modal>

@@ -23,7 +23,6 @@ function ValueSelectionList({
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
     isVisible,
-    shouldShowSearchInput = false,
 }: ValueSelectionListProps) {
     const {translate} = useLocalize();
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
@@ -48,7 +47,7 @@ function ValueSelectionList({
     const [searchValue, setSearchValue, filteredOptions] = useSearchResults(options, (option, searchInput) => tokenizedSearch([option], searchInput, () => [option.text]).length > 0);
 
     // The search input is gated on the unfiltered list length so it doesn't disappear once a query narrows the results.
-    const isSearchable = shouldShowSearchInput && options.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const isSearchable = options.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <SelectionList

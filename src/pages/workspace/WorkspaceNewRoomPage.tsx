@@ -347,7 +347,6 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                                 items={workspaceOptions}
                                 value={policyID}
                                 onValueChange={(value) => setPolicyID(value as typeof policyID)}
-                                shouldShowSearchInput
                             />
                         </View>
                     )}

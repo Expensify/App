@@ -57,25 +57,8 @@ describe('ValueSelectionList', () => {
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
     });
 
-    it('hides the search input when the caller does not opt in, even for long lists', () => {
-        // Given a long list from a caller that did not ask for search, since ValuePicker is shared by many pages
-        // When the list renders
-        render(
-            <ValueSelectionList
-                items={items}
-                onItemSelected={jest.fn()}
-            />,
-        );
-
-        // Then no search label is passed, so SelectionList shows no input and keeps its default focus behavior
-        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(selectionListProps?.textInputOptions?.label).toBeUndefined();
-        expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(false);
-        expect(selectionListProps?.disableMaintainingScrollPosition).toBe(false);
-    });
-
     it('hides the search input when the list has fewer items than the standard limit', () => {
-        // Given an opted-in list just below the limit, where scanning is easy without search
+        // Given a list just below the limit, where scanning is easy without search
         const shortItems = items.slice(0, CONST.STANDARD_LIST_ITEM_LIMIT - 1);
 
         // When the list renders
@@ -83,7 +66,6 @@ describe('ValueSelectionList', () => {
             <ValueSelectionList
                 items={shortItems}
                 onItemSelected={jest.fn()}
-                shouldShowSearchInput
             />,
         );
 
@@ -95,7 +77,7 @@ describe('ValueSelectionList', () => {
     });
 
     it('shows the search input when the list reaches the standard limit', () => {
-        // Given an opted-in list at the limit, such as a user with 12 workspaces on the new room page
+        // Given a list at the limit, such as a user with 12 workspaces on the new room page
         const limitItems = items.slice(0, CONST.STANDARD_LIST_ITEM_LIMIT);
 
         // When the list renders
@@ -103,7 +85,6 @@ describe('ValueSelectionList', () => {
             <ValueSelectionList
                 items={limitItems}
                 onItemSelected={jest.fn()}
-                shouldShowSearchInput
             />,
         );
 
@@ -139,7 +120,6 @@ describe('ValueSelectionList', () => {
                 <ValueSelectionList
                     items={items}
                     onItemSelected={jest.fn()}
-                    shouldShowSearchInput
                 />,
             );
 
@@ -159,7 +139,6 @@ describe('ValueSelectionList', () => {
                 <ValueSelectionList
                     items={items}
                     onItemSelected={jest.fn()}
-                    shouldShowSearchInput
                 />,
             );
 
