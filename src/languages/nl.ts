@@ -10390,6 +10390,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
+            travel: 'Reizen',
+            trips: 'Reizen',
         },
         mergeReports: {
             title: 'Rapporten samenvoegen',

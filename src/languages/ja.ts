@@ -10267,6 +10267,8 @@ ${reportName}`,
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
+            travel: '出張',
+            trips: '出張',
         },
         mergeReports: {
             title: 'レポートをマージする',
