@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Modifier',
         category: 'Catégorie',
         vendor: 'Fournisseur',
-        supplier: 'Fournisseur',
         report: 'Note de frais',
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
@@ -5503,8 +5502,8 @@ ${amount} pour ${merchant} - ${date}`,
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans Xero et synchroniser à nouveau la connexion',
-            noSuppliersFound: 'Aucun fournisseur trouvé',
-            noSuppliersFoundDescription: 'Veuillez ajouter le fournisseur dans Xero et synchroniser à nouveau la connexion.',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Xero et synchroniser de nouveau la connexion',
             accountingMethods: {
                 label: 'Quand exporter',
                 description: 'Choisissez quand exporter les dépenses :',
@@ -8587,7 +8586,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 ifAnyExpenseMatches: 'Si une dépense correspond :',
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
                 vendorUnavailable: 'Fournisseur indisponible',
-                supplierUnavailable: 'Fournisseur indisponible',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie',
                 confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
                 confirmErrorCondition: 'Veuillez saisir un commerçant',
@@ -10359,6 +10357,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawn: 'Retiré',
             billable: 'Facturable',
             rejected: 'Rejeté',
+            held: 'En attente',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
             sortOrder: {
@@ -10555,6 +10554,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Passer à la vue tableau',
+        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {
@@ -10578,6 +10579,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `a modifié ${fieldName} en « ${newValue} » (auparavant « ${oldValue} »)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `définir ${fieldName} sur « ${newValue} »`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `a supprimé ${fieldName} (auparavant « ${oldValue} »)`,
+                changeFieldCleared: (fieldName: string) => `a supprimé ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(précédemment ${fromPolicyName})` : ''}`;
@@ -11062,7 +11064,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         duplicatedTransaction: 'Doublon potentiel',
         fieldRequired: 'Les champs de note de frais sont obligatoires',
         futureDate: 'Date future non autorisée',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Fournisseur plus valide' : 'Fournisseur plus valide'),
+        inactiveVendor: 'Fournisseur plus valide',
         invoiceMarkup: (invoiceMarkup: number) => `Majoration de ${invoiceMarkup} %`,
         maxAge: (maxAge: number) => `Date antérieure de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',

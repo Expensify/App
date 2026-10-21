@@ -380,7 +380,6 @@ const translations = {
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',
-        supplier: 'Supplier',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -5677,8 +5676,8 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            noSuppliersFound: 'No suppliers found',
-            noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Xero and sync the connection again',
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -9157,7 +9156,6 @@ const translations = {
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
                 vendorUnavailable: 'Vendor unavailable',
-                supplierUnavailable: 'Supplier unavailable',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
@@ -10584,6 +10582,7 @@ const translations = {
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             rejected: 'Rejected',
+            held: 'Held',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
@@ -10766,6 +10765,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
@@ -10789,6 +10790,7 @@ const translations = {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `set ${fieldName} to "${newValue}"`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `removed ${fieldName} (previously "${oldValue}")`,
+                changeFieldCleared: (fieldName: string) => `removed ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
@@ -11278,7 +11280,7 @@ const translations = {
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Supplier no longer valid' : 'Vendor no longer valid'),
+        inactiveVendor: 'Vendor no longer valid',
         invoiceMarkup: (invoiceMarkup: number) => `Marked up by ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',

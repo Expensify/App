@@ -816,9 +816,6 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
-    /** The KYC requirements the business's application needs */
-    WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
-
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
 
@@ -938,6 +935,9 @@ const ONYXKEYS = {
 
     /** Dragged table column widths, keyed by `columnResizingID` then column key. Per device, since ideal widths depend on window size. */
     TABLE_COLUMN_WIDTHS: 'tableColumnWidths',
+
+    /** Stores whether the user views single-expense reports in the expense view or the table view */
+    NVP_SINGLE_EXPENSE_REPORT_VIEW: 'nvp_expensify_singleExpenseReportView',
 
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
@@ -1987,7 +1987,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
-    [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirement[];
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
@@ -2035,6 +2034,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_OPTION]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
+    [ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW]: ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;
