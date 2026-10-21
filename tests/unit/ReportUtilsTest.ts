@@ -15493,6 +15493,7 @@ describe('ReportUtils', () => {
         });
 
         it('should respect workspace membership for restricted visibility rooms', async () => {
+            // Given a workspace and reports with restricted and public visibility
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
@@ -15535,9 +15536,14 @@ describe('ReportUtils', () => {
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
+            // When checking whether a user can join restricted rooms
+            // Then regular workspace members can join, but non-members and guests cannot
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
+
+            // When checking whether a user can join public rooms
+            // Then non-members and guests can both join
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
         });
@@ -17275,64 +17281,106 @@ describe('ReportUtils', () => {
 
     describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
         test('should return false when not a policy employee', () => {
+            // Given a restricted policy expense chat and a user who is not a policy employee
             const report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
                 isOwnPolicyExpenseChat: true,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, false, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
 
         test('should return true for restricted room when policy employee', () => {
+            // Given a restricted room and a user who is a policy employee
             const report = {
                 ...createRandomReport(2, undefined),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return true for policy expense chat when own chat and policy employee', () => {
+            // Given a public policy expense chat owned by the user who is a policy employee
             const report = {
                 ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: true,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return true for policy expense chat when policy admin and policy employee', () => {
+            // Given a public policy expense chat not owned by the user, but the user is a policy admin and employee
             const report = {
                 ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, true);
+
+            // Then it should return true
+            expect(result).toBe(true);
         });
 
         test('should return false for non-restricted, non-policy expense chat', () => {
+            // Given a public group chat
             const report = {
                 ...createRandomReport(5, CONST.REPORT.CHAT_TYPE.GROUP),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
 
         test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            // Given a public policy expense chat not owned by the user and the user is not an admin
             const report = {
                 ...createRandomReport(6, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 isOwnPolicyExpenseChat: false,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+
+            // When checking if the member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
 
         test('should return false for restricted room when user is a policy guest', () => {
+            // Given a restricted room and a user who is a policy guest
             const report = {
                 ...createRandomReport(7, undefined),
                 visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             };
-            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false, true)).toBe(false);
+
+            // When checking if the guest member is leaving the workspace room
+            const result = isWorkspaceMemberLeavingWorkspaceRoom(report, true, false, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 
