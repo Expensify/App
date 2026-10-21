@@ -57,7 +57,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         nextStep: report.nextStep,
     });
 
-    const shouldShowUpcomingStepsSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;
+    const shouldShowSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
@@ -67,18 +67,19 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pv3]}>
-                    {steps.map((step, index) => (
-                        <View key={step.key}>
-                            {index > 0 && <View style={styles.reportHistoryConnector} />}
-                            <ReportHistoryItem step={step} />
-                        </View>
-                    ))}
-                    {shouldShowUpcomingStepsSkeleton && (
-                        <View>
-                            {steps.length > 0 && <View style={styles.reportHistoryConnector} />}
-                            <ReportHistoryItemSkeleton />
-                        </View>
-                    )}
+                    {shouldShowSkeleton
+                        ? Array.from({length: steps.length + 1}, (_, index) => (
+                              <View key={index}>
+                                  {index > 0 && <View style={styles.reportHistoryConnector} />}
+                                  <ReportHistoryItemSkeleton />
+                              </View>
+                          ))
+                        : steps.map((step, index) => (
+                              <View key={step.key}>
+                                  {index > 0 && <View style={styles.reportHistoryConnector} />}
+                                  <ReportHistoryItem step={step} />
+                              </View>
+                          ))}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

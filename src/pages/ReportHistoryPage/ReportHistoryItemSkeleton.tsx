@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 import React from 'react';
 import {Circle} from 'react-native-svg';
 
-const ICON_RADIUS = variables.iconSizeXLarge / 2;
+const ICON_CENTER = variables.iconSizeXLarge / 2;
 const BAR_HEIGHT = 8;
 
 function ReportHistoryItemSkeleton() {
@@ -22,12 +22,12 @@ function ReportHistoryItemSkeleton() {
             foregroundColor={theme.skeletonLHNOut}
         >
             <Circle
-                cx={ICON_RADIUS}
-                cy={ICON_RADIUS}
-                r={ICON_RADIUS}
+                cx={ICON_CENTER}
+                cy={ICON_CENTER}
+                r={variables.iconSizeSemiSmall / 2}
             />
             <SkeletonRect
-                transform={[{translateX: variables.iconSizeXLarge + 12}, {translateY: ICON_RADIUS - BAR_HEIGHT / 2}]}
+                transform={[{translateX: variables.iconSizeXLarge + 12}, {translateY: ICON_CENTER - BAR_HEIGHT / 2}]}
                 width={160}
                 height={BAR_HEIGHT}
             />
