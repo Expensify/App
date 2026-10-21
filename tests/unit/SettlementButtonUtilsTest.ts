@@ -18,7 +18,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 describe('useSettlementButtonPaymentMethods', () => {
     const {translate} = useLocalize();
-    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle', 'Bank']));
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle', 'Paycheck']));
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -76,7 +76,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         // Then it shows as "Pay via ABA" and doesn't change the selected option (like the other non-wallet options)
         expect(paymentMethod).toEqual({
             text: translate('iou.payViaABA'),
-            icon: icons.current.Bank,
+            icon: icons.current.Paycheck,
             value: CONST.PAYMENT_METHODS.ABA,
             shouldUpdateSelectedIndex: false,
             key: CONST.PAYMENT_METHODS.ABA,
@@ -129,7 +129,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         },
         {
             method: CONST.PAYMENT_METHODS.ABA,
-            expectedIcon: icons.current.Bank,
+            expectedIcon: icons.current.Paycheck,
             expectedValue: CONST.PAYMENT_METHODS.ABA,
             description: 'ABA',
         },

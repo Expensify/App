@@ -64,7 +64,7 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle', 'Paycheck']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -162,7 +162,7 @@ function usePaymentOptions({
         if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
             buttonOptions.push({
                 text: translate('iou.payViaABA'),
-                icon: icons.Bank,
+                icon: icons.Paycheck,
                 value: CONST.PAYMENT_METHODS.ABA,
                 // The file is downloaded straight from the API, which can't be queued for when the user is back online
                 disabled: isOffline,

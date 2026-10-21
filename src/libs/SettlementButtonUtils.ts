@@ -10,7 +10,7 @@ import {useMemo} from 'react';
  * Retrieves SettlementButton payment methods.
  */
 const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle', 'Bank']);
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle', 'Paycheck']);
 
     const paymentMethods = useMemo(() => {
         return {
@@ -36,7 +36,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             },
             [CONST.PAYMENT_METHODS.ABA]: {
                 text: translate('iou.payViaABA'),
-                icon: icons.Bank,
+                icon: icons.Paycheck,
                 value: CONST.PAYMENT_METHODS.ABA,
                 shouldUpdateSelectedIndex: false,
                 key: CONST.PAYMENT_METHODS.ABA,
