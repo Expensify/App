@@ -12,8 +12,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {groupByPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 
 import useChatWithAgent from './useChatWithAgent';
@@ -55,6 +57,7 @@ function useAgents() {
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+    const policiesByAccountID = groupByPolicyAccountIDPoliciesSelector(allPolicies);
 
     const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
         if (!agent) {
@@ -72,6 +75,20 @@ function useAgents() {
             return [];
         }
 
+        let ownerDisplayName: string | undefined;
+        let ownerPolicyID: string | undefined;
+        if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON) {
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
+            ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
+        } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
+            const policy = agent.ownerAccountID ? policiesByAccountID.get(agent.ownerAccountID) : undefined;
+            ownerDisplayName = policy?.name;
+            ownerPolicyID = policy?.id;
+        } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
+            ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
+        }
+
         const mergedErrors = {
             ...getLatestError(agent.errors ?? undefined),
             ...getLatestError(agent.nameErrors ?? undefined),
@@ -87,7 +104,9 @@ function useAgents() {
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
                 ownerAccountID: agent.ownerAccountID,
+                ownerDisplayName,
                 ownerType: agent.ownerType,
+                ownerPolicyID,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
