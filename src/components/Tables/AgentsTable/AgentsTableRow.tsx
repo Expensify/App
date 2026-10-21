@@ -3,7 +3,6 @@ import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -117,7 +116,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
 
                     {!shouldUseNarrowTableLayout && shouldShowRoleColumn && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <WorkspaceMemberRoleCell

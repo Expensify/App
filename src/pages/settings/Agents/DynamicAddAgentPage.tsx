@@ -1,5 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -28,10 +29,12 @@ import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
@@ -39,7 +42,6 @@ import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createComp
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
@@ -47,9 +49,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
-import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Platform, View} from 'react-native';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
@@ -89,12 +90,14 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
-    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN);
+    const defaultRole = availableRoleItems.at(0)?.value;
     const roleOptions = availableRoleItems.map((roleItem) => ({
         label: roleItem.text,
         value: roleItem.value,
         description: roleItem.alternateText,
     }));
+    const isAddingCompanyAgent = !!policyID;
+    const canWriteAgents = isAddingCompanyAgent ? canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS) : true;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -149,6 +152,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
+        if (!values[INPUT_IDS.ROLE]) {
+            errors[INPUT_IDS.ROLE] = translate('common.error.fieldRequired');
+        }
         return errors;
     };
 
@@ -156,25 +162,39 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         hasSubmittedRef.current = true;
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
+        const role = values[INPUT_IDS.ROLE];
 
-        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
-        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
-        // so we can navigate to the DM immediately, online or offline, without waiting.
-        let optimisticReportID: string | undefined;
-        let optimisticPersonalDetailPromise: Promise<void> | undefined;
-        let backToAgentsListRoute: Route | undefined;
+        const avatarArgs = uploadedAvatar?.uri
+            ? {file: buildFileFromAvatarCropResult(uploadedAvatar), optimisticAvatarURI: uploadedAvatar.uri}
+            : {customExpensifyAvatarID: selectedPresetID ?? AGENT_AVATARS.getRandomID()};
 
-        if (policyID) {
-            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
-                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
-                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID()));
-            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
+        let result: {
+            optimisticAccountID: number;
+            avatarURI: string | undefined;
+            optimisticReportID: string;
+            optimisticPersonalDetailPromise: Promise<void>;
+        };
+        if (isAddingCompanyAgent) {
+            if (!policy) {
+                Log.warn('Invalid policy is used to when trying to create company agent');
+                return;
+            }
+            result = createCompanyAgent(
+                currentUserAccountID,
+                currentUserLogin,
+                prompt,
+                policy,
+                role,
+                firstName,
+                avatarArgs.customExpensifyAvatarID,
+                avatarArgs.file,
+                avatarArgs.optimisticAvatarURI,
+            );
         } else {
-            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
-                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID));
-            backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
+            result = createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, avatarArgs.customExpensifyAvatarID, avatarArgs.file, avatarArgs.optimisticAvatarURI);
         }
+        const {optimisticReportID, optimisticPersonalDetailPromise} = result;
+        const backToAgentsListRoute = isAddingCompanyAgent ? ROUTES.WORKSPACE_AGENTS.getRoute(policy?.id) : ROUTES.SETTINGS_AGENTS;
 
         clearNewAgentTemplate();
 
@@ -183,6 +203,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
         const isNarrowLayout = getIsNarrowLayout();
 
+        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
+        // so we can navigate to the DM immediately, online or offline, without waiting.
         optimisticPersonalDetailPromise.then(() => {
             // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
             if (hasLeftPageRef.current) {
@@ -231,92 +254,93 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
-            <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
-                    title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                />
-            </CollapsibleHeaderOnKeyboard>
-            <FormProvider
-                ref={formRef}
-                formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
-                onSubmit={handleSubmit}
-                validate={validate}
-                submitButtonText={translate('addAgentPage.createAgent')}
-                style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={false}
-                shouldHideFixErrorsAlert
-                enabledWhenOffline
-                // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
-                isSubmitDisabled={isDraftLoading}
-            >
-                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
-                    <View style={[styles.alignItemsCenter]}>
-                        <AvatarButtonWithIcon
-                            text={translate('addAgentPage.editAvatar')}
-                            avatar={agentAvatar}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
-                            editIcon={expensifyIcons.Pencil}
-                            editIconStyle={styles.smallEditIconAccount}
-                            sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
-                        />
-                    </View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.FIRST_NAME}
-                        label={translate('addAgentPage.agentName')}
-                        accessibilityLabel={translate('addAgentPage.agentName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        autoCapitalize="words"
-                        spellCheck={false}
-                        defaultValue={defaultAgentName}
+            <FullPageNotFoundView shouldShow={!canWriteAgents}>
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('addAgentPage.title')}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
-                    {!!policyID && (
-                        <View style={[styles.mhn5]}>
-                            <InputWrapper
-                                InputComponent={ValuePicker}
-                                inputID={INPUT_IDS.ROLE}
-                                label={translate('common.role')}
-                                items={roleOptions}
-                                onValueChange={(value) => setRole(value as typeof role)}
-                                value={role}
-                                shouldShowTooltips={false}
+                </CollapsibleHeaderOnKeyboard>
+                <FormProvider
+                    ref={formRef}
+                    formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
+                    onSubmit={handleSubmit}
+                    validate={validate}
+                    submitButtonText={translate('addAgentPage.createAgent')}
+                    style={[styles.flex1, styles.ph5]}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={false}
+                    shouldHideFixErrorsAlert
+                    enabledWhenOffline
+                    // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
+                    isSubmitDisabled={isDraftLoading}
+                >
+                    <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                        <View style={[styles.alignItemsCenter]}>
+                            <AvatarButtonWithIcon
+                                text={translate('addAgentPage.editAvatar')}
+                                avatar={agentAvatar}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
+                                editIcon={expensifyIcons.Pencil}
+                                editIconStyle={styles.smallEditIconAccount}
+                                sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
                             />
                         </View>
-                    )}
-                    <View
-                        style={
-                            shouldShrinkPromptInput
-                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
-                        }
-                        onLayout={(event) => {
-                            promptTopOffsetRef.current = event.nativeEvent.layout.y;
-                        }}
-                    >
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('addAgentPage.instructions')}
-                            accessibilityLabel={translate('addAgentPage.instructions')}
+                            inputID={INPUT_IDS.FIRST_NAME}
+                            label={translate('addAgentPage.agentName')}
+                            accessibilityLabel={translate('addAgentPage.agentName')}
                             role={CONST.ROLE.PRESENTATION}
-                            type="markdown"
-                            excludedMarkdownStyles={['mentionReport']}
-                            onKeyPress={submitFormOnModEnter}
-                            defaultValue={defaultPrompt}
-                            multiline
-                            autoGrowHeight={shouldAutoGrowPromptInput}
-                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
-                            containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
-                            touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
-                            inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
-                            onFocus={handleInputFocus}
+                            autoCapitalize="words"
+                            spellCheck={false}
+                            defaultValue={defaultAgentName}
                         />
+                        {isAddingCompanyAgent && (
+                            <View style={[styles.mhn5]}>
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID={INPUT_IDS.ROLE}
+                                    label={translate('common.role')}
+                                    items={roleOptions}
+                                    defaultValue={defaultRole}
+                                    shouldShowTooltips={false}
+                                />
+                            </View>
+                        )}
+                        <View
+                            style={
+                                shouldShrinkPromptInput
+                                    ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                    : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
+                            }
+                            onLayout={(event) => {
+                                promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                            }}
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={translate('addAgentPage.instructions')}
+                                accessibilityLabel={translate('addAgentPage.instructions')}
+                                role={CONST.ROLE.PRESENTATION}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
+                                onKeyPress={submitFormOnModEnter}
+                                defaultValue={defaultPrompt}
+                                multiline
+                                autoGrowHeight={shouldAutoGrowPromptInput}
+                                maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                                containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
+                                touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
+                                inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
+                                onFocus={handleInputFocus}
+                            />
+                        </View>
+                        <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
-                </View>
-            </FormProvider>
+                </FormProvider>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

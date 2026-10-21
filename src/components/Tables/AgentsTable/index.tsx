@@ -1,3 +1,4 @@
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -59,6 +60,9 @@ type AgentsTableProps = {
     ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
     agents: AgentRowData[];
 
+    /** Buttons to display on empty view */
+    emptyStateButtons?: EmptyStateButton[];
+
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 
@@ -77,7 +81,17 @@ type AgentsTableProps = {
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, shouldShowOwnerColumn, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({
+    ref,
+    agents,
+    emptyStateButtons,
+    headerComponent,
+    canSelectAgents,
+    selectedKeys,
+    shouldShowRoleColumn,
+    shouldShowOwnerColumn,
+    onRowSelectionChange,
+}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -99,7 +113,10 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                       key: 'role' as const,
                       label: translate('common.role'),
                       sortable: true,
-                      width: variables.workspaceMembersRoleColumnWidth,
+                      styling: {
+                          // editableCellHeader matches the padded role cell so the label and value share an edge.
+                          containerStyles: [styles.editableCellHeader],
+                      },
                   },
               ]
             : []),
@@ -191,6 +208,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                         <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
                     </View>
                 }
+                buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
             <Table.Header />

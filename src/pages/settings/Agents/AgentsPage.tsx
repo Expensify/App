@@ -43,15 +43,23 @@ function AgentsPage() {
 
     useDocumentTitle(translate('agentsPage.title'));
 
-    const newAgentButton = (
+    const newAgentButton = hasAgents ? (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
         </Button>
-    );
+    ) : null;
+    const emptyStateButtons = [
+        {
+            icon: icons.Plus,
+            buttonText: translate('agentsPage.newAgent'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+        },
+    ];
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
@@ -91,7 +99,7 @@ function AgentsPage() {
 
     const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
 
-    const onBackButtonPress = () => {
+    const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
             turnOffMobileSelectionMode();
@@ -111,7 +119,7 @@ function AgentsPage() {
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
-                    onBackButtonPress={onBackButtonPress}
+                    onBackButtonPress={goBackOrClearSelection}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplaySearchRouter
@@ -129,6 +137,7 @@ function AgentsPage() {
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
+                emptyStateButtons={emptyStateButtons}
             />
         </ScreenWrapper>
     );

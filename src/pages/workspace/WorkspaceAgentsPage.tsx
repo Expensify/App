@@ -4,6 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +21,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -39,6 +41,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const policy = usePolicy(route.params.policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
@@ -51,18 +54,30 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+    const canWriteAgents = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS);
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
-    const newAgentButton = (
-        <Button
-            variant="success"
-            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
-        >
-            <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
-        </Button>
-    );
+    const newAgentButton =
+        canWriteAgents && hasAgents ? (
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
+            </Button>
+        ) : null;
+    const emptyStateButtons = canWriteAgents
+        ? [
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('agentsPage.newAgent'),
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                  buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+              },
+          ]
+        : undefined;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
@@ -101,7 +116,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
 
-    const onBackButtonPress = () => {
+    const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
             turnOffMobileSelectionMode();
@@ -123,7 +138,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                 route={route}
                 addBottomSafeAreaPadding
                 policyFeature={CONST.POLICY.POLICY_FEATURE.AGENTS}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={goBackOrClearSelection}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 headerContent={headerContent}
             >
@@ -135,6 +150,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
                     shouldShowRoleColumn
+                    emptyStateButtons={emptyStateButtons}
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

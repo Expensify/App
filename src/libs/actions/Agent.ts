@@ -21,6 +21,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -44,6 +45,7 @@ function prepareNewAgentOnyxData(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
+    policy?: Policy,
     firstName?: string,
     customExpensifyAvatarID?: string,
     optimisticAvatarURI?: string,
@@ -87,7 +89,11 @@ function prepareNewAgentOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
-            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            value: {
+                prompt,
+                ownerAccountID: policy?.policyAccountID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -127,8 +133,6 @@ function prepareNewAgentOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
             value: {
-                prompt,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
@@ -160,12 +164,12 @@ function createAgent(
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
-    policyID?: string,
 ) {
     const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
         currentUserAccountID,
         currentUserLogin,
         prompt,
+        undefined,
         firstName,
         customExpensifyAvatarID,
         optimisticAvatarURI,
@@ -175,7 +179,7 @@ function createAgent(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
+        {firstName, prompt, customExpensifyAvatarID, file, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
@@ -186,8 +190,8 @@ function createCompanyAgent(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
-    policyID: string,
-    role: string,
+    policy: Policy,
+    role: ValueOf<typeof CONST.POLICY.ROLE>,
     firstName?: string,
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
@@ -197,6 +201,7 @@ function createCompanyAgent(
         currentUserAccountID,
         currentUserLogin,
         prompt,
+        policy,
         firstName,
         customExpensifyAvatarID,
         optimisticAvatarURI,
@@ -204,7 +209,7 @@ function createCompanyAgent(
 
     write(
         WRITE_COMMANDS.CREATE_COMPANY_AGENT,
-        {prompt, policyID, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
+        {prompt, policyID: policy.id, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 

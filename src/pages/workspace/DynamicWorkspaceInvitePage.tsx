@@ -283,6 +283,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                     textInputOptions={textInputOptions}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
+                    shouldAllowArrowUpToSearchInput
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                         isDisabled: !selectedOptions.length,
