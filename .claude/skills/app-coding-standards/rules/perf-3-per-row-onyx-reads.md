@@ -7,7 +7,7 @@ title: Read per-row Onyx data by key in list items
 
 ### Reasoning
 
-A list row re-renders when any value it reads changes. If a row reads a whole collection, the whole `PERSONAL_DETAILS_LIST`, or a derived map, then a write to any member re-renders every visible row, even rows whose data did not change. A row that reads only its own member key, or a selector that returns a primitive, re-renders only when its own data changes.
+A list row re-renders when any value it reads changes. If a row reads a key that holds data for many records, such as a whole collection or a derived map, then a write to any record re-renders every visible row, even rows whose data did not change. A row that reads only its own member key, or a selector that returns a primitive, re-renders only when its own data changes.
 
 Onyx notifies subscribers per key. A write to a member notifies only that member's subscribers and the collection's subscribers, so one keyed subscription per row is cheap and wakes only for that row. `OnyxListItemProvider` hooks read the whole key without a selector, so every write to that key re-renders every row that consumes it.
 
