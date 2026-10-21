@@ -115,9 +115,13 @@ describe('useConciergeAskState', () => {
 
     it('keeps the messages on screen while Concierge has an unread message', async () => {
         // Given the user asked Concierge before and has not read Concierge's newest message
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {reportID: CONCIERGE_REPORT_ID, lastReadTime: '2024-06-01 11:30:00.000'});
-        const unreadConciergeMessage: ReportAction = {...conciergeMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000'};
-        await setReportActions([createdAction, conciergeMessage, userMessage, unreadConciergeMessage]);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+            reportID: CONCIERGE_REPORT_ID,
+            lastReadTime: '2024-06-01 11:30:00.000',
+            lastVisibleActionCreated: '2024-06-01 12:00:00.000',
+            lastActorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        });
+        await setReportActions([createdAction, conciergeMessage, userMessage]);
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});

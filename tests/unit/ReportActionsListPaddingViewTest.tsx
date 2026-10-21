@@ -25,7 +25,7 @@ jest.mock('@libs/ReportUtils', () => ({
     canUserPerformWriteAction: jest.fn(),
 }));
 
-jest.mock('@hooks/useIsAskConciergeChat', () => () => false);
+jest.mock('@hooks/useConciergeAskState', () => () => ({isHistoryExpanded: false}));
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {flex: 1},

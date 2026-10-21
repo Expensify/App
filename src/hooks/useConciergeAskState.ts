@@ -1,11 +1,12 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isCreatedAction, isReportActionUnread} from '@libs/ReportActionsUtils';
+import {isCreatedAction} from '@libs/ReportActionsUtils';
 
 import {useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -38,7 +39,6 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {showFullHistory} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [lastReadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.lastReadTime});
 
     const shouldKeepMessagesOnScreenSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!isAskConciergeChat || !actions) {
@@ -63,9 +63,9 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: shouldKeepMessagesOnScreenSelector,
     });
 
-    const hasUnreadMessageFromOthersSelector = (actions: OnyxEntry<ReportActions>) =>
-        isAskConciergeChat && !!lastReadTime && Object.values(actions ?? {}).some((action) => action.actorAccountID !== currentUserAccountID && isReportActionUnread(action, lastReadTime));
-    const [hasUnreadMessageFromOthers = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    const hasUnreadMessageFromOthersSelector = (report: OnyxEntry<Report>) =>
+        isAskConciergeChat && !!report?.lastReadTime && (report.lastVisibleActionCreated ?? '') > report.lastReadTime && report.lastActorAccountID !== currentUserAccountID;
+    const [hasUnreadMessageFromOthers = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         selector: hasUnreadMessageFromOthersSelector,
     });
 

@@ -59,6 +59,8 @@ import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListCon
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
+import {readNewestAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -514,6 +516,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     isHistoryShown
                     onPress={() => {
                         setConciergeShowFullHistory(false);
+                        readNewestAction(reportID, true);
                         if (reportActionIDFromRoute) {
                             Navigation.setParams({reportActionID: ''}, route.key);
                         }

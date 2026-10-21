@@ -88,7 +88,7 @@ import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
-import {joinRoom} from '@userActions/Report';
+import {joinRoom, readNewestAction} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -323,6 +323,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const startNewConciergeChat = () => {
         setConciergeShowFullHistory(false);
+        readNewestAction(conciergeReportID, true);
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
 
