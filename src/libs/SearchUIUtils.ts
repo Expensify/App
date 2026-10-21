@@ -27,6 +27,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
+    TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
@@ -88,6 +89,7 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -256,6 +258,8 @@ type PolicyCategoriesLookup = OnyxEntry<OnyxTypes.PolicyCategories> | OnyxCollec
 type PolicyTagsLookup = OnyxEntry<OnyxTypes.PolicyTagLists> | OnyxCollection<OnyxTypes.PolicyTagLists>;
 
 type SortSectionsOptions = {
+    /** Whether a trip search returns trip rooms, which it only does with the TravelApproval beta */
+    shouldReturnTripRooms?: boolean;
     policyCategories?: PolicyCategoriesLookup;
     policyTags?: PolicyTagsLookup;
     fallbackPolicyID?: string;
@@ -269,6 +273,7 @@ type GroupBySection = {
 type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
 type TaskSorting = ColumnSortMapping<TaskListItemType>;
 type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
+type TripSorting = ColumnSortMapping<TripListItemType>;
 
 // Transaction Group sorting
 type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupListItemType>;
@@ -350,6 +355,16 @@ const taskColumnNamesToSortingProperty: TaskSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedCreatedBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
+};
+
+const tripColumnNamesToSortingProperty: TripSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'startDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.START_DATE]: 'startDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.END_DATE]: 'endDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'status' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME]: 'tripName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRAVELER]: 'formattedTraveler' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
 };
 
 const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
@@ -465,6 +480,11 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+    // The trip search doesn't sort by these yet
+    CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+    CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+    CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+    CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
 ]);
 
 function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
@@ -605,6 +625,7 @@ type GetSectionsResult = [
         | TransactionWeekGroupListItemType[]
         | TransactionYearGroupListItemType[]
         | TransactionQuarterGroupListItemType[]
+        | TripListItemType[]
     ),
     number,
     boolean,
@@ -643,6 +664,8 @@ type GetSectionsParams = {
      * branch, remove that gating in the caller first, otherwise it will silently be `undefined`.
      */
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+    /** Whether a trip search returns trip rooms, which it only does with the TravelApproval beta */
+    shouldReturnTripRooms?: boolean;
 };
 
 /**
@@ -994,6 +1017,13 @@ function isTransactionListItemType(item: SearchListItem): item is TransactionLis
  */
 function isTaskListItemType(item: SearchListItem): item is TaskListItemType {
     return 'type' in item && item.type === CONST.REPORT.TYPE.TASK;
+}
+
+/**
+ * Type guard that checks if something is a TripListItemType. Trip rows aren't part of SearchListItem since they can't be selected.
+ */
+function isTripListItemType(item: SearchListItem | TripListItemType): item is TripListItemType {
+    return 'chatType' in item && item.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM && 'travelerAccountID' in item;
 }
 
 /**
@@ -2370,6 +2400,31 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
  *
  * Do not use directly, use only via `getSections()` facade.
  */
+/**
+ * @private
+ * Organizes trip rooms from a trip search into one row per trip
+ */
+function getTripSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate): [TripListItemType[], number] {
+    const trips = Object.keys(data)
+        .filter(isReportEntry)
+        .map((key) => data[key] as SearchTrip)
+        .filter((trip) => trip?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM)
+        .map((trip) => {
+            // Trip rooms have no owner, so the traveler comes from travelerAccountID
+            const traveler = data.personalDetailsList?.[trip.travelerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+
+            return {
+                ...trip,
+                tripName: StringUtils.lineBreaksToSpaces(Parser.htmlToText(trip.reportName ?? '')),
+                traveler,
+                formattedTraveler: temporaryGetDisplayNameOrDefault({passedPersonalDetails: traveler, translate, formatPhoneNumber}),
+                keyForList: trip.reportID,
+            };
+        });
+
+    return [trips, trips.length];
+}
+
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -3751,12 +3806,16 @@ function getSections({
     convertToDisplayString,
     optimisticTransactionID,
     reportAttributesDerivedValue,
+    shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
+    }
+    if (type === CONST.SEARCH.DATA_TYPES.TRIP && shouldReturnTripRooms) {
+        return [...getTripSections(data, formatPhoneNumber, translate), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3900,6 +3959,9 @@ function getSortedSections(
     }
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
+    }
+    if (type === CONST.SEARCH.DATA_TYPES.TRIP && options?.shouldReturnTripRooms) {
+        return getSortedTripData(data as TripListItemType[], localeCompare, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -4198,6 +4260,19 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
+}
+
+/**
+ * @private
+ * Sorts trip rows based on a specified column and sort order.
+ */
+function getSortedTripData(data: TripListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
+    const sortingProperty = sortBy ? tripColumnNamesToSortingProperty[sortBy as SearchColumnType] : undefined;
+    if (!sortingProperty || !sortOrder) {
+        return data;
+    }
+
+    return data.sort((a, b) => compareValues(a[sortingProperty], b[sortingProperty], sortOrder, sortingProperty, localeCompare));
 }
 
 /**
@@ -4627,6 +4702,14 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.categoryGLCode';
         case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return 'common.tagGLCode';
+        case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+            return 'iou.startDate';
+        case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+            return 'iou.endDate';
+        case CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME:
+            return 'search.trip.tripName';
+        case CONST.SEARCH.TABLE_COLUMNS.TRAVELER:
+            return 'search.trip.traveler';
         default:
             // This should never happen, but TypeScript requires a default case
             return 'common.expenses' as TranslationPaths;
@@ -6521,6 +6604,7 @@ function getColumnsToShow({
     sortBy,
     shouldShowViolationsColumn = false,
     isVendorColumnAvailable = true,
+    shouldReturnTripRooms = false,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6540,6 +6624,7 @@ function getColumnsToShow({
     sortBy?: SearchSortBy;
     shouldShowViolationsColumn?: boolean;
     isVendorColumnAvailable?: boolean;
+    shouldReturnTripRooms?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6618,6 +6703,17 @@ function getColumnsToShow({
                 return reportToCheck?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && hasReportCustomColumnValue(column, reportToCheck);
             });
         });
+    }
+
+    if (type === CONST.SEARCH.DATA_TYPES.TRIP && shouldReturnTripRooms) {
+        const tripCustomColumns = new Set<SearchColumnType>(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP));
+        const filteredVisibleColumns = visibleColumns.filter((column) => tripCustomColumns.has(column));
+        if (!filteredVisibleColumns.length) {
+            return [...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP];
+        }
+
+        // Like expense reports, the total always shows so the table keeps a flexible column
+        return filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.TOTAL) ? filteredVisibleColumns : [CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...filteredVisibleColumns];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -7171,7 +7267,9 @@ function getTableMinWidth(
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
             column === CONST.SEARCH.TABLE_COLUMNS.POSTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
-            column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
+            column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN ||
+            column === CONST.SEARCH.TABLE_COLUMNS.START_DATE ||
+            column === CONST.SEARCH.TABLE_COLUMNS.END_DATE
         ) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
@@ -7489,6 +7587,7 @@ export {
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,
+    isTripListItemType,
     getActions,
     getPrimaryAction,
     createTypeMenuSections,

@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
@@ -55,6 +56,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(searchDataType);
     const currentColumns = !searchResults?.data
         ? []
         : getColumnsToShow({
@@ -66,6 +68,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
               sortBy: queryJSON.sortBy,
               shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
               isVendorColumnAvailable,
+              shouldReturnTripRooms,
           });
     const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;

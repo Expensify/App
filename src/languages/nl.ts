@@ -10372,6 +10372,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
         },
         spendOverTime: 'Uitgaven in de tijd',
+        trip: {
+            tripName: 'Reisnaam',
+            traveler: 'Reiziger',
+            status: {
+                upcoming: 'Gepland',
+                done: 'Afgerond',
+                canceled: 'Geannuleerd',
+            },
+        },
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',

@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
@@ -123,6 +124,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  */
 function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions, visibleRowLimit, selectedTransactions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -238,6 +240,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
             convertToDisplayString,
             reportAttributesDerivedValue: reportAttributesForSections,
             optimisticTransactionID,
+            shouldReturnTripRooms,
         });
         return {
             baseFilteredData: filtered as SearchListItem[],
@@ -273,6 +276,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         reportAttributesForSections,
         optimisticTransactionID,
         dateFnsLocale,
+        shouldReturnTripRooms,
     ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -347,18 +351,35 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        // Trip rows render through the same list as every other row, they're only kept out of SearchListItem because they can't be selected
+        const sortedData = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
-        }).map((item) => {
+            shouldReturnTripRooms,
+        }) as SearchListItem[];
+        return sortedData.map((item) => {
             if (item.hash === hash) {
                 return item;
             }
 
             return {...item, hash};
         });
-    }, [shouldComputeSections, type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, hash]);
+    }, [
+        shouldComputeSections,
+        type,
+        filteredData,
+        localeCompare,
+        translate,
+        sortBy,
+        sortOrder,
+        validGroupBy,
+        policyCategories,
+        policyTags,
+        policyForMovingExpensesID,
+        hash,
+        shouldReturnTripRooms,
+    ]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap for up to
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.

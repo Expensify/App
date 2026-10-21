@@ -4,6 +4,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionReportGroupListItemType,
+    TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
@@ -34,9 +35,11 @@ type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undef
       ? TaskListItemType[]
       : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
         ? TransactionReportGroupListItemType[]
-        : G extends SearchGroupBy
-          ? TransactionGroupListItemType[]
-          : TransactionListItemType[];
+        : C extends typeof CONST.SEARCH.DATA_TYPES.TRIP
+          ? TripListItemType[] | TransactionListItemType[]
+          : G extends SearchGroupBy
+            ? TransactionGroupListItemType[]
+            : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -105,6 +108,21 @@ type SearchResultsInfo = {
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+/** Model of a trip room returned by a trip search sent with shouldReturnTripRooms */
+type SearchTrip = Report & {
+    /** When the trip starts */
+    startDate?: string;
+
+    /** When the trip ends */
+    endDate?: string;
+
+    /** The trip's status, worked out by the backend */
+    status?: ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
+
+    /** The account ID of the traveler, who created the trip room */
+    travelerAccountID?: number;
+};
 
 /** Model of tasks search result */
 type SearchTask = {
@@ -326,6 +344,7 @@ export default SearchResults;
 export type {
     ListItemDataType,
     SearchTask,
+    SearchTrip,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,
