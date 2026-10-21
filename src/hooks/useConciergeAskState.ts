@@ -36,7 +36,7 @@ type ConciergeAskState = {
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isAskConciergeChat = useIsAskConciergeChat(reportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {showFullHistory} = useConciergeChatHistoryState();
+    const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -70,7 +70,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     });
 
     const isHistoryExpanded = isAskConciergeChat && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && !shouldKeepMessagesOnScreen && !hasUnreadMessageFromOthers;
+    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && (isHistoryCollapsedByUser || !shouldKeepMessagesOnScreen) && !hasUnreadMessageFromOthers;
 
     return {
         isHistoryExpanded,
