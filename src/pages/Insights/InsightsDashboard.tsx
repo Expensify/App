@@ -27,6 +27,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -186,20 +187,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
 
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
-    const query = isResolved
-        ? buildInsightsJsonQuery(
-              dashboardID,
-              filters,
-              eligibleCharts.map(({graphKey}) => graphKey),
-              isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE),
-          )
-        : undefined;
+    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
     const jsonQuery = query?.jsonQuery;
     const hash = query?.hash;
 
@@ -222,7 +216,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));

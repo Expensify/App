@@ -95,11 +95,11 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the dashboard's headline chart and its supporting charts with the given graph keys, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
+/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(
     dashboard: InsightsDashboardID,
     filters: InsightsFilters,
-    supportingGraphKeys: InsightsGraphKey[],
+    supportingChartSpecs: InsightsChartSpec[],
     shouldIncludeComparisons: boolean,
 ): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
@@ -119,7 +119,7 @@ function buildInsightsJsonQuery(
         }),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
-    const supportingCharts = spec.supportingCharts.filter(({graphKey}) => supportingGraphKeys.includes(graphKey)).map(buildChartQuery);
+    const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
