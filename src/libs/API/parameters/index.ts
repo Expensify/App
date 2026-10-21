@@ -545,6 +545,7 @@ export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
+export type {default as SaveSearchFiltersParams} from './SaveSearchFiltersParams';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
 export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
@@ -677,6 +678,7 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
 export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';

@@ -54,6 +54,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -764,6 +765,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
         'Pencil',
@@ -1167,7 +1169,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy?.achAccount?.bankAccountID) {
+            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
+            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
+            // report and pick an account of their own. That includes a payer the account was never shared with.
+            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }
 
@@ -1175,7 +1180,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies]);
+    }, [policies, bankAccountList]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -1831,6 +1836,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        bankAccountList,
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
@@ -1861,6 +1867,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
@@ -1927,6 +1934,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allReportsTransactionsAndViolations,
             policyIDsWithVBBA,
             clearSelectedTransactions,
+            bankAccountList,
             accountID,
             email,
             currentUserLogin,
@@ -3051,6 +3059,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 selectedMergeReports,
                 currentUserPersonalDetails.accountID,
                 rules,
+                getLoginByAccountID(selectedMergeReports.at(0)?.ownerAccountID, personalDetails),
                 allReportNameValuePairs,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedMergeReports.at(0)?.policyID}`],
             )
@@ -3215,7 +3224,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, accountID)) {
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, accountID)) {
                 const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
@@ -3234,7 +3243,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, selectedReports, queryJSON?.type);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
