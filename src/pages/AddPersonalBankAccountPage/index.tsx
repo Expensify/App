@@ -253,25 +253,29 @@ function AddPersonalBankAccountPage() {
         openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
-    // Once the backend reports an account ownership mismatch, the next submission confirms the details as entered. Each substep is a separate screen, and the error is cleared before
-    // the magic code step, so the confirmation is kept in the form draft, where every substep and later retry reads it.
+    // Once the user sees an account ownership mismatch on the confirmation step, the next submission confirms the details shown there. Each substep is a separate screen, and the
+    // error is cleared before the magic code step, so the confirmation is kept in the form draft, where every substep and later retry reads it. An error that arrives while a details
+    // step is focused is cleared there unseen, so it confirms nothing, and the next submission gets it again on the confirmation step.
     // The magic code page doesn't show the details being confirmed, so a code submitted from it that gets this error sends the user back to the confirmation step, which shows them
     // next to the error. An error already there when the page opens is from an earlier submission and is being cleared.
     useEffect(() => {
-        if (!error?.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
+        if (!isFocused || !error?.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
             return;
         }
-        setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: true});
+        if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
+            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: true});
+            return;
+        }
         if (currentPageName !== SUB_PAGE_NAMES.VALIDATE_CODE || !hasSubmittedValidateCode.current) {
             return;
         }
         hasSubmittedValidateCode.current = false;
         prevPage();
-    }, [error, currentPageName, prevPage]);
+    }, [isFocused, error, currentPageName, prevPage]);
 
     // The submission error is about the details being confirmed, so only the confirmation and magic code steps show it, and a magic code error only the magic code step. The details
     // steps are forms on the same Onyx key, and a form with a server error shows it and won't submit. So the error is cleared once the user is on a step that doesn't show it, however
-    // they navigated there. An account ownership confirmation is already kept in the form draft by the effect above.
+    // they navigated there. An account ownership error the user saw on the confirmation step is already kept as a confirmation in the form draft by the effect above.
     useEffect(() => {
         if (!isFocused || !error) {
             return;

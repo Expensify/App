@@ -400,17 +400,15 @@ describe('AddPersonalBankAccountPage', () => {
         });
 
         it('confirms the ownership details when the magic code step is reopened after the account ownership error', async () => {
-            // Given a user on the magic code step whose first submission failed the account ownership check
+            // Given a user whose first submission failed the account ownership check, and who was sent back to the confirmation step, where the error shows
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
                 await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
             });
-            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
-            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
 
-            // When they are sent back to Confirm, which clears the error and opens a new magic code screen where they submit a code
+            // When they press Confirm, which clears the error and opens a new magic code screen where they submit a code
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
             });
@@ -529,6 +527,25 @@ describe('AddPersonalBankAccountPage', () => {
             // Then the error is cleared, so the magic code step doesn't show it
             expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
+        });
+
+        it('does not confirm the ownership details when the account ownership error arrives while a details step is focused', async () => {
+            // Given a user who left the confirmation step for a details step while their submission was loading
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+
+            // When the submission fails the account ownership check
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false, errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+
+            // Then the error is cleared without confirming the details, since the user never saw it, so the next submission gets it again on the confirmation step
+            expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+            expect(draft).not.toHaveProperty('confirmedOwnershipDetails');
         });
 
         it('asks to confirm the ownership details again after a details step is submitted', async () => {
