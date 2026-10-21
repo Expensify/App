@@ -309,7 +309,7 @@ describe('spendDataSignature', () => {
     });
 
     it('drops its baseline when Onyx is cleared', () => {
-        // Given a stored expense the derived value has already seen, which is then edited before Onyx is cleared
+        // Given a stored expense the derived value has already seen, and then Onyx is cleared
         const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
         seedBaseline(stored);
         spendDataSignatureConfig.onReset?.();

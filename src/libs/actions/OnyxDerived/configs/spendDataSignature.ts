@@ -44,11 +44,7 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
     ].join('|');
 }
 
-/**
- * The card fields, plus what the other cards filter or group by: reimbursable, merchant and category.
- * The pending flag moves it again once the server accepts a write, since a refetch sent before that can miss it.
- * A new expense sets `pendingAction`, an edit only sets `pendingFields`.
- */
+/** A local write the server has not accepted yet: a new expense sets `pendingAction`, an edit only sets `pendingFields`. */
 function hasPendingWrite(transaction: Transaction): boolean {
     return !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
 }
@@ -62,6 +58,10 @@ function isRecentlyInserted(transaction: Transaction): boolean {
     return !Number.isNaN(insertedTime) && Date.now() - insertedTime < NEW_EXPENSE_WINDOW_MS;
 }
 
+/**
+ * The card fields, plus what the other cards filter or group by: reimbursable, merchant and category.
+ * The pending flag moves it again once the server accepts a write, since a refetch sent before that can miss it.
+ */
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
     if (!transaction) {
         return '';
