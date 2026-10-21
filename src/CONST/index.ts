@@ -2789,6 +2789,11 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Navigate-to-inbox-tab span: leaving a tab is paid inside the span (the old tab re-renders and freezes),
+        // so the same tap costs more from some tabs than others.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        // Navigate-to-inbox-tab span: how long the preloaded tab sat frozen before the tap.
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
