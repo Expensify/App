@@ -1,5 +1,3 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import * as API from '@libs/API';
 import type {
     AddOfficeLocationParams,
@@ -22,19 +20,15 @@ import type {
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {generateHexadecimalValue, rand64} from '@libs/NumberUtils';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import {getUpdatedEmployeeOfficeLocationMessage} from '@libs/ReportActionsUtils';
-import {getRoom} from '@libs/ReportUtils';
-import {getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, PersonalDetailsList, Policy, PolicyEmployee, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {GovernmentMileageRate, PersonalDetailsList, Policy, PolicyEmployee, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CompanyAddress, CustomUnit, OfficeLocation, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -43,7 +37,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 /**
@@ -733,38 +726,27 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 type WorkArrangementMemberUpdate = {
     /** The account ID of the workspace member being updated. */
     accountID: number;
-    /** The member's login, used as the employeeList key and in the changelog action. */
+    /** The member's login, used as the employeeList key. */
     email: string;
-    /** The member's display name, used in the changelog message. */
-    name: string;
     /** The member's previous office arrangement, used to restore it if the update fails. */
     previousHasOfficeWorkArrangement: boolean | undefined;
     /** The member may still be an optimistic invite, so changing the arrangement must not clear its pending action. */
     previousPendingAction: PolicyEmployee['pendingAction'];
-    /** The ID assigned to this member's optimistic changelog action. */
-    optimisticReportActionID: string;
 };
 
 /**
  * Set the work arrangement (office-based or no regular workspace) for one or more policy members.
  * The single command covers both individual and bulk updates: employeeAccountIDList carries every
- * affected accountID, and one optimistic member work arrangement changelog action is
- * created per member in the workspace admins room.
+ * affected accountID. The server logs each change in the workspace admins room, where it can land in a thread, so no
+ * change log is added optimistically.
  */
-function setEmployeeWorkArrangement(
-    policy: OnyxEntry<Policy>,
-    employeeAccountIDList: number[],
-    isOffice: boolean,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    translate: LocalizedTranslate,
-) {
+function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
     }
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const newLabel = getWorkArrangementLabel(translate, isOffice);
     const updates: WorkArrangementMemberUpdate[] = [];
     for (const accountID of employeeAccountIDList) {
         const personalDetail = personalDetails?.[accountID];
@@ -783,10 +765,8 @@ function setEmployeeWorkArrangement(
         updates.push({
             accountID,
             email: login,
-            name: personalDetail?.displayName ?? login,
             previousHasOfficeWorkArrangement,
             previousPendingAction: employee.pendingAction,
-            optimisticReportActionID: rand64(),
         });
     }
 
@@ -794,7 +774,6 @@ function setEmployeeWorkArrangement(
         return;
     }
 
-    const created = DateUtils.getDBTime();
     const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'hasOfficeWorkArrangement' | 'pendingAction'>> = {};
     const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
     const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
@@ -813,21 +792,21 @@ function setEmployeeWorkArrangement(
         };
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: employeeListOptimisticUpdate},
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: employeeListSuccessUpdate},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -835,83 +814,32 @@ function setEmployeeWorkArrangement(
         },
     ];
 
-    const adminsRoom = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
-    if (adminsRoom?.reportID) {
-        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsRoom.reportID}` as const;
-        const optimisticReportActions: Record<string, ReportAction> = {};
-        const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
-        const failureReportActions: Record<string, null> = {};
-        for (const update of updates) {
-            const previousLabel = getWorkArrangementLabel(translate, update.previousHasOfficeWorkArrangement ?? false);
-            const text = translate('workspaceActions.updatedMemberWorkArrangement', {displayName: update.name, newArrangement: newLabel, oldArrangement: previousLabel});
-            optimisticReportActions[update.optimisticReportActionID] = {
-                reportActionID: update.optimisticReportActionID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
-                created,
-                shouldShow: true,
-                automatic: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                message: [
-                    {
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        html: `<muted-text>${text}</muted-text>`,
-                        text,
-                    },
-                ],
-                originalMessage: {
-                    accountID: update.accountID,
-                    email: update.email,
-                    name: update.name,
-                    newValue: isOffice,
-                    oldValue: update.previousHasOfficeWorkArrangement ?? false,
-                },
-            };
-            successReportActions[update.optimisticReportActionID] = {pendingAction: null};
-            failureReportActions[update.optimisticReportActionID] = null;
-        }
-        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: optimisticReportActions});
-        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: successReportActions});
-        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
-    }
-
     const parameters: SetEmployeeWorkArrangementParams = {
         policyID,
         employeeAccountIDList: updates.map((update) => update.accountID).join(','),
         employeeLoginList: updates.map((update) => update.email).join(','),
         isOffice,
     };
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {optimisticData, successData, failureData};
     API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
 }
 
 type OfficeLocationMemberUpdate = {
-    /** The account ID of the workspace member being updated. */
-    accountID: number;
-    /** The member's login, used as the employeeList key and in the changelog action. */
+    /** The member's login, used as the employeeList key and to match the member on the server. */
     email: string;
-    /** The member's display name, used in the changelog message. */
-    name: string;
     /** The office the member was assigned to, used to restore it if the update fails. */
     previousOfficeID: string | undefined;
     /** The member may still be an optimistic invite, so changing the office must not clear its pending action. */
     previousPendingAction: PolicyEmployee['pendingAction'];
-    /** The ID assigned to this member's optimistic changelog action. */
-    optimisticReportActionID: string;
 };
 
 /**
  * Assign one or more workspace members to an office, keyed in the workspace's officeLocations, or to the company
  * address with CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID. The single command covers both individual and bulk updates:
- * employeeLoginList carries the login of every affected member, and one optimistic member office location changelog
- * action is created per member in the workspace admins room.
+ * employeeLoginList carries the login of every affected member. The server logs each change in the workspace admins
+ * room, where it can land in a thread, so no change log is added optimistically.
  */
-function updateEmployeeOfficeLocation(
-    policy: OnyxEntry<Policy>,
-    employeeAccountIDList: number[],
-    officeID: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    translate: LocalizedTranslate,
-) {
+function updateEmployeeOfficeLocation(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], officeID: string, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
@@ -930,12 +858,9 @@ function updateEmployeeOfficeLocation(
             continue;
         }
         updates.push({
-            accountID,
             email: login,
-            name: personalDetail?.displayName ?? login,
             previousOfficeID: employee.officeID,
             previousPendingAction: employee.pendingAction,
-            optimisticReportActionID: rand64(),
         });
     }
 
@@ -943,7 +868,6 @@ function updateEmployeeOfficeLocation(
         return;
     }
 
-    const created = DateUtils.getDBTime();
     const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'officeID' | 'pendingAction'>> = {};
     const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
     const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
@@ -959,21 +883,21 @@ function updateEmployeeOfficeLocation(
         };
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: employeeListOptimisticUpdate},
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: employeeListSuccessUpdate},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -981,55 +905,12 @@ function updateEmployeeOfficeLocation(
         },
     ];
 
-    const adminsRoom = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
-    if (adminsRoom?.reportID) {
-        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsRoom.reportID}` as const;
-        const optimisticReportActions: Record<string, ReportAction> = {};
-        const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
-        const failureReportActions: Record<string, null> = {};
-        for (const update of updates) {
-            const optimisticReportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION> = {
-                reportActionID: update.optimisticReportActionID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
-                created,
-                shouldShow: true,
-                automatic: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                originalMessage: {
-                    accountID: update.accountID,
-                    email: update.email,
-                    name: update.name,
-                    officeID,
-                    officeName: policy?.officeLocations?.[officeID]?.name ?? '',
-                    oldOfficeID: update.previousOfficeID,
-                    oldOfficeName: update.previousOfficeID ? (policy?.officeLocations?.[update.previousOfficeID]?.name ?? '') : '',
-                },
-            };
-            const text = getUpdatedEmployeeOfficeLocationMessage(translate, optimisticReportAction);
-            optimisticReportActions[update.optimisticReportActionID] = {
-                ...optimisticReportAction,
-                message: [
-                    {
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        html: `<muted-text>${Str.htmlEncode(text)}</muted-text>`,
-                        text,
-                    },
-                ],
-            };
-            successReportActions[update.optimisticReportActionID] = {pendingAction: null};
-            failureReportActions[update.optimisticReportActionID] = null;
-        }
-        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: optimisticReportActions});
-        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: successReportActions});
-        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
-    }
-
     const parameters: UpdateEmployeeOfficeLocationParams = {
         policyID,
         employeeLoginList: updates.map((update) => update.email).join(','),
         officeID,
     };
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {optimisticData, successData, failureData};
     API.write(WRITE_COMMANDS.UPDATE_EMPLOYEE_OFFICE_LOCATION, parameters, onyxData);
 }
 

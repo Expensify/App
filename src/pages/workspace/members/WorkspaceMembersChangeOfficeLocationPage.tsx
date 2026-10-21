@@ -81,7 +81,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
         // Members already in the chosen office are left out, so a member following the primary office keeps following it
         const accountIDsToUpdate = selectedMembers.filter((member) => member.officeID !== officeID).map((member) => member.accountID);
         if (accountIDsToUpdate.length) {
-            updateEmployeeOfficeLocation(policy, accountIDsToUpdate, officeID, personalDetails, translate);
+            updateEmployeeOfficeLocation(policy, accountIDsToUpdate, officeID, personalDetails);
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };

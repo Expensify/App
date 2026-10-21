@@ -129,7 +129,7 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
         });
 
         // Then only the remote member is made office-based, and the selection is cleared after returning to the members
-        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [member2AccountID], true, personalDetails, expect.any(Function));
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [member2AccountID], true, personalDetails);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     });
 

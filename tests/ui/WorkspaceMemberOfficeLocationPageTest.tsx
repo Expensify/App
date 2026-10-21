@@ -161,7 +161,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
         });
 
         // Then the member is assigned to it and the member details are shown
-        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [accountID], '1', personalDetails, expect.any(Function));
+        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [accountID], '1', personalDetails);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 });

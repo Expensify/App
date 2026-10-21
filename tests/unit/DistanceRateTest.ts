@@ -1,5 +1,3 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {
     deletePolicyDistanceRates,
     enablePolicyDistanceRates,
@@ -25,23 +23,6 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-const translate: LocalizedTranslate = (phrase, ...parameters) => {
-    if (phrase === 'workspace.people.officeBased') {
-        return 'Office-based';
-    }
-    if (phrase === 'workspace.people.noRegularWorkspace') {
-        return 'Remote or mobile';
-    }
-    if (phrase === 'workspaceActions.updatedMemberWorkArrangement') {
-        const arrangement = parameters[0];
-        if (typeof arrangement === 'object' && arrangement !== null && 'displayName' in arrangement && 'newArrangement' in arrangement && 'oldArrangement' in arrangement) {
-            return `changed ${String(arrangement.displayName)}'s work arrangement to ${String(arrangement.newArrangement)} (previously ${String(arrangement.oldArrangement)})`;
-        }
-        return String(phrase);
-    }
-    return String(phrase);
-};
 
 describe('DistanceRate', () => {
     beforeAll(() => {
@@ -77,14 +58,6 @@ describe('DistanceRate', () => {
                 },
             });
         });
-    }
-
-    function getSingleUpdateValue(value: unknown): unknown {
-        if (typeof value !== 'object' || value === null) {
-            return undefined;
-        }
-        const values = Object.values(value);
-        return values.length === 1 ? values.at(0) : undefined;
     }
 
     describe('deletePolicyDistanceRates', () => {
@@ -700,7 +673,7 @@ describe('DistanceRate', () => {
             await waitForBatchedUpdates();
         }
 
-        it('should optimistically update the member and create one changelog action with pending ADD', async () => {
+        it('should optimistically update only the member that changes, without adding a change log', async () => {
             // Given two members in the policy and only one needs an arrangement change
             const policy: Policy = {
                 ...createRandomPolicy(20),
@@ -713,32 +686,17 @@ describe('DistanceRate', () => {
 
             pause();
             // When both members are assigned the office-based arrangement
-            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
-            // Then only the changed member and one pending changelog entry are updated
+            // Then only the changed member is updated
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
             // Member2 already matches, so it is skipped without any optimistic footprint
             expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, hasOfficeWorkArrangement: true});
 
-            const reportActions = await getReportActionsFromOnyx('1');
-            const actions = Object.values(reportActions);
-            expect(actions).toHaveLength(1);
-            expect(actions.at(0)).toMatchObject({
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                message: [
-                    {
-                        text: translate('workspaceActions.updatedMemberWorkArrangement', {
-                            displayName: 'Member One',
-                            newArrangement: translate('workspace.people.officeBased'),
-                            oldArrangement: translate('workspace.people.noRegularWorkspace'),
-                        }),
-                    },
-                ],
-                originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},
-            });
+            // And the admins room gets no optimistic change log, since the server can thread the real one
+            expect(await getReportActionsFromOnyx('1')).toEqual({});
 
             resetQueue();
         });
@@ -759,7 +717,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's arrangement is changed before the invite finishes syncing
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then the arrangement updates while the invite remains visibly pending
@@ -782,7 +740,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the matching member and an unknown account are passed
-            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, personalDetails);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog entry is changed
@@ -810,22 +768,23 @@ describe('DistanceRate', () => {
                 ...personalDetails,
                 [temporaryAccountID]: {accountID: temporaryAccountID, login: member1Email, displayName: 'Member One'},
             };
-            setEmployeeWorkArrangement(policy, [temporaryAccountID], true, personalDetailsWithTemporaryAccountID, translate);
+            setEmployeeWorkArrangement(policy, [temporaryAccountID], true, personalDetailsWithTemporaryAccountID);
 
             // Then the request carries the stable login with the temporary accountID so it still applies after an offline invite syncs
             expect(writeSpy.mock.calls.at(0)?.[1]).toMatchObject({employeeAccountIDList: String(temporaryAccountID), employeeLoginList: member1Email});
 
-            // And success updates clear the pending state for both the member and changelog action
+            // And success updates clear the member's pending state
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
-            expect(onyxData?.successData?.[0]).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {employeeList: {[member1Email]: {pendingAction: null}}},
-            });
-            expect(getSingleUpdateValue(onyxData?.successData?.[1]?.value)).toEqual({pendingAction: null});
+            expect(onyxData?.successData).toEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: {employeeList: {[member1Email]: {pendingAction: null}}},
+                },
+            ]);
         });
 
-        it('should revert the member and drop the changelog entry on failure', async () => {
+        it('should revert the member on failure', async () => {
             // Given the member and admins room are in Onyx
             const policy: Policy = {
                 ...createRandomPolicy(23),
@@ -836,9 +795,9 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
 
-            // Then failure data restores the member value, retains UPDATE so dismissing the error preserves the member, and removes the changelog action
+            // Then failure data restores the member value and retains UPDATE so dismissing the error preserves the member
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
             expect(onyxData?.failureData?.[0]).toMatchObject({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -878,12 +837,7 @@ describe('DistanceRate', () => {
             await waitForBatchedUpdates();
             expect((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement).toBeUndefined();
             expect(getEffectiveWorkArrangement((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement, false)).toBe(false);
-
-            expect(onyxData?.failureData?.[1]).toMatchObject({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`,
-            });
-            expect(getSingleUpdateValue(onyxData?.failureData?.[1]?.value)).toBeNull();
+            expect(onyxData?.failureData).toHaveLength(1);
         });
 
         it('should update members without changelog actions when there is no admins room', async () => {
@@ -901,7 +855,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then the member is updated without creating a changelog action
@@ -932,7 +886,7 @@ describe('DistanceRate', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithGhost);
             await waitForBatchedUpdates();
             // When the member missing from the policy employee list is passed
-            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost, translate);
+            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog action is created
@@ -955,7 +909,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member is assigned an arrangement without a policy ID
-            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then neither the policy nor the admins room changelog is changed
@@ -997,7 +951,7 @@ describe('DistanceRate', () => {
             await waitForBatchedUpdates();
         }
 
-        it('should optimistically assign the members and log one pending change per member that changed', async () => {
+        it('should optimistically assign only the member that changes, without adding a change log', async () => {
             // Given one member following the primary office and one already assigned to the New Jersey office
             const policy: Policy = {
                 ...createRandomPolicy(30),
@@ -1011,22 +965,16 @@ describe('DistanceRate', () => {
 
             pause();
             // When both members are assigned to the New Jersey office
-            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], 'OFFICE2', personalDetails, TestHelper.translateLocal);
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], 'OFFICE2', personalDetails);
             await waitForBatchedUpdates();
 
-            // Then only the member who changed is updated, and gets one pending change log naming the offices
+            // Then only the member who changed is updated
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
             expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, officeID: 'OFFICE2'});
 
-            const actions = Object.values(await getReportActionsFromOnyx('2'));
-            expect(actions).toHaveLength(1);
-            expect(actions.at(0)).toMatchObject({
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                message: [{text: `changed Member One's office location to "New Jersey Office" (previously the primary office)`}],
-                originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office'},
-            });
+            // And the admins room gets no optimistic change log, since the server can thread the real one
+            expect(await getReportActionsFromOnyx('2')).toEqual({});
 
             resetQueue();
         });
@@ -1042,7 +990,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's office is changed before the invite finishes syncing
-            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails, TestHelper.translateLocal);
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails);
             await waitForBatchedUpdates();
 
             // Then the office updates while the invite remains visibly pending
@@ -1065,7 +1013,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When both are assigned to the company address
-            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails, TestHelper.translateLocal);
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails);
             await waitForBatchedUpdates();
 
             // Then one request carries both members by login, which still matches them if an offline invite replaces their accountIDs
@@ -1075,9 +1023,6 @@ describe('DistanceRate', () => {
                 employeeLoginList: `${member1Email},${member2Email}`,
                 officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID,
             });
-
-            // And each member gets a change log
-            expect(Object.values(await getReportActionsFromOnyx('2'))).toHaveLength(2);
 
             resetQueue();
         });
@@ -1094,19 +1039,20 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member is assigned to an office
-            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails, TestHelper.translateLocal);
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails);
 
-            // Then success clears the pending state of both the member and the change log
+            // Then success clears the member's pending state
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
-            expect(onyxData?.successData?.[0]).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {employeeList: {[member1Email]: {pendingAction: null}}},
-            });
-            expect(getSingleUpdateValue(onyxData?.successData?.[1]?.value)).toEqual({pendingAction: null});
+            expect(onyxData?.successData).toEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: {employeeList: {[member1Email]: {pendingAction: null}}},
+                },
+            ]);
         });
 
-        it('should restore the previous office of each member and drop the change logs on failure', async () => {
+        it('should restore the previous office of each member on failure', async () => {
             // Given one member assigned to the New Jersey office and one following the primary office
             const policy: Policy = {
                 ...createRandomPolicy(33),
@@ -1118,7 +1064,7 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When both are assigned to the company address
-            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails, TestHelper.translateLocal);
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails);
 
             // Then failure puts back the New Jersey office, removes the assignment the other member never had, and keeps
             // UPDATE so dismissing the error keeps the members
@@ -1133,8 +1079,7 @@ describe('DistanceRate', () => {
                     },
                 },
             });
-            const failureReportActions: unknown = onyxData?.failureData?.[1]?.value;
-            expect(typeof failureReportActions === 'object' && failureReportActions !== null ? Object.values(failureReportActions) : undefined).toEqual([null, null]);
+            expect(onyxData?.failureData).toHaveLength(1);
         });
     });
 });

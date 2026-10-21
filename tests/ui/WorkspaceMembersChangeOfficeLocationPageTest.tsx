@@ -143,7 +143,7 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
         });
 
         // Then only the member outside it is assigned to it, and the selection is cleared after returning to the members
-        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [member1AccountID], 'OFFICE2', personalDetails, expect.any(Function));
+        expect(updateEmployeeOfficeLocation).toHaveBeenCalledWith(policy, [member1AccountID], 'OFFICE2', personalDetails);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     });
 

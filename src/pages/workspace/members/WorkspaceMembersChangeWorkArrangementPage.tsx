@@ -84,7 +84,7 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
         // Members already on the chosen arrangement are left out, so a member following the workspace default keeps following it
         const accountIDsToUpdate = selectedMembers.filter((member) => member.isOffice !== isOffice).map((member) => member.accountID);
         if (accountIDsToUpdate.length) {
-            setEmployeeWorkArrangement(policy, accountIDsToUpdate, isOffice, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, accountIDsToUpdate, isOffice, personalDetails);
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };

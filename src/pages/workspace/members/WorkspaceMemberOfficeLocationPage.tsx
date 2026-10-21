@@ -69,7 +69,7 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
 
         // Confirming the member's current office leaves them as they are, so a member following the primary office keeps following it
         if (officeID !== currentOfficeID) {
-            updateEmployeeOfficeLocation(policy, [accountID], officeID, personalDetails, translate);
+            updateEmployeeOfficeLocation(policy, [accountID], officeID, personalDetails);
         }
         navigateBackToDetails();
     };
