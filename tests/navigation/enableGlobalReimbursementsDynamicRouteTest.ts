@@ -2,7 +2,11 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
-import {getEnableGlobalReimbursementsBusinessNavigationRoute, shouldUseDynamicEnableGlobalReimbursementsBase} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {
+    getEnableGlobalReimbursementsBusinessNavigationRoute,
+    getWiseGlobalReimbursementsIntroNavigationRoute,
+    shouldUseDynamicEnableGlobalReimbursementsBase,
+} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -85,5 +89,42 @@ describe('Enable global reimbursements dynamic routes', () => {
         const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, 'settings/preferences');
 
         expect(route).toBe('settings/wallet/9053192/enable-global-reimbursements/business/registration-number?bankCountry=US&bankCurrency=USD');
+    });
+
+    describe('getWiseGlobalReimbursementsIntroNavigationRoute', () => {
+        it.each([
+            ['a report', 'r/123', 'r/123/global-reimbursements/456'],
+            ['the search root', 'search', 'search/global-reimbursements/456'],
+            ['a search report RHP with backTo', 'search/view/123?backTo=search', 'search/view/123/global-reimbursements/456?backTo=search'],
+        ])('opens the intro over %s', (_label, signalPath, expectedRoute) => {
+            // Given the pay signal arrives while the admin is on a supported entry screen
+            // When the intro route is built from the path captured at signal time
+            const route = getWiseGlobalReimbursementsIntroNavigationRoute(456, signalPath);
+
+            // Then the intro is nested on top of that screen so back returns to it
+            expect(route).toBe(expectedRoute);
+        });
+
+        it('strips an already open intro so a repeated signal does not stack suffixes', () => {
+            // Given the intro is already open over a report (double pay tap or retry)
+            const signalPath = 'r/123/global-reimbursements/456';
+
+            // When the intro route is built again from that path
+            const route = getWiseGlobalReimbursementsIntroNavigationRoute(456, signalPath);
+
+            // Then the report base is recovered and the suffix appears only once
+            expect(route).toBe('r/123/global-reimbursements/456');
+        });
+
+        it('falls back to the wallet when the signal arrives on an unsupported screen', () => {
+            // Given the admin navigated to a screen that is not an intro entry screen
+            const signalPath = 'settings/preferences';
+
+            // When the intro route is built
+            const route = getWiseGlobalReimbursementsIntroNavigationRoute(456, signalPath);
+
+            // Then the intro opens over the wallet because it has no static route
+            expect(route).toBe('settings/wallet/global-reimbursements/456');
+        });
     });
 });

@@ -229,7 +229,7 @@ const DYNAMIC_ROUTES = {
     },
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS],
+        entryScreens: [...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS, SCREENS.WORKSPACE.WORKFLOWS],
         getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {

@@ -1,8 +1,9 @@
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
-import {getEnableGlobalReimbursementsBusinessNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearCorpayPayModal} from '@userActions/App';
@@ -22,14 +23,27 @@ function EnableGlobalReimbursementsPayModal() {
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const {isBetaEnabled} = usePermissions();
     const isModalOpenRef = useRef(false);
 
     const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
         if (isModalOpenRef.current) {
             return;
         }
-        isModalOpenRef.current = true;
         const navigationPathAtSignal = Navigation.getActiveRoute();
+
+        // The signal arrives after a pay attempt, so betas are loaded; an unknown beta state should take the Corpay path.
+        if (isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+            } else {
+                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
+            }
+            clearCorpayPayModal();
+            return;
+        }
+
+        isModalOpenRef.current = true;
         const result = await showConfirmModal({
             id: 'corpayPayModal',
             title: translate('common.corpayPayModalTitle'),
