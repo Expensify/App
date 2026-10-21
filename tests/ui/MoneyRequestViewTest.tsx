@@ -589,13 +589,14 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+    it('should append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
             parentReportActionID,
         };
 
+        // Given a non-reimbursable expense on a report that has another expense
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
@@ -612,11 +613,47 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense details are rendered
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the Amount description flags it as non-reimbursable, the same as in a single-expense report
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should append "Reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a reimbursable expense on a report that has another expense
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Amount description flags it as reimbursable, the same as in a single-expense report
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
@@ -650,40 +687,6 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
-        });
-    });
-
-    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
-                transactionID: `${transactionID}_sibling`,
-                reportID: expenseReportID,
-                amount: 2500,
-                currency: CONST.CURRENCY.USD,
-                created: '2025-06-02',
-                merchant: 'Sibling',
-                comment: {},
-                reimbursable: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
-            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderMoneyRequestView(threadReport);
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -836,7 +839,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the supplier row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
+    it('shows the vendor row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
         // Given a non-reimbursable expense whose vendor is one of the synced Xero contacts
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -864,11 +867,10 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the row is shown with the Supplier label and the contact name because Xero does not depend on the beta
+        // Then the row is shown with the Vendor label used for every integration and the contact name, because Xero does not depend on the beta
         await waitFor(() => {
-            expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Xero/);
         });
-        expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
     });
 
     it.each([
@@ -964,7 +966,6 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then no vendor row is shown because Business Central still depends on the beta
         await waitFor(() => {
-            expect(screen.queryByLabelText(fieldLabel('common.supplier'))).not.toBeOnTheScreen();
             expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
         });
     });
