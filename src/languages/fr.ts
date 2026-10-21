@@ -1031,6 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Gérer',
             },
             emailDeliveryFailure: {title: 'Nous ne pouvons pas vous envoyer de notifications par e-mail', subtitle: 'Compte'},
+            upgradeNetSuiteConnection: {title: 'Mettre à niveau votre connexion NetSuite'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1185,6 +1186,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Comparer',
             previousPeriod: 'Période précédente',
             average: 'Moyenne',
+            dayLabel: (day?: number) => (day === undefined ? 'Jour' : `Jour ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semaine' : `Semaine ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mois' : `Mois ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
@@ -2197,6 +2203,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `d’ici ${eta}` : ` ${eta}`;
                 }
                 return `En attente de la finalisation du paiement${formattedETA}.`;
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` d’ici ${eta}` : ` ${eta}`;
+                }
+                return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -7488,6 +7506,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Une erreur s’est produite avec une connexion configurée dans Expensify Classic. [Accédez à Expensify Classic pour corriger ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
+            exactOnline: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -7771,6 +7795,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Votre connexion QuickBooks Online expire le ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Votre connexion à QuickBooks Online a expiré le ${date}.`,
+            netSuiteOAuthMigrationRequired: 'Mettez à niveau votre connexion NetSuite vers OAuth 2.0 d’ici février 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Votre connexion NetSuite nécessite une mise à niveau immédiate vers OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Mettre à niveau maintenant',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -8800,6 +8827,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                fallbackBanner:
+                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
             },
             tabs: {
                 general: 'Général',
@@ -8862,16 +8891,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             newRule: {
                 title: 'Nouvelle règle',
                 subtitle: 'Que voulez-vous faire ?',
+                startWithTemplate: 'Commencer avec un modèle',
                 restrictCardSpend: 'Limiter les dépenses de la carte',
                 restrictCardSpendDescription: 'Bloquer ou limiter les dépenses au point de vente',
                 applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
-                applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
+                applyExpenseDefaultsDescription: 'Mettre à jour les champs automatiquement',
                 flagForReview: 'Marquer pour examen',
-                flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
+                flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies',
                 requireFields: 'Définir les exigences des champs',
-                requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
+                requireFieldsShort: 'Exiger des champs',
+                requireFieldsDescription: 'Reçus, catégories, etc.',
                 createAgentRule: 'Décrire la règle de l’agent',
                 createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describeItBelow: 'Ou décrivez-la simplement ci-dessous',
+                describeRulePlaceholder: 'Bloquer toutes les dépenses supérieures à 2 000 $',
+                selectTemplateOrDescribe: 'Sélectionnez un modèle ou décrivez une règle pour continuer',
                 describe: 'Décrire',
                 describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
                 describeRuleInputLabel: 'Décrivez la règle',
@@ -9346,9 +9380,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 exportToNextOpenPeriodDescription:
                     'Lorsqu’une note de frais est datée dans une période clôturée de Dynamics 365 Business Central, elle est exportée vers la période ouverte suivante.',
                 syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
-                syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+                syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, une écriture de journal général sera générée dans ce compte.',
                 reimbursementBankAccount: {
-                    label: 'Compte de paiement des factures',
+                    label: 'Compte bancaire de paiement',
                     description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Dynamics 365 Business Central.',
                 },
                 syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
@@ -9987,6 +10021,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, avec ${taxReclaimableAmount} de taxe récupérable au titre de « ${taxRateName} »`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `a mis à jour le taux kilométrique « ${rateName} » pour s’appliquer à ${newDateRange} (précédemment ${oldDateRange})`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -10542,6 +10577,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `a modifié ${fieldName} en « ${newValue} » (auparavant « ${oldValue} »)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `définir ${fieldName} sur « ${newValue} »`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `a supprimé ${fieldName} (auparavant « ${oldValue} »)`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(précédemment ${fromPolicyName})` : ''}`;
