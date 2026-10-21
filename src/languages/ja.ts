@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: '変更',
         category: 'カテゴリ',
         vendor: 'ベンダー',
-        supplier: 'サプライヤー',
         report: 'レポート',
         billable: '請求可能',
         nonBillable: '請求不可',
@@ -5415,8 +5414,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xero にアカウントを追加して、もう一度同期してください',
-            noSuppliersFound: '仕入先が見つかりません',
-            noSuppliersFoundDescription: 'Xero に仕入先を追加して、もう一度同期してください。',
+            noVendorsFound: '取引先が見つかりません',
+            noVendorsFoundDescription: 'Xero にベンダーを追加して、もう一度接続を同期してください',
             accountingMethods: {
                 label: 'エクスポートのタイミング',
                 description: '経費をエクスポートするタイミングを選択:',
@@ -8409,7 +8408,6 @@ ${reportName}`,
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
-                supplierUnavailable: 'サプライヤーを利用できません',
                 confirmErrorCategory: 'カテゴリを選択してください',
                 confirmErrorCategoryTax: '税率を選択してください',
                 confirmErrorCondition: '店舗名を入力してください',
@@ -8646,6 +8644,7 @@ ${reportName}`,
                 createRule: 'ルールを作成',
                 fallbackBanner:
                     'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -8731,6 +8730,14 @@ ${reportName}`,
                     unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
                     multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
                     categoryHasRule: 'このカテゴリにはすでにルールがあります。既存のルールを編集するか、別のカテゴリのルールを説明してください。',
+                },
+                impossible: {
+                    noTrigger: 'そのイベントからルールを開始することはできません。',
+                    noCapability: 'ルールではその操作はできません。',
+                    missingData: 'Expensify はその情報を持っていません。',
+                    retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
+                    historyLimit: 'ルールはそれほど前までさかのぼることができません。',
+                    tryThisInstead: '代わりにこちらをお試しください',
                 },
             },
             expenseDefaultsTable: {
@@ -8916,7 +8923,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
-            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
                 stages: {
@@ -8945,8 +8952,12 @@ ${reportName}`,
             finalApprover: `最終承認者`,
             finalApproverOptional: '最終承認者（任意）',
             approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
-            approverFieldDescription: (providerName: string) =>
-                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `${fieldNames.slice(0, -1).join(', ')} または ${lastFieldName}` : `または ${fieldNames.join('またはその')} のいずれか`;
+                return `候補者の最初の承認者を選択してください：${providerName} で割り当てられている ${fieldList}`;
+            },
             approvalModeDescriptions: {
                 basic: '承認者を 1 名選択してください',
                 advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,
@@ -10138,6 +10149,7 @@ ${reportName}`,
             withdrawn: '取下済み',
             billable: '請求可能',
             rejected: '却下済み',
+            held: '保留中',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
             sortOrder: {
@@ -10324,6 +10336,8 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
+        switchToTableView: 'テーブル表示に切り替え',
+        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {
@@ -10346,6 +10360,7 @@ ${reportName}`,
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `${fieldName} を「${newValue}」（以前は「${oldValue}」）に変更しました`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `${fieldName} を「${newValue}」に設定`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `${fieldName} を削除しました（以前は「${oldValue}」）`,
+                changeFieldCleared: (fieldName: string) => `${fieldName} を削除しました`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ワークスペース${fromPolicyName ? `（以前は${fromPolicyName}）` : ''}を変更しました`;
@@ -10824,7 +10839,7 @@ ${reportName}`,
         duplicatedTransaction: '重複の可能性',
         fieldRequired: 'レポートの項目は必須です',
         futureDate: '将来の日付は使用できません',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'サプライヤーは無効です' : 'ベンダーは無効です'),
+        inactiveVendor: 'ベンダーは無効です',
         invoiceMarkup: (invoiceMarkup: number) => `${invoiceMarkup}%値上げ済み`,
         maxAge: (maxAge: number) => `日付が${maxAge}日より前です`,
         missingCategory: 'カテゴリが未選択です',

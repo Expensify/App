@@ -62,8 +62,11 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
-    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
+    /** Returns the label of the group whose period includes today, or undefined for any other group */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
+
+    /** Returns whether a group's period starts after today, as it does for future-dated expenses */
+    isLaterPeriod?: (item: GroupedItem) => boolean;
 
     /** Formats labels shared by paired time buckets */
     translate: LocaleContextProps['translate'];
@@ -109,6 +112,7 @@ function buildChartSeries({
     getShortLabel,
     getCurrencyDecimals,
     getInProgressLabel,
+    isLaterPeriod,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -165,7 +169,7 @@ function buildChartSeries({
                 },
             }),
             ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
-            isInProgress,
+            isInProgress: isInProgress || !!isLaterPeriod?.(item),
         };
 
         return {row: {point, item}, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
