@@ -30,20 +30,30 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Cache Jest cache
+      - name: Restore Jest cache
         id: cache-jest-cache
         # v5.0.1
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
           # shared key freezes one shard's partial cache for all shards. The hash refreshes the
-          # cache when dependencies or Babel config change; restore-keys warms it in between.
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
+          # cache when dependencies, Babel config or Node change (babel-jest keys entries on the
+          # Node version); restore-keys warms it in between.
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js', '.nvmrc') }}
           restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+
+      # Saves even when tests fail, so a shard that timed out on a cold cache runs warm next time.
+      - name: Save Jest cache
+        if: ${{ always() && steps.cache-jest-cache.outputs.cache-hit != 'true' }}
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ steps.cache-jest-cache.outputs.cache-primary-key }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
