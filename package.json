@@ -405,7 +405,6 @@
     "serialize-javascript": "7.1.2",
     "adm-zip": "0.6.1",
     "tinypool": "2.1.2",
-    "@simple-git/argv-parser": "2.0.1",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "react": "19.2.3",
     "react-dom": "19.2.3",
