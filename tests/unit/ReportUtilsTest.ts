@@ -8217,11 +8217,14 @@ describe('ReportUtils', () => {
                     reportNameValuePairs: undefined,
                 });
 
-            // When the expense is manual, Then the backend scan the user never sees doesn't block the receipt edit
-            expect(canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL})).toBe(true);
+            // When checking whether the receipt can be edited during the scan, once for a manual expense and once for a scan expense
+            const canEditManualReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+            const canEditScanReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
 
-            // When the expense is a scan expense, Then the receipt edit stays blocked until the scan finishes
-            expect(canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN})).toBe(false);
+            // Then the backend scan the user never sees doesn't block the manual expense's receipt edit,
+            // but the scan expense's receipt edit stays blocked until the scan finishes because the user sees that scan in progress
+            expect(canEditManualReceipt).toBe(true);
+            expect(canEditScanReceipt).toBe(false);
         });
 
         it('should NOT allow workflow approver to edit money request on SUBMITTED expense report', async () => {

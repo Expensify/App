@@ -95,7 +95,10 @@ describe('useShouldAddOrReplaceReceipt', () => {
 
     it('allows replacing the receipt of a manual expense while its receipt is SCAN_READY', async () => {
         // Given a manual expense whose receipt was just replaced, which starts a backend scan the user never sees
-        const result = await renderForTransaction(buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.REQUEST_TYPE.MANUAL));
+        const transaction = buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.REQUEST_TYPE.MANUAL);
+
+        // When the composer checks whether a dropped file should go to the expense's receipt
+        const result = await renderForTransaction(transaction);
 
         // Then a dropped file replaces the receipt instead of falling back to a new expense or an attachment
         expect(result.current.transactionID).toBe(TRANSACTION_ID);
@@ -104,7 +107,10 @@ describe('useShouldAddOrReplaceReceipt', () => {
 
     it('blocks replacing the receipt of a scan expense while its receipt is SCAN_READY', async () => {
         // Given a scan expense whose receipt is waiting to be scanned, so the user sees a scan in progress
-        const result = await renderForTransaction(buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.REQUEST_TYPE.SCAN));
+        const transaction = buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.REQUEST_TYPE.SCAN);
+
+        // When the composer checks whether a dropped file should go to the expense's receipt
+        const result = await renderForTransaction(transaction);
 
         // Then the receipt can't be replaced until the scan finishes
         expect(result.current.shouldAddOrReplaceReceipt).toBe(false);
@@ -112,7 +118,10 @@ describe('useShouldAddOrReplaceReceipt', () => {
 
     it('blocks replacing the receipt while it is SCAN_READY when the expense has no iouRequestType', async () => {
         // Given an expense with no iouRequestType, which getRequestType would treat as manual
-        const result = await renderForTransaction(buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY));
+        const transaction = buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+
+        // When the composer checks whether a dropped file should go to the expense's receipt
+        const result = await renderForTransaction(transaction);
 
         // Then the scan still blocks the replace, because only an explicit manual type is exempt
         expect(result.current.shouldAddOrReplaceReceipt).toBe(false);
@@ -120,7 +129,10 @@ describe('useShouldAddOrReplaceReceipt', () => {
 
     it('allows replacing the receipt of a scan expense once its receipt is SCAN_COMPLETE', async () => {
         // Given a scan expense whose scan has finished
-        const result = await renderForTransaction(buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, CONST.IOU.REQUEST_TYPE.SCAN));
+        const transaction = buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, CONST.IOU.REQUEST_TYPE.SCAN);
+
+        // When the composer checks whether a dropped file should go to the expense's receipt
+        const result = await renderForTransaction(transaction);
 
         // Then a dropped file replaces the receipt
         expect(result.current.shouldAddOrReplaceReceipt).toBe(true);
