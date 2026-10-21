@@ -21,6 +21,7 @@ import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canAdminPayReport,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -482,16 +483,6 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
-    const canCancelPayment =
-        isPayer ||
-        (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-
-    if (!canCancelPayment) {
-        return false;
-    }
-
     const payActions = getReportPayActions(report.reportID);
     const latestPayAction = getLatestPayAction(payActions);
     const latestPaymentType = getPayActionPaymentType(latestPayAction);
@@ -499,8 +490,21 @@ function isCancelPaymentAction(
     // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
     const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
+    // Auth computes cancellation permission per viewer. Shared bank accounts have different IDs for each user,
+    // and persisted pay actions may omit bankAccountID, so local account matching cannot determine access.
+    if (isPaidViaBankAccount) {
+        return !!report.canCancelReimbursement;
+    }
+
+    // Mirror the pay gate for payments marked as paid elsewhere.
+    const canCancelPayment = isPayer || canAdminPayReport(policy, currentUserEmail);
+
+    if (!canCancelPayment) {
+        return false;
+    }
+
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
-    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
         return true;
     }
 
