@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,8 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isEligibleForWiseGlobalReimbursements} from '@libs/BankAccountUtils';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -22,16 +24,17 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
-type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
+type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
 
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -43,15 +46,15 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithCoins']);
 
-    const goBackToWallet = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    const goBackToEntryPoint = () => Navigation.goBack(backPath);
 
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToWallet();
-    }, [isWiseReimbursementsBetaEnabled, goBackToWallet]);
+        goBackToEntryPoint();
+    }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging eligibility
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
@@ -63,12 +66,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isEligibleForWiseGlobalReimbursements(bankAccount?.accountData)}
-                onBackButtonPress={goBackToWallet}
+                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)}
+                onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
-                    <Header.BackButton onPress={goBackToWallet} />
-                    <Header.Title title={translate('common.enableGlobalReimbursements')} />
+                    <Header.BackButton onPress={goBackToEntryPoint} />
+                    <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
                 <ConfirmationPage>
                     <ConfirmationPage.Content>
@@ -82,11 +85,15 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     <FixedFooter>
                         <ConfirmationPage.SecondaryButton
                             text={translate('common.notNow')}
-                            onPress={goBackToWallet}
+                            onPress={goBackToEntryPoint}
                         />
                         <ConfirmationPage.PrimaryButton
                             text={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                            onPress={() => {}}
+                            onPress={() => {
+                                // Starting onboarding for any account retires both banners for good
+                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
+                            }}
                         />
                     </FixedFooter>
                 </ConfirmationPage>

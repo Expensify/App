@@ -28,6 +28,12 @@ type ChartDataPoint = {
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
+    /** Each series' name for the dates this point covers in its period, which names its row in the tooltip */
+    seriesLabels?: Partial<Record<string, string>>;
+
+    /** Each series' share of its own period's total spend, in percentage points, set when several series are compared */
+    seriesPercentOfTotal?: Partial<Record<string, number>>;
+
     /** Color of the point's bar or slice. Left out, the chart's default color. */
     color?: string;
 
@@ -37,7 +43,7 @@ type ChartDataPoint = {
     /** Number of expenses in this point */
     count?: number;
 
-    /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
+    /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
 };
 

@@ -10,7 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as ReportType, ReportActions} from '@src/types/onyx';
 
 import type {PushPayload} from '@ua/react-native-airship';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -38,6 +39,14 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
+// connectWithoutView() is the only option here: Airship calls shouldShowPushNotification() from outside the React tree and owns its callback signature,
+// so we can neither use useOnyx() nor pass this value in as a parameter. This is not a pattern to copy - prefer useOnyx() or passing data in as a parameter.
+let singleExpenseReportView: OnyxEntry<ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW,
+    callback: (value) => (singleExpenseReportView = value),
+});
+
 /**
  * Returns whether the given Airship notification should be shown depending on the current state of the app
  */
@@ -58,7 +67,12 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
         const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
         const topmostChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
         const topmostReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${topmostReportID}`];
-        const topmostOneTransactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(topmostReport, topmostChatReport, topmostReportActions, getIsOffline());
+        // The table view doesn't show the expense thread's actions, so a comment there should still notify while the report is open. A "Pay someone" report always uses the expense view.
+        const isSentMoneyReport = Object.values(topmostReportActions ?? {}).some(ReportActionUtils.isSentMoneyReportAction);
+        const shouldUseTableViewForSingleExpense = singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport;
+        const topmostOneTransactionThreadReportID = shouldUseTableViewForSingleExpense
+            ? undefined
+            : ReportActionUtils.getOneTransactionThreadReportID(topmostReport, topmostChatReport, topmostReportActions, getIsOffline());
         shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), topmostOneTransactionThreadReportID, currentUserAccountID, reportAction, true);
     }
 

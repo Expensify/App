@@ -80,6 +80,7 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    hasAnyTagGLCode,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getTagLists,
@@ -129,7 +130,6 @@ import {
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
-    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
@@ -3224,6 +3224,71 @@ describe('PolicyUtils', () => {
             ])('%s', (_description, orderWeight, expected) => {
                 const tagList = getTagListByOrderWeight(policyTags, orderWeight);
                 expect(tagList.name).toEqual(expected);
+            });
+        });
+        describe('hasAnyTagGLCode', () => {
+            it('returns false when the workspace has no tags', () => {
+                // Given no tag lists, there is no GL code to pick, so the Tag GL code cell must stay read-only
+                // When / Then
+                expect(hasAnyTagGLCode(undefined)).toBe(false);
+                expect(hasAnyTagGLCode({})).toBe(false);
+            });
+
+            it('returns false when every GL code is missing or blank', () => {
+                // Given tags whose GL codes are missing, empty, whitespace or only quotes
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true, 'GL Code': ''},
+                            Sales: {name: 'Sales', enabled: true, 'GL Code': '   '},
+                            Support: {name: 'Support', enabled: true, 'GL Code': '""'},
+                        },
+                    },
+                };
+
+                // When / Then a blank code does not count as a GL code
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
+            });
+
+            it('returns true when at least one tag has a GL code', () => {
+                // Given a mix of tags with and without a GL code
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                };
+
+                // When / Then one code is enough to keep the cell editable
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(true);
+            });
+
+            it('returns false when the only GL codes are on disabled or pending-deletion tags', () => {
+                // Given GL codes only on tags the tag picker won't let the user select
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: false, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '5678'},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                };
+
+                // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
             });
         });
         describe('getTagGLCode', () => {
@@ -7110,73 +7175,6 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('isXeroActiveMatchingSource (R4)', () => {
-            it('returns true when only Xero is connected', () => {
-                expect(isXeroActiveMatchingSource(buildXeroPolicy())).toBe(true);
-            });
-
-            it('returns false when QBO is the active matching source even if Xero is also connected', () => {
-                // The exact dual-connection state the helper was introduced for: QBO is in
-                // vendor-matching export mode (CC), and Xero is connected with contacts. The
-                // label flip / picker copy must stay on "Vendor" because the user is actually
-                // seeing QBO vendors via getMatchingVendors' precedence rule.
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns false when Intacct is the active matching source even if Xero is also connected', () => {
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
-                            data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns true when QBO is connected but in a non-matching export mode (Vendor Bill) + Xero is connected', () => {
-                // QBO is connected but not in CC/DC mode, so isQBOVendorMatchingActive is false.
-                // Xero is connected, so it takes over as the active source via getMatchingVendors'
-                // fall-through.
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
-                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(true);
-            });
-
-            it('returns false when Xero is not connected', () => {
-                const policy = {...createRandomPolicy(0), connections: {}};
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns false when policy is undefined', () => {
-                expect(isXeroActiveMatchingSource(undefined)).toBe(false);
-            });
-        });
-
         describe('isXeroVendorMatchingActive (R4)', () => {
             it('returns true when Xero is connected with isConfigured=true', () => {
                 expect(isXeroVendorMatchingActive(buildXeroPolicy())).toBe(true);
@@ -7191,7 +7189,7 @@ describe('PolicyUtils', () => {
             });
 
             it('returns true on a dual-connected workspace where Xero is configured and QBO is the active matching source', () => {
-                // Distinct from isXeroActiveMatchingSource: the supplier-picker page should still be
+                // The default supplier picker page should still be
                 // reachable when Xero is connected & configured, even if QBO is currently driving
                 // vendor matching for the workspace's transactions. The admin needs to manage the
                 // Xero default supplier independently of which integration is "active" right now.
@@ -7354,8 +7352,8 @@ describe('PolicyUtils', () => {
             it('returns Xero empty state copy when Xero is the active integration', () => {
                 const policy = buildXeroPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.xero.noSuppliersFound'),
-                    subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                    title: translate('workspace.xero.noVendorsFound'),
+                    subtitle: translate('workspace.xero.noVendorsFoundDescription'),
                 });
             });
 
