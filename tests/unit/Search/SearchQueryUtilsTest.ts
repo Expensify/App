@@ -610,6 +610,76 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense -transactionStatus:pending');
         });
 
+        test('declined filter value', () => {
+            // Given the Rejected filter set to yes on an expense report search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                declined: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the declined key used by the backend
+            expect(result).toEqual('type:expense-report declined:yes');
+        });
+
+        test('negated declined filter value', () => {
+            // Given the Rejected filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                declinedNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the declined key gets the "-" prefix
+            expect(result).toEqual('type:expense -declined:no');
+        });
+
+        test('held filter value', () => {
+            // Given the Held filter set to yes on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the held key
+            expect(result).toEqual('type:expense held:yes');
+        });
+
+        test('negated held filter value', () => {
+            // Given the Held filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                heldNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held key gets the "-" prefix
+            expect(result).toEqual('type:expense -held:no');
+        });
+
+        test('held filter is dropped for expense reports', () => {
+            // Given the Held filter set on an expense report search, which only supports it for expenses
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held filter is not written
+            expect(result).toEqual('type:expense-report');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -2212,6 +2282,98 @@ describe('SearchQueryUtils', () => {
 
             expect(result.transactionStatusNot).toEqual('pending');
             expect(result.transactionStatus).toBeUndefined();
+        });
+
+        test('declined filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they were rejected
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Rejected filter holds the yes value
+            expect(result.declined).toEqual('yes');
+        });
+
+        test('declined filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('negated declined filter populates declinedNot', () => {
+            // Given a query that excludes rejected expense reports with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense-report -declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.declinedNot).toEqual('yes');
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('held filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they are on hold
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Held filter holds the yes value
+            expect(result.held).toEqual('yes');
+        });
+
+        test('held filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.held).toBeUndefined();
+        });
+
+        test('negated held filter populates heldNot', () => {
+            // Given a query that excludes held expenses with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.heldNot).toEqual('yes');
+            expect(result.held).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {
@@ -6000,6 +6162,21 @@ describe('SearchQueryUtils', () => {
                 start: '2025-03-02',
                 end: '2025-03-09',
             });
+        });
+
+        test('zero-pads dates typed without leading zeros so they compare correctly with other dates', () => {
+            // Given a query whose dates are typed without leading zeros, which the search parser accepts
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-1-5 date<=2026-2-9');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
         });
     });
 

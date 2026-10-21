@@ -322,6 +322,8 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / declined
+      / held
       / action
       / has
       / is

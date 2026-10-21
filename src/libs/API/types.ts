@@ -296,7 +296,8 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_TIME_TRACKING: 'EnablePolicyTimeTracking',
     SET_POLICY_TIME_TRACKING_DEFAULT_RATE: 'SetPolicyTimeTrackingDefaultRate',
     SET_POLICY_RULES_ENABLED: 'SetPolicyRulesEnabled',
-    SET_POLICY_CODING_RULE: 'SetPolicyCodingRule',
+    SET_RULE: 'SetRule',
+    DELETE_RULE: 'DeleteRule',
     SET_APPROVAL_WORKFLOW: 'SetApprovalWorkflow',
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT: 'SetPolicyExpenseMaxAmountNoReceipt',
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'SetPolicyExpenseMaxAmountNoItemizedReceipt',
@@ -606,6 +607,15 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
     UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
     UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING: 'UpdateBusinessCentralProjectsMapping',
+    UPDATE_BUSINESS_CENTRAL_AUTO_SYNC: 'UpdateBusinessCentralAutoSync',
+    UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'UpdateBusinessCentralAccountingMethod',
+    UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateBusinessCentralExportToNextOpenPeriod',
+    UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS: 'UpdateBusinessCentralSyncReimbursedReports',
+    UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT: 'UpdateBusinessCentralReimbursementBankAccount',
+    UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateBusinessCentralSyncExpensifyCardSettlements',
+    UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT: 'UpdateBusinessCentralSettlementsBankAccount',
+    UPDATE_BUSINESS_CENTRAL_POSTING_MODE: 'UpdateBusinessCentralPostingMode',
+    UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES: 'UpdateBusinessCentralAutoCreateEntities',
     CONNECT_POLICY_TO_CAMPFIRE: 'ConnectPolicyToCampfire',
     UPDATE_CAMPFIRE_SUBSIDIARY: 'UpdateCampfireSubsidiary',
     UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
@@ -671,6 +681,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_TAG_APPROVER: 'SetPolicyTagApprover',
     SAVE_SEARCH: 'SaveSearch',
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
+    SAVE_SEARCH_FILTERS: 'SaveSearchFilters',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
     CONFIGURE_TRAVEL_BILLING_FOR_POLICY: 'ConfigureTravelBillingForPolicy',
@@ -778,6 +789,7 @@ const WRITE_COMMANDS = {
     SET_DEFAULT_DOMAIN_SECURITY_GROUP: 'SetDefaultDomainSecurityGroup',
     DELETE_DOMAIN_SECURITY_GROUP: 'DeleteDomainSecurityGroup',
     CREATE_AGENT: 'CreateAgent',
+    CREATE_COMPANY_AGENT: 'CreateCompanyAgent',
     CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
@@ -1086,7 +1098,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_INVOICING]: Parameters.EnablePolicyInvoicingParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING]: Parameters.EnablePolicyTimeTrackingParams;
     [WRITE_COMMANDS.SET_POLICY_RULES_ENABLED]: Parameters.SetPolicyRulesEnabledParams;
-    [WRITE_COMMANDS.SET_POLICY_CODING_RULE]: Parameters.SetPolicyCodingRuleParams;
+    [WRITE_COMMANDS.SET_RULE]: Parameters.SetRuleParams;
+    [WRITE_COMMANDS.DELETE_RULE]: Parameters.DeleteRuleParams;
     [WRITE_COMMANDS.SET_APPROVAL_WORKFLOW]: Parameters.SetApprovalWorkflowParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED]: Parameters.SetPolicyRequireCompanyCardsEnabledParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED]: Parameters.SetPolicyCategoryDescriptionRequiredParams;
@@ -1363,6 +1376,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC]: Parameters.UpdateBusinessCentralAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD]: Parameters.UpdateBusinessCentralAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateBusinessCentralExportToNextOpenPeriodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateBusinessCentralSyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT]: Parameters.UpdateBusinessCentralReimbursementBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateBusinessCentralSyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT]: Parameters.UpdateBusinessCentralSettlementsBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_POSTING_MODE]: Parameters.UpdateBusinessCentralPostingModeParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES]: Parameters.UpdateBusinessCentralAutoCreateEntitiesParams;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_CAMPFIRE]: Parameters.ConnectPolicyToCampfireParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SUBSIDIARY]: Parameters.UpdateCampfireSubsidiaryParams;
@@ -1505,6 +1527,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetCardReconciliationBankAccountParams;
     [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SaveSearchParams;
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
+    [WRITE_COMMANDS.SAVE_SEARCH_FILTERS]: Parameters.SaveSearchFiltersParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
     [WRITE_COMMANDS.CONFIGURE_TRAVEL_BILLING_FOR_POLICY]: Parameters.ConfigureTravelBillingForPolicyParams;
@@ -1594,6 +1617,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP]: Parameters.SetDefaultDomainSecurityGroupParams;
     [WRITE_COMMANDS.DELETE_DOMAIN_SECURITY_GROUP]: Parameters.DeleteDomainSecurityGroupParams;
     [WRITE_COMMANDS.CREATE_AGENT]: Parameters.CreateAgentParams;
+    [WRITE_COMMANDS.CREATE_COMPANY_AGENT]: Parameters.CreateCompanyAgentParams;
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
@@ -1724,6 +1748,7 @@ const READ_COMMANDS = {
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
     OPEN_PROFILE_PAGE: 'OpenProfilePage',
+    OPEN_RECIPIENT_PICKER: 'OpenRecipientPicker',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1850,6 +1875,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_PROFILE_PAGE]: null;
+    [READ_COMMANDS.OPEN_RECIPIENT_PICKER]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

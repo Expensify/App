@@ -16,7 +16,7 @@ import type {SearchKey} from './libs/SearchKeyUtils';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
-import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 import Log from './libs/Log';
@@ -227,6 +227,11 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
+    WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
+        path: 'global-reimbursements/:bankAccountID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS],
+        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
@@ -328,6 +333,16 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
+    },
+    COLLECT_DEPOSIT_ACCOUNT: {
+        path: 'collect-deposit-account/:subPage?/:action?',
+        entryScreens: [SCREENS.HOME, SCREENS.SETTINGS.WALLET.ROOT, SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE],
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'collect-deposit-account' as const;
+            }
+            return `collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     MISSING_PERSONAL_DETAILS: {
         path: 'missing-personal-details/:cardID/:subPage?/:action?',
@@ -1065,10 +1080,6 @@ const DYNAMIC_ROUTES = {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
-    SETTINGS_CATEGORIES_SETTINGS: {
-        path: 'manage-settings',
-        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
-    },
     SETTINGS_CATEGORY_CREATE: {
         path: 'category-create',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
@@ -1257,17 +1268,9 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-tags-imported',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
-    WORKSPACE_CATEGORIES_SETTINGS: {
-        path: 'categories-settings',
-        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
-    },
-    WORKSPACE_TAGS_SETTINGS: {
-        path: 'tags-settings',
-        entryScreens: [SCREENS.WORKSPACE.TAGS],
-    },
     WORKSPACE_EDIT_TAGS: {
         path: 'workspace-edit-tags/:orderWeight',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
         getRoute: (orderWeight: number) => `workspace-edit-tags/${orderWeight}`,
     },
     WORKSPACE_CATEGORY_CREATE: {
@@ -1301,11 +1304,6 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-tag-edit',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
     },
-    SPEND_CATEGORY_SELECTOR: {
-        path: 'spend-category-selector/:groupID',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS],
-        getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
-    },
     DEFAULT_CATEGORY_SELECTOR: {
         path: 'default-category-selector/:customUnitID',
         entryScreens: [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS, SCREENS.WORKSPACE.PER_DIEM_SETTINGS],
@@ -1318,6 +1316,14 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_INVITE_MESSAGE: {
         path: 'invite-message',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM],
+    },
+    WORKSPACE_INVITE_WORK_ARRANGEMENT: {
+        path: 'work-arrangement',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
+        ],
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         path: 'expenses-from',
@@ -1528,10 +1534,6 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
         getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
     },
-    SETTINGS_TAGS_SETTINGS: {
-        path: 'settings-tags-settings',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
-    },
     SETTINGS_TAG_SETTINGS: {
         path: 'tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
@@ -1540,7 +1542,7 @@ const DYNAMIC_ROUTES = {
     },
     SETTINGS_TAGS_EDIT: {
         path: 'settings-tags-edit/:orderWeight',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
         getRoute: (orderWeight: number) => `settings-tags-edit/${orderWeight}`,
     },
     SETTINGS_TAG_EDIT: {
@@ -2581,16 +2583,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
-    SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
-        route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
-        getRoute: (subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                return 'settings/wallet/collect-deposit-account' as const;
-            }
-
-            return `settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
-        },
-    },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
         route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
@@ -2927,13 +2919,13 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_STEP_REUSE_ROUTE: {
-        route: ':action/:iouType/reuse-route/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+        route: ':action/:iouType/reuse-route/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_REUSE_ROUTE route');
             }
 
-            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}` as const;
+            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const;
         },
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
@@ -4526,7 +4518,7 @@ const ROUTES = {
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/agent-rules/new` as const,
+        getRoute: (policyID: string, generationID?: string) => getUrlWithParams(`workspaces/${policyID}/rules/agent-rules/new` as const, {generationID}),
     },
     RULES_AGENT_EDIT: {
         route: 'workspaces/:policyID/rules/agent-rules/:ruleID',
@@ -5474,6 +5466,23 @@ const ROUTES = {
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
         route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/accounting-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/accounting-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/posting-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/posting-mode` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/bank-account/:settingName',
+        getRoute: (policyID: string, settingName: BusinessCentralBankAccountSettingName) =>
+            `workspaces/${policyID}/accounting/business-central/advanced/bank-account/${settingName}` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

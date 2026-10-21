@@ -247,6 +247,11 @@ const FILTER_KEYS = {
     BILLABLE_NOT: 'billableNot',
     BILLABLE: 'billable',
 
+    DECLINED_NOT: 'declinedNot',
+    DECLINED: 'declined',
+    HELD_NOT: 'heldNot',
+    HELD: 'held',
+
     ACTION_NOT: 'actionNot',
     ACTION: 'action',
 
@@ -354,6 +359,10 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.REIMBURSABLE_NOT,
         FILTER_KEYS.BILLABLE,
         FILTER_KEYS.BILLABLE_NOT,
+        FILTER_KEYS.DECLINED,
+        FILTER_KEYS.DECLINED_NOT,
+        FILTER_KEYS.HELD,
+        FILTER_KEYS.HELD_NOT,
         FILTER_KEYS.REPORT_ID,
         FILTER_KEYS.REPORT_ID_NOT,
         FILTER_KEYS.SUBMITTED_ON,
@@ -457,6 +466,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
         FILTER_KEYS.PAID_STATUS,
         FILTER_KEYS.PAID_STATUS_NOT,
+        FILTER_KEYS.DECLINED,
+        FILTER_KEYS.DECLINED_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -929,6 +940,11 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.BILLABLE]: BooleanValue;
         [FILTER_KEYS.BILLABLE_NOT]: BooleanValue;
+
+        [FILTER_KEYS.DECLINED]: BooleanValue;
+        [FILTER_KEYS.DECLINED_NOT]: BooleanValue;
+        [FILTER_KEYS.HELD]: BooleanValue;
+        [FILTER_KEYS.HELD_NOT]: BooleanValue;
 
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.ACTION_NOT]: string;
