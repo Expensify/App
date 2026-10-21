@@ -72,7 +72,7 @@ describe('NewChatConfirmPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the user presses the recipient's row, which shows the real account
-        fireEvent.press(await waitFor(() => screen.getByText(RECIPIENT_NAME)));
+        fireEvent.press(await screen.findByText(RECIPIENT_NAME));
         await waitForBatchedUpdatesWithAct();
 
         // Then the draft drops the recipient, because the row still matches the login saved in the draft

@@ -670,14 +670,19 @@ function getSyncedParticipantAccountIDs(
     chatReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ): Record<number, number> {
+    // Only a participant whose accountID is no longer in personal details can need a sync, so return early on the
+    // confirmation page's renders while no sync is pending
+    const staleParticipants = (participants ?? []).filter(
+        (participant): participant is Participant & {accountID: number} => !!participant.accountID && !personalDetails?.[participant.accountID],
+    );
+    if (staleParticipants.length === 0) {
+        return {};
+    }
     const chatAccountIDs = Object.keys(chatReport?.participants ?? {}).map(Number);
     const accountIDFromChat =
         participants?.length === 1 && isOneOnOneChat(chatReport, currentUserAccountID) ? chatAccountIDs.find((accountID) => accountID !== currentUserAccountID) : undefined;
     const syncedAccountIDs: Record<number, number> = {};
-    for (const participant of participants ?? []) {
-        if (!participant.accountID || personalDetails?.[participant.accountID]) {
-            continue;
-        }
+    for (const participant of staleParticipants) {
         const accountIDFromLogin = participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login))?.accountID : undefined;
         const syncedAccountID = accountIDFromLogin ?? (participant.reportID && participant.reportID === chatReport?.reportID ? accountIDFromChat : undefined);
         if (!syncedAccountID || syncedAccountID === participant.accountID || !personalDetails?.[syncedAccountID]) {

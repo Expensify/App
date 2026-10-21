@@ -1,4 +1,5 @@
 import {
+    getMoneyRequestDraftParticipantsFromReport,
     getSyncedParticipantAccountIDs,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
@@ -798,6 +799,49 @@ describe('actions/IOU', () => {
                 const secondDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`);
                 expect(draft?.participants).toEqual(expectedParticipants);
                 expect(secondDraft?.participants).toEqual(expectedParticipants);
+            });
+        });
+
+        describe('draft participants from a report without a recipient created offline', () => {
+            it('getMoneyRequestDraftParticipantsFromReport should return a workspace chat participant unchanged', () => {
+                // Given a workspace chat, whose participant has no accountID and so has no login to add
+                const policyID = 'policy789';
+                const policyExpenseChat = {
+                    reportID: 'policyExpenseChat789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID,
+                    participants: {[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(policyExpenseChat, RORY_ACCOUNT_ID);
+
+                // Then the workspace chat participant passes through unchanged, so the expense still goes to that workspace chat
+                expect(participants).toEqual([{accountID: 0, reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true, selected: true, policyID, isSelfDM: false}]);
+            });
+
+            it('getMoneyRequestDraftParticipantsFromReport should add the login but not the chat for a recipient who was not created offline', async () => {
+                // Given a 1:1 chat with a recipient whose personal details came from the server, so they are not optimistic
+                const recipientAccountID = 9999994;
+                const recipientLogin = 'synced.recipient@expensifail.com';
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
+                await waitForBatchedUpdates();
+                const chatReport = {
+                    reportID: 'chatReport789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(chatReport, RORY_ACCOUNT_ID);
+
+                // Then only the login is added, because the recipient's accountID is already real and won't need the chat to find it
+                expect(participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, selected: true}]);
+                expect(participants.at(0)).not.toHaveProperty('reportID');
             });
         });
 
