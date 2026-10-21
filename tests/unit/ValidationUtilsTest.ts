@@ -927,6 +927,17 @@ describe('ValidationUtils', () => {
             expect(errors).toEqual({addressLine1: limitError, addressLine2: limitError, city: limitError});
         });
 
+        it('flags a street with only emojis but accepts a PO box', () => {
+            // Given a street made only of emojis, and a PO box, which cards can ship to
+            // When they are validated
+            const emojiErrors = getAddressFieldErrors({...validAddress, addressLine1: '🏠🏠🏠'}, translateLocal);
+            const poBoxErrors = getAddressFieldErrors({...validAddress, addressLine1: 'PO Box 123'}, translateLocal);
+
+            // Then only the emoji street gets the street error
+            expect(emojiErrors).toEqual({addressLine1: translateLocal('bankAccount.error.addressStreet')});
+            expect(poBoxErrors).toEqual({});
+        });
+
         it('flags a long state or province only outside the US', () => {
             // Given a state or province over the limit, which only a free text field can hold
             const tooLong = 'a'.repeat(CONST.STATE_CHARACTER_LIMIT + 1);
