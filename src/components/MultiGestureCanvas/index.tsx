@@ -193,6 +193,23 @@ function MultiGestureCanvas({
         [offsetX, offsetY, panTranslateX, panTranslateY, pinchScale, pinchTranslateX, pinchTranslateY, stopAnimation, zoomScale],
     );
 
+    // Pinch must be created before pan: on web, handlers end in creation order, and pan has to end last
+    // to re-center the content using the offset that already includes the pinch translation.
+    const pinchGesture = useCanvasPinchGesture({
+        canvasSize,
+        zoomScale,
+        zoomRange,
+        offsetX,
+        offsetY,
+        pinchTranslateX,
+        pinchTranslateY,
+        pinchScale,
+        stopAnimation,
+        onScaleChanged,
+        isTransformGestureActive,
+        shouldDisableTransformationGestures,
+    });
+
     // Gestures from outside of the canvas that the pan gesture has to work simultaneously with
     const panGestureExternalGestures = [pagerGesture, externalGestureHandler].filter((gesture) => gesture !== undefined);
 
@@ -232,24 +249,6 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
         panGesture,
-    });
-
-    const pinchSimultaneousGestures = [panGesture, singleTapGesture, doubleTapGesture];
-
-    const pinchGesture = useCanvasPinchGesture({
-        canvasSize,
-        zoomScale,
-        zoomRange,
-        offsetX,
-        offsetY,
-        pinchTranslateX,
-        pinchTranslateY,
-        pinchScale,
-        stopAnimation,
-        onScaleChanged,
-        isTransformGestureActive,
-        shouldDisableTransformationGestures,
-        simultaneousWith: pinchSimultaneousGestures,
     });
 
     const tapsAndPanGesture = useCompetingGestures(singleTapGesture, doubleTapGesture, panGesture);

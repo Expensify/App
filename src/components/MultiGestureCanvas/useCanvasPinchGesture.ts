@@ -1,4 +1,4 @@
-import type {PinchGesture, PinchGestureConfig} from 'react-native-gesture-handler';
+import type {PinchGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useEffect, useState} from 'react';
 import {GestureStateManager, usePinchGesture} from 'react-native-gesture-handler';
@@ -23,10 +23,7 @@ type UseCanvasPinchGestureProps = Pick<
     | 'isTransformGestureActive'
     | 'stopAnimation'
     | 'onScaleChanged'
-> & {
-    /** Gestures of the canvas that can run simultaneously with the pinch */
-    simultaneousWith: PinchGestureConfig['simultaneousWith'];
-};
+>;
 
 const useCanvasPinchGesture = ({
     canvasSize,
@@ -41,7 +38,6 @@ const useCanvasPinchGesture = ({
     isTransformGestureActive,
     stopAnimation,
     onScaleChanged,
-    simultaneousWith,
 }: UseCanvasPinchGestureProps): PinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
@@ -119,7 +115,6 @@ const useCanvasPinchGesture = ({
 
     const pinchGesture = usePinchGesture({
         enabled: pinchEnabled,
-        simultaneousWith,
         onTouchesDown: (evt) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
