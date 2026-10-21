@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import memoize, {equivalentArgsComparator} from '@libs/memoize';
-import {createOptionList, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
+import {createOptionList, filterAgentsPersonalDetailsByAccountIDs, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
@@ -161,14 +161,7 @@ function buildOptionsData({
         personalDetails = filterPersonalDetailsByLogins(personalDetails, includeLoginsOnly);
     }
     if (agentsWhitelist) {
-        personalDetails = Object.fromEntries(
-            Object.entries(personalDetails ?? {}).filter(([, details]) => {
-                if (!details?.isCustomAgent) {
-                    return true;
-                }
-                return agentsWhitelist.has(details.accountID);
-            }),
-        );
+        personalDetails = filterAgentsPersonalDetailsByAccountIDs(personalDetails, agentsWhitelist);
     }
     const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
     return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
