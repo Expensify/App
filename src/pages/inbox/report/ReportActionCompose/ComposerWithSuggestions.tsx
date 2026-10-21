@@ -55,7 +55,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {Ref, RefObject} from 'react';
-import type {BlurEvent, HostInstance, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
@@ -82,14 +82,14 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsRef = ComposerRef & {
+type ComposerWithSuggestionsRef = Pick<ComposerRef, 'blur' | 'isFocused'> & {
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
     replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
 
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     * Once the composer has cleared, onClear will be called with the value that was cleared.
      */
     clearWorklet: () => void;
 
@@ -384,7 +384,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<HostInstance>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
     /**
      * Set the TextInput Ref
      */
@@ -955,31 +955,15 @@ function ComposerWithSuggestions({
 
     useImperativeHandle(
         ref,
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: (_target, prop) => {
-                        if (prop === 'focus') {
-                            return focus;
-                        }
-                        if (prop === 'replaceSelectionWithText') {
-                            return replaceSelectionWithText;
-                        }
-                        if (prop === 'getCurrentText') {
-                            return getCurrentText;
-                        }
-                        if (prop === 'clearWorklet') {
-                            return clearWorklet;
-                        }
-                        if (prop === 'resetHeight') {
-                            return resetHeight;
-                        }
-
-                        return composerRef.current?.[prop as keyof ComposerRef];
-                    },
-                },
-            ) as ComposerWithSuggestionsRef,
+        (): ComposerWithSuggestionsRef => ({
+            focus,
+            replaceSelectionWithText,
+            getCurrentText,
+            clearWorklet,
+            resetHeight,
+            blur: () => composerRef.current?.blur(),
+            isFocused: () => composerRef.current?.isFocused() ?? false,
+        }),
     );
 
     const onClear = useCallback(

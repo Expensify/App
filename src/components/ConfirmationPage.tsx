@@ -127,6 +127,7 @@ function ConfirmationPage({
                                         <ImageSVG
                                             src={illustrations.Fireworks}
                                             contentFit="contain"
+                                            aria-hidden
                                         />
                                     </View>
                                 );
@@ -150,11 +151,17 @@ function ConfirmationPage({
                                     <ImageSVG
                                         src={illustration}
                                         contentFit="contain"
+                                        aria-hidden
                                     />
                                 </View>
                             );
                         })()}
-                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                        <Text
+                            style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {heading}
+                        </Text>
                         {!!descriptionComponent && descriptionComponent}
                         {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
                         {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}

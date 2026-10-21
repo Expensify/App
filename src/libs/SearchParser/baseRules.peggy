@@ -68,6 +68,8 @@ withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+declined = "declined"i { return "declined"; }
+held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
@@ -82,6 +84,9 @@ policyID
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
+anyApproval
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }

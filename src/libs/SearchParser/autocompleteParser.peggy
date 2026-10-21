@@ -111,10 +111,13 @@ autocompleteKey "key"
       / view
       / reimbursable
       / billable
+      / declined
+      / held
       / policyID
       / action
       / date
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo

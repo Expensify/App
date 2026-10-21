@@ -121,7 +121,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
-    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeeAndApprovalMembersPersonalDetails);
@@ -141,7 +141,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         const map = new Map<string, string>();
 
         for (const employee of Object.values(employees)) {
-            if (!employee.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
+            if (!employee?.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
                 continue;
             }
             // Only track members who submit to a non-default approver (i.e., they're in a custom workflow)
@@ -231,7 +231,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const liveAvailableMembers = useMemo<Member[]>(() => {
         const employees = policy?.employeeList ?? {};
         return Object.values(employees)
-            .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((employee) => {
                 const personalDetail = employeeAndApprovalMembersPersonalDetails[employee.email ?? ''];
                 return {
@@ -339,7 +339,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     // Drop any selected members who never made it into the workspace. They were staged for invite but
     // never confirmed, so leaving them in approvalWorkflow.members would carry an un-invited user into
     // the form and fail backend validation with "Approvals can only be set for members of the policy".
-    // This must run on every back path, including when an explicit backTo is honored below.
+    // This must run on every back path so unconfirmed invitees are removed from the workflow draft.
     const dropUnconfirmedStagedMembers = useCallback(() => {
         // Going back means we're done with this expenses-from session, so any
         // hand-off to the invite-message page is no longer in flight.
@@ -438,9 +438,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             // effect must skip its clear if this page unmounts during the hand-off.
             isHandingOffToInviteRef.current = true;
 
-            // The dynamic invite-message route is appended to the current expenses-from URL,
-            // so the back navigation parent (with any nested backTo query param) is preserved
-            // automatically without needing to construct a backToRoute manually.
+            // Append the dynamic invite-message route to the current expenses-from URL so the
+            // confirmation flow returns to this workflow context without a URL backTo parameter.
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path));
             return;
         }
