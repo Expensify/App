@@ -21,6 +21,8 @@ import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
+import {completeOnboarding} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -49,6 +51,18 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
+
+jest.mock('@userActions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        completeOnboarding: jest.fn(),
+    };
+});
+
+const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 
 TestHelper.setupGlobalFetchMock();
 
@@ -471,6 +485,68 @@ describe('Onboarding work email navigation', () => {
         } finally {
             restoreXhr();
         }
+    });
+
+    it('should complete onboarding with the saved name when the work email step is skipped', async () => {
+        // Given a public-domain Join Workspace user who entered their name earlier in onboarding
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+        });
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithPurpose);
+        await waitForBatchedUpdatesWithAct();
+
+        // When they skip adding a work email
+        fireEvent.press(screen.getByTestId('onboardingPrivateEmailSkipButton'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then onboarding completes with that name instead of asking for it again
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+            expect.objectContaining({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                firstName: 'Test',
+                lastName: 'User',
+            }),
+        );
+        expect(getOnboardingRouteNames()).not.toContain(SCREENS.ONBOARDING.PERSONAL_DETAILS);
+        expect(dismissModal).toHaveBeenCalled();
+        dismissModal.mockRestore();
+    });
+
+    it('should complete onboarding with the saved name when work email validation is skipped', async () => {
+        // Given a public-domain Join Workspace user with a saved name who reached validation for an existing work account
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, shouldValidate: true});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+        });
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION], OnboardingModalNavigatorWithPurpose);
+        await waitForBatchedUpdatesWithAct();
+
+        // When they skip validating the work email
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then onboarding completes with that name instead of asking for it again
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+            expect.objectContaining({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                firstName: 'Test',
+            }),
+        );
+        expect(getOnboardingRouteNames()).not.toContain(SCREENS.ONBOARDING.PERSONAL_DETAILS);
+        expect(dismissModal).toHaveBeenCalled();
+        dismissModal.mockRestore();
     });
 
     it('should resume primary work email validation after going back and resubmitting', async () => {
