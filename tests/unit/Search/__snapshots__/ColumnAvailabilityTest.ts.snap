@@ -61,6 +61,7 @@ exports[`Column availability single source of truth the derived picker lists mat
   "base62ReportID",
   "reimbursable",
   "billable",
+  "declined",
   "mcc",
   "taxCode",
   "taxrate",

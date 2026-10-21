@@ -12,8 +12,10 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,6 +52,7 @@ function ExpenseReportListItemRowWide({
     const getSearchColumnStyles = useSearchColumnStyles();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isSelected} = useRowSelection(item.keyForList);
     const isHovered = useListItemHovered();
@@ -156,6 +159,16 @@ function ExpenseReportListItemRowWide({
                     text={item.formattedPaidStatus ?? ''}
                     isLargeScreenWidth
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DECLINED)]}>
+                <Text
+                    selectable
+                    dataSet={COPYABLE_TEXT_DATA_SET}
+                >
+                    {item.declined ? translate('common.yes') : translate('common.no')}
+                </Text>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
