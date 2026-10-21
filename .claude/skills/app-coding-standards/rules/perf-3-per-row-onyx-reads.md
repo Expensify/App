@@ -1,32 +1,30 @@
 ---
 ruleId: PERF-3
-title: Read per-row Onyx data by key in list items
+title: List rows read their own Onyx data by member key
 ---
 
-## [PERF-3] Read per-row Onyx data by key in list items
+## [PERF-3] List rows read their own Onyx data by member key
 
 ### Reasoning
 
-A list row re-renders when any value it reads changes. If a row reads a key that holds data for many records, such as a whole collection or a derived map, then a write to any record re-renders every visible row, even rows whose data did not change. A row that reads only its own member key, or a selector that returns a primitive, re-renders only when its own data changes.
+Onyx notifies subscribers per key. A write to a collection member notifies that member's subscribers and the collection's subscribers. This gives two rules for list rows:
 
-Onyx notifies subscribers per key. A write to a member notifies only that member's subscribers and the collection's subscribers, so one keyed subscription per row is cheap and wakes only for that row. `OnyxListItemProvider` hooks read the whole key without a selector, so every write to that key re-renders every row that consumes it.
-
-The list can cause the same problem. If it reads collections and passes them to rows as props, or puts them in FlashList `extraData`, then every write to those collections re-renders every row.
+1. **A row subscribes to single members, not whole collections.** A row that subscribes to a whole collection re-renders on a write to any member, so one write re-renders every visible row. A row that subscribes to its own member key re-renders only when its own data changes.
+2. **The row reads its data, not the list.** If the list reads collections and passes members to rows as props, or puts collections in FlashList `extraData`, then every write to those collections re-renders the list and every row. If each row reads its own data, the list does not re-render, and only the affected row does.
 
 ### Incorrect
 
 ```tsx
-// BAD: every row subscribes to every report and every person.
+// BAD (rule 1): every row subscribes to the whole report collection to get its own report.
 function ReportRow({reportID}: ReportRowProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const personalDetails = usePersonalDetails();
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // ...
 }
 ```
 
 ```tsx
-// BAD: the list reads collections for its rows, and extraData re-renders all rows on any write.
+// BAD (rule 2): the list reads collections for its rows and passes them down.
 const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -45,24 +43,23 @@ const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 ### Correct
 
 ```tsx
-// GOOD: the row reads its own member keys and only the people it shows.
+// GOOD: the list passes only the ID, and the row reads its own members by key.
+<FlashList
+    data={reportIDs}
+    renderItem={({item}) => <ReportRow reportID={item} />}
+/>;
+
 function ReportRow({reportID}: ReportRowProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
-    const [personalDetails] = usePersonalDetailsByIDs([report?.ownerAccountID, report?.managerID]);
     // ...
 }
-```
-
-```tsx
-// GOOD: when the row needs only one field, a primitive selector skips writes to the other fields.
-const [chatReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.chatReportID});
 ```
 
 ### Not a violation
 
 ```tsx
-// Small key that every row needs and that is rarely written. A provider hook is fine here.
+// Small key that every row needs and that is rarely written. Reading it whole is fine.
 const session = useSession();
 const cardList = useCardList();
 ```
@@ -71,20 +68,23 @@ const cardList = useCardList();
 
 ### Review Metadata
 
-**Flag when ALL of these are true:**
+**Flag (rule 1) when ALL of these are true:**
 
 - The code is a list row component, or code that `renderItem` calls.
-- The row reads a collection key (`ONYXKEYS.COLLECTION.*`) without a member ID, `PERSONAL_DETAILS_LIST` in full (`usePersonalDetails`, `useAllPersonalDetails`), or a derived map such as `REPORT_ATTRIBUTES`, and the selector does not narrow it to this row's data.
-- The row uses only a few members of that value, and their IDs come from the row's props or its own data.
+- The row subscribes to a whole collection (`ONYXKEYS.COLLECTION.*` without a member ID), or to another key that holds data for every record, such as `PERSONAL_DETAILS_LIST` or `REPORT_ATTRIBUTES`.
+- The row uses only a few members of it, and their IDs come from the row's props or its own data.
 
-**Also flag** a list component that reads a collection only to pass members or the whole collection to rows, or puts it in `extraData`, when the row could read those members by key.
+**Flag (rule 2) when ALL of these are true:**
+
+- A list component reads a collection and passes its members or the whole collection to rows as props, or puts it in `extraData`.
+- The row could read those members itself by key.
 
 **DO NOT flag if:**
 
-- The row reads a member key (`${ONYXKEYS.COLLECTION.X}${id}`), or uses a selector that returns a primitive or this row's members only.
-- The key is small, shared by all rows and rarely written (`SESSION`, `BETAS`, `CARD_LIST`), whether read through a provider hook or `useOnyx`.
-- The row needs the whole value, for example to search across all members.
-- The code is not part of a list row.
+- The row subscribes to a member key (`${ONYXKEYS.COLLECTION.X}${id}`), or uses a selector that returns only its own data.
+- The key is small, shared by all rows and rarely written (`SESSION`, `BETAS`, `CARD_LIST`).
+- The row or list needs the whole collection, for example to sort, filter or search across all members.
+- The code is not part of a list.
 
 **Related:** [PERF-11](perf-11-optimize-data-selection.md) for selector cost, [PERF-19](perf-19-scalar-collection-selectors.md) for collection selectors that should return scalars.
 

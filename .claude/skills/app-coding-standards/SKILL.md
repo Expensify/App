@@ -22,7 +22,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 ### Performance
 - [PERF-1](rules/perf-1-no-spread-in-renderitem.md) — No spread in renderItem
 - [PERF-2](rules/perf-2-early-return.md) — Return early before expensive work
-- [PERF-3](rules/perf-3-per-row-onyx-reads.md) — Read per-row Onyx data by key in list items
+- [PERF-3](rules/perf-3-per-row-onyx-reads.md) — List rows read their own Onyx data by member key
 - [PERF-5](rules/perf-5-shallow-comparison.md) — Shallow over deep comparisons
 - [PERF-6](rules/perf-6-derive-state-from-props.md) — Derive state from props
 - [PERF-7](rules/perf-7-reset-via-key-prop.md) — Reset via key prop
