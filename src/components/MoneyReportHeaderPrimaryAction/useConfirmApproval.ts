@@ -3,6 +3,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -23,6 +24,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 
 function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -54,6 +56,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            formatPhoneNumber,
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,

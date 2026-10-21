@@ -131,7 +131,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -174,6 +174,7 @@ function EmptySearchViewContent({
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
+            formatPhoneNumber,
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,

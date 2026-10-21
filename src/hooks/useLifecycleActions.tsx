@@ -132,7 +132,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -197,6 +197,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            formatPhoneNumber,
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             currentUserAccountIDParam: accountID,
@@ -302,6 +303,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
         confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 expenseReportTransactions: transactions,
@@ -398,6 +400,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                                 isTrackIntentUser,
                                 allTransactionViolationsRef.current,
                                 getCurrencyDecimals,
+                                formatPhoneNumber,
                                 rules,
                             );
                         },
@@ -416,6 +419,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     isTrackIntentUser,
                     allTransactionViolationsRef.current,
                     getCurrencyDecimals,
+                    formatPhoneNumber,
                     rules,
                 );
             },

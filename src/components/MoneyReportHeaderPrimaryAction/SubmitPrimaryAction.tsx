@@ -73,7 +73,7 @@ function SubmitPrimaryAction({reportID, isDisabled}: SubmitPrimaryActionProps) {
 
 function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -165,6 +165,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
         confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 expenseReportTransactions: transactions,

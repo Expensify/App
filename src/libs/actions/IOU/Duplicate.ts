@@ -1126,6 +1126,7 @@ function duplicateReport({
         targetPolicy,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
         rules,
         false,
         undefined,

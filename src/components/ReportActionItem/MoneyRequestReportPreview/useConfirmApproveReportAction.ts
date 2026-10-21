@@ -7,6 +7,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -23,6 +24,7 @@ import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
 
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -38,6 +40,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
             showDelegateNoAccessModal();
         } else {
             approveMoneyRequest({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,

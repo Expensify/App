@@ -413,6 +413,7 @@ function handleActionButtonPress({
                 return;
             }
             getApproveActionCallback({
+                formatPhoneNumber,
                 hash,
                 item,
                 snapshotReport,
@@ -763,9 +764,11 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getApproveActionCallback({
+    formatPhoneNumber,
     hash,
     item,
     snapshotReport,
@@ -794,6 +797,7 @@ function getApproveActionCallback({
     const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
 
     approveMoneyRequest({
+        formatPhoneNumber,
         expenseReport: snapshotReport,
         expenseReportPolicy: reportPolicy,
         rules,

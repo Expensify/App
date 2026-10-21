@@ -330,6 +330,7 @@ function ReportSubmitToContent({
         }
 
         submitReport({
+            formatPhoneNumber,
             getCurrencyDecimals,
             expenseReport: report,
             expenseReportTransactions: reportTransactions,

@@ -35,7 +35,7 @@ import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
     const createButtonRef = useRef<ComponentRef<typeof View>>(null);
@@ -67,6 +67,7 @@ function SearchActionsBarCreateButton() {
                 policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                formatPhoneNumber,
                 rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,
@@ -79,7 +80,7 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber, rules],
     );
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
