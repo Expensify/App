@@ -8827,6 +8827,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 createRule: 'Créer une règle',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
+                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. ${explanation}`,
             },
             tabs: {
                 general: 'Général',
@@ -8912,6 +8913,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
                     categoryHasRule: 'Cette catégorie a déjà une règle. Modifiez la règle existante ou décrivez une règle pour une autre catégorie.',
+                },
+                impossible: {
+                    noTrigger: 'Les règles ne peuvent pas commencer à partir de cet événement.',
+                    noCapability: 'Les règles ne peuvent pas faire cela.',
+                    missingData: 'Expensify n’a pas ces informations.',
+                    retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
+                    historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
+                    tryThisInstead: 'Essayez plutôt ceci',
                 },
             },
             expenseDefaultsTable: {
