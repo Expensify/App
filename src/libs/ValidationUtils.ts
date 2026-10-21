@@ -283,6 +283,13 @@ function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedT
             errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
         }
     }
+    for (const streetInputID of ['addressLine1', 'addressLine2'] as const) {
+        const street = values[streetInputID] ?? '';
+        // Cards can ship to a PO box, so only a street with invalid characters is rejected
+        if (street && !errors[streetInputID] && getInvalidAddressErrorTranslationPath(street) === 'bankAccount.error.addressStreet') {
+            errors[streetInputID] = translate('bankAccount.error.addressStreet');
+        }
+    }
     const state = values.state ?? '';
     if (values.country !== CONST.COUNTRY.US && state.length > CONST.STATE_CHARACTER_LIMIT) {
         errors.state = translate('common.error.characterLimitExceedCounter', state.length, CONST.STATE_CHARACTER_LIMIT);
