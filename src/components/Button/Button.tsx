@@ -51,6 +51,7 @@ function Button({
     sentryLabel,
     ref,
     accessibilityState,
+    accessibilityHasPopup,
 }: ButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -140,6 +141,7 @@ function Button({
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
+            accessibilityHasPopup={accessibilityHasPopup}
             sentryLabel={sentryLabel}
             role={CONST.ROLE.BUTTON}
             isNested={isNested}

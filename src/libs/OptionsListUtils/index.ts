@@ -148,7 +148,6 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  */
 function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, translate: LocalizedTranslate): Participant & {keyForList: string} {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     const formattedLogin = formatPhoneNumberPhoneUtils(login);
     // When detail has a login the participant is a real Expensify user — use their profile name.
@@ -164,7 +163,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     } else {
         const detailDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from device contacts should fall through to the formatted phone number
+        // empty string from device contacts should fall through to the formatted phone number
         displayName = participant?.text || detailDisplayName;
     }
 
@@ -173,21 +172,17 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         login,
         accountID: detail?.accountID,
         text: displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         firstName: (detail?.firstName || participant.firstName) ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastName: (detail?.lastName || participant.lastName) ?? '',
         alternateText: formattedLogin || displayName,
         icons: [
             {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
         isSelected: participant.selected,
         selected: participant.selected, // Keep for backwards compatibility
@@ -520,7 +515,6 @@ function createOption({
         result.allReportErrors = getEffectiveReportErrors(reportAttribute);
         result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, rules, true, result.private_isArchived);
 
@@ -942,7 +936,6 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
@@ -1914,11 +1907,8 @@ function getUserToInviteOption({
         userToInvite.displayName = displayValue;
         userToInvite.alternateText = displayValue;
     } else {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.text = userToInvite.text || displayValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.displayName = userToInvite.displayName || displayValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.alternateText = userToInvite.alternateText || displayValue;
     }
 
@@ -2495,7 +2485,7 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
-                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+                // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
             );
@@ -2918,9 +2908,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
     const accountID = member.accountID;
 
     return {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         text: member.text || member.displayName || '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         alternateText: member.alternateText || member.login || '',
 
         keyForList: member.keyForList || String(accountID ?? CONST.DEFAULT_NUMBER_ID) || '',
