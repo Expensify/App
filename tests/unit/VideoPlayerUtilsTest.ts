@@ -28,10 +28,11 @@ describe('buildVideoSourceURL', () => {
         expect(result).toBe(`${url}${SKIP_TIME_TAG}`);
     });
 
-    it('adds only the skip time tag to a local blob video', () => {
+    it.each([
+        ['a blob video', 'blob:https://new.expensify.com/1234-5678'],
+        ['a file video', 'file:///data/user/0/video.mp4'],
+    ])('adds only the skip time tag to %s on the device', (_, url) => {
         // Given a video the user picked but has not uploaded yet
-        const url = 'blob:https://new.expensify.com/1234-5678';
-
         // When building the playable source
         const result = buildVideoSourceURL(url, ENCRYPTED_TOKEN);
 

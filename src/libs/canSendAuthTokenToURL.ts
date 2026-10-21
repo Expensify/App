@@ -8,7 +8,8 @@
 import CONFIG from '@src/CONFIG';
 
 // Each root ends with a slash, so a prefix match covers the whole host. A lookalike host such as
-// `https://www.expensify.com.example.com/` does not match. Roots that are not configured are empty strings and get dropped here.
+// `https://www.expensify.com.example.com/` does not match. Roots that are not configured are empty strings, and the web proxy
+// root is the relative path `/`. Both get dropped here, and the leading slash check below covers the proxy.
 const TRUSTED_URL_ROOTS = [
     CONFIG.EXPENSIFY.DEFAULT_API_ROOT,
     CONFIG.EXPENSIFY.DEFAULT_SECURE_API_ROOT,
