@@ -133,6 +133,26 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 function getDefineValues(file: string): DefinePluginOptions {
     const isDevelopmentFile = file === '.env' || file === '.env.development';
+    const parsedConfig = dotenv.config({path: file}).parsed;
+    // Forward only public development settings, never arbitrary shell variables (which may contain secrets).
+    const developmentOverrides = isDevelopmentFile
+        ? Object.fromEntries(
+              [
+                  'USE_WEB_PROXY',
+                  'USE_NGROK',
+                  'EXPENSIFY_URL',
+                  'SECURE_EXPENSIFY_URL',
+                  'NEW_EXPENSIFY_URL',
+                  'STAGING_EXPENSIFY_URL',
+                  'STAGING_SECURE_EXPENSIFY_URL',
+                  'NGROK_URL',
+                  'SECURE_NGROK_URL',
+                  'SKIP_ONBOARDING',
+                  'PUSHER_APP_KEY',
+                  'PUSHER_DEV_SUFFIX',
+              ].flatMap((key) => (process.env[key] === undefined ? [] : [[key, process.env[key]]])),
+          )
+        : {};
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
@@ -142,7 +162,10 @@ function getDefineValues(file: string): DefinePluginOptions {
         global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
-        __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
+        __REACT_WEB_CONFIG__: JSON.stringify({
+            ...parsedConfig,
+            ...developmentOverrides,
+        }),
 
         // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
         // react-native-render-html uses variable to log exclusively during development.

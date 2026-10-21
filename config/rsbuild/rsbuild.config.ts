@@ -48,9 +48,11 @@ export default defineConfig(async ({command}) => {
         };
     }
 
-    const port = await portfinder.getPortPromise({port: BASE_PORT});
+    const useWorker = process.env.USE_CLOUDFLARE_WORKER === 'true';
+    const publicPort = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : await portfinder.getPortPromise({port: BASE_PORT});
+    const port = useWorker ? Number(process.env.WEB_INTERNAL_PORT) : publicPort;
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
-    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/chat-attachments', '/receipts'], target: 'http://[::1]:9000'}];
+    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/staging-secure', '/chat-attachments', '/receipts'], target: 'http://[::1]:9000'}];
 
     const commonRspackTool = common.tools?.rspack;
 
@@ -58,8 +60,10 @@ export default defineConfig(async ({command}) => {
         ...common,
         dev: {
             client: {overlay: false},
+            assetPrefix: '/',
             lazyCompilation: false,
         },
+        security: useWorker ? {nonce: 'nonce-random-value'} : common.security,
         source: {
             ...common.source,
             define: {
@@ -67,20 +71,23 @@ export default defineConfig(async ({command}) => {
                 // The dev server's resolved port can differ from BASE_PORT if 8082 is already in use.
                 // CONFIG.DEV_PORT (src/CONFIG.ts) reads this at runtime to build correct dev environment URLs.
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'process.env.PORT': port,
+                'process.env.PORT': publicPort,
             },
         },
         server: {
             proxy,
             port,
-            host: 'dev.new.expensify.com',
+            strictPort: !!process.env.WEB_PORT,
+            host: useWorker ? '127.0.0.1' : 'dev.new.expensify.com',
             // Rsbuild's --open flag defaults to the first entry's route, e.g. "/main" for our "main" entry key,
             // which 404s since the app has no route by that name. Open the actual app root instead.
-            open: '/',
-            https: {
-                key: fs.readFileSync(path.join(dirname, 'key.pem')),
-                cert: fs.readFileSync(path.join(dirname, 'certificate.pem')),
-            },
+            open: process.env.WEB_PORT ? false : '/',
+            https: useWorker
+                ? undefined
+                : {
+                      key: fs.readFileSync(path.join(dirname, 'key.pem')),
+                      cert: fs.readFileSync(path.join(dirname, 'certificate.pem')),
+                  },
             headers: {
                 // HTTP header names aren't valid camelCase identifiers.
                 // eslint-disable-next-line @typescript-eslint/naming-convention

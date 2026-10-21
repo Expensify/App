@@ -1,4 +1,5 @@
 import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import {fetchDevelopmentResponse, isAPIRequest} from './fetchDevelopmentResponse';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
 const HASHED_ASSET_PATH = /^\/[^/]+(?:-[0-9a-f]{16}\.bundle\.js|\.[0-9a-f]{10}\.[a-z0-9]+)$/;
@@ -42,9 +43,9 @@ function buildAssetRequest(request: Request, url: URL): Request {
     return new Request(assetURL, request);
 }
 
-function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'], nonce: string) {
+function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, connectSrcHosts: string[] = []) {
     headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    headers.set('Content-Security-Policy', getCSP(environment, nonce));
+    headers.set('Content-Security-Policy', getCSP(environment, nonce, connectSrcHosts));
     headers.set('X-Frame-Options', 'SAMEORIGIN');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'origin-when-cross-origin');
@@ -83,31 +84,41 @@ async function getPreviousBuildFile(env: Env, url: URL, method: string): Promise
 export default {
     async fetch(request, env): Promise<Response> {
         const url = new URL(request.url);
+        const isDevelopment = env.ENVIRONMENT === 'development';
         const nonce = generateNonce();
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';
         const isAASAPath = url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH;
-        let assetResponse = await env.ASSETS.fetch(buildAssetRequest(request, url));
+        let assetResponse = isDevelopment ? await fetchDevelopmentResponse(request, env) : await env.ASSETS.fetch(buildAssetRequest(request, url));
+
+        if (assetResponse.status === 101 || (isDevelopment && isAPIRequest(url.pathname))) {
+            return assetResponse;
+        }
+        const connectSrcHosts = isDevelopment ? [url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), ...(JSON.parse(env.DEV_CONNECT_ORIGINS) as string[])] : [];
 
         // The SPA fallback answers every miss with index.html. A browser asking for a missing chunk needs the file from
         // an earlier build, or a real 404.
         if (isHTMLResponse(assetResponse) && (isAASAPath || (!isNavigation && STATIC_FILE_PATH.test(url.pathname)))) {
-            const previousBuildFile = isAASAPath ? null : await getPreviousBuildFile(env, url, request.method);
+            const previousBuildFile = isAASAPath || isDevelopment ? null : await getPreviousBuildFile(env, url, request.method);
             if (!previousBuildFile) {
                 const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce);
+                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce, connectSrcHosts);
                 return notFound;
             }
             assetResponse = previousBuildFile;
         }
 
         const response = new Response(assetResponse.body, assetResponse);
-        setSecurityHeaders(response.headers, env.ENVIRONMENT, nonce);
+        setSecurityHeaders(response.headers, env.ENVIRONMENT, nonce, connectSrcHosts);
 
         if (isAASAPath) {
             response.headers.set('Content-Type', 'application/json');
         }
 
-        if (HASHED_ASSET_PATH.test(url.pathname)) {
+        if (isDevelopment) {
+            response.headers.set('Cache-Control', 'no-store');
+            response.headers.delete('ETag');
+            response.headers.delete('Last-Modified');
+        } else if (HASHED_ASSET_PATH.test(url.pathname)) {
             response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
         }
 
@@ -127,4 +138,4 @@ export default {
             })
             .transform(response);
     },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env | DevelopmentEnv>;

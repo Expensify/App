@@ -5,6 +5,7 @@ type CSPOptions = {
     fontSrcHosts?: string[];
     frameSrcHosts?: string[];
     scriptSrcHashes?: string[];
+    connectSrcHosts?: string[];
 };
 
 /** Inline scripts allowed without a nonce. Tests check that every such script in `web/index.html` is listed. */
@@ -17,7 +18,7 @@ const INLINE_SCRIPT_HASHES = [
     'sha256-ZC4Ihfl+1sv3E25DQh090ITQKwffxiocyA9C1vaePKU=',
 ];
 
-function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = []}: CSPOptions): string {
+function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = [], connectSrcHosts = []}: CSPOptions): string {
     const csp: Record<string, string[]> = {
         'default-src': ["'self'", 'https://assets.onfido.com'],
         'script-src': [
@@ -53,6 +54,7 @@ function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = []}:
         ],
         'connect-src': [
             "'self'",
+            ...connectSrcHosts,
             'blob: *.onfido.com',
             'data:',
             'https://*.analytics.google.com',
@@ -167,8 +169,17 @@ const PRODUCTION_CSP = buildCSP({
     scriptSrcHashes: INLINE_SCRIPT_HASHES,
 });
 
-function getCSP(environment: Env['ENVIRONMENT'], nonce: string): string {
-    const csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
+function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, connectSrcHosts: string[] = []): string {
+    const csp =
+        environment === 'development'
+            ? buildCSP({
+                  fontSrcHosts: ["'self'"],
+                  scriptSrcHashes: INLINE_SCRIPT_HASHES,
+                  connectSrcHosts: ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev', 'http://localhost:9000', ...connectSrcHosts],
+              })
+            : environment === 'staging'
+              ? STAGING_CSP
+              : PRODUCTION_CSP;
     return csp.replace(NONCE_PLACEHOLDER, `nonce-${nonce}`);
 }
 
