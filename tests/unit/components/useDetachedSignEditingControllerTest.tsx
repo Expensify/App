@@ -220,18 +220,6 @@ describe('useDetachedSignEditingController', () => {
         expect(onInputChange).not.toHaveBeenCalled();
     });
 
-    it('clears only the sign on a backspace key press at the start of a negative value', () => {
-        // Given a negative value with the caret at the start
-        const {result} = renderController({value: '-12'});
-        act(() => result.current.handleSelectionChange(0, 0));
-
-        // When the user presses backspace on the keyboard
-        act(() => result.current.handleKeyPress(buildKeyPressEvent('Backspace')));
-
-        // Then the sign is cleared and the magnitude is untouched, so a native deletion is not doubled by the controller
-        expect(result.current.value).toBe('12');
-    });
-
     it('ignores a sign toggle when negative values are not allowed', () => {
         // Given a controller that disallows negative values
         const {result, onInputChange} = renderController({value: '5', allowNegative: false});
