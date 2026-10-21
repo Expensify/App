@@ -1,7 +1,4 @@
-/**
- * Remembers when the Reports tab preload was dispatched, so ManualNavigateToInboxTab can report how long the preloaded
- * tab waited before the tap. Kept here because the navigation state records that a tab is preloaded, but not when.
- */
+/** Navigation state records that the Reports tab is preloaded but not when, so the preload time is kept here. */
 type PreloadDispatch = {
     tabNavigatorKey: string;
     dispatchedAt: number;

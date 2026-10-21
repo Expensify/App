@@ -10,7 +10,7 @@ import {startSpan} from './activeSpans';
 import {startNavigateToReportsSpans} from './navigateToReportsSpans';
 import {getMsSinceReportsTabPreload} from './reportsTabPreloadTime';
 
-/** The tab the user is leaving. Read before the tab navigation is dispatched, while it is still the focused one. */
+/** Must run before the tab switch is dispatched, while the tab being left is still focused. */
 function getSourceTab(rootState: ReturnType<typeof navigationRef.getRootState>): string {
     const focusedRouteName = getFocusedTabRouteName(rootState);
     return (focusedRouteName && ROUTE_TO_NAVIGATION_TAB[focusedRouteName]) ?? 'unknown';
