@@ -91,7 +91,7 @@
 
 - Reason: Keeps the native tab bar, with no item drawn as selected, while a `tabBarItemHidden` route (patch 003) is focused. This replaces two parts of patch 003: the hidden routes are drawn inside the first visible tab instead of over the host with the tab bar hidden, and the host selects that first visible tab instead of the last visible one in the tab history. The user tapping that tab leaves the hidden route, while native reporting it on its own still confirms the state as in patch 003. The RNScreens prop that hides the selection is added by its patch 007.
 - Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
-- E/App issue: [#104294](https://github.com/Expensify/App/issues/104294)
+- E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
 - PR Introducing Patch: [#104491](https://github.com/Expensify/App/pull/104491)
 - PR Updating Patch: N/A
 
