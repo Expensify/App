@@ -27,6 +27,10 @@ let preMountedFullscreen: {routeKey: string; route: Route} | undefined;
 // work that would block the RHP slide.
 let isRevealingPreMountedFullscreen = false;
 
+// Resets the revealing flag if the reveal never ends it (e.g. its callback threw), so Search does not skip its overlay for good.
+const REVEALING_SAFETY_TIMEOUT_MS = 5 * CONST.MAX_TRANSITION_DURATION_MS;
+let revealingSafetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
+
 // Set while a neutral placeholder route sits directly under the RHP, so a native swipe-dismiss
 // reveals that placeholder instead of the real destination underneath.
 //
@@ -237,11 +241,13 @@ function takePreMountedFullscreenForReveal(route: Route): string | undefined {
     const {routeKey} = preMountedFullscreen;
     preMountedFullscreen = undefined;
     clearFullscreenPreInsertedFlag();
-    isRevealingPreMountedFullscreen = true;
+    setIsRevealingPreMountedFullscreen(true);
     return routeKey;
 }
 
 function setIsRevealingPreMountedFullscreen(value: boolean) {
+    clearTimeout(revealingSafetyTimeoutID);
+    revealingSafetyTimeoutID = value ? setTimeout(() => setIsRevealingPreMountedFullscreen(false), REVEALING_SAFETY_TIMEOUT_MS) : undefined;
     isRevealingPreMountedFullscreen = value;
 }
 

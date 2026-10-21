@@ -648,6 +648,9 @@ function handleReplaceFullscreenUnderRHP(
         }
         const {preMountedRouteKey} = action.payload;
         const preMountedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : undefined;
+
+        // Writing module state from the router is safe here: the dispatch is synchronous and a wide pre-mount keeps every
+        // root route key, so beforeRemove cannot reject the state after the outcome is written.
         lastPreMountReplaceOutcome = preMountedRouteKey ? {routeKey: preMountedRouteKey, isRevealed: !!preMountedTabState} : undefined;
         let updatedTabState = builtTabState;
         if (preMountedTabState) {

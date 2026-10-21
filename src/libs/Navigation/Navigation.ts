@@ -1216,28 +1216,8 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         holdPendingSearchWriteFlush();
     }
 
-    // Key of the RHP that covered the revealed pre-mount. Stored after the dismiss, so going back to a history entry
-    // that still has this RHP drops the pre-mount from it.
-    let revealedBehindModalRouteKey: string | undefined;
-
-    // The revealing flag is reset once the dismiss ends. Left set, a later Search focus would skip its overlay and defer its re-arm.
-    const afterTransition = preMountedRouteKey
-        ? () => {
-              setIsRevealingPreMountedFullscreen(false);
-
-              // Recorded only once the RHP is gone. Any state that still has this RHP loses the pre-mount, and during the dismiss
-              // that includes the current one.
-              if (revealedBehindModalRouteKey) {
-                  setRevealedWideTabPreMountModalRouteKey(preMountedRouteKey, revealedBehindModalRouteKey);
-              }
-
-              // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
-              runAfterClosingScreenUnmount(() => {
-                  releasePendingSearchWriteFlush();
-                  options?.afterTransition?.();
-              });
-          }
-        : options?.afterTransition;
+    // Wrapped only when the pre-mount is revealed, so a cancelled or discarded one does not delay the caller's work.
+    let afterTransition = options?.afterTransition;
 
     requestAnimationFrame(() => {
         // Key of the RHP covering the pre-mount, read before the replace. A history entry that still has this RHP is from before
@@ -1259,7 +1239,23 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
             releasePendingSearchWriteFlush();
         } else if (preMountedRouteKey && preMountOutcome?.isRevealed) {
             finishWideTabPreMountReveal(preMountedRouteKey);
-            revealedBehindModalRouteKey = modalRouteKey;
+
+            // The revealing flag is reset once the dismiss ends. Left set, a later Search focus would skip its overlay and defer its re-arm.
+            afterTransition = () => {
+                setIsRevealingPreMountedFullscreen(false);
+
+                // Recorded only once the RHP is gone. Any state that still has this RHP loses the pre-mount, and during the dismiss
+                // that includes the current one. Until then, a Browser Back during the slide can restore an entry that keeps it.
+                if (modalRouteKey) {
+                    setRevealedWideTabPreMountModalRouteKey(preMountedRouteKey, modalRouteKey);
+                }
+
+                // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
+                runAfterClosingScreenUnmount(() => {
+                    releasePendingSearchWriteFlush();
+                    options?.afterTransition?.();
+                });
+            };
         } else if (preMountedRouteKey) {
             discardWideTabPreMount();
 

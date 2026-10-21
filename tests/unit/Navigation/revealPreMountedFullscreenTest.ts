@@ -1,5 +1,6 @@
 import {consumePreMountReplaceOutcome} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import {setIsRevealingPreMountedFullscreen, takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal} from '@libs/Navigation/helpers/wideTabPreMount';
 import {setRevealedWideTabPreMountModalRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,11 @@ jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForAct
     consumePreMountReplaceOutcome: jest.fn(),
 }));
 
+jest.mock('@libs/Navigation/helpers/runAfterClosingScreenUnmount', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 jest.mock('@libs/pendingSearchWrite', () => ({
     holdPendingSearchWriteFlush: jest.fn(),
     releasePendingSearchWriteFlush: jest.fn(),
@@ -63,6 +69,7 @@ const mockedReleasePendingSearchWriteFlush = jest.mocked(releasePendingSearchWri
 const mockedFinishWideTabPreMountReveal = jest.mocked(finishWideTabPreMountReveal);
 const mockedSetRevealedWideTabPreMountModalRouteKey = jest.mocked(setRevealedWideTabPreMountModalRouteKey);
 const mockedConsumePreMountReplaceOutcome = jest.mocked(consumePreMountReplaceOutcome);
+const mockedRunAfterClosingScreenUnmount = jest.mocked(runAfterClosingScreenUnmount);
 // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() does not rely on `this` binding
 const mockedGetRootState = jest.mocked(navigationRef.getRootState);
 // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() does not rely on `this` binding
@@ -181,5 +188,43 @@ describe('revealRouteBeforeDismissingModal with a wide pre-mount', () => {
         // And the reveal state is reset right away, so a Search focus before the dismiss ends shows its overlay and flushes
         expect(mockedSetIsRevealingPreMountedFullscreen).toHaveBeenCalledWith(false);
         expect(mockedReleasePendingSearchWriteFlush).toHaveBeenCalled();
+    });
+
+    it('defers the caller work and the Search flush past the RHP removal when the pre-mount is revealed', () => {
+        // Given a replace whose outcome says the pre-mounted screen was shown, and a caller with work to run after the dismiss
+        mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: true});
+        const callerAfterTransition = jest.fn();
+
+        // When the reveal runs and the RHP dismiss transition ends
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: ''}), {afterTransition: callerAfterTransition});
+        for (const callback of pendingTransitionCallbacks) {
+            callback();
+        }
+
+        // Then the reveal state is reset, but the caller work and the flush wait for the RHP to unmount, so they do not block it
+        expect(mockedSetIsRevealingPreMountedFullscreen).toHaveBeenCalledWith(false);
+        expect(callerAfterTransition).not.toHaveBeenCalled();
+        expect(mockedReleasePendingSearchWriteFlush).not.toHaveBeenCalled();
+
+        // And both run once the RHP is unmounted
+        mockedRunAfterClosingScreenUnmount.mock.calls.at(0)?.[0]();
+        expect(mockedReleasePendingSearchWriteFlush).toHaveBeenCalled();
+        expect(callerAfterTransition).toHaveBeenCalled();
+    });
+
+    it('runs the caller work right when the dismiss ends if the pre-mount is not revealed', () => {
+        // Given a replace whose outcome says the destination was built without the pre-mounted screen
+        mockReplaceOutcome({routeKey: PRE_MOUNTED_ROUTE_KEY, isRevealed: false});
+        const callerAfterTransition = jest.fn();
+
+        // When the reveal runs and the RHP dismiss transition ends
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: ''}), {afterTransition: callerAfterTransition});
+        for (const callback of pendingTransitionCallbacks) {
+            callback();
+        }
+
+        // Then the caller work is not delayed, because nothing revealed needs the RHP removal to finish first
+        expect(callerAfterTransition).toHaveBeenCalled();
+        expect(mockedRunAfterClosingScreenUnmount).not.toHaveBeenCalled();
     });
 });
