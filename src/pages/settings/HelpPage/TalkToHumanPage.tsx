@@ -37,7 +37,11 @@ function TalkToHumanPage() {
         // A direct link has nothing behind it to return to and goBack would then skip afterTransition, so it falls back
         // to the Help page and opens the ticket from there.
         const fallbackRoute = navigationRef.current?.canGoBack() ? undefined : ROUTES.SETTINGS_HELP;
-        Navigation.goBack(fallbackRoute, {afterTransition: openSupportTicketOrConcierge});
+        Navigation.goBack(fallbackRoute, {
+            afterTransition: () => {
+                openSupportTicketOrConcierge();
+            },
+        });
 
         // openSupportTicketOrConcierge is a new function on every render and hasRequestedTicket already stops a second
         // request, so this effect only needs to react to the connection changing.
