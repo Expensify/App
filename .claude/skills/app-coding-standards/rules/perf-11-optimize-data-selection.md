@@ -7,7 +7,7 @@ title: Optimize data selection and handling
 
 ### Reasoning
 
-`useOnyx` supports an optional `selector` to narrow data before it reaches the component. Since Onyx 3.0.117, `useOnyx` is built on `useSyncExternalStoreWithSelector` over a store keyed by Onyx key. A write to a collection member notifies that member's subscribers and the collection's subscribers, and unchanged members keep their references. Selectors control both **what** data the component receives and **how** Onyx detects changes:
+`useOnyx` supports an optional `selector` to narrow data before it reaches the component. Onyx notifies subscribers per key: a write to a collection member notifies that member's subscribers and the collection's subscribers, and unchanged members keep their references. Selectors control both **what** data the component receives and **how** Onyx detects changes:
 
 - **With a selector**: Onyx runs `deepEqual` on the selector output to decide whether to re-render. This guards against unnecessary re-renders when unrelated data changes, but the comparison cost scales with the size of the output.
 - **Without a selector**: Onyx compares by reference only, which is free. However, the component re-renders on **every** write to the key, even when the new value has the same contents. For a collection key, that means every write to any member.
