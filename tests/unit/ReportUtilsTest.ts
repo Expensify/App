@@ -15509,6 +15509,13 @@ describe('ReportUtils', () => {
                 employeeList: {},
             };
 
+            const policyWithGuestUser: Policy = {
+                ...createRandomPolicy(3),
+                id: policyID,
+                role: CONST.POLICY.ROLE.GUEST,
+                employeeList: {},
+            };
+
             const restrictedReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -15530,7 +15537,9 @@ describe('ReportUtils', () => {
 
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
         });
     });
 
@@ -17316,6 +17325,14 @@ describe('ReportUtils', () => {
                 isOwnPolicyExpenseChat: false,
             };
             expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+
+        test('should return false for restricted room when user is a policy guest', () => {
+            const report = {
+                ...createRandomReport(7, undefined),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false, true)).toBe(false);
         });
     });
 
