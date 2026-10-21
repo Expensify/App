@@ -108,6 +108,7 @@ function SearchChartView({
             const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
             return start > today;
         },
+        translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
     });
