@@ -34,6 +34,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceMembersChangeWorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT> & {
@@ -109,8 +110,10 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
                         isOffice={isOffice}
                         onSelect={setChosenIsOffice}
                     />
-                    <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('workspace.people.workArrangementPage.futureOnlyNote')}</Text>
                 </ScrollView>
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabelSupporting]}>{translate('workspace.people.workArrangementPage.futureOnlyNote')}</Text>
+                </View>
                 <FixedFooter>
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
