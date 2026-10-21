@@ -558,7 +558,7 @@ function shouldShowBulkDuplicateOption({
         }
 
         const reportID = selectedTransactions[id]?.reportID;
-        const submitterReport = reportID ? getReportOrDraftReport(reportID, searchReports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : undefined;
+        const submitterReport = reportID ? getReportOrDraftReport({reportID, searchReports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]}) : undefined;
         if (submitterReport && !isCurrentUserSubmitter(submitterReport)) {
             return false;
         }
@@ -607,7 +607,7 @@ function getChatReportForBulkPay(
         return undefined;
     }
 
-    return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport(resolvedChatReportID);
+    return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport({reportID: resolvedChatReportID});
 }
 
 /**
@@ -1966,7 +1966,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return (
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                return isCurrentUserSubmitter(getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]));
+                return isCurrentUserSubmitter(getReportOrDraftReport({reportID: id, searchReports: reports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]}));
             })
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data, allReports]);
@@ -1977,7 +1977,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return (
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                const iouReport = getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+                const iouReport = getReportOrDraftReport({reportID: id, searchReports: reports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]});
                 if (!iouReport?.chatReportID) {
                     return false;
                 }
@@ -2555,7 +2555,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const ownerAccountID =
                 transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+                getReportOrDraftReport({reportID: transactionEntry.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`]})?.ownerAccountID;
             if (typeof ownerAccountID === 'number') {
                 moveOwnerAccountIDs.add(ownerAccountID);
             } else {
@@ -2905,11 +2905,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     // A blocked report skips the submit-to popover and falls through to the modal below.
                     if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
-                        const snapshotReport = getReportOrDraftReport(
-                            reportIDForSubmit,
-                            undefined,
-                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
-                        );
+                        const snapshotReport = getReportOrDraftReport({
+                            reportID: reportIDForSubmit,
+                            fallbackReport: searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
+                        });
 
                         if (snapshotReport) {
                             const summaryForSubmit = buildReportSubmitViolationSummary(snapshotReport, reportIDForSubmit, policyForSubmit);

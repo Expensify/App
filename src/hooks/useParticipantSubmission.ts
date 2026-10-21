@@ -245,12 +245,10 @@ function useParticipantSubmission({
         const selectedPolicyID =
             firstParticipant?.policyID ??
             (firstParticipant?.reportID
-                ? getReportOrDraftReport(
-                      firstParticipant.reportID,
-                      undefined,
-                      undefined,
-                      dataRef.current.reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${firstParticipant.reportID}`] ?? {},
-                  )?.policyID
+                ? getReportOrDraftReport({
+                      reportID: firstParticipant.reportID,
+                      reportDraft: dataRef.current.reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${firstParticipant.reportID}`] ?? {},
+                  })?.policyID
                 : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;

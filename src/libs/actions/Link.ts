@@ -342,7 +342,7 @@ function getReportLinkRoute(
     }
 
     const backTo = Navigation.getActiveRoute();
-    const report = getReportOrDraftReport(reportRouteParams.reportID);
+    const report = getReportOrDraftReport({reportID: reportRouteParams.reportID});
     if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
         return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
     }

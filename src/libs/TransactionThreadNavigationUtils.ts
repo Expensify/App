@@ -103,7 +103,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         currentUserAccountID: context.currentUserAccountID,
         // An unreported expense has no parent expense report to build the thread from; report "0" is a
         // placeholder, not a row in the collection.
-        iouReport: isUnreported ? undefined : (getReportOrDraftReport(reportID) ?? expense.report),
+        iouReport: isUnreported ? undefined : (getReportOrDraftReport({reportID}) ?? expense.report),
         iouReportAction: iouAction,
         transaction,
         personalDetails: context.personalDetails,

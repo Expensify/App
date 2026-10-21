@@ -212,7 +212,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               predictedNextStatus,
               isTrackIntentUser,
           });
-    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const chatReport = getReportOrDraftReport({reportID: expenseReport.chatReportID});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1025,7 +1025,7 @@ function submitReport({
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = getReportOrDraftReport({reportID: expenseReport.parentReportID});
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
