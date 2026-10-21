@@ -5,7 +5,7 @@ import SelectionList from '@components/SelectionList';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import WorkspaceMemberOfficeLocationPage from '@pages/workspace/members/WorkspaceMemberOfficeLocationPage';
 
@@ -38,7 +38,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({updateEmployeeOfficeLocation: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn(() => true),
+    canMemberWrite: jest.fn(() => true),
 }));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: ({children}: PropsWithChildren) => children}));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
@@ -78,7 +78,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(isPolicyAdmin).mockReturnValue(true);
+        jest.mocked(canMemberWrite).mockReturnValue(true);
     });
 
     const renderPage = (officeID?: string) => {
@@ -125,9 +125,9 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 
-    it('does nothing for a user who is not a workspace admin', () => {
-        // Given a user who manages members without being a workspace admin
-        jest.mocked(isPolicyAdmin).mockReturnValue(false);
+    it('does nothing for a user who cannot manage members', () => {
+        // Given a user without write access to the workspace members
+        jest.mocked(canMemberWrite).mockReturnValue(false);
         renderPage();
 
         // When they choose another office and confirm
@@ -138,7 +138,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
             getConfirmButtonProps()?.onPress?.();
         });
 
-        // Then nothing is sent, since only admins can change office assignments
+        // Then nothing is sent, since changing office assignments needs write access to the members
         expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
     });
 

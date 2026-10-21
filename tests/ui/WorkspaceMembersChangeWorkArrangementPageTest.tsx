@@ -41,7 +41,7 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () =>
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/actions/Policy/Member', () => ({clearWorkspaceMembersSelectedForBulkEdit: jest.fn()}));
-jest.mock('@libs/PolicyUtils', () => ({isPolicyAdmin: jest.fn(() => true)}));
+jest.mock('@libs/PolicyUtils', () => ({canMemberWrite: jest.fn(() => true)}));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: jest.fn(({children}: PropsWithChildren) => children)}));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 

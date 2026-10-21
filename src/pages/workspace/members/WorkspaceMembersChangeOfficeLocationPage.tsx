@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -56,7 +56,8 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
 
     // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
     const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
-    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy);
+    const canChangeOfficeLocation =
+        isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) && hasOfficeLocations(policy);
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
 
     const selectedMembers = (selectedAccountIDs ?? []).map((accountID) => ({

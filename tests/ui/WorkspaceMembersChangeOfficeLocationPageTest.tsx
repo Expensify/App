@@ -43,7 +43,7 @@ jest.mock('@libs/actions/Policy/DistanceRate', () => ({updateEmployeeOfficeLocat
 jest.mock('@libs/actions/Policy/Member', () => ({clearWorkspaceMembersSelectedForBulkEdit: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn(() => true),
+    canMemberWrite: jest.fn(() => true),
 }));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: jest.fn(({children}: PropsWithChildren) => children)}));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);

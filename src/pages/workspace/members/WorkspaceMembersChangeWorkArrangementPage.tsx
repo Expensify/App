@@ -17,7 +17,7 @@ import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Mem
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
 import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -56,7 +56,7 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
     const canChangeWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
-        isPolicyAdmin(policy, currentUserLogin) &&
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
         policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
     const selectedMembers = (selectedAccountIDs ?? []).map((accountID) => ({

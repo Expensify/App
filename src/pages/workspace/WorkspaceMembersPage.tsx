@@ -704,9 +704,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(paymentsAdminOption);
         }
 
-        // Only policy admins can change office locations and work arrangements, unlike people admins who manage members
-        const isCurrentUserPolicyAdmin = isPolicyAdmin(policy, currentUserLogin);
-        if (shouldShowOfficeLocations && isCurrentUserPolicyAdmin) {
+        if (shouldShowOfficeLocations) {
             options.push({
                 text: translate('workspace.people.changeOfficeLocation'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
@@ -715,11 +713,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
 
-        if (
-            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
-            isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
-            isCurrentUserPolicyAdmin
-        ) {
+        if (policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS)) {
             options.push({
                 text: translate('workspace.people.changeWorkArrangement'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,

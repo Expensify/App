@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -48,7 +48,11 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
-    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy) && !!member;
+    const canChangeOfficeLocation =
+        isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
+        hasOfficeLocations(policy) &&
+        !!member;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const currentOfficeID = getMemberOfficeLocation(officeLocations, member?.officeID)?.officeID;
     const [chosenOfficeID, setChosenOfficeID] = useState<string>();

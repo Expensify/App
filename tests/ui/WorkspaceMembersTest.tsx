@@ -924,8 +924,8 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should not offer office location or work arrangement changes to People Admins', async () => {
-            // Given a People Admin, who manages members but cannot change their offices or work arrangements
+        it('should offer office location and work arrangement changes to People Admins', async () => {
+            // Given a People Admin, who manages members, offices and work arrangements included
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
@@ -938,9 +938,9 @@ describe('WorkspaceMembers', () => {
             // When they open the bulk actions for a member
             await openBulkActionsForMember();
 
-            // Then neither change is offered
-            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'))).not.toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).not.toBeOnTheScreen();
+            // Then both changes are offered
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
