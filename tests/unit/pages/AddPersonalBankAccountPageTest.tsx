@@ -550,12 +550,12 @@ describe('AddPersonalBankAccountPage', () => {
 
         it.each(['Incorrect or invalid magic code. Please try again or request a new code.', 'Too many failed attempts. Please try again later.'])(
             'clears a magic code error once the user goes back to the confirmation step: %s',
-            async (magicCodeError) => {
+            async (validateCodeError) => {
                 // Given a user who went back to the confirmation step from the magic code step, where their code was rejected
                 await act(async () => {
                     await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
                     await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
-                    await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: magicCodeError}});
+                    await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: validateCodeError}});
                 });
 
                 // When the confirmation step is shown
