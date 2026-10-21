@@ -137,7 +137,9 @@ function hasDomainMemberDetailsErrors(memberDetailsErrors: DomainMemberErrors): 
     return (
         !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) ||
         !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError) ||
-        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors)
+        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors) ||
+        !isEmptyObject(memberDetailsErrors?.lockAccountErrors) ||
+        !isEmptyObject(memberDetailsErrors?.unlockAccountErrors)
     );
 }
 
