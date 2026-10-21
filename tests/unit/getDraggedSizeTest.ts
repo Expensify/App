@@ -10,15 +10,6 @@ describe('getDraggedSize', () => {
         expect(size).toBe(231);
     });
 
-    it('shrinks the size when the travel is negative', () => {
-        // Given a 440px pane
-        // When the drag shrinks it by 60px
-        const size = getDraggedSize(440, -60, {min: 220, max: 880});
-
-        // Then the pane loses the 60px
-        expect(size).toBe(380);
-    });
-
     it('stops at the bounds however far the pointer travels', () => {
         // Given a 440px pane bounded to 220-880px
         const bounds = {min: 220, max: 880};

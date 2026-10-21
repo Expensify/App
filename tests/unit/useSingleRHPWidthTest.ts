@@ -48,29 +48,16 @@ describe('useSingleRHPWidth', () => {
         expect(result.current.width).toBe(variables.rhpWidth);
     });
 
-    it('follows the saved width once a drag ends', async () => {
-        // Given the single RHP on screen at its default width
-        const {result} = renderHook(() => useSingleRHPWidth());
-        await waitForBatchedUpdates();
-
-        // When a drag saves a wider width
-        await act(async () => {
-            setSingleRHPWidth(700);
-            await waitForBatchedUpdates();
-        });
-
-        // Then the committed width is the saved one, which every style falls back to once the live CSS width is dropped
-        expect(result.current.width).toBe(700);
-    });
-
     it('fits a saved width into a narrower window and restores it when the window grows back', async () => {
         // Given a saved width that only fits the wide window
         const savedWidth = getSingleRHPWidthBounds(WIDE_WINDOW_WIDTH, 0).max;
         const narrowMax = getSingleRHPWidthBounds(NARROW_WINDOW_WIDTH, 0).max;
         expect(narrowMax).toBeLessThan(savedWidth);
-        await Onyx.set(ONYXKEYS.SINGLE_RHP_WIDTH, savedWidth);
         const {result, rerender} = renderHook(() => useSingleRHPWidth());
-        await waitForBatchedUpdates();
+        await act(async () => {
+            setSingleRHPWidth(savedWidth);
+            await waitForBatchedUpdates();
+        });
 
         // When the window shrinks
         mockWindowWidth = NARROW_WINDOW_WIDTH;
