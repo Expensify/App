@@ -52,6 +52,7 @@ describe('useConciergeAskState', () => {
     afterEach(async () => {
         mockShowFullHistory = false;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, null);
         await waitForBatchedUpdates();
     });
 
@@ -101,6 +102,32 @@ describe('useConciergeAskState', () => {
 
         // Then the welcome screen stays, so this device doesn't flicker
         expect(result.current.shouldShowWelcome).toBe(true);
+    });
+
+    it('keeps the messages on screen while Concierge has an unread message', async () => {
+        // Given the user asked Concierge before and has not read Concierge's newest message
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {reportID: CONCIERGE_REPORT_ID, lastReadTime: '2024-06-01 11:30:00.000'});
+        const unreadConciergeMessage: ReportAction = {...conciergeMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000'};
+        await setReportActions([createdAction, conciergeMessage, userMessage, unreadConciergeMessage]);
+
+        // When the Concierge chat renders
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+
+        // Then the unread message shows instead of the welcome screen
+        expect(result.current.shouldShowWelcome).toBe(false);
+        expect(result.current.hasUnreadMessageFromOthers).toBe(true);
+    });
+
+    it('keeps the messages on screen when a message failed to send', async () => {
+        // Given the user's newest message failed to send
+        const failedMessage: ReportAction = {...userMessage, reportActionID: '4', created: '2024-06-01 12:00:00.000', errors: {1: 'Failed to send'}};
+        await setReportActions([createdAction, conciergeMessage, userMessage, failedMessage]);
+
+        // When the Concierge chat renders
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+
+        // Then the failed message shows so the user can retry or dismiss it
+        expect(result.current.shouldShowWelcome).toBe(false);
     });
 
     it('shows the conversation once the user expands the history', async () => {

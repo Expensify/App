@@ -10,6 +10,7 @@ import type SCREENS from '@src/SCREENS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 
 import {useRoute} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
@@ -63,7 +64,19 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
 
     const {showFullHistory: conciergeShowFullHistory} = useConciergeChatHistoryState();
     const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
-    const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(reportID);
+    const {
+        shouldShowWelcome: shouldShowConciergeWelcome,
+        isHistoryExpanded: isConciergeHistoryExpanded,
+        hasUnreadMessageFromOthers: hasUnreadConciergeMessageFromOthers,
+    } = useConciergeAskState(reportID);
+
+    // Opening the chat marks the unread message as read, so expand the history to keep it on screen afterwards.
+    useEffect(() => {
+        if (!hasUnreadConciergeMessageFromOthers) {
+            return;
+        }
+        setConciergeShowFullHistory(true);
+    }, [hasUnreadConciergeMessageFromOthers, setConciergeShowFullHistory]);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
