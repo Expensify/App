@@ -893,6 +893,8 @@ type OfficeLocationMemberUpdate = {
     name: string;
     /** The office the member was assigned to, used to restore it if the update fails. */
     previousOfficeID: string | undefined;
+    /** The member may still be an optimistic invite, so changing the office must not clear its pending action. */
+    previousPendingAction: PolicyEmployee['pendingAction'];
     /** The ID assigned to this member's optimistic changelog action. */
     optimisticReportActionID: string;
 };
@@ -932,6 +934,7 @@ function updateEmployeeOfficeLocation(
             email: login,
             name: personalDetail?.displayName ?? login,
             previousOfficeID: employee.officeID,
+            previousPendingAction: employee.pendingAction,
             optimisticReportActionID: rand64(),
         });
     }
@@ -945,11 +948,13 @@ function updateEmployeeOfficeLocation(
     const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
     const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
     for (const update of updates) {
-        employeeListOptimisticUpdate[update.email] = {officeID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
-        employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        employeeListOptimisticUpdate[update.email] = {officeID, pendingAction: update.previousPendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+        if (!update.previousPendingAction) {
+            employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        }
         employeeListFailureUpdate[update.email] = {
             officeID: update.previousOfficeID ?? null,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            ...(!update.previousPendingAction && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
         };
     }

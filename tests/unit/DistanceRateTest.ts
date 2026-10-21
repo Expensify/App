@@ -1031,6 +1031,27 @@ describe('DistanceRate', () => {
             resetQueue();
         });
 
+        it('should preserve a pending invite when changing its office offline', async () => {
+            // Given a newly invited member whose add action is still pending
+            const policy: Policy = {
+                ...createRandomPolicy(34),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            };
+            await seedOfficeLocationPolicy(policy);
+
+            pause();
+            // When the member's office is changed before the invite finishes syncing
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails, TestHelper.translateLocal);
+            await waitForBatchedUpdates();
+
+            // Then the office updates while the invite remains visibly pending
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toMatchObject({officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            resetQueue();
+        });
+
         it('should send every member that changed in one request, by login', async () => {
             // Given two members following the primary office
             const policy: Policy = {
