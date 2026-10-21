@@ -36,7 +36,7 @@ type InlineTextEditCellProps = {
 
     /**
      * Display content replacing the default single-line text, for a cell that shows more than the
-     * value being edited — such as a cardholder block whose subtitle is the card name. The box that
+     * value being edited, such as a cardholder block whose subtitle is the card name. The box that
      * normally wraps display content is dropped so that layout keeps its own line heights. Editing
      * still swaps the whole cell for the input.
      */
