@@ -67,9 +67,8 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const [managedAgentsAccountIDs] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents: OnyxCollection<Agent>) => new Set(Object.keys(agents ?? {}).map((key) => Number(extractCollectionItemID(key as `${OnyxCollectionKey}${string}`)))),
-    });
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
+    const managedAgentsAccountIDs = new Set(Object.keys(allAgents ?? {}).map((key) => Number(extractCollectionItemID(key as `${OnyxCollectionKey}${string}`))));
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
