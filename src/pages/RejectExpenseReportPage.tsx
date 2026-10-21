@@ -79,12 +79,19 @@ function submitterAndLastForwardedActorEmailSelector(
 ) {
     return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => ({
         submitterEmail: personalDetailsLoginSelector(submitterAccountID)(personalDetailsList),
-        // Skip the current user, the submitter, and approvers who are not in the workspace's employeeList.
+        // Skip the current user, the submitter, approvers no longer in the workspace, and approvers
+        // whose removal is optimistically pending (offline or in-flight), so a queued reject can't still target them.
         // isPolicyMember fails closed when employeeList isn't loaded, matching Auth's server-side strictness.
         lastForwardedActorEmail: forwardedActorAccountIDs
             ?.filter((accountID) => accountID !== currentUserAccountID && accountID !== submitterAccountID)
             .map((accountID) => getLoginByAccountID(accountID, personalDetailsList))
-            .find((login) => isPolicyMember(policy, login)),
+            .find((login) => {
+                if (!isPolicyMember(policy, login)) {
+                    return false;
+                }
+                const employee = login ? policy?.employeeList?.[login] : undefined;
+                return !employee || employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            }),
     });
 }
 
