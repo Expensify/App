@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openIssueNewCardShippingAddressStep, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {shouldShowPhoneNumberStep} from '@libs/CardUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getAddressFieldErrors, getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getAddressFieldErrors, getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,10 +75,12 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
             if (!name) {
                 continue;
             }
-            if (!isValidLegalName(name)) {
-                errors[nameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            if (!isValidDisplayName(name)) {
+                errors[nameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
             } else if (name.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 errors[nameInputID] = translate('common.error.characterLimitExceedCounter', name.length, CONST.LEGAL_NAME.MAX_LENGTH);
+            } else if (doesContainReservedWord(name, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                errors[nameInputID] = translate('personalDetails.error.containsReservedWord');
             }
         }
         return {...errors, ...getAddressFieldErrors(values, translate)};
