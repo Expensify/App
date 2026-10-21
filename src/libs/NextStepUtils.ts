@@ -409,32 +409,6 @@ function getReportNextStep({
         return buildChangeWorkspaceNextStep();
     }
 
-    if (
-        isOpenExpenseReport(report) &&
-        Object.values(transactions).length > 0 &&
-        Object.values(transactions).every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolationInList(violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]),
-        )
-    ) {
-        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
-        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
-    }
-
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
-        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
-    }
-
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const shouldShowNoFurtherAction =
-        reimbursableSpend === 0 &&
-        (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
-    if (shouldShowNoFurtherAction) {
-        return buildOptimisticNoFurtherActionNextStep();
-    }
-
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     if (isDEWPolicy && (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -480,6 +454,32 @@ function getReportNextStep({
     );
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
         return buildOptimisticNextStepForStrictPolicyRuleViolations();
+    }
+
+    if (
+        isOpenExpenseReport(report) &&
+        Object.values(transactions).length > 0 &&
+        Object.values(transactions).every(
+            (transaction) => !!transaction && hasSubmissionBlockingViolationInList(violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]),
+        )
+    ) {
+        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
+        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
+    }
+
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
+        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
+    if (shouldShowNoFurtherAction) {
+        return buildOptimisticNoFurtherActionNextStep();
     }
 
     return report?.nextStep;
