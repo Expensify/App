@@ -3,6 +3,9 @@
 /** Prefix of the custom property a resizable column reads its width from. */
 const COLUMN_WIDTH_VARIABLE_PREFIX = '--table-column-width-';
 
+/** Floor for the scroll extent mid-drag, so shrinking a column can't pull the scroll position, and the filter bar pinned to it, sideways. */
+const SCROLL_EXTENT_FLOOR_VARIABLE = '--table-scroll-extent-floor';
+
 /** Top of a handle's line: the heading row's top, relative to the handle. */
 const RESIZE_INDICATOR_TOP_VARIABLE = '--table-resize-indicator-top';
 
@@ -53,6 +56,7 @@ export {
     RESIZE_INDICATOR_HEIGHT_VARIABLE,
     RESIZE_INDICATOR_OPACITY_VARIABLE,
     RESIZE_INDICATOR_TOP_VARIABLE,
+    SCROLL_EXTENT_FLOOR_VARIABLE,
     TABLE_ROW_DATA_SET,
     TABLE_ROW_SELECTOR,
     getColumnWidthValue,
