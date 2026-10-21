@@ -125,7 +125,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
 
-    return integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
+    const listings: ConnectionListing[] = integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
@@ -160,6 +160,14 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             },
         };
     });
+
+    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
+    listings.push({
+        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
+        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
+    });
+    return listings;
 }
 
 export default useAccountingConnectionListings;

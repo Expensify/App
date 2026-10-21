@@ -1681,6 +1681,7 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
         policyID: string;
+        generationID?: string;
     };
     [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
         policyID: string;
