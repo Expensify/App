@@ -678,7 +678,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
         failureData.push(...(preferredExporterOnyxData.failureData ?? []));
     }
 
-    const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
+    const policyReports = ReportUtils.getAllPolicyReports(policyID);
+    const adminRoom = policyReports.find(ReportUtils.isAdminRoom);
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
@@ -713,6 +714,48 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                     participants: failureDataParticipants,
                 },
             });
+        }
+    }
+
+    if (newRole === CONST.POLICY.ROLE.GUEST) {
+        for (const report of policyReports) {
+            if (!ReportUtils.isUserCreatedPolicyRoom(report) || report?.visibility !== CONST.REPORT.VISIBILITY.RESTRICTED) {
+                continue;
+            }
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
+            const invitedAccountIDs = new Set<number>();
+            for (const action of Object.values(reportActions)) {
+                if (!ReportActionsUtils.isInviteMemberAction(action)) {
+                    continue;
+                }
+                for (const targetAccountID of ReportActionsUtils.getOriginalMessage(action)?.targetAccountIDs ?? []) {
+                    invitedAccountIDs.add(targetAccountID);
+                }
+            }
+            const optimisticParticipants: Record<number, Participant | null> = {};
+            const failureDataParticipants: Record<number, Participant | null> = {...report.participants};
+            for (const accountID of selectedMemberAccountIDs) {
+                if (!report.participants?.[accountID] || invitedAccountIDs.has(accountID)) {
+                    continue;
+                }
+                optimisticParticipants[accountID] = null;
+            }
+            if (!isEmptyObject(optimisticParticipants)) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                    value: {
+                        participants: optimisticParticipants,
+                    },
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                    value: {
+                        participants: failureDataParticipants,
+                    },
+                });
+            }
         }
     }
 

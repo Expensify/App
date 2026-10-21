@@ -115,7 +115,36 @@ describe('actions/PolicyMember', () => {
                 },
             };
 
+            const selfJoinedRoom: Report = {
+                ...createRandomReport(10, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                policyID: policy.id,
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                participants: {
+                    [member.accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const invitedRoom: Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                policyID: policy.id,
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                participants: {
+                    [member.accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfJoinedRoom.reportID}`, selfJoinedRoom);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invitedRoom.reportID}`, invitedRoom);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invitedRoom.reportID}`, {
+                inviteAction1: {
+                    reportActionID: 'inviteAction1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+                    created: '2026-01-01 00:00:00.000',
+                    originalMessage: {
+                        targetAccountIDs: [member.accountID],
+                    },
+                },
+            });
             mockFetch?.pause?.();
             Member.updateWorkspaceMembersRole(policy, [memberLogin], [member.accountID], CONST.POLICY.ROLE.GUEST);
             await waitForBatchedUpdates();
@@ -123,6 +152,12 @@ describe('actions/PolicyMember', () => {
             const optimisticPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(optimisticPolicy?.employeeList?.[memberLogin]?.role).toBe(CONST.POLICY.ROLE.GUEST);
             expect(optimisticPolicy?.employeeList?.[memberLogin]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            const optimisticSelfJoinedRoom = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfJoinedRoom.reportID}`);
+            expect(optimisticSelfJoinedRoom?.participants?.[member.accountID]).toBeUndefined();
+
+            const optimisticInvitedRoom = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${invitedRoom.reportID}`);
+            expect(optimisticInvitedRoom?.participants?.[member.accountID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
 
             await mockFetch?.resume?.();
         });
