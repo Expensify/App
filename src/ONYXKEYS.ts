@@ -732,6 +732,13 @@ const ONYXKEYS = {
     /** Session-scoped record of the latest expense edit that could become a merchant rule, driving the "Create a rule" callout */
     RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
 
+    /**
+     * The server's verdict on those edits, and the expense it last favoured. Written from whichever tab sends the
+     * queued write, which on web is the leader rather than the one the user edited in, so this half cannot be
+     * session-scoped: a RAM-only key never reaches the tab holding the edits it answers.
+     */
+    MERCHANT_RULE_SUGGESTION_CONFIRMATION: 'merchantRuleSuggestionConfirmation',
+
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
     /** Stores the information about duplicated workspace */
@@ -1953,6 +1960,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER]: boolean;
     [ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION]: OnyxTypes.MerchantRuleSuggestion;
+    [ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
