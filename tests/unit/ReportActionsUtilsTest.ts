@@ -88,7 +88,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -3257,10 +3256,9 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(serverText);
         });
 
-        it('should show an approval limit message when approvalLimit changes', () => {
-            // Given an employee update where only the approval limit changed, on a EUR workspace
+        it('should show an approval limit message in the currency saved on the action when approvalLimit changes', () => {
+            // Given an employee update where only the approval limit changed, with the currency and limits saved on the action
             const email = 'approver@example.com';
-            const policy = {...createRandomPolicy(1), outputCurrency: CONST.CURRENCY.EUR};
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
@@ -3268,14 +3266,17 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
                 originalMessage: {
                     email,
+                    currency: CONST.CURRENCY.EUR,
+                    limit: 200000,
+                    previousLimit: 100000,
                     fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
                 },
             };
 
             // When the message is built
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString, policy);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
 
-            // Then it describes the new and previous limits in the workspace currency, because the payload has no currency of its own
+            // Then it describes the new and previous limits in the saved currency, so the log doesn't change when the workspace currency changes later
             expect(actual).toBe(
                 translateLocal('workspaceActions.changedApprovalLimit', {
                     member: email,
@@ -3285,12 +3286,32 @@ describe('ReportActionsUtils', () => {
             );
         });
 
-        it('should use the member approval limit from the policy when only overLimitForwardsTo changes', () => {
-            // Given an employee update where only the over-limit approver changed, and the member's limit is on the policy
+        it('should fall back to the server message for an older approvalLimit change without a saved currency', () => {
+            // Given an approval limit change logged before the currency was saved on the action
+            const serverText = 'added a approvalLimit of "" to approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'approver@example.com',
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, because guessing the currency could show the wrong amount
+            expect(actual).toBe(serverText);
+        });
+
+        it('should use the limit saved on the action when only overLimitForwardsTo changes', () => {
+            // Given an employee update where only the over-limit approver changed, and the member's unchanged limit is saved on the action
             const email = 'approver@example.com';
             const newApprover = 'new.approver@example.com';
             const previousApprover = 'old.approver@example.com';
-            const policy = {...createRandomPolicy(1), outputCurrency: CONST.CURRENCY.USD, employeeList: {[email]: {email, approvalLimit: 100000}}};
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
@@ -3298,14 +3319,17 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
                 originalMessage: {
                     email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 100000,
                     fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: previousApprover}],
                 },
             };
 
             // When the message is built
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString, policy);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
 
-            // Then it describes the new over-limit approver with the member's current limit
+            // Then it describes the new over-limit approver with the saved limit, without a previous limit because it didn't change
             expect(actual).toBe(
                 translateLocal('workspaceActions.changedOverLimitForwardsTo', {
                     member: email,
@@ -3327,6 +3351,9 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
                 originalMessage: {
                     email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 0,
+                    previousLimit: 200000,
                     fields: [
                         {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: '', oldValue: 200000},
                         {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: '', oldValue: previousApprover},
@@ -3354,6 +3381,9 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
                 originalMessage: {
                     email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 0,
                     fields: [
                         {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 100000, oldValue: ''},
                         {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: ''},
@@ -3364,14 +3394,14 @@ describe('ReportActionsUtils', () => {
             // When the message is built
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
 
-            // Then it shows a single "set" message with the new limit taken from the approvalLimit change
+            // Then it shows a single "set" message with the new limit saved on the action
             expect(actual).toBe(
                 translateLocal('workspaceActions.changedOverLimitForwardsTo', {member: email, approver: newApprover, limit: convertToDisplayString(100000, CONST.CURRENCY.USD)}),
             );
         });
 
         it('should fall back to the server message when the approval limit is unknown', () => {
-            // Given an over-limit approver change with no approvalLimit in the action and no policy data
+            // Given an older over-limit approver change with no currency or limit saved on the action
             const serverText = 'updated the overLimitForwardsTo of approver@example.com';
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
                 ...createRandomReportAction(0),

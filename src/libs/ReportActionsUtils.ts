@@ -3210,21 +3210,17 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-type PolicyChangeLogEmployeeFieldChange = {
-    field?: string;
-    oldValue?: unknown;
-    newValue?: unknown;
-};
-
 type PolicyChangeLogApprovalLimitContext = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    currency: string;
 
-    /** The approvalLimit change logged in the same action, if any */
-    approvalLimitChange?: PolicyChangeLogEmployeeFieldChange;
+    /** Currency of the approval limit saved on the action. Older actions don't have it, so they use the server message */
+    currency?: string;
 
-    /** The member's approval limit on the policy, used when the action doesn't log an approvalLimit change */
-    currentApprovalLimit?: number | null;
+    /** The member's approval limit after the change, saved on the action */
+    limit?: number;
+
+    /** The member's approval limit before the change, saved on the action */
+    previousLimit?: number;
 };
 
 function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
@@ -3268,12 +3264,12 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
         return translate('workspaceActions.changedForwardsTo', {approver: email, forwardsTo: newApprover, previousForwardsTo: previousApprover});
     }
 
-    const {convertToDisplayString, currency, approvalLimitChange, currentApprovalLimit} = approvalLimitContext;
-    const formatLimit = (limit: unknown) => (typeof limit === 'number' ? convertToDisplayString(limit, currency) : '');
+    const {convertToDisplayString, currency} = approvalLimitContext;
+    const formatLimit = (amount: number | undefined) => (currency && typeof amount === 'number' ? convertToDisplayString(amount, currency) : '');
+    const limit = formatLimit(approvalLimitContext.limit);
+    const previousLimit = formatLimit(approvalLimitContext.previousLimit);
 
     if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT) {
-        const limit = formatLimit(newValue);
-        const previousLimit = formatLimit(oldValue);
         if (!limit || !previousLimit) {
             return '';
         }
@@ -3282,20 +3278,24 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
 
     if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO) {
         if (!newApprover) {
-            const previousLimit = formatLimit(approvalLimitChange ? approvalLimitChange.oldValue : currentApprovalLimit);
             if (!previousLimit) {
                 return '';
             }
             return translate('workspaceActions.removedOverLimitForwardsTo', {member: email, previousApprover, previousLimit});
         }
 
-        const limit = formatLimit(approvalLimitChange ? approvalLimitChange.newValue : currentApprovalLimit);
         if (!limit) {
             return '';
         }
         // Only mention the previous limit when it changed together with the approver, matching the dedicated overLimitForwardsTo action
-        const previousLimit = previousApprover && approvalLimitChange && approvalLimitChange.oldValue !== approvalLimitChange.newValue ? formatLimit(approvalLimitChange.oldValue) : '';
-        return translate('workspaceActions.changedOverLimitForwardsTo', {member: email, approver: newApprover, limit, previousApprover, previousLimit});
+        const didLimitChange = !!previousApprover && !!previousLimit && approvalLimitContext.limit !== approvalLimitContext.previousLimit;
+        return translate('workspaceActions.changedOverLimitForwardsTo', {
+            member: email,
+            approver: newApprover,
+            limit,
+            previousApprover,
+            previousLimit: didLimitChange ? previousLimit : undefined,
+        });
     }
 
     // We don't have dedicated copy for this field, so the caller falls back to the server-provided message instead of guessing
@@ -3306,7 +3306,6 @@ function getPolicyChangeLogUpdateEmployee(
     translate: LocalizedTranslate,
     reportAction: OnyxInputOrEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policy?: OnyxEntry<Policy>,
 ): string {
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
@@ -3315,14 +3314,16 @@ function getPolicyChangeLogUpdateEmployee(
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
     const fieldChanges = originalMessage?.fields;
+
+    // Use the currency and limits saved on the action, so the message doesn't change when the workspace currency or member limit changes later
     const approvalLimitContext: PolicyChangeLogApprovalLimitContext = {
         convertToDisplayString,
-        currency: policy?.outputCurrency ?? CONST.CURRENCY.USD,
-        currentApprovalLimit: policy?.employeeList?.[email]?.approvalLimit,
+        currency: originalMessage?.currency,
+        limit: originalMessage?.limit,
+        previousLimit: originalMessage?.previousLimit,
     };
 
     if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
-        const approvalLimitChange = fieldChanges.find((fieldChange) => fieldChange?.field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT);
         const hasOverLimitForwardsToChange = fieldChanges.some((fieldChange) => fieldChange?.field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO);
 
         // The overLimitForwardsTo message already includes the limit, so the approvalLimit change is folded into it instead of being shown twice
@@ -3333,10 +3334,7 @@ function getPolicyChangeLogUpdateEmployee(
             if (!fieldChange || typeof fieldChange !== 'object') {
                 return '';
             }
-            return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email, {
-                ...approvalLimitContext,
-                approvalLimitChange,
-            });
+            return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email, approvalLimitContext);
         });
 
         if (messages.every(Boolean)) {
