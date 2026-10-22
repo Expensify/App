@@ -1,21 +1,21 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Insights, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Insights tab, Workspaces tab, Account, where did Account go, Account on mobile, profile picture, Scan button, Create button, workspace filter, Search, go to, jump to destination]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
 
-New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Workspaces, and Account settings.
+New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Insights, Workspaces, and Account settings.
 
 This guide explains where to find each tab and what it’s used for.
 
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
 
 **For workspace admins:**
-- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/rbncowjn0nav)
-- [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
+- [interactive web tour for workspace admins](https://expensify.storylane.io/share/rbncowjn0nav)
+- [interactive mobile tour for workspace admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
 - [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/rbncowjn0nav)
@@ -26,18 +26,16 @@ You can find additional training resources in [How to Access Expensify Training]
 
 ---
 
-## How to use navigation tabs
+## How to use the navigation tabs
 
-The **navigation tabs** are your main way to move through the app.
+The navigation tabs are your main way to move through the app. They appear on the left on web and on the bottom on mobile.
 
-- **Web:** Navigation tabs appear on the left side of the screen.
-- **Mobile:** Navigation tabs appear on the bottom of the screen.
-
-Tabs include:
+The navigation tabs include:
 
 - **Home**
 - **Inbox**
 - **Spend**
+- **Insights** (web only)
 - **Workspaces**
 - **Account**
 
@@ -92,13 +90,23 @@ From **Spend**, you can:
 
 ---
 
+## What the Insights tab on web is used for
+
+**Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
+
+Use Insights to see spending trends and what changed at a glance. From any chart, select **More (⋮)** to open matching expenses in **Spend**.
+
+Learn more about [Insights](/articles/new-expensify/insights/Learn-About-Insights).
+
+---
+
 ## What the Workspaces tab is used for
 
 The **Workspaces** tab displays all workspaces you are a member of. 
 
-Workspace Admins can open a workspace to manage workspace-level settings.
+Workspace admins can open a workspace to manage workspace-level settings.
 
-From **Workspaces**, Workspace Admins can:
+From **Workspaces**, workspace admins can:
 
 - Create a new workspace
 - Manage members under **Members**
@@ -111,11 +119,11 @@ Learn how to [create and set up a company workspace](/articles/new-expensify/get
 
 ---
 
-## What the Account tab is used for
+## What Account is used for
 
-The **Account** tab contains personal and account-level settings.
+**Account** contains personal and account-level settings. Select **Account** to open it.
 
-From Account, you can manage:
+From **Account**, you can manage:
 
  - **Profile** to update your personal details
  - **Subscription** to manage your Expensify subscription
@@ -138,23 +146,21 @@ Use Account for personal settings and billing.
 
 ## How to find your assigned support contacts on the Help page
 
-Paid Workspace Admins may have dedicated support contacts assigned to their account, such as an Account Manager, Partner Manager, or Account Executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
+Workspace admins on a paid plan may have dedicated support contacts assigned to their account, such as an account manager, partner manager, or account executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Settings**.
-3. Select **Help**.
-4. Below **Concierge**, look for your assigned support contacts.
-5. Click a contact to open a direct message with them.
+1. Select **Account > Help**.
+2. Below **Concierge**, look for your assigned support contacts.
+3. Select a contact to open a direct message with them.
 
-If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
+If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your account manager, partner manager, and guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
 ---
 
 ## How to book a call with your support contact
 
-If your Account Manager, Partner Manager, or Guide has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Clicking **Book a call** opens that person's calendar in a new tab so you can pick a time. The button appears in these places:
+If your account manager, partner manager, or guide has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Selecting **Book a call** opens that person's calendar in a new tab so you can pick a time. The button appears in these places:
 
-- On the **Help** page, next to each support contact that has a scheduling link (Account Manager, Partner Manager, or Guide).
+- On the **Help** page, next to each support contact that has a scheduling link (account manager, partner manager, or guide).
 - In the header of your direct message with that support contact.
 - In the header of your **Concierge** chat.
 
@@ -182,6 +188,7 @@ If you’re not sure where to go:
 - Use **Home** to see what needs attention.
 - Use **Inbox** to manage conversations and approvals.
 - Use **Spend** to view or filter expense reports.
+- Use **Insights** to see spending trends.
 - Use **Workspaces** to manage workspace settings.
 - Use **Account** to update personal settings or subscription details.
 
@@ -191,8 +198,8 @@ If you’re not sure where to go:
 
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
-1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+1. Select the **Search** icon.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
@@ -206,31 +213,34 @@ You can also use keyboard shortcuts on web to jump directly to specific items:
 
 You can start common actions from **Search** instead of using the **➕ Create** button.
 
-1. Select **Search** (the magnifying glass icon).
+1. Select the **Search** icon.
 2. Type the name of the action you want to start, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, or **Book travel**. You can also type **go** or **go to** before the name, such as **go to book travel**.
 3. Select the action to start it.
 
 Only the actions available to you appear. **Book travel** appears only when Expensify Travel is enabled on your active workspace, and it opens the same booking tool as the **Book travel** option in the **➕ Create** button.
 
 Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+
+---
+
 ## How to jump to a domain page using Search
 
-If you are a Domain Admin, **Search** also suggests the pages of each domain you administer, so you can open them without going through **Workspaces** > **Domains**.
+If you are a domain admin, **Search** also suggests the pages of each domain you administer, so you can open them without going through **Workspaces > Domains**.
 
-1. Select **Search** (the magnifying glass icon).
+1. Select the **Search** icon.
 2. Type the name of the page you want to open — **Domain members**, **Domain admins**, **Groups**, or **SAML** — or type the domain name, such as **example.com**.
 3. Select the suggestion to open that page for that domain.
 
 Each domain suggestion shows the domain name on the right of the row, so you can tell the suggestions apart when you administer more than one domain.
 
-These suggestions only appear for domains you administer. If you are not a Domain Admin of any domain, only **Go to Domains** appears.
+These suggestions only appear for domains you administer. If you are not a domain admin of any domain, only **Go to Domains** appears.
 
-Learn more about [what Domain Admins can manage](/articles/new-expensify/domains/Domain-Admins).
+Learn more about [what domain admins can manage](/articles/new-expensify/domains/Domain-Admins).
 
 <!-- SCREENSHOT:
 Suggestion: Search with a domain page suggestion visible, showing the Go to Domain members row with the domain name displayed on the right
 Location: After the "How to jump to a domain page using Search" section
-Purpose: Shows Domain Admins that the domain name identifies which domain a suggestion belongs to, which prevents opening the wrong domain when they administer several
+Purpose: Shows domain admins that the domain name identifies which domain a suggestion belongs to, which prevents opening the wrong domain when they administer several
 -->
 
 ---
@@ -243,23 +253,25 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+Yes. Select the **Search** icon, then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
 ## Can I book travel from Search?
 
-Yes. Select **Search** (the magnifying glass icon), type **Book travel**, then select the **Book travel** result. This opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+Yes. Select the **Search** icon, type **Book travel**, then select the **Book travel** result. This opens the same booking tool as the **Book travel** option in the **➕ Create** button.
 
 ## Why don’t I see Book travel in Search?
 
-**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a Workspace Admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a workspace admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
 ## Where do I manage workspace settings?
 
-Open the **Workspaces** tab from the navigation tabs.
+In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 
 ## Where do I update my personal profile or billing information?
 
-Open the **Account** tab from the navigation tabs.
+Personal information is managed under **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+
+Then select **Profile** to update your personal information, or **Subscription** to manage billing.
 
 ## What does the green Scan button do?
 
@@ -273,18 +285,14 @@ The **➕ Create** button starts actions such as creating a report, sending mone
 
 Assigned support contacts only appear if:
 
-- You are a Workspace Admin on a paid plan
+- You are a workspace admin on a paid plan
 - A support contact has been assigned to your account
 
 If no contacts are assigned, these options will not appear on the **Help** page.
 
-## How do I get an Account Manager assigned?
-
-Account Managers are typically assigned to accounts with subscriptions that include 10 or more members. Contact **Concierge** if you believe your account qualifies.
-
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned support contact (Account Manager, Partner Manager, or Guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
+You'll only see the **Book a call** button if you have an assigned support contact (account manager, partner manager, or guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
 
 ## Are there keyboard shortcuts for opening reports or workspaces?
 

@@ -176,7 +176,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
     const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
     const memberBankNameKey = Object.values(CONST.BANK_NAMES).find((bankName) => bankName === memberBankAccount?.bankName?.toLowerCase());
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- the bank name can be an empty string
+    // the bank name can be an empty string
     const memberBankName = memberBankNameKey ? CONST.BANK_NAMES_USER_FRIENDLY[memberBankNameKey] : memberBankAccount?.bankName || translate('common.bankAccount');
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
