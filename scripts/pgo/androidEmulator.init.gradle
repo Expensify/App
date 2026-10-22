@@ -7,7 +7,10 @@ gradle.beforeProject { application ->
     }
     application.plugins.withId('com.android.application') {
         application.extensions.getByName('androidComponents').finalizeDsl { android ->
-            android.buildTypes.getByName('release').signingConfig = android.signingConfigs.getByName('debug')
+            def release = android.buildTypes.getByName('release')
+            release.signingConfig = android.signingConfigs.getByName('debug')
+            // R8 needs more heap than a hosted runner can spare beside the emulator, and it only shrinks Java and Kotlin code, which native PGO does not change.
+            release.minifyEnabled = false
         }
     }
     application.tasks.configureEach { task ->
