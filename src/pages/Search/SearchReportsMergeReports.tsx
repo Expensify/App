@@ -23,6 +23,7 @@ import {mergeReports} from '@libs/actions/Report';
 import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -164,7 +165,14 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, reportNameValuePairs, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`]);
+        canMergeReports(
+            reportItems,
+            currentUserPersonalDetails.accountID,
+            rules,
+            getLoginByAccountID(reportItems.at(0)?.ownerAccountID, personalDetails),
+            reportNameValuePairs,
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`],
+        );
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
