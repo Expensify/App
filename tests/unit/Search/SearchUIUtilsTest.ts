@@ -33,6 +33,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -8510,6 +8511,7 @@ describe('SearchUIUtils', () => {
         it.each([
             {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
             {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
+            {columnName: 'Held', sortBy: CONST.SEARCH.TABLE_COLUMNS.HELD, boolOverride: {comment: {hold: '123'}}},
         ])('should still tie-break tied $columnName rows by inserted honoring sortOrder', ({sortBy, boolOverride}) => {
             // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
             // ties on the primary comparison but is NOT empty — the inserted/transactionID tie breaker must still run and
@@ -8545,6 +8547,43 @@ describe('SearchUIUtils', () => {
 
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-jan', 'bool-feb', 'bool-mar']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
+        });
+
+        it('should sort the held column by whether the expense is on hold, with expenses not on hold first when ascending', () => {
+            // Given one expense on hold, one that was unheld (its hold is an empty string), and one that was never held
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'held', keyForList: 'held', inserted: '2024-01-01', comment: {hold: '123'}},
+                {...baseTransaction, transactionID: 'unheld', keyForList: 'unheld', inserted: '2024-02-02', comment: {hold: ''}},
+                {...baseTransaction, transactionID: 'never-held', keyForList: 'never-held', inserted: '2024-03-03', comment: {}},
+            ];
+
+            // When the expenses are sorted by the held column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the expense on hold comes last ascending and first descending, and the unheld expense counts as not held
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unheld', 'never-held', 'held']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['held', 'never-held', 'unheld']);
         });
 
         it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
@@ -13522,6 +13561,22 @@ describe('SearchUIUtils', () => {
             expect(transaction).toBeTruthy();
         });
 
+        it('Should not save Search row display fields on the optimistic transaction', async () => {
+            // Given a Search row whose transaction isn't in Onyx yet
+            const transactionListItem = getTransactionListItem(0);
+
+            // When the transaction thread preview data is set optimistically
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
+            await waitForBatchedUpdates();
+
+            // Then only the real transaction fields are saved, so display values can't shadow later edits
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+            expect(transaction?.transactionID).toBe(transactionListItem.transactionID);
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+        });
+
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
             setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
@@ -13531,6 +13586,25 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getTransactionFromTransactionListItem', () => {
+        it('removes the display-only fields of a Search row and keeps the transaction fields', () => {
+            // Given a Search row, which carries display-only fields on top of the transaction
+            const transactionListItem = getTransactionListItem(0);
+
+            // When it is turned back into a transaction
+            const transaction = getTransactionFromTransactionListItem(transactionListItem);
+
+            // Then the row-only fields are gone and the real transaction fields are untouched
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+            expect(transaction.transactionID).toBe(transactionListItem.transactionID);
+            expect(transaction.reportID).toBe(transactionListItem.reportID);
+            expect(transaction.amount).toBe(transactionListItem.amount);
+            expect(transaction.merchant).toBe(transactionListItem.merchant);
         });
     });
 
@@ -13732,7 +13806,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -13918,7 +13992,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
