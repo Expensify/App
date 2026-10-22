@@ -50,9 +50,12 @@ describe.each(['ios', 'android', 'web'] as const)('RHP transition ownership on %
     });
 
     it('keeps root geometry stationary and applies only motion and the Concierge offset to the frame', () => {
+        // Given wide RHPs need stationary root bounds for overlays and a separate frame for panel motion
+        // When the root and frame calculate their styles during an in-progress transition
         const {result} = renderHook(() => ({root: useRootRHPCardStyleInterpolator(), frame: useRHPFrameStyle()}));
         const host = result.current.root(animation).cardStyle;
 
+        // Then animation and the web Concierge offset must affect only the frame, without overriding its layout dimensions
         expect(host).not.toHaveProperty('transform');
         expect(host).not.toHaveProperty('opacity');
         expect(host).not.toHaveProperty('paddingRight');
@@ -71,10 +74,13 @@ describe.each(['ios', 'android', 'web'] as const)('RHP transition ownership on %
     });
 
     it('keeps the narrow-screen slide and offset on the root without another frame transform', () => {
+        // Given narrow RHPs still use the full-screen root transition rather than the wide floating frame
         jest.mocked(useResponsiveLayout).mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, isSmallScreenWidth: true, shouldUseNarrowLayout: true});
+        // When the same transition hooks calculate styles in narrow layout
         const {result} = renderHook(() => ({root: useRootRHPCardStyleInterpolator(), frame: useRHPFrameStyle()}));
         const host = result.current.root(animation).cardStyle;
 
+        // Then the root must remain the sole motion owner so the narrow panel does not slide or offset twice
         expect(result.current.frame).toBeUndefined();
         expect(host).toHaveProperty('transform');
         expect(host).not.toHaveProperty('opacity');

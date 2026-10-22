@@ -9,6 +9,8 @@ import {View} from 'react-native';
 
 describe('Native modal slide bounds', () => {
     it.each([64, 96])('includes a %i-point bottom anchor in the animated region', (bottom) => {
+        // Given an anchored menu leaves space below its visible content
+        // When a slide animation calculates how far the menu must travel off-screen
         render(
             <Container
                 testID="positioning-root"
@@ -23,12 +25,15 @@ describe('Native modal slide bounds', () => {
             </Container>,
         );
 
+        // Then the anchor belongs inside the animated region so the menu does not stop above the screen edge
         expect(screen.getByTestId('positioning-root')).toHaveStyle({bottom: 0, left: 16});
         const animatedFrame = screen.UNSAFE_getAllByType(View).find((element) => element.props.entering !== undefined);
         expect(animatedFrame?.props.style).toEqual(expect.arrayContaining([{paddingBottom: bottom}]));
     });
 
     it('does not move the anchor for fade-only menus', () => {
+        // Given a fade-only menu does not need extra travel to clear the screen edge
+        // When the same anchored layout uses opacity animations instead of slides
         render(
             <Container
                 testID="positioning-root"
@@ -43,6 +48,7 @@ describe('Native modal slide bounds', () => {
             </Container>,
         );
 
+        // Then slide-specific padding must not change the menu's resting placement
         expect(screen.getByTestId('positioning-root')).toHaveStyle({bottom: 64});
         const animatedFrame = screen.UNSAFE_getAllByType(View).find((element) => element.props.entering !== undefined);
         expect(animatedFrame?.props.style).not.toEqual(expect.arrayContaining([{paddingBottom: 64}]));

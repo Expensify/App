@@ -21,6 +21,7 @@ const renderHeader = () => <View testID="table-header" />;
 
 describe('ExternalScrollFlashListTable', () => {
     it('gives the replacement scroll container the full table width, including after resize', () => {
+        // Given the replacement scroll container supplies the cross-axis measurement used by table columns
         const store = createScrollOffsetStore();
         const renderTable = (contentWidth: number) => (
             <ExternalScrollFlashListTable
@@ -36,12 +37,15 @@ describe('ExternalScrollFlashListTable', () => {
                 offsetTop={0}
             />
         );
+        // When a wide table mounts inside the external-scroll layout
         const {rerender} = render(renderTable(1200));
 
-        // This View replaces FlashList's ScrollView. Its cross-axis measurement controls column widths.
+        // Then columns must receive the full content width rather than collapsing to the viewport
         expect(screen.getByTestId('external-scroll-driver')).toHaveStyle({width: 1200});
 
+        // When resizing changes the table's available content width
         rerender(renderTable(1400));
+        // Then the measurement must update so columns do not retain their previous widths
         expect(screen.getByTestId('external-scroll-driver')).toHaveStyle({width: 1400});
     });
 });
