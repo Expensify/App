@@ -70,6 +70,46 @@ function getActionAccountIDs(action: OnyxEntry<ReportAction>): Array<number | un
     return accountIDs;
 }
 
+type OptionRowAccountIDsParams = {
+    report: OnyxEntry<Report>;
+    parentReportAction: OnyxEntry<ReportAction>;
+    parentReportActionActorAccountID: number | undefined;
+    invoiceChatReceiverAccountID: number | undefined;
+    lastAction: OnyxEntry<ReportAction>;
+    ownLastAction: OnyxEntry<ReportAction>;
+    reimburserAccountID: number | undefined;
+    currentUserAccountID: number;
+};
+
+function getOptionRowAccountIDs({
+    report,
+    parentReportAction,
+    parentReportActionActorAccountID,
+    invoiceChatReceiverAccountID,
+    lastAction,
+    ownLastAction,
+    reimburserAccountID,
+    currentUserAccountID,
+}: OptionRowAccountIDsParams): number[] {
+    const accountIDs = new Set<number | undefined>([
+        ...Object.keys(report?.participants ?? {}).map(Number),
+        report?.ownerAccountID,
+        report?.managerID,
+        report?.lastActorAccountID,
+        parentReportAction?.actorAccountID,
+        parentReportActionActorAccountID,
+        invoiceReceiverAccountIDSelector(report),
+        invoiceChatReceiverAccountID,
+        ...getActionAccountIDs(lastAction),
+        ...getActionAccountIDs(ownLastAction),
+        reimburserAccountID,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        CONST.ACCOUNT_ID.NOTIFICATIONS,
+        currentUserAccountID,
+    ]);
+    return Array.from(accountIDs).filter((accountID): accountID is number => accountID !== undefined);
+}
+
 function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | undefined> {
     if (!action) {
         return [];
@@ -172,22 +212,18 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNamesByIDsSelector(attributes, reportNameIDs),
     });
-    const [personalDetails] = usePersonalDetailsByIDs([
-        ...Object.keys(fullReport?.participants ?? {}).map(Number),
-        fullReport?.ownerAccountID,
-        fullReport?.managerID,
-        fullReport?.lastActorAccountID,
-        parentReportAction?.actorAccountID,
-        parentReportActionActorAccountID,
-        invoiceReceiverAccountIDSelector(fullReport),
-        invoiceChatReceiverAccountID,
-        ...getActionAccountIDs(lastAction),
-        ...getActionAccountIDs(ownLastAction),
-        reimburserAccountID,
-        CONST.ACCOUNT_ID.CONCIERGE,
-        CONST.ACCOUNT_ID.NOTIFICATIONS,
-        currentUserAccountID,
-    ]);
+    const [personalDetails] = usePersonalDetailsByIDs(
+        getOptionRowAccountIDs({
+            report: fullReport,
+            parentReportAction,
+            parentReportActionActorAccountID,
+            invoiceChatReceiverAccountID,
+            lastAction,
+            ownLastAction,
+            reimburserAccountID,
+            currentUserAccountID,
+        }),
+    );
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const reportPreviewSenderID = useReportPreviewSenderID({
         iouReport: isIOUReport ? fullReport : undefined,
