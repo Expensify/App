@@ -4,7 +4,9 @@ import {createOnyxReadTracker, getCalleeName, getDeclaredVariable, getRepoRelati
 
 const name = 'no-unsafe-onyx-read';
 
-const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', 'tests/'];
+const TESTS_DIRECTORY = 'tests/';
+
+const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', TESTS_DIRECTORY];
 
 const READ_ALLOWED_FILES = new Set([]);
 
@@ -30,9 +32,26 @@ const EFFECT_CONTINUATION_NAMES = new Set([
     'queueMicrotask',
     'runAfterInteractions',
     'runAfterTransitions',
+    'startTransition',
+    'setNavigationActionToMicrotaskQueue',
 ]);
 
-const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
+const SYNCHRONOUS_CALLBACK_METHODS = new Set([
+    'from',
+    'map',
+    'filter',
+    'reduce',
+    'reduceRight',
+    'forEach',
+    'find',
+    'findIndex',
+    'findLast',
+    'findLastIndex',
+    'flatMap',
+    'some',
+    'every',
+    'sort',
+]);
 
 const RENDER_TIME_HOOK_ARGUMENTS = new Map([
     ['useMemo', new Set([0])],
@@ -59,7 +78,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests, during render, inside effects or at module scope. no-onyx-get-snapshot-key checks which keys they read.',
+            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests, outside a component or hook body in those source directories, during render, inside effects or at module scope. no-onyx-get-snapshot-key checks which keys they read.',
         recommended: 'error',
     },
     schema: [],
@@ -76,6 +95,9 @@ const meta = {
         noOnyxReadInEffect:
             'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
             'Keep the useOnyx subscription. Reads inside effects stay banned until a check can confirm the value was not in the dependency array.',
+        noOnyxReadOutsideComponentOrHook:
+            'Call Onyx.get() and Onyx.multiGet() inside the component or hook that needs the value, or in a handler defined inside it. A module-level helper here can be imported from src/libs, which is where these reads are banned.\n\n' +
+            'Take the value as a parameter instead.',
         noOnyxReadByReference:
             'Call Onyx.get() and Onyx.multiGet() directly. A reference that is not a direct call (Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx) hides the key from no-onyx-get-snapshot-key and the call site from this rule.',
     },
@@ -93,6 +115,11 @@ function isComponentName(functionName) {
     return /^[A-Z]/.test(functionName);
 }
 
+function isComponentOrHookName(functionName) {
+    return !!functionName && (isHookName(functionName) || isComponentName(functionName));
+}
+
+// Only an own id or a variable binding names a component or hook; an object key such as `APPROVE` or `Enter` does not
 function getFunctionName(functionNode, parent) {
     if (functionNode.id?.type === 'Identifier') {
         return functionNode.id.name;
@@ -100,10 +127,6 @@ function getFunctionName(functionNode, parent) {
 
     if (parent?.type === 'VariableDeclarator' && parent.id.type === 'Identifier') {
         return parent.id.name;
-    }
-
-    if (parent?.type === 'Property' && !parent.computed && parent.key?.type === 'Identifier') {
-        return parent.key.name;
     }
 
     return null;
@@ -319,8 +342,8 @@ function getAliasBinding(use) {
 }
 
 /**
- * RENDER or MODULE_SCOPE when some reference to the bound function runs it there (a render slot, a call written in a
- * render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
+ * RENDER or MODULE_SCOPE when some reference to the bound function runs it there (a render slot, a call, synchronous
+ * array callback or Promise executor written in a render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
  * classifyPosition, which this recursion feeds back into for the call sites.
  */
 function getEscalatedPosition(binding, sourceCode, seen, classifyCall) {
@@ -333,6 +356,24 @@ function getEscalatedPosition(binding, sourceCode, seen, classifyCall) {
 
         // `const value = helper();` written in a render body or at module scope runs the helper right there
         if (parent?.type === 'CallExpression' && parent.callee === use) {
+            const position = classifyCall(parent);
+
+            if (position === RENDER || position === MODULE_SCOPE) {
+                return position;
+            }
+
+            continue;
+        }
+
+        // `ids.map(helper)` or `new Promise(helper)` runs the helper where that call runs; a timer or `.then` defers it
+        const isSynchronousCallback =
+            parent?.type === 'CallExpression' &&
+            parent.arguments.includes(use) &&
+            parent.callee.type === 'MemberExpression' &&
+            matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS);
+        const isExecutor = parent?.type === 'NewExpression' && parent.arguments.at(0) === use && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES);
+
+        if (isSynchronousCallback || isExecutor) {
             const position = classifyCall(parent);
 
             if (position === RENDER || position === MODULE_SCOPE) {
@@ -507,6 +548,30 @@ function isReadAllowedInFile(filename) {
     return READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory)) || READ_ALLOWED_FILES.has(relativePath);
 }
 
+// Suites read at module level in `it` blocks, so only the allowed source directories need the read inside a component or hook
+function requiresComponentOrHookScope(filename) {
+    const relativePath = getRepoRelativePath(filename);
+
+    return !!relativePath && !relativePath.startsWith(TESTS_DIRECTORY) && READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory));
+}
+
+// A component or hook by name, or the function memo() or forwardRef() wraps, or any function nested in one
+function isInsideComponentOrHook(ancestors) {
+    return ancestors.some((ancestor, index) => {
+        if (!isFunctionNode(ancestor)) {
+            return false;
+        }
+
+        const parent = ancestors[index - 1] ?? null;
+
+        if (isComponentOrHookName(getFunctionName(ancestor, parent))) {
+            return true;
+        }
+
+        return parent?.type === 'CallExpression' && parent.arguments.at(0) === ancestor && matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES);
+    });
+}
+
 // `classifyCall` comes from classifyPosition, which this function and getEscalatedPosition recurse into for a helper's call sites
 function classifyFunctionBoundary(functionNode, parent, sourceCode, seen, classifyCall) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent, sourceCode)) {
@@ -549,9 +614,7 @@ function classifyFunctionBoundary(functionNode, parent, sourceCode, seen, classi
         return escalated;
     }
 
-    const functionName = getFunctionName(functionNode, parent);
-
-    if (functionName && (isHookName(functionName) || isComponentName(functionName))) {
+    if (isComponentOrHookName(getFunctionName(functionNode, parent))) {
         return RENDER;
     }
 
@@ -600,6 +663,7 @@ function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectChe
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
+    const shouldCheckComponentOrHookScope = requiresComponentOrHookScope(filename);
     const {getCalledReadMethod, getReferencedReadMethod} = createOnyxReadTracker(sourceCode);
 
     // Reported in every file, since the path check below only sees direct calls
@@ -632,7 +696,8 @@ function create(context) {
                 return;
             }
 
-            const position = classifyPosition(sourceCode.getAncestors(node), sourceCode);
+            const ancestors = sourceCode.getAncestors(node);
+            const position = classifyPosition(ancestors, sourceCode);
 
             if (position === MODULE_SCOPE) {
                 context.report({node, messageId: 'noOnyxReadAtModuleScope'});
@@ -646,6 +711,11 @@ function create(context) {
 
             if (position === EFFECT) {
                 context.report({node, messageId: 'noOnyxReadInEffect'});
+                return;
+            }
+
+            if (shouldCheckComponentOrHookScope && !isInsideComponentOrHook(ancestors)) {
+                context.report({node, messageId: 'noOnyxReadOutsideComponentOrHook'});
             }
         },
     };

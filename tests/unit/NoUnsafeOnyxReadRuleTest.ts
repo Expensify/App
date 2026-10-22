@@ -57,6 +57,7 @@ const RENDER_ERRORS = [{messageId: 'noOnyxReadInRender'}];
 const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
 const EFFECT_ERRORS = [{messageId: 'noOnyxReadInEffect'}];
 const OUTSIDE_ALLOWED_PATH_ERRORS = [{messageId: 'noOnyxReadOutsideAllowedPath'}];
+const OUTSIDE_COMPONENT_OR_HOOK_ERRORS = [{messageId: 'noOnyxReadOutsideComponentOrHook'}];
 const BY_REFERENCE_ERROR = {messageId: 'noOnyxReadByReference'};
 const BY_REFERENCE_ERRORS = [BY_REFERENCE_ERROR];
 
@@ -77,6 +78,9 @@ const REPO_ROOT = readRepoRoot();
 function inRepo(relativePath: string): string {
     return path.join(REPO_ROOT, relativePath);
 }
+
+const COMPONENT_FILE = inRepo('src/components/Foo.tsx');
+const PAGE_FILE = inRepo('src/pages/Foo/index.tsx');
 
 describe('no-unsafe-onyx-read', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
@@ -164,6 +168,42 @@ describe('no-unsafe-onyx-read', () => {
             // When the memoized function is only passed as onPress
             // Then it is an event handler, so the read is allowed
             `${ONYX_IMPORT} function Row() { const read = useMemo(() => () => Onyx.get(ONYXKEYS.SESSION), []); return <View onPress={read} />; }`,
+            // Given an object method named like a hook
+            // When nothing calls it at render or import time
+            // Then a property key is not a hook name, so the method is a plain function
+            `${ONYX_IMPORT} const hooks = {useSession() { return Onyx.get(ONYXKEYS.SESSION); }};`,
+            {
+                // Given a handler map in a component whose arrow sits under a capitalized key
+                // When a press handler calls the stored handler
+                // Then a property key is not a component name, so the read is an event read
+                code: `${ONYX_IMPORT} function Foo({action}) { const actionHandlers = {APPROVE: async () => { await Onyx.get(ONYXKEYS.ACCOUNT); }}; return <View onPress={() => actionHandlers[action]()} />; }`,
+                filename: PAGE_FILE,
+            },
+            {
+                // Given a keyboard handler map in a component with a capitalized method name
+                // When a press handler calls the method
+                // Then the method is not a component, so the read is an event read
+                code: `${ONYX_IMPORT} function Foo() { const keyHandlers = {async Enter() { await Onyx.get(ONYXKEYS.ACCOUNT); }}; return <View onPress={() => keyHandlers.Enter()} />; }`,
+                filename: PAGE_FILE,
+            },
+            {
+                // Given Array.from with a reading map function in a press handler
+                // When the handler runs on press
+                // Then Array.from runs the callback inside the handler, so the read is an event read
+                code: `${ONYX_IMPORT} function Row({ids}) { const onPress = () => Promise.all(Array.from(ids, (id) => Onyx.get(\`\${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}\${id}\`))); return <View onPress={onPress} />; }`,
+            },
+            {
+                // Given an in-component reading helper passed by reference to map in a press handler
+                // When the handler runs on press
+                // Then map runs the helper inside the handler, so the read is an event read
+                code: `${ONYX_IMPORT} function Row({ids}) { const getDraft = (id) => Onyx.get(\`\${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}\${id}\`); const onPress = () => Promise.all(ids.map(getDraft)); return <View onPress={onPress} />; }`,
+            },
+            {
+                // Given an in-component reading helper handed to setTimeout in the render body
+                // When the component renders
+                // Then the timer runs the helper after render, so it is not a render read
+                code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); setTimeout(load, 0); return <View />; }`,
+            },
         ],
         invalid: [
             {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(ONYXKEYS.SESSION)); });`, errors: MODULE_SCOPE_ERRORS},
@@ -296,8 +336,13 @@ describe('no-unsafe-onyx-read', () => {
             // A helper with JSX behind a conditional is a render body
             {code: `${ONYX_IMPORT} function row(v) { const value = use(Onyx.get(ONYXKEYS.SESSION)); return v ? <Row value={value} /> : null; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const row = (v) => (v && <Row value={use(Onyx.get(ONYXKEYS.SESSION))} />);`, errors: RENDER_ERRORS},
-            // A hook defined as an object method is still a hook
-            {code: `${ONYX_IMPORT} const hooks = {useSession() { return Onyx.get(ONYXKEYS.SESSION); }};`, errors: RENDER_ERRORS},
+            {
+                // Given an object method under a capitalized key that returns JSX
+                // When something renders it
+                // Then returnsJSX makes it a render body even though the key is not a component name
+                code: `${ONYX_IMPORT} const Components = {Header: () => { const value = Onyx.get(ONYXKEYS.SESSION); return <View value={value} />; }};`,
+                errors: RENDER_ERRORS,
+            },
             // A selector in a const-bound options object reaches the hook the same way
             {
                 code: `${ONYX_IMPORT} function Row() { const options = {selector: (data) => Onyx.get(ONYXKEYS.ACCOUNT)}; const [value] = useOnyx(key, options); return <View value={value} />; }`,
@@ -390,6 +435,27 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} const api = Onyx; const alias = api; function Row() { return <View value={alias.get(ONYXKEYS.SESSION)} />; }`, errors: RENDER_ERRORS},
 
             {code: `${ONYX_IMPORT} function Row() { Onyx.merge(key, value); const a = Onyx.get(ONYXKEYS.SESSION); return <View a={a} />; }`, errors: RENDER_ERRORS},
+            {
+                // Given Array.from with a reading map function in the render body
+                // When the component renders
+                // Then Array.from runs the callback synchronously, so the read is a render read
+                code: `${ONYX_IMPORT} function Row({ids}) { const drafts = use(Promise.all(Array.from(ids, (id) => Onyx.get(\`\${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}\${id}\`)))); return <View drafts={drafts} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given an in-component reading helper passed by reference to map in the render body
+                // When the component renders
+                // Then map runs the helper synchronously, so the read is a render read
+                code: `${ONYX_IMPORT} function Row({ids}) { const getDraft = (id) => Onyx.get(\`\${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}\${id}\`); const drafts = use(Promise.all(ids.map(getDraft))); return <View drafts={drafts} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given an in-component reading helper passed by reference as a Promise executor in the render body
+                // When the component renders
+                // Then the executor runs synchronously, so the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const load = (resolve) => resolve(Onyx.get(ONYXKEYS.SESSION)); const value = use(new Promise(load)); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
         ],
     });
 });
@@ -451,6 +517,10 @@ describe('no-unsafe-onyx-read effects', () => {
             `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => {}, [load]); return <View onPress={load} />; }`,
             `${ONYX_IMPORT} function Row() { const load = useCallback(() => Onyx.get(ONYXKEYS.SESSION), []); const run = () => load(); return <View onPress={run} />; }`,
             `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { track(); }, []); return <View onPress={onPress} />; }`,
+            // Given a startTransition callback that reads Onyx inside a press handler
+            // When the handler runs on press
+            // Then no effect reaches it, so the read is an event read
+            `${ONYX_IMPORT} function Row() { const onPress = () => { startTransition(() => { Onyx.get(ONYXKEYS.SESSION).then(setValue); }); }; return <View onPress={onPress} />; }`,
         ],
         invalid: [
             {
@@ -530,6 +600,20 @@ describe('no-unsafe-onyx-read effects', () => {
                 code: `${ONYX_IMPORT} const handlers = {load: () => Onyx.get(ONYXKEYS.SESSION)}; function Row() { useEffect(() => { void handlers.load(); }, []); return <View />; }`,
                 errors: EFFECT_ERRORS,
             },
+            {
+                // Given a startTransition callback that reads Onyx inside an effect
+                // When the effect runs
+                // Then startTransition runs the callback from the effect, so the read is an effect read
+                code: `${ONYX_IMPORT} function Row() { useEffect(() => { startTransition(() => { Onyx.get(ONYXKEYS.SESSION).then(setValue); }); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                // Given a navigation microtask callback that reads Onyx inside an effect
+                // When the effect runs
+                // Then the callback is scheduled from the effect, so the read is an effect read
+                code: `${ONYX_IMPORT} function Row() { useEffect(() => { Navigation.setNavigationActionToMicrotaskQueue(() => { Onyx.get(ONYXKEYS.SESSION).then(setValue); }); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
             // useImperativeHandle runs its factory at commit, like a layout effect
             {code: `${ONYX_IMPORT} function Row(props, ref) { useImperativeHandle(ref, () => { Onyx.get(ONYXKEYS.SESSION); return {}; }, []); return <View />; }`, errors: EFFECT_ERRORS},
             {
@@ -543,9 +627,27 @@ describe('no-unsafe-onyx-read effects', () => {
 describe('no-unsafe-onyx-read allowed paths', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
-            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/components/Foo.tsx')},
-            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/pages/Foo.tsx')},
-            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/hooks/useFoo.ts')},
+            {
+                // Given a handler inside a component under src/components
+                // When the rule checks the path
+                // Then the directory allows event reads, so nothing is reported
+                code: `${ONYX_IMPORT} function Foo() { const submit = async () => Onyx.get(ONYXKEYS.SESSION); return <View onPress={submit} />; }`,
+                filename: inRepo('src/components/Foo.tsx'),
+            },
+            {
+                // Given a handler inside a component under src/pages
+                // When the rule checks the path
+                // Then the directory allows event reads, so nothing is reported
+                code: `${ONYX_IMPORT} function Foo() { const submit = async () => Onyx.get(ONYXKEYS.SESSION); return <View onPress={submit} />; }`,
+                filename: inRepo('src/pages/Foo.tsx'),
+            },
+            {
+                // Given a function returned from a hook under src/hooks
+                // When the rule checks the path
+                // Then the directory allows event reads, so nothing is reported
+                code: `${ONYX_IMPORT} function useFoo() { const submit = async () => Onyx.get(ONYXKEYS.SESSION); return submit; }`,
+                filename: inRepo('src/hooks/useFoo.ts'),
+            },
             {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('tests/unit/FooTest.ts')},
             {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: 'file.ts'},
         ],
@@ -567,6 +669,159 @@ describe('no-unsafe-onyx-read allowed paths', () => {
                 code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`,
                 filename: inRepo('src/libs/Foo.ts'),
                 errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read outside a component or hook', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            {
+                // Given a read in a handler defined inside a function component
+                // When the handler runs on press
+                // Then the read is nested in the component, so it cannot be imported from src/libs
+                code: `${ONYX_IMPORT} function Foo() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
+                filename: COMPONENT_FILE,
+            },
+            {
+                // Given a read in a handler defined inside a page component
+                // When the handler runs on press
+                // Then the read is nested in the component, so it is allowed under src/pages too
+                code: `${ONYX_IMPORT} function Foo() { const onPress = () => Onyx.multiGet([ONYXKEYS.SESSION]); return <View onPress={onPress} />; }`,
+                filename: PAGE_FILE,
+            },
+            {
+                // Given a read in a handler inside an anonymous function that memo() wraps
+                // When the handler runs on press
+                // Then the memo() argument is the component, so the read is nested in it
+                code: `${ONYX_IMPORT} const Foo = memo(() => { const onPress = () => Onyx.get(ONYXKEYS.SESSION); return <View onPress={onPress} />; });`,
+                filename: COMPONENT_FILE,
+            },
+            {
+                // Given a read in a handler inside an anonymous function that forwardRef() wraps
+                // When the handler runs on press
+                // Then the forwardRef() argument is the component, so the read is nested in it
+                code: `${ONYX_IMPORT} const Foo = forwardRef((props, ref) => { const onPress = () => Onyx.get(ONYXKEYS.SESSION); return <View ref={ref} onPress={onPress} />; });`,
+                filename: PAGE_FILE,
+            },
+            {
+                // Given a read in a function a const-bound arrow hook returns
+                // When the caller runs the returned function on an event
+                // Then the read is nested in the hook
+                code: `${ONYX_IMPORT} const useThing = () => { const load = () => Onyx.get(ONYXKEYS.SESSION); return load; };`,
+                filename: inRepo('src/hooks/useThing.ts'),
+            },
+            {
+                // Given a read in an object method defined inside a component
+                // When a handler calls the method on press
+                // Then the method is nested in the component, so it counts as inside it
+                code: `${ONYX_IMPORT} function Foo() { const api = {load() { return Onyx.get(ONYXKEYS.SESSION); }}; return <View onPress={() => api.load()} />; }`,
+                filename: COMPONENT_FILE,
+            },
+            {
+                // Given a read in a class method where the class is defined inside a component
+                // When a handler calls the method on press
+                // Then the method is nested in the component, so it counts as inside it
+                code: `${ONYX_IMPORT} function Foo() { class Loader { load() { return Onyx.get(ONYXKEYS.SESSION); } } const loader = new Loader(); return <View onPress={() => loader.load()} />; }`,
+                filename: PAGE_FILE,
+            },
+            {
+                // Given a module-level helper that reads Onyx in a test file
+                // When suites call it from an it block
+                // Then tests are exempt from the position check, since nothing in src imports them
+                code: `${ONYX_IMPORT} function readSession() { return Onyx.get(ONYXKEYS.SESSION); } it('reads', async () => { await readSession(); });`,
+                filename: inRepo('tests/unit/Foo.ts'),
+            },
+        ],
+        invalid: [
+            {
+                // Given an exported module-level function that reads Onyx in a components file
+                // When src/libs imports and calls it
+                // Then the read escapes the directory check, so it is reported
+                code: `${ONYX_IMPORT} export function readSession() { return Onyx.get(ONYXKEYS.SESSION); }`,
+                filename: COMPONENT_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given an exported module-level function that reads Onyx in a pages utils file
+                // When src/libs imports and calls it
+                // Then the read escapes the directory check, so it is reported
+                code: `${ONYX_IMPORT} export function readSession() { return Onyx.get(ONYXKEYS.SESSION); }`,
+                filename: inRepo('src/pages/workspace/utils.ts'),
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given an exported async module-level function that reads Onyx in a hooks file
+                // When src/libs imports and calls it
+                // Then the read escapes the directory check, so it is reported
+                code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`,
+                filename: inRepo('src/hooks/useFoo.ts'),
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level function that reads Onyx with multiGet
+                // When src/libs imports and calls it
+                // Then multiGet escapes the directory check the same way, so it is reported
+                code: `${ONYX_IMPORT} export function readMany() { return Onyx.multiGet([ONYXKEYS.SESSION]); }`,
+                filename: PAGE_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level object literal method that reads Onyx in a components file
+                // When the object is imported elsewhere
+                // Then the method is not a component or hook, so the read is reported
+                code: `${ONYX_IMPORT} const api = {load() { return Onyx.get(ONYXKEYS.SESSION); }};`,
+                filename: COMPONENT_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level object literal method that reads Onyx in a pages file
+                // When the object is imported elsewhere
+                // Then the method is not a component or hook, so the read is reported
+                code: `${ONYX_IMPORT} const api = {load() { return Onyx.get(ONYXKEYS.SESSION); }};`,
+                filename: PAGE_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level class method that reads Onyx in a components file
+                // When the class is imported elsewhere
+                // Then a class is never a component here, so the read is reported
+                code: `${ONYX_IMPORT} class Store { read() { return Onyx.get(ONYXKEYS.SESSION); } }`,
+                filename: COMPONENT_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level arrow that reads Onyx, passed as onPress by a component in a components file
+                // When the component renders
+                // Then the arrow is defined outside the component, so the read is reported
+                code: `${ONYX_IMPORT} const load = () => Onyx.get(ONYXKEYS.SESSION); function Foo() { return <View onPress={load} />; }`,
+                filename: COMPONENT_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level arrow that reads Onyx, passed as onPress by a component in a pages file
+                // When the component renders
+                // Then the arrow is defined outside the component, so the read is reported
+                code: `${ONYX_IMPORT} const load = () => Onyx.get(ONYXKEYS.SESSION); function Foo() { return <View onPress={load} />; }`,
+                filename: PAGE_FILE,
+                errors: OUTSIDE_COMPONENT_OR_HOOK_ERRORS,
+            },
+            {
+                // Given a module-level helper that reads Onyx, called from a handler inside a component in a components file
+                // When the rule checks both functions
+                // Then the read sits in the helper on line 2, so that line is reported and the handler on line 3 is not
+                code: `${ONYX_IMPORT}\nfunction readSession() { return Onyx.get(ONYXKEYS.SESSION); }\nfunction Foo() { const onPress = () => readSession(); return <View onPress={onPress} />; }`,
+                filename: COMPONENT_FILE,
+                errors: [{messageId: 'noOnyxReadOutsideComponentOrHook', line: 2}],
+            },
+            {
+                // Given a module-level helper that reads Onyx, called from a handler inside a component in a pages file
+                // When the rule checks both functions
+                // Then the read sits in the helper on line 2, so that line is reported and the handler on line 3 is not
+                code: `${ONYX_IMPORT}\nfunction readSession() { return Onyx.get(ONYXKEYS.SESSION); }\nfunction Foo() { const onPress = () => readSession(); return <View onPress={onPress} />; }`,
+                filename: PAGE_FILE,
+                errors: [{messageId: 'noOnyxReadOutsideComponentOrHook', line: 2}],
             },
         ],
     });
