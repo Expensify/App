@@ -234,6 +234,21 @@ function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: str
     });
 }
 
+/**
+ * Prototype for screenshots only. Hides the UK fuel-rate missing VAT tax rate error locally, without calling the API.
+ */
+function dismissUKFuelRateTaxError(policyID: string, customUnitID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                attributes: {
+                    isUKFuelRateTaxErrorDismissed: true,
+                },
+            },
+        },
+    });
+}
+
 function clearDeleteDistanceRateError(policyID: string, customUnitID: string, rateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
@@ -1169,6 +1184,7 @@ function clearPolicyCommuterExclusionsErrors(policyID: string) {
 }
 
 export {
+    dismissUKFuelRateTaxError,
     enablePolicyDistanceRates,
     openPolicyDistanceRatesPage,
     createPolicyDistanceRate,

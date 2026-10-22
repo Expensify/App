@@ -15,6 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getAccountingConnectionNames} from './connections';
+import {getDistanceRateCustomUnit} from './customUnits';
 import {isPolicyAdmin} from './permissions';
 
 /**
@@ -79,6 +80,20 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
+/** Prototype for screenshots only, so the copy isn't translated */
+const UK_FUEL_RATE_TAX_ERROR_MESSAGE = 'Please add a VAT (20%) tax rate in Xero for UK Advisory Fuel Rates.';
+
+/**
+ * Prototype for screenshots only. Shows the UK fuel-rate missing VAT tax rate error on every GBP workspace with distance tax on, until an admin dismisses it.
+ */
+function shouldShowUKFuelRateTaxError(policy: OnyxEntry<Policy>): boolean {
+    if (!isPolicyAdmin(policy) || policy?.outputCurrency !== CONST.CURRENCY.GBP) {
+        return false;
+    }
+    const distanceCustomUnit = getDistanceRateCustomUnit(policy);
+    return !!distanceCustomUnit?.attributes?.taxEnabled && !distanceCustomUnit.attributes.isUKFuelRateTaxErrorDismissed;
+}
+
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
@@ -91,6 +106,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     if (
         shouldShowEmployeeListError(policy) ||
         shouldShowCustomUnitsError(policy) ||
+        shouldShowUKFuelRateTaxError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
@@ -140,6 +156,8 @@ export {
     shouldShowSyncError,
     shouldShowPolicyError,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
+    UK_FUEL_RATE_TAX_ERROR_MESSAGE,
     shouldShowQBOReimbursableExportDestinationAccountError,
     getPolicyBrickRoadIndicatorStatus,
     isMergeHRCompleteSetupNeededSelector,

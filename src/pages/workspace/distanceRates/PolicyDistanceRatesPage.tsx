@@ -38,7 +38,7 @@ import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/act
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -409,6 +409,8 @@ function PolicyDistanceRatesPage({
 
     const isLoading = !isOffline && customUnit === undefined;
 
+    const shouldShowUKFuelRateTaxErrorOnPolicy = shouldShowUKFuelRateTaxError(policy);
+
     const secondaryActions = useMemo(
         () => [
             {
@@ -416,9 +418,10 @@ function PolicyDistanceRatesPage({
                 text: translate('common.settings'),
                 onSelected: openSettings,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                brickRoadIndicator: shouldShowUKFuelRateTaxErrorOnPolicy ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
         ],
-        [icons.Gear, openSettings, translate],
+        [icons.Gear, openSettings, translate, shouldShowUKFuelRateTaxErrorOnPolicy],
     );
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -444,6 +447,7 @@ function PolicyDistanceRatesPage({
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={styles.flexGrow0}
+                        brickRoadIndicator={shouldShowUKFuelRateTaxErrorOnPolicy ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </>
             ) : (

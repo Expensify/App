@@ -29,7 +29,7 @@ import {
     isMapOrGPSRequired,
     isSharedGovernmentRateCurrency,
 } from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isControlPolicy, shouldShowUKFuelRateTaxError, UK_FUEL_RATE_TAX_ERROR_MESSAGE} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -42,6 +42,7 @@ import {
     clearPolicyDistanceRatesErrorFields,
     clearPolicyRequireMapOrGPSErrors,
     clearWorkspaceDistanceAutoUpdateErrors,
+    dismissUKFuelRateTaxError,
     openPolicyDistanceRatesPage,
     setPolicyRequireMapOrGPS,
     setWorkspaceDistanceAutoUpdate,
@@ -114,6 +115,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const customUnit = getDistanceRateCustomUnit(policy);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
+    const shouldShowUKFuelRateTaxErrorOnPolicy = shouldShowUKFuelRateTaxError(policy);
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnit?.defaultCategory;
@@ -343,9 +345,15 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
-                        errors={getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
+                        errors={shouldShowUKFuelRateTaxErrorOnPolicy ? {ukFuelRateTax: UK_FUEL_RATE_TAX_ERROR_MESSAGE} : getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
                         errorRowStyles={styles.mh5}
                         pendingAction={customUnit?.pendingFields?.taxEnabled}
+                        onClose={() => {
+                            if (!shouldShowUKFuelRateTaxErrorOnPolicy || !customUnit?.customUnitID) {
+                                return;
+                            }
+                            dismissUKFuelRateTaxError(policyID, customUnit.customUnitID);
+                        }}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>

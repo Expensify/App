@@ -103,6 +103,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Whether an admin dismissed the UK fuel-rate missing VAT tax rate error */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
