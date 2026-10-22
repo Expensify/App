@@ -5,6 +5,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -47,6 +48,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             moneyRequestReport,
             iouTransactionID,
             iouReport,
+            iouReportTransactions,
             chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
@@ -54,6 +56,9 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
         }: Partial<ReportDetailsRequestData> = requestData ?? {};
 
         let urlToNavigateBack: Route | undefined;
+        // Deleting a report's only expense deletes the report too. A single-expense report in the table view opens its
+        // expense on top of the report, so going back to the report would land on the "Not here" page.
+        let shouldCloseRHPAfterReportDeletion = false;
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
             const rootState = navigationRef.getRootState();
@@ -62,17 +67,24 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             const previousRoute = rhpRoutes.at(-2);
             const previousRouteReportID = previousRoute?.params && 'reportID' in previousRoute.params ? previousRoute.params.reportID : undefined;
             const superWideRHPIndex = rhpRoutes.findIndex((rhpRoute) => SUPER_WIDE_RIGHT_MODALS.has(rhpRoute.name));
+            const superWideRHPParams = rhpRoutes.at(superWideRHPIndex)?.params;
+            const superWideRHPReportID = superWideRHPIndex > -1 && superWideRHPParams && 'reportID' in superWideRHPParams ? superWideRHPParams.reportID : undefined;
+            const remainingTransactions = iouReportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const isParentReportDeleted = !!iouReport?.reportID && remainingTransactions?.length === 1;
 
             // If the deleted expense is displayed directly below, close the entire RHP
             const isSuperWideRHPDisplayed = superWideRHPIndex > -1;
+            shouldCloseRHPAfterReportDeletion = isParentReportDeleted && superWideRHPReportID === iouReport?.reportID;
+            // On narrow layouts the report sits in the Inbox central pane instead of the super wide RHP
+            const isDeletedReportUnderRHP = shouldCloseRHPAfterReportDeletion || (isParentReportDeleted && getCentralPaneReportID() === iouReport?.reportID);
             const isSuperWideRHPDisplayedDirectlyBelow = isSuperWideRHPDisplayed && superWideRHPIndex === rhpRoutes.length - 2;
             if (isSuperWideRHPDisplayedDirectlyBelow && previousRouteReportID === reportID) {
                 Navigation.dismissModal();
                 return;
             }
 
-            // If the deleted expense is opened from the super wide rhp, go back there.
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
+            // If the deleted expense is opened from the super wide rhp, go back there, unless going back would show the deleted report.
+            if (!isDeletedReportUnderRHP && previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
                     navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});
@@ -110,6 +122,10 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
         }
 
         if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else if (shouldCloseRHPAfterReportDeletion) {
+            // Going back to the super wide RHP would show the deleted report, so close the RHP to reveal the screen below
+            setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);

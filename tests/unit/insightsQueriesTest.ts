@@ -71,7 +71,7 @@ describe('insightsQueries', () => {
             });
         });
 
-        it('sends the same request whether or not the dashboard is compared', () => {
+        it('requests the same data whether or not the dashboard is compared, saving the Compare mode along', () => {
             // Given the spend dashboard shown on its own
             const standalone = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, true);
 
@@ -80,7 +80,12 @@ describe('insightsQueries', () => {
             const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
 
             // Then every response carries all comparisons, so switching one never fetches again or stores the response apart
-            expect(compared).toEqual(standalone);
+            expect(compared?.hash).toBe(standalone?.hash);
+            expect(compared?.snapshotHashes).toEqual(standalone?.snapshotHashes);
+
+            // And the backend saves the Compare mode with the rest of the filters, so it's restored after signing in again
+            expect(parsePayload(compared)?.inputQuery).toBe(buildInsightsQueryString(filters));
+            expect(parsePayload(compared)?.inputQuery).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
         });
 
         it('requests only the current period for users without the compare beta', () => {
