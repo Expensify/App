@@ -82,7 +82,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
 
 ### Onyx
-- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md): Keep Onyx reads off the render path and out of a written tick
+- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
 
 ## Usage
 
