@@ -5,6 +5,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getVendorEmptyState, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -99,6 +101,9 @@ function IOURequestStepVendor({
     const enabledVendors = Object.values(policyVendors ?? {}).filter((vendor) => vendor.enabled);
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
 
+    // Freeze the vendor selected when the page opened so the optimistic update on select (or an external change) doesn't reorder the list while it stays open.
+    const initialVendorID = useInitialValue(() => currentVendorID);
+
     const trimmedSearch = searchValue.trim().toLowerCase();
     const enabledRows: VendorListItem[] = sortedEnabledVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
@@ -124,7 +129,7 @@ function IOURequestStepVendor({
 
     const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
 
-    const data: VendorListItem[] = [
+    const unorderedData: VendorListItem[] = [
         ...(shouldShowNoneRow
             ? [
                   {
@@ -139,6 +144,9 @@ function IOURequestStepVendor({
         ...(disabledCurrentVendorRow ? [disabledCurrentVendorRow] : []),
         ...enabledRows,
     ];
+
+    // Pin the vendor selected when the page opened to the top of the list, so on a long searchable list the current choice stays visible above the keyboard instead of hiding in its alphabetical position. The "None"/disabled rows are only present when not searching, so a pinned selection sits above them. No-ops for short lists.
+    const data: VendorListItem[] = moveInitialSelectionToTop(unorderedData, initialVendorID ? [initialVendorID] : []);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -213,7 +221,8 @@ function IOURequestStepVendor({
                             onChangeText: setSearchValue,
                             headerMessage,
                         }}
-                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={data.find((item) => item.isSelected)?.keyForList}
+                        shouldScrollToFocusedIndexOnMount={false}
                         ListItem={SingleSelectListItem}
                         listEmptyContent={listEmptyContent}
                         shouldSingleExecuteRowSelect
