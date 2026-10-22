@@ -592,6 +592,24 @@ describe('UserAvatarUtils', () => {
             expect(UserAvatarUtils.isGeneratedLetterAvatarURL(icon.source)).toBe(true);
         });
 
+        it('should seed a generated letter-avatar URL from invitedEmail when the invitee has no personal details yet', () => {
+            // Given an invitee that only exists in the invite flow, with no personal details and no accountEmail
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const invitedEmail = 'invited@example.com';
+
+            // When the icon is built from the invited email alone
+            const icon = UserAvatarUtils.buildUserIcon({
+                accountID: ACCOUNT_ID,
+                personalDetails: {},
+                defaultAvatars: avatars.current,
+                invitedEmail,
+            });
+
+            // Then it shows the same letter avatar that is stored once the invite is submitted, instead of the generic fallback
+            expect(icon.source).toBe(UserAvatarUtils.getDefaultAvatarURL({accountID: ACCOUNT_ID, accountEmail: invitedEmail}));
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(icon.source)).toBe(true);
+        });
+
         it('should fall through to the catalog default for a phone login without personal details', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const phoneLogin = '+15551234567';

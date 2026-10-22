@@ -265,7 +265,9 @@ class IntlStore {
             })
             .catch((error: unknown) => {
                 if (localeSpan) {
-                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
+                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {
+                        [CONST.TELEMETRY.ATTRIBUTE_FAILED]: true,
+                    });
                 }
 
                 // Recovery is exhausted: the locale never resolves and the boot splash intentionally stays up —

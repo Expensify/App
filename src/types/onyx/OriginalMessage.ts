@@ -592,6 +592,12 @@ type OriginalMessagePolicyChangeLog = {
     /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     endDate?: string;
 
+    /** Share of the custom unit rate that is tax reclaimable, used in ADD actions */
+    taxClaimablePercentage?: number;
+
+    /** Name of the tax rate the custom unit rate's reclaimable tax falls under, used in ADD actions */
+    taxRateName?: string;
+
     /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newStartDate?: string;
 
@@ -900,6 +906,30 @@ type OriginalMessageOfficeLocationChangeLog = {
 
     /** Address of the office before an address change */
     oldAddress?: CompanyAddress;
+};
+
+/** Model of a member office location change log action */
+type OriginalMessageEmployeeOfficeLocationChangeLog = {
+    /** Account ID of the member */
+    accountID?: number;
+
+    /** Login of the member */
+    email?: string;
+
+    /** Display name of the member */
+    name?: string;
+
+    /** Office the member was assigned to, or empty when the assignment was cleared */
+    officeID?: string;
+
+    /** Nickname of the office the member was assigned to */
+    officeName?: string;
+
+    /** Office the member was assigned to before the change, or empty when they had none */
+    oldOfficeID?: string;
+
+    /** Nickname of the office the member was assigned to before the change */
+    oldOfficeName?: string;
 };
 
 /** Model of a policy copy change log action */
@@ -1285,6 +1315,9 @@ type OriginalMessageReimbursed = {
 
     /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
     creditedCurrency?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1630,18 +1663,6 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for Expensify Card issue/replacement actions
- */
-type IssueNewCardOriginalMessage = OriginalMessage<
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
->;
-
-/**
  * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
  */
 type OriginalMessageHomeAddressRequired = {
@@ -1826,6 +1847,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
@@ -1845,7 +1867,6 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
-    IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,

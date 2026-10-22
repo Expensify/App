@@ -14,7 +14,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |
-| A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
+| A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, also when the bucket can't be read, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
@@ -108,12 +108,14 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | Environment | Worker | Route | CSP |
 | --- | --- | --- | --- |
 | `test-staging` | `test-staging-new-expensify-assets` | `test-staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
-| `staging` | `staging-new-expensify-assets` | None until switchover, then `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
-| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` | Production |
+| `staging` | `staging-new-expensify-assets` | `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
+| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Production |
 
-Every staging deploy also deploys the same build to the `test-staging` and `staging` Workers (the `webDeployCloudflareWorkers` job in `.github/workflows/deploy.yml`). It uses `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit those two Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail. A failure there does not fail the staging deploy.
+Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeployWorker` job in `.github/workflows/deploy.yml`). Staging deploys also deploy it to the `test-staging` Worker (`webDeployTestStaging`). They use `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
 
-`test-staging` serves a staging build on a hostname nobody else uses. `staging` serves nothing until `staging.new.expensify.com/*` is pointed at its Worker in Cloudflare.
+The Worker deploy runs after `webDeploy` and is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. The version is checked there because both jobs have deployed by then, whichever one serves the host. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
+
+`test-staging` serves a staging build on a hostname nobody else uses.
 
 To deploy one by hand, put a staging build in `dist/` and run:
 
@@ -125,13 +127,11 @@ CI also adds Storybook to `dist/docs` before deploying, so it is served at `/doc
 
 ### Files from previous builds
 
-Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build (without `*.br`, `*.map` and Storybook) to the R2 bucket `new-expensify-web-assets-staging`. Every file is re-uploaded each time, so a file still used by recent builds never reaches the bucket's 60-day expiry. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
+Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging and production deploy also uploads its build (without `*.br`, `*.map` and Storybook) to that environment's R2 bucket, `new-expensify-web-assets-staging` or `new-expensify-web-assets-production`. Every file is re-uploaded each time, so a file still used by recent builds never reaches the bucket's 60-day expiry. When the current build doesn't have a file that a script or image requests, the Worker looks it up in its environment's bucket (the `PREVIOUS_BUILDS` binding; `test-staging` uses the staging one) and returns `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
 
-The bucket and its 60-day lifecycle rule are managed in Terraform. The upload uses `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY`, an R2 token that can only read and write that bucket. `wrangler dev` uses an empty local bucket.
+The buckets and their 60-day lifecycle rule are managed in Terraform. The upload uses `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY`, an R2 token that can only read and write those buckets. `wrangler dev` uses an empty local bucket.
 
-Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
-
-Workers Logs are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs every request.
+Workers Logs and traces are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs and traces every request.
 
 To check the config without credentials or uploading anything:
 

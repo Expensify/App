@@ -37,12 +37,14 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPolicyReimburserAccountID, wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
     getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
+    getAddedOfficeLocationMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
@@ -63,6 +65,7 @@ import {
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDelegateSubmitMessage,
+    getDeletedOfficeLocationMessage,
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
@@ -90,6 +93,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getPolicyWorkArrangementMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRenamedAction,
@@ -109,6 +113,9 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedCardFeedReimbursableMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
+    getUpdatedMemberWorkArrangementMessage,
+    getUpdatedOfficeLocationMessage,
     getUpdatedProhibitedExpensesMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -650,7 +657,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
+        return getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
     }
     if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
@@ -702,6 +709,24 @@ function computeReportNameBasedOnReportAction({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
         return getUpdatedAutoHarvestingMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT) {
+        return getPolicyWorkArrangementMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) {
+        return getUpdatedMemberWorkArrangementMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION) {
+        return getAddedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION) {
+        return getUpdatedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION) {
+        return getDeletedOfficeLocationMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION) {
+        return getUpdatedEmployeeOfficeLocationMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
         return getWorkspaceReportFieldAddMessage(translate, parentReportAction);
@@ -888,7 +913,14 @@ function computeReportNameBasedOnReportAction({
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+
+        // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
+        // ACH account can belong to a different bank account than the one the report was actually paid with, and
+        // attributing it to a non-payer admin's payment shows a different account to every other viewer.
+        const policyAccountNumber = wasPaidWithPolicyBankAccount(reportPolicy, parentReportAction?.actorAccountID, getPolicyReimburserAccountID(reportPolicy, personalDetailsList))
+            ? reportPolicy?.achAccount?.accountNumber
+            : undefined;
+        const last4Digits = (originalMessage?.accountNumber ?? policyAccountNumber)?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -1316,7 +1348,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+    if (isClosedExpenseReportWithNoExpenses(report, (reportTransactions[report.reportID]?.length ?? 0) > 0)) {
         return translate('parentReportAction.deletedReport');
     }
 

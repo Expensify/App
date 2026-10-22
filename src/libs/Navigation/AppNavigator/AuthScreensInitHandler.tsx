@@ -30,6 +30,7 @@ import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitial
 import {Scheduler} from '@libs/Scheduler';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {markReportsTabPreloadDispatched} from '@libs/telemetry/reportsTabPreloadTime';
 import {getSearchParamFromUrl} from '@libs/Url';
 
 import * as App from '@userActions/App';
@@ -159,7 +160,13 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
@@ -188,7 +195,13 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -266,6 +279,7 @@ function AuthScreensInitHandler() {
                 }
 
                 navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+                markReportsTabPreloadDispatched(target);
             },
             {shouldUseFallbackTimer: false},
         );
