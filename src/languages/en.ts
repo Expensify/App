@@ -43,6 +43,11 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    bulkActionBar: {
+        label: 'Bulk actions',
+        clearSelection: 'Clear selection',
+        loadingSelection: 'Loading selection',
+    },
     earlyRenewal: {
         title: 'Renew your Expensify subscription',
         subtitle: 'One less thing to do before the new year.',
@@ -6648,6 +6653,9 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books organization',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
             prerequisitesTitle: 'Before you connect...',
@@ -7478,6 +7486,11 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -7525,6 +7538,7 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            appendCustomTagList: 'Append custom tag list',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
             configureMultiLevelTags: 'Configure your list of tags for multi-level tagging.',
             importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
@@ -7720,6 +7734,7 @@ const translations = {
             removeMemberPrompt: (memberName: string) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
+            changeRole: 'Change role',
             makeMember: () => ({
                 one: 'Make member',
                 other: 'Make members',
@@ -10559,6 +10574,12 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
+            },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
             },
             status: 'Status',
             keyword: 'Keyword',

@@ -782,6 +782,32 @@ describe('ReportActionItem', () => {
             // Then the action message should be displayed
             expect(screen.getByText(translateLocal('iou.paidElsewhere'))).toBeOnTheScreen();
         });
+
+        it('does not show Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                paymentMethod: 'ACH',
+                creditBankAccountLast4: '1234',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('shows Explain link when action has reasoning, with no double period', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                paymentMethod: 'ACH',
+                creditBankAccountLast4: '1234',
+                reasoning: 'The withdrawal account is outside the United States, so the payment was routed through Corpay.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
+        });
     });
 
     describe('Modified expense message', () => {

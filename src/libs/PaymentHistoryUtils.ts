@@ -362,7 +362,6 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number): string {
     try {
         const pathname = new URL(source).pathname;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
