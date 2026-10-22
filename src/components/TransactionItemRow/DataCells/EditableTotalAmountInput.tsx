@@ -1,3 +1,4 @@
+import {NumericFlipButton} from '@components/NumericButtons';
 import {useDetachedSignEditingController, useNumericPressSelection} from '@components/NumericEditingController';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -9,6 +10,7 @@ import {useMouseActions} from '@hooks/useMouseContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
@@ -17,6 +19,8 @@ import type {ForwardedRef, MouseEvent} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 
 import React, {useRef, useState} from 'react';
+
+const canUseTouchScreen = canUseTouchScreenUtil();
 
 type EditableTotalAmountInputProps = {
     /** Initial signed amount in the frontend format (e.g. "-12.34"), or an empty string for none. Read on mount only. */
@@ -154,6 +158,14 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
                 touchableInputWrapperStyle={styles.editableCellInputStyle}
                 value={controller.formattedNumber}
             />
+            {/* Soft decimal keyboards have no minus key, so touch devices flip the sign with a compact icon button */}
+            {canFlipSign && canUseTouchScreen && (
+                <NumericFlipButton
+                    onPress={controller.toggleSign}
+                    shouldShowLabel={false}
+                    style={[styles.ml1, styles.flexShrink0]}
+                />
+            )}
         </ScrollView>
     );
 }
